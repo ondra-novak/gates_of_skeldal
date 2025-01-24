@@ -1,0 +1,34 @@
+Microsoft Visual Studio Solution File, Format Version 8.00
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "DDLReader", "DDLReader.vcproj", "{A5326507-3420-4D03-B9EB-5583790B412B}"
+	ProjectSection(ProjectDependencies) = postProject
+	EndProjectSection
+EndProject
+Global
+	GlobalSection(SourceCodeControl) = preSolution
+		SccNumberOfProjects = 2
+		SccProjectName0 = \u0022$/Skeldal/DDLReader\u0022,\u0020NJEAAAAA
+		SccLocalPath0 = ..\\..\\..
+		SccProvider0 = MSSCCI:Microsoft\u0020Visual\u0020SourceSafe
+		CanCheckoutShared = false
+		SccProjectFilePathRelativizedFromConnection0 = Projects\\Skeldal\\DDLReader\\
+		SolutionUniqueID = {A1A5598F-1F71-475C-8CAA-699B487DC20F}
+		SccProjectUniqueName1 = DDLReader.vcproj
+		SccLocalPath1 = ..\\..\\..
+		CanCheckoutShared = false
+		SccProjectFilePathRelativizedFromConnection1 = Projects\\Skeldal\\DDLReader\\
+	EndGlobalSection
+	GlobalSection(SolutionConfiguration) = preSolution
+		Debug = Debug
+		Release = Release
+	EndGlobalSection
+	GlobalSection(ProjectConfiguration) = postSolution
+		{A5326507-3420-4D03-B9EB-5583790B412B}.Debug.ActiveCfg = Debug|Win32
+		{A5326507-3420-4D03-B9EB-5583790B412B}.Debug.Build.0 = Debug|Win32
+		{A5326507-3420-4D03-B9EB-5583790B412B}.Release.ActiveCfg = Release|Win32
+		{A5326507-3420-4D03-B9EB-5583790B412B}.Release.Build.0 = Release|Win32
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+	EndGlobalSection
+	GlobalSection(ExtensibilityAddIns) = postSolution
+	EndGlobalSection
+EndGlobal

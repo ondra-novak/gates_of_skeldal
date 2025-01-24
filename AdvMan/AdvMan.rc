@@ -1,0 +1,569 @@
+// Microsoft Visual C++ generated resource script.
+//
+#include "resource.h"
+
+#define APSTUDIO_READONLY_SYMBOLS
+/////////////////////////////////////////////////////////////////////////////
+//
+// Generated from the TEXTINCLUDE 2 resource.
+//
+#include "afxres.h"
+
+/////////////////////////////////////////////////////////////////////////////
+#undef APSTUDIO_READONLY_SYMBOLS
+
+/////////////////////////////////////////////////////////////////////////////
+// Czech resources
+
+#if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_CSY)
+#ifdef _WIN32
+LANGUAGE LANG_CZECH, SUBLANG_DEFAULT
+#pragma code_page(1250)
+#endif //_WIN32
+
+#ifdef APSTUDIO_INVOKED
+/////////////////////////////////////////////////////////////////////////////
+//
+// TEXTINCLUDE
+//
+
+1 TEXTINCLUDE 
+BEGIN
+    "resource.h\0"
+END
+
+2 TEXTINCLUDE 
+BEGIN
+    "#include ""afxres.h""\r\n"
+    "\0"
+END
+
+3 TEXTINCLUDE 
+BEGIN
+    "#define _AFX_NO_SPLITTER_RESOURCES\r\n"
+    "#define _AFX_NO_OLE_RESOURCES\r\n"
+    "#define _AFX_NO_TRACKER_RESOURCES\r\n"
+    "#define _AFX_NO_PROPERTY_RESOURCES\r\n"
+    "\r\n"
+    "#if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_ENU)\r\n"
+    "#ifdef _WIN32\r\n"
+    "LANGUAGE 9, 1\r\n"
+    "#pragma code_page(1252)\r\n"
+    "#endif //_WIN32\r\n"
+    "#include ""res\\AdvMan.rc2""  // non-Microsoft Visual C++ edited resources\r\n"
+    "#include ""afxres.rc""         // Standard components\r\n"
+    "#endif\r\n"
+    "\0"
+END
+
+#endif    // APSTUDIO_INVOKED
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Bitmap
+//
+
+IDR_MAINFRAME           BITMAP                  "res\\Toolbar.bmp"
+IDR_TOOLEDITORY         BITMAP                  "res\\editory.bmp"
+IDR_PREKLADACE          BITMAP                  "res\\prekladace.bmp"
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Toolbar
+//
+
+IDR_MAINFRAME TOOLBAR  16, 16
+BEGIN
+    BUTTON      ID_FILE_NOVDOBRODRUST
+    BUTTON      ID_FILE_NATIDOBRODRUSTV
+    SEPARATOR
+    BUTTON      ID_NSTROJE_MAPEDIT
+    BUTTON      ID_NSTROJE_TESTUJDOBRODRUSTV
+    SEPARATOR
+    BUTTON      ID_APP_EXIT
+    SEPARATOR
+    BUTTON      ID_APP_ABOUT
+END
+
+IDR_TOOLEDITORY TOOLBAR  16, 15
+BEGIN
+    BUTTON      ID_EDITORY_KOUZLATAB
+    BUTTON      ID_EDITORY_POSTAVYTAB
+    BUTTON      ID_EDITORY_DIALOGY
+    BUTTON      ID_EDITORY_WEAPONSSCR
+    BUTTON      ID_EDITORY_ITEMSPIC
+    BUTTON      ID_EDITORY_ITEMSSCR
+END
+
+IDR_PREKLADACE TOOLBAR  16, 15
+BEGIN
+    BUTTON      ID_PEKLADAE_PELOKOUZLA
+    BUTTON      ID_PEKLADAE_PELODIALOGY
+    BUTTON      ID_PEKLADAE_PELOPOSTAVYTAB
+END
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Menu
+//
+
+IDR_MAINFRAME MENU 
+BEGIN
+    POPUP "&File"
+    BEGIN
+        MENUITEM "Nové dobrodružstí",           ID_FILE_NOVDOBRODRUST
+        MENUITEM SEPARATOR
+        MENUITEM "Naèti dobrodružství",         ID_FILE_NATIDOBRODRUSTV
+        MENUITEM "Znovu naèíst",                ID_FILE_ZNOVUNAST
+        MENUITEM SEPARATOR
+        MENUITEM "E&xit",                       ID_APP_EXIT
+    END
+    POPUP "Editory"
+    BEGIN
+        MENUITEM "KOUZLA.TAB",                  ID_EDITORY_KOUZLATAB
+        MENUITEM "POSTAVY.TAB",                 ID_EDITORY_POSTAVYTAB
+        MENUITEM "Dialogy",                     ID_EDITORY_DIALOGY
+        MENUITEM "ITEMS.SCR",                   ID_EDITORY_ITEMSSCR
+        MENUITEM "ITEMS.PIC",                   ID_EDITORY_ITEMSPIC
+        MENUITEM "WEAPONS.SCR",                 ID_EDITORY_WEAPONSSCR
+        MENUITEM "Soubor ADV",                  ID_EDITORY_SOUBORADV
+    END
+    POPUP "Pøekladaèe"
+    BEGIN
+        MENUITEM "Pøelož kouzla",               ID_PEKLADAE_PELOKOUZLA
+        MENUITEM "Pøelož dialogy",              ID_PEKLADAE_PELODIALOGY
+        MENUITEM "Pøelož POSTAVY.TAB",          ID_PEKLADAE_PELOPOSTAVYTAB
+    END
+    POPUP "Nástroje"
+    BEGIN
+        MENUITEM "MapEdit",                     ID_NSTROJE_MAPEDIT
+        MENUITEM "Testuj dobrodružství",        ID_NSTROJE_TESTUJDOBRODRUSTV
+        MENUITEM SEPARATOR
+        MENUITEM "Tvùrce podlah",               ID_NSTROJE_TVRCEPODLAH
+        MENUITEM "Tvùrce palet pro nestvùry",   ID_NSTROJE_TVRCEPALETPRONESTVRY
+
+        MENUITEM "Tvùrce ikon pro pøedmìty",    ID_NSTROJE_TVRCEIKONPROPEDMTY
+
+        MENUITEM "Èteèka DDL souborù",          ID_NSTROJE_TEKADDLSOUBOR
+        MENUITEM SEPARATOR
+        MENUITEM "Exportuj dobrodružství",      ID_NSTROJE_EXPORTUJDOBRODRUSTV
+
+    END
+    POPUP "&View"
+    BEGIN
+        MENUITEM "Hlavní toolbar",              ID_VIEW_TOOLBAR
+        MENUITEM "Pøekladaèe",                  ID_VIEW_PREKLADACE
+        MENUITEM "Editory",                     32810
+        MENUITEM "&Status Bar",                 ID_VIEW_STATUS_BAR
+    END
+    POPUP "&Help"
+    BEGIN
+        MENUITEM "&About AdvMan...",            ID_APP_ABOUT
+    END
+END
+
+IDR_EDITORMENU MENU 
+BEGIN
+    POPUP "Soubor"
+    BEGIN
+        MENUITEM "Uložit",                      IDOK
+        MENUITEM SEPARATOR
+        MENUITEM "Konec",                       IDCANCEL
+    END
+    POPUP "Úpravy"
+    BEGIN
+        MENUITEM "Zpìt",                        ID_PRAVY_UNDO
+        MENUITEM SEPARATOR
+        MENUITEM "Kopírovat",                   ID_UPRAVY_COPY
+        MENUITEM "Vyjmout",                     ID_UPRAVY_VYJMOUT
+        MENUITEM "Vložit",                      ID_UPRAVY_VLOZIT
+        MENUITEM "Vymazat",                     ID_UPRAVY_VYMAZAT
+    END
+END
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Dialog
+//
+
+IDD_NOVEDOBR DIALOGEX 0, 0, 234, 297
+STYLE DS_SETFONT | DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "Založit nové dobrodružství"
+FONT 8, "MS Sans Serif", 0, 0, 0x0
+BEGIN
+    LTEXT           "Jméno nového dobrodružství",IDC_STATIC,7,7,92,8
+    EDITTEXT        IDC_JMENO,7,18,159,12,ES_AUTOHSCROLL | WS_GROUP
+    GROUPBOX        "Vyber organizaci projektu",IDC_STATIC,7,36,162,60,
+                    WS_GROUP
+    CONTROL         "Nová organizace (doporuèeno)",IDC_ORGANIZACE,"Button",
+                    BS_AUTORADIOBUTTON | WS_GROUP | WS_TABSTOP,15,55,114,10
+    CONTROL         "Pùvodní DOSová organizace (kompatibilní)",IDC_RADIO2,
+                    "Button",BS_AUTORADIOBUTTON,15,66,152,10
+    CONTROL         "Vše v jedné složce (malé projeky)",IDC_RADIO3,"Button",
+                    BS_AUTORADIOBUTTON,15,77,121,10
+    GROUPBOX        "Do nového projektu vložit",IDC_STATIC,7,98,162,82,
+                    WS_GROUP
+    CONTROL         "Také soubory pro editaci kouzel",IDC_KOUZLA,"Button",
+                    BS_AUTOCHECKBOX | WS_GROUP | WS_TABSTOP,15,111,117,10
+    CONTROL         "Také soubory pro editaci dialogù",IDC_DIALOGY,"Button",
+                    BS_AUTOCHECKBOX,15,123,119,10
+    CONTROL         "Také definice grafiky originální hry",IDC_DEFINICE,
+                    "Button",BS_AUTOCHECKBOX,15,135,123,10
+    CONTROL         "Také všechny mapy z originální hry",IDC_MAPY,"Button",
+                    BS_AUTOCHECKBOX,15,147,127,10
+    GROUPBOX        "Startovní mapa",IDC_STATIC,7,183,161,29,WS_GROUP
+    EDITTEXT        IDC_STARTMAP,16,193,145,12,ES_AUTOHSCROLL | WS_GROUP
+    GROUPBOX        "Poèet èlenù družiny",IDC_STATIC,7,214,161,42,WS_GROUP
+    LTEXT           "Nejménì",IDC_STATIC,15,228,29,8
+    LTEXT           "Nejvíce",IDC_STATIC,15,242,26,8
+    EDITTEXT        IDC_MINPOSTAV,53,226,16,12,ES_MULTILINE | WS_GROUP
+    EDITTEXT        IDC_MAXPOSTAV,53,240,16,12,ES_MULTILINE | WS_GROUP
+    DEFPUSHBUTTON   "OK",IDOK,177,7,50,14,WS_GROUP
+    PUSHBUTTON      "Storno",IDCANCEL,177,24,50,14,NOT WS_TABSTOP
+    CONTROL         "Také originální dialogy",IDC_ORIGDLGS,"Button",
+                    BS_AUTOCHECKBOX,15,159,87,10
+END
+
+IDD_TEXTEDITOR DIALOGEX 0, 0, 599, 412
+STYLE DS_SETFONT | DS_CENTER | WS_MINIMIZEBOX | WS_MAXIMIZEBOX | WS_POPUP | 
+    WS_VISIBLE | WS_CAPTION | WS_SYSMENU | WS_THICKFRAME
+CAPTION "Textový editor"
+MENU IDR_EDITORMENU
+FONT 8, "MS Sans Serif", 0, 0, 0x1
+BEGIN
+    DEFPUSHBUTTON   "Uložit (Ctrl+S)",IDOK,540,397,58,14
+    EDITTEXT        IDC_EDIT,44,0,553,395,ES_MULTILINE | ES_AUTOVSCROLL | 
+                    ES_AUTOHSCROLL | ES_WANTRETURN | NOT WS_BORDER | 
+                    WS_VSCROLL | WS_HSCROLL,WS_EX_STATICEDGE
+END
+
+IDD_DIALOGY DIALOGEX 0, 0, 334, 202
+STYLE DS_SETFONT | DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "Dialogy"
+FONT 8, "MS Sans Serif", 0, 0, 0x0
+BEGIN
+    PUSHBUTTON      "Zavøít",IDCANCEL,267,24,60,14
+    PUSHBUTTON      "Upravit dialog",IDC_EDIT,267,68,60,14
+    PUSHBUTTON      "Pøidat dialog",IDC_ADD,267,52,60,14
+    PUSHBUTTON      "Vymazat dialog",IDC_DELETE,267,85,60,14
+    CONTROL         "List1",IDC_DLGLIST,"SysListView32",LVS_REPORT | 
+                    LVS_SHOWSELALWAYS | LVS_EDITLABELS | WS_BORDER | 
+                    WS_TABSTOP,7,7,256,188
+    PUSHBUTTON      "Obnovit",IDC_RESCAN,267,181,60,14
+    DEFPUSHBUTTON   "OK",IDOK,267,7,60,14
+END
+
+IDD_NOVYDIALOG DIALOG  0, 0, 214, 105
+STYLE DS_SETFONT | DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "Nový dialog"
+FONT 8, "MS Sans Serif"
+BEGIN
+    DEFPUSHBUTTON   "OK",IDOK,157,67,50,14
+    PUSHBUTTON      "Cancel",IDCANCEL,157,84,50,14
+    LTEXT           "Popis dialogu:",IDC_STATIC,7,7,45,8
+    EDITTEXT        IDC_POPIS,7,18,200,12,ES_AUTOHSCROLL
+    LTEXT           "Jméno souboru dialogu bez pøípony (.dlg) - 8 znakù",
+                    IDC_STATIC,7,32,162,8
+    COMBOBOX        IDC_JMENO,7,43,73,61,CBS_DROPDOWN | CBS_SORT | 
+                    WS_VSCROLL | WS_TABSTOP
+    LTEXT           "Èislo dialogu:",IDC_STATIC,7,60,42,8
+    LTEXT           "Uplatní se pouze pro novì založený dialog",IDC_STATIC,7,
+                    89,134,8
+    COMBOBOX        IDC_CISLO,7,72,33,105,CBS_DROPDOWN | CBS_SORT | 
+                    WS_VSCROLL | WS_TABSTOP
+END
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// DESIGNINFO
+//
+
+#ifdef APSTUDIO_INVOKED
+GUIDELINES DESIGNINFO 
+BEGIN
+    IDD_NOVEDOBR, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 227
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 290
+    END
+
+    IDD_TEXTEDITOR, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 592
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 405
+    END
+
+    IDD_DIALOGY, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 327
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 195
+    END
+
+    IDD_NOVYDIALOG, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 207
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 98
+    END
+END
+#endif    // APSTUDIO_INVOKED
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Icon
+//
+
+// Icon with lowest ID value placed first to ensure application icon
+// remains consistent on all systems.
+IDI_NOTEPADICON         ICON                    "idc_note.ico"
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// String Table
+//
+
+STRINGTABLE 
+BEGIN
+    IDR_MAINFRAME           "Adventure Manager"
+    IDS_NOVEDOBRODRUZSTVIDOKONCENO 
+                            "Prùvodce novým dobrodružstvím dokonèil všechny úkoly.\r\n\r\nPokud se zobrazila nìjaká chyba, bude nutné po opravì chyby pøíkaz opakovat, jinak nebude dobrodružství hratelné."
+    IDS_ADVFILTER           "Dobrodružství Skeldalu|*.adv|Všechny soubory|*.*||"
+    IDS_CHYBAPRICTENI       "Chyba pøi ètení souboru dobrodružství"
+    IDS_MAINFRAMETITLE      "%s - Adventure Manager "
+    IDS_UNTITLED            "Nepojmenované.ADV"
+    IDS_CANNOTEXECUTE       "Nemohu spustit aplikaci '%1'"
+    IDS_NEMOHUNAJITNICOD    "Pozor! Nemohu najít následující soubor(y):\r\n\r\n%1\r\n\r\nChybìjící soubory mohou zpùsobit, že dobrodružství nebude možné hrát."
+    IDS_EDITADVWARN         "Pozor! Zmìny v souboru ADV se neprojeví ihned. Po uložení nechte znovu naèíst dobrodružství pomocí funkce Soubor -> Znovu naèíst."
+    IDS_DLGNAME             "Jméno"
+    IDS_DLGDESC             "Popis"
+    IDS_DLGID               "ID"
+    IDS_UNABLETOSAVEDIALOGYDLG 
+                            "Nemohu uložit soubor DIALOGY.DLG. Nastala nìjaká chyba."
+    IDS_NODESC              "<Bez Popisu>"
+END
+
+STRINGTABLE 
+BEGIN
+    AFX_IDS_APP_TITLE       "AdvMan"
+    AFX_IDS_IDLEMESSAGE     "Ready"
+END
+
+STRINGTABLE 
+BEGIN
+    ID_INDICATOR_EXT        "EXT"
+    ID_INDICATOR_CAPS       "CAP"
+    ID_INDICATOR_NUM        "NUM"
+    ID_INDICATOR_SCRL       "SCRL"
+    ID_INDICATOR_OVR        "OVR"
+    ID_INDICATOR_REC        "REC"
+END
+
+STRINGTABLE 
+BEGIN
+    ID_APP_ABOUT            "Display program information, version number and copyright\nAbout"
+    ID_APP_EXIT             "Quit the application; prompts to save documents\nExit"
+END
+
+STRINGTABLE 
+BEGIN
+    ID_NEXT_PANE            "Switch to the next window pane\nNext Pane"
+    ID_PREV_PANE            "Switch back to the previous window pane\nPrevious Pane"
+END
+
+STRINGTABLE 
+BEGIN
+    ID_WINDOW_SPLIT         "Split the active window into panes\nSplit"
+END
+
+STRINGTABLE 
+BEGIN
+    ID_EDIT_CLEAR           "Erase the selection\nErase"
+    ID_EDIT_CLEAR_ALL       "Erase everything\nErase All"
+    ID_EDIT_COPY            "Copy the selection and put it on the Clipboard\nCopy"
+    ID_EDIT_CUT             "Cut the selection and put it on the Clipboard\nCut"
+    ID_EDIT_FIND            "Find the specified text\nFind"
+    ID_EDIT_PASTE           "Insert Clipboard contents\nPaste"
+    ID_EDIT_REPEAT          "Repeat the last action\nRepeat"
+    ID_EDIT_REPLACE         "Replace specific text with different text\nReplace"
+    ID_EDIT_SELECT_ALL      "Select the entire document\nSelect All"
+    ID_EDIT_UNDO            "Undo the last action\nUndo"
+    ID_EDIT_REDO            "Redo the previously undone action\nRedo"
+END
+
+STRINGTABLE 
+BEGIN
+    ID_VIEW_TOOLBAR         "Show or hide the toolbar\nToggle ToolBar"
+    ID_VIEW_STATUS_BAR      "Show or hide the status bar\nToggle StatusBar"
+END
+
+STRINGTABLE 
+BEGIN
+    AFX_IDS_SCSIZE          "Change the window size"
+    AFX_IDS_SCMOVE          "Change the window position"
+    AFX_IDS_SCMINIMIZE      "Reduce the window to an icon"
+    AFX_IDS_SCMAXIMIZE      "Enlarge the window to full size"
+    AFX_IDS_SCNEXTWINDOW    "Switch to the next document window"
+    AFX_IDS_SCPREVWINDOW    "Switch to the previous document window"
+    AFX_IDS_SCCLOSE         "Close the active window and prompts to save the documents"
+END
+
+STRINGTABLE 
+BEGIN
+    AFX_IDS_SCRESTORE       "Restore the window to normal size"
+    AFX_IDS_SCTASKLIST      "Activate Task List"
+END
+
+#endif    // Czech resources
+/////////////////////////////////////////////////////////////////////////////
+
+
+/////////////////////////////////////////////////////////////////////////////
+// English (U.S.) resources
+
+#if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_ENU)
+#ifdef _WIN32
+LANGUAGE LANG_ENGLISH, SUBLANG_ENGLISH_US
+#pragma code_page(1252)
+#endif //_WIN32
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Dialog
+//
+
+IDD_ABOUTBOX DIALOG  0, 0, 235, 55
+STYLE DS_SETFONT | DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "About AdvMan"
+FONT 8, "MS Sans Serif"
+BEGIN
+    ICON            IDR_MAINFRAME,IDC_STATIC,11,17,20,20
+    LTEXT           "AdvMan Version 1.0",IDC_STATIC,40,10,119,8,SS_NOPREFIX
+    LTEXT           "Copyright (C) 2005",IDC_STATIC,40,25,119,8
+    DEFPUSHBUTTON   "OK",IDOK,178,7,50,14,WS_GROUP
+END
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// DESIGNINFO
+//
+
+#ifdef APSTUDIO_INVOKED
+GUIDELINES DESIGNINFO 
+BEGIN
+    IDD_ABOUTBOX, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 228
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 48
+    END
+END
+#endif    // APSTUDIO_INVOKED
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Icon
+//
+
+// Icon with lowest ID value placed first to ensure application icon
+// remains consistent on all systems.
+IDR_MAINFRAME           ICON                    "res\\AdvMan.ico"
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Accelerator
+//
+
+IDR_MAINFRAME ACCELERATORS 
+BEGIN
+    "C",            ID_EDIT_COPY,           VIRTKEY, CONTROL, NOINVERT
+    "V",            ID_EDIT_PASTE,          VIRTKEY, CONTROL, NOINVERT
+    VK_BACK,        ID_EDIT_UNDO,           VIRTKEY, ALT, NOINVERT
+    VK_DELETE,      ID_EDIT_CUT,            VIRTKEY, SHIFT, NOINVERT
+    VK_F6,          ID_NEXT_PANE,           VIRTKEY, NOINVERT
+    VK_F6,          ID_PREV_PANE,           VIRTKEY, SHIFT, NOINVERT
+    VK_INSERT,      ID_EDIT_COPY,           VIRTKEY, CONTROL, NOINVERT
+    VK_INSERT,      ID_EDIT_PASTE,          VIRTKEY, SHIFT, NOINVERT
+    "X",            ID_EDIT_CUT,            VIRTKEY, CONTROL, NOINVERT
+    "Z",            ID_EDIT_UNDO,           VIRTKEY, CONTROL, NOINVERT
+END
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Version
+//
+
+VS_VERSION_INFO VERSIONINFO
+ FILEVERSION 1,0,0,1
+ PRODUCTVERSION 1,0,0,1
+ FILEFLAGSMASK 0x3fL
+#ifdef _DEBUG
+ FILEFLAGS 0x1L
+#else
+ FILEFLAGS 0x0L
+#endif
+ FILEOS 0x4L
+ FILETYPE 0x1L
+ FILESUBTYPE 0x0L
+BEGIN
+    BLOCK "StringFileInfo"
+    BEGIN
+        BLOCK "040904B0"
+        BEGIN
+            VALUE "FileDescription", "AdvMan MFC Application"
+            VALUE "FileVersion", "1, 0, 0, 1"
+            VALUE "InternalName", "AdvMan"
+            VALUE "LegalCopyright", "Copyright (C) 2005"
+            VALUE "OriginalFilename", "AdvMan.EXE"
+            VALUE "ProductName", "AdvMan Application"
+            VALUE "ProductVersion", "1, 0, 0, 1"
+        END
+    END
+    BLOCK "VarFileInfo"
+    BEGIN
+        VALUE "Translation", 0x409, 1200
+    END
+END
+
+#endif    // English (U.S.) resources
+/////////////////////////////////////////////////////////////////////////////
+
+
+
+#ifndef APSTUDIO_INVOKED
+/////////////////////////////////////////////////////////////////////////////
+//
+// Generated from the TEXTINCLUDE 3 resource.
+//
+#define _AFX_NO_SPLITTER_RESOURCES
+#define _AFX_NO_OLE_RESOURCES
+#define _AFX_NO_TRACKER_RESOURCES
+#define _AFX_NO_PROPERTY_RESOURCES
+
+#if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_ENU)
+#ifdef _WIN32
+LANGUAGE 9, 1
+#pragma code_page(1252)
+#endif //_WIN32
+#include "res\AdvMan.rc2"  // non-Microsoft Visual C++ edited resources
+#include "afxres.rc"         // Standard components
+#endif
+
+/////////////////////////////////////////////////////////////////////////////
+#endif    // not APSTUDIO_INVOKED
+

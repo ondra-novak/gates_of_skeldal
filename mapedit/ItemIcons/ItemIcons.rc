@@ -1,0 +1,354 @@
+// Microsoft Visual C++ generated resource script.
+//
+#include "resource.h"
+
+#define APSTUDIO_READONLY_SYMBOLS
+/////////////////////////////////////////////////////////////////////////////
+//
+// Generated from the TEXTINCLUDE 2 resource.
+//
+#include "afxres.h"
+
+/////////////////////////////////////////////////////////////////////////////
+#undef APSTUDIO_READONLY_SYMBOLS
+
+/////////////////////////////////////////////////////////////////////////////
+// Czech resources
+
+#if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_CSY)
+#ifdef _WIN32
+LANGUAGE LANG_CZECH, SUBLANG_DEFAULT
+#pragma code_page(1250)
+#endif //_WIN32
+
+#ifdef APSTUDIO_INVOKED
+/////////////////////////////////////////////////////////////////////////////
+//
+// TEXTINCLUDE
+//
+
+1 TEXTINCLUDE 
+BEGIN
+    "resource.h\0"
+END
+
+2 TEXTINCLUDE 
+BEGIN
+    "#include ""afxres.h""\r\n"
+    "\0"
+END
+
+3 TEXTINCLUDE 
+BEGIN
+    "#define _AFX_NO_SPLITTER_RESOURCES\r\n"
+    "#define _AFX_NO_OLE_RESOURCES\r\n"
+    "#define _AFX_NO_TRACKER_RESOURCES\r\n"
+    "#define _AFX_NO_PROPERTY_RESOURCES\r\n"
+    "\r\n"
+    "#if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_ENU)\r\n"
+    "LANGUAGE 9, 1\r\n"
+    "#pragma code_page(1250)\r\n"
+    "#include ""res\\ItemIcons.rc2""  // non-Microsoft Visual C++ edited resources\r\n"
+    "#include ""afxres.rc""         // Standard components\r\n"
+    "#endif\r\n"
+    "\0"
+END
+
+#endif    // APSTUDIO_INVOKED
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Icon
+//
+
+// Icon with lowest ID value placed first to ensure application icon
+// remains consistent on all systems.
+IDR_MAINFRAME           ICON                    "res\\ItemIcons.ico"
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Dialog
+//
+
+IDD_OPENDLG DIALOGEX 0, 0, 390, 175
+STYLE DS_SETFONT | DS_MODALFRAME | DS_FIXEDSYS | WS_POPUP | WS_CAPTION | 
+    WS_SYSMENU
+CAPTION "Otevøít knihovnu ikon"
+FONT 8, "MS Shell Dlg", 400, 0, 0x1
+BEGIN
+    DEFPUSHBUTTON   "Otevøít",IDOK,7,118,92,14
+    PUSHBUTTON      "Cancel",IDCANCEL,7,153,91,14
+    LISTBOX         IDC_LIST,7,7,92,105,LBS_SORT | LBS_NOINTEGRALHEIGHT | 
+                    WS_VSCROLL | WS_TABSTOP
+    PUSHBUTTON      "Vybrat jiné umístìní",IDC_BROWSE,7,135,92,14
+    CTEXT           "",IDC_ICON1,104,6,44,51,SS_NOTIFY | SS_CENTERIMAGE
+    CTEXT           "",IDC_ICON2,151,6,44,51,SS_NOTIFY | SS_CENTERIMAGE
+    CTEXT           "",IDC_ICON3,198,6,44,51,SS_NOTIFY | SS_CENTERIMAGE
+    CTEXT           "",IDC_ICON4,245,6,44,51,SS_NOTIFY | SS_CENTERIMAGE
+    CTEXT           "",IDC_ICON5,292,6,44,51,SS_NOTIFY | SS_CENTERIMAGE
+    CTEXT           "",IDC_ICON6,339,6,44,51,SS_NOTIFY | SS_CENTERIMAGE
+    CTEXT           "",IDC_ICON7,104,62,44,51,SS_NOTIFY | SS_CENTERIMAGE
+    CTEXT           "",IDC_ICON8,151,62,44,51,SS_NOTIFY | SS_CENTERIMAGE
+    CTEXT           "Náhled",IDC_ICON9,198,62,44,51,SS_NOTIFY | 
+                    SS_CENTERIMAGE
+    CTEXT           "",IDC_ICON10,245,62,44,51,SS_NOTIFY | SS_CENTERIMAGE
+    CTEXT           "",IDC_ICON11,292,62,44,51,SS_NOTIFY | SS_CENTERIMAGE
+    CTEXT           "",IDC_ICON12,339,62,44,51,SS_NOTIFY | SS_CENTERIMAGE
+    CTEXT           "",IDC_ICON13,104,118,44,51,SS_NOTIFY | SS_CENTERIMAGE
+    CTEXT           "",IDC_ICON14,151,118,44,51,SS_NOTIFY | SS_CENTERIMAGE
+    CTEXT           "",IDC_ICON15,198,118,44,51,SS_NOTIFY | SS_CENTERIMAGE
+    CTEXT           "",IDC_ICON16,245,118,44,51,SS_NOTIFY | SS_CENTERIMAGE
+    CTEXT           "",IDC_ICON17,292,118,44,51,SS_NOTIFY | SS_CENTERIMAGE
+    CTEXT           "",IDC_ICON18,339,118,44,51,SS_NOTIFY | SS_CENTERIMAGE
+END
+
+IDD_ABOUTBOX DIALOGEX 0, 0, 235, 55
+STYLE DS_SETFONT | DS_MODALFRAME | DS_FIXEDSYS | WS_POPUP | WS_CAPTION | 
+    WS_SYSMENU
+CAPTION "About ItemIcons"
+FONT 8, "MS Shell Dlg", 0, 0, 0x1
+BEGIN
+    ICON            IDR_MAINFRAME,IDC_STATIC,11,17,20,20
+    LTEXT           "ItemIcons Version 1.0",IDC_STATIC,40,10,119,8,
+                    SS_NOPREFIX
+    LTEXT           "Copyright (C) 2005",IDC_STATIC,40,25,119,8
+    DEFPUSHBUTTON   "OK",IDOK,178,7,50,16,WS_GROUP
+END
+
+IDD_ITEMICONS_DIALOG DIALOGEX 0, 0, 299, 224
+STYLE DS_SETFONT | DS_MODALFRAME | WS_MINIMIZEBOX | WS_POPUP | WS_VISIBLE | 
+    WS_CAPTION | WS_SYSMENU
+EXSTYLE WS_EX_ACCEPTFILES | WS_EX_APPWINDOW
+CAPTION "Icon Library"
+MENU IDR_MAINMENU
+FONT 10, "Microsoft Sans Serif", 400, 0, 0xEE
+BEGIN
+    CTEXT           "<nic>",IDC_ICON1,7,35,45,55,SS_NOTIFY | SS_CENTERIMAGE,
+                    WS_EX_STATICEDGE
+    CTEXT           "<nic>",IDC_ICON2,55,35,45,55,SS_NOTIFY | SS_CENTERIMAGE,
+                    WS_EX_STATICEDGE
+    CTEXT           "<nic>",IDC_ICON3,103,35,45,55,SS_NOTIFY | 
+                    SS_CENTERIMAGE,WS_EX_STATICEDGE
+    CTEXT           "<nic>",IDC_ICON4,151,35,45,55,SS_NOTIFY | 
+                    SS_CENTERIMAGE,WS_EX_STATICEDGE
+    CTEXT           "<nic>",IDC_ICON5,199,35,45,55,SS_NOTIFY | 
+                    SS_CENTERIMAGE,WS_EX_STATICEDGE
+    CTEXT           "<nic>",IDC_ICON6,247,35,45,55,SS_NOTIFY | 
+                    SS_CENTERIMAGE,WS_EX_STATICEDGE
+    CTEXT           "<nic>",IDC_ICON7,7,92,45,55,SS_NOTIFY | SS_CENTERIMAGE,
+                    WS_EX_STATICEDGE
+    CTEXT           "<nic>",IDC_ICON8,55,92,45,55,SS_NOTIFY | SS_CENTERIMAGE,
+                    WS_EX_STATICEDGE
+    CTEXT           "<nic>",IDC_ICON9,103,92,45,55,SS_NOTIFY | 
+                    SS_CENTERIMAGE,WS_EX_STATICEDGE
+    CTEXT           "<nic>",IDC_ICON10,151,92,45,55,SS_NOTIFY | 
+                    SS_CENTERIMAGE,WS_EX_STATICEDGE
+    CTEXT           "<nic>",IDC_ICON11,199,92,45,55,SS_NOTIFY | 
+                    SS_CENTERIMAGE,WS_EX_STATICEDGE
+    CTEXT           "<nic>",IDC_ICON12,247,92,45,55,SS_NOTIFY | 
+                    SS_CENTERIMAGE,WS_EX_STATICEDGE
+    CTEXT           "<nic>",IDC_ICON13,7,150,45,55,SS_NOTIFY | 
+                    SS_CENTERIMAGE,WS_EX_STATICEDGE
+    CTEXT           "<nic>",IDC_ICON14,55,150,45,55,SS_NOTIFY | 
+                    SS_CENTERIMAGE,WS_EX_STATICEDGE
+    CTEXT           "<nic>",IDC_ICON15,103,150,45,55,SS_NOTIFY | 
+                    SS_CENTERIMAGE,WS_EX_STATICEDGE
+    CTEXT           "<nic>",IDC_ICON16,151,150,45,55,SS_NOTIFY | 
+                    SS_CENTERIMAGE,WS_EX_STATICEDGE
+    CTEXT           "<nic>",IDC_ICON17,199,150,45,55,SS_NOTIFY | 
+                    SS_CENTERIMAGE,WS_EX_STATICEDGE
+    CTEXT           "<nic>",IDC_ICON18,247,150,45,55,SS_NOTIFY | 
+                    SS_CENTERIMAGE,WS_EX_STATICEDGE
+    LTEXT           "Jméno souboru",IDC_STATIC,7,6,50,11
+    EDITTEXT        IDC_FILENAME,7,17,285,12,ES_AUTOHSCROLL | ES_READONLY
+    CONTROL         "Pøi vkládání do knihovny vybrat vhodnou transparetní barvu.",
+                    IDC_TRANSPARENT,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,6,
+                    208,193,10
+END
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// DESIGNINFO
+//
+
+#ifdef APSTUDIO_INVOKED
+GUIDELINES DESIGNINFO 
+BEGIN
+    IDD_OPENDLG, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 383
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 168
+    END
+
+    IDD_ABOUTBOX, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 228
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 48
+    END
+
+    IDD_ITEMICONS_DIALOG, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 292
+        TOPMARGIN, 6
+        BOTTOMMARGIN, 217
+        HORZGUIDE, 17
+        HORZGUIDE, 29
+        HORZGUIDE, 35
+    END
+END
+#endif    // APSTUDIO_INVOKED
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Menu
+//
+
+IDR_MAINMENU MENUEX 
+BEGIN
+    MENUITEM "&Otevøít",                    ID_OPEN,MFT_STRING,MFS_ENABLED
+    MENUITEM "&Uložit!",                    ID_SAVE,MFT_STRING,MFS_ENABLED
+    POPUP "Ú&pravy",                        65535,MFT_STRING,MFS_ENABLED
+    BEGIN
+        MENUITEM "&Kopírovat",                  57634,MFT_STRING,MFS_ENABLED
+        MENUITEM "&Vloži",                      57637,MFT_STRING,MFS_ENABLED
+        MENUITEM "V&ymazat",                    ID_EDIT_DELETE,MFT_STRING,
+        MFS_ENABLED
+        MENUITEM MFT_SEPARATOR
+        MENUITEM "Kopírovat &do souboru",       32792,MFT_STRING,MFS_ENABLED
+        MENUITEM "Vložit ze &souboru",          32793,MFT_STRING,MFS_ENABLED
+        MENUITEM MFT_SEPARATOR
+        MENUITEM "Kopírovat vš&e do souboru",   32794,MFT_STRING,MFS_ENABLED
+    END
+    MENUITEM "O &Aplikaci!",                32779,
+    MFT_STRING | MFT_RIGHTJUSTIFY,MFS_ENABLED
+END
+
+IDR_POPUP MENU 
+BEGIN
+    POPUP "Popup"
+    BEGIN
+        MENUITEM "Import BMP",                  ID_POPUP_IMPORTBMP
+        MENUITEM "Export BMP",                  ID_POPUP_EXPORTBMP
+        MENUITEM SEPARATOR
+        MENUITEM "Copy",                        ID_POPUP_COPY
+        MENUITEM "Paste",                       ID_POPUP_PASTE
+        MENUITEM SEPARATOR
+        MENUITEM "Vymazat",                     ID_POPUP_VYMAZAT
+    END
+    POPUP "List"
+    BEGIN
+        MENUITEM "Obrázek",                     1
+        MENUITEM "Obrázek",                     7
+        MENUITEM "Obrázek",                     13
+        MENUITEM "Obrázek",                     2, MENUBREAK
+        MENUITEM "Obrázek",                     8
+        MENUITEM "Obrázek",                     14
+        MENUITEM "Obrázek",                     3, MENUBREAK
+        MENUITEM "Obrázek",                     9
+        MENUITEM "Obrázek",                     15
+        MENUITEM "Obrázek",                     4, MENUBREAK
+        MENUITEM "Obrázek",                     10
+        MENUITEM "Obrázek",                     16
+        MENUITEM "Obrázek",                     5, MENUBREAK
+        MENUITEM "Obrázek",                     11
+        MENUITEM "Obrázek",                     17
+        MENUITEM "Obrázek",                     6, MENUBREAK
+        MENUITEM "Obrázek",                     12
+        MENUITEM "Obrázek",                     18
+    END
+END
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Version
+//
+
+VS_VERSION_INFO VERSIONINFO
+ FILEVERSION 1,0,0,1
+ PRODUCTVERSION 1,0,0,1
+ FILEFLAGSMASK 0x3fL
+#ifdef _DEBUG
+ FILEFLAGS 0x1L
+#else
+ FILEFLAGS 0x0L
+#endif
+ FILEOS 0x4L
+ FILETYPE 0x1L
+ FILESUBTYPE 0x0L
+BEGIN
+    BLOCK "StringFileInfo"
+    BEGIN
+        BLOCK "040504e4"
+        BEGIN
+            VALUE "CompanyName", "TODO: <Company name>"
+            VALUE "FileDescription", "TODO: <File description>"
+            VALUE "FileVersion", "1.0.0.1"
+            VALUE "InternalName", "ItemIcons.exe"
+            VALUE "LegalCopyright", "TODO: (c) <Company name>.  All rights reserved."
+            VALUE "OriginalFilename", "ItemIcons.exe"
+            VALUE "ProductName", "TODO: <Product name>"
+            VALUE "ProductVersion", "1.0.0.1"
+        END
+    END
+    BLOCK "VarFileInfo"
+    BEGIN
+        VALUE "Translation", 0x405, 1250
+    END
+END
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// String Table
+//
+
+STRINGTABLE 
+BEGIN
+    IDS_ABOUTBOX            "&About ItemIcons..."
+    IDS_CREATENEW           "<založit novou>"
+    IDS_CHYBNYFORMAT        "Chybný formát obrázku. Povolen je pouze obrázek ve formátì Windows BMP o rozmìrech 45x55 a bitové hloubce 8bit (256 barev) - bez kompresse"
+    IDS_CHYBAPRIULOZENI     "Nepodaøilo se uložit knihovnu."
+END
+
+STRINGTABLE 
+BEGIN
+    IDS_BMPFILTER           "Obrázky v BMP (*.BMP - 45 x 55 x 256 barev)|*.bmp||"
+    IDS_NEPLATNYFORMATBMP   "Soubor nebyl rozpoznán jako BMP"
+    IDS_NELZEOTEVRITSOUBOR  "Soubor se nepodaøilo otevøít"
+    IDS_CHYBAPRIZAPISU      "Nastala nejaka chyba pri zapisu. Obrazek se nepodarilo ulozit"
+END
+
+#endif    // Czech resources
+/////////////////////////////////////////////////////////////////////////////
+
+
+
+#ifndef APSTUDIO_INVOKED
+/////////////////////////////////////////////////////////////////////////////
+//
+// Generated from the TEXTINCLUDE 3 resource.
+//
+#define _AFX_NO_SPLITTER_RESOURCES
+#define _AFX_NO_OLE_RESOURCES
+#define _AFX_NO_TRACKER_RESOURCES
+#define _AFX_NO_PROPERTY_RESOURCES
+
+#if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_ENU)
+LANGUAGE 9, 1
+#pragma code_page(1250)
+#include "res\ItemIcons.rc2"  // non-Microsoft Visual C++ edited resources
+#include "afxres.rc"         // Standard components
+#endif
+
+/////////////////////////////////////////////////////////////////////////////
+#endif    // not APSTUDIO_INVOKED
+

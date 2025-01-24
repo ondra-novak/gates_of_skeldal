@@ -1,0 +1,499 @@
+// Microsoft Visual C++ generated resource script.
+//
+#include "resource.h"
+
+#define APSTUDIO_READONLY_SYMBOLS
+/////////////////////////////////////////////////////////////////////////////
+//
+// Generated from the TEXTINCLUDE 2 resource.
+//
+#include "afxres.h"
+#include <richedit.h>
+/////////////////////////////////////////////////////////////////////////////
+#undef APSTUDIO_READONLY_SYMBOLS
+
+/////////////////////////////////////////////////////////////////////////////
+// Czech resources
+
+#if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_CSY)
+#ifdef _WIN32
+LANGUAGE LANG_CZECH, SUBLANG_DEFAULT
+#pragma code_page(1250)
+#endif //_WIN32
+
+#ifdef APSTUDIO_INVOKED
+/////////////////////////////////////////////////////////////////////////////
+//
+// TEXTINCLUDE
+//
+
+1 TEXTINCLUDE 
+BEGIN
+    "resource.h\0"
+END
+
+2 TEXTINCLUDE 
+BEGIN
+    "#include ""afxres.h""\r\n"
+    "#include <richedit.h>\0"
+END
+
+3 TEXTINCLUDE 
+BEGIN
+    "\r\n"
+    "\0"
+END
+
+#endif    // APSTUDIO_INVOKED
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// SKELDAL_FONT
+//
+
+IDR_BOLDCZ              SKELDAL_FONT            "..\\font\\BOLDCZ.FON"
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Dialog
+//
+
+IDD_LADICIOKNO DIALOG  0, 0, 387, 221
+STYLE DS_SETFONT | DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "Ladicí okno"
+FONT 8, "MS Sans Serif"
+BEGIN
+    EDITTEXT        IDC_OUTPUT,52,0,335,219,ES_MULTILINE | ES_AUTOVSCROLL | 
+                    ES_AUTOHSCROLL | WS_VSCROLL | WS_HSCROLL
+    PUSHBUTTON      "&Nesmrtelnost",IDC_IMMORTAL,0,0,50,12
+    PUSHBUTTON      "Ne&teènost",IDC_NETECNOST,0,13,50,12
+    PUSHBUTTON      "Jít na &sektor",IDC_GOTO,0,26,50,12
+    PUSHBUTTON      "Jiná &mapa",IDC_LOADMAP,0,39,50,12
+    PUSHBUTTON      "&Pøedmìt",IDC_LOADITEM,0,52,50,12
+    PUSHBUTTON      "&Dej Peníze",IDC_TAKEMONEY,0,65,50,12
+    PUSHBUTTON      "Post&up",IDC_ADVENCE,0,78,50,12
+    PUSHBUTTON      "&Bonus zbraní",IDC_WEAPONSKILL,0,91,50,12
+    PUSHBUTTON      "Oži&vit nestv.",IDC_RAISEMONSTER,0,104,50,12
+    PUSHBUTTON      "Ož&ivit postavu",IDC_RAISEDEATH,0,117,50,12
+    PUSHBUTTON      "Léèit postavu",IDC_HEAL,0,130,50,12
+    PUSHBUTTON      "&Otevøít dveøe",IDC_OPENDOOR,0,143,50,12
+    PUSHBUTTON      "Èistit m&apu",IDC_CLEARMAP,0,156,50,12
+    PUSHBUTTON      "&Zruš magii",IDC_UNAFFECT,0,169,50,12
+    PUSHBUTTON      "Naèti n&estv.",IDC_RELOADMOBILES,0,182,50,12
+    PUSHBUTTON      "Pur&ge",IDC_PURGE,0,195,50,12
+    PUSHBUTTON      "&Refresh",IDC_REFRESH,0,208,50,12
+END
+
+IDD_INPUTWINDOW DIALOG  0, 0, 264, 30
+STYLE DS_SETFONT | DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "Vztupní okno"
+FONT 7, "Small Fonts"
+BEGIN
+    LTEXT           "Prompt",IDC_PROMPT,0,0,211,15
+    EDITTEXT        IDC_VALUE,0,16,213,14,ES_AUTOHSCROLL
+    PUSHBUTTON      "OK",IDOK,214,0,50,14
+    PUSHBUTTON      "Storno",IDCANCEL,214,16,50,14
+END
+
+IDD_CFGTABDIALOG DIALOG  0, 0, 243, 255
+STYLE DS_SETFONT | DS_MODALFRAME | DS_CENTER | WS_POPUP | WS_CAPTION | 
+    WS_SYSMENU
+CAPTION "Nastavení"
+FONT 8, "MS Sans Serif"
+BEGIN
+    CONTROL         "Tab1",IDC_TAB,"SysTabControl32",WS_TABSTOP,7,7,229,224
+    LTEXT           "Tomuto zobrazení\nodpovídá žádná položka",
+                    IDC_CLIENTDESK,14,26,213,195
+    DEFPUSHBUTTON   "OK",IDOK,122,234,50,14
+    PUSHBUTTON      "Cancel",IDCANCEL,179,234,50,14
+END
+
+IDD_CFGGENERAL DIALOGEX 0, 0, 200, 190
+STYLE DS_SETFONT | DS_CONTROL | WS_CHILD
+FONT 8, "MS Sans Serif", 0, 0, 0x0
+BEGIN
+    CONTROL         "Spouštìt hru v oknì",IDC_WINDOWED,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,25,13,80,10
+    CONTROL         "640x480",IDC_ZOOM1,"Button",BS_AUTORADIOBUTTON | 
+                    WS_GROUP | WS_TABSTOP,41,25,43,10
+    CONTROL         "960x720",IDC_ZOOM2,"Button",BS_AUTORADIOBUTTON,41,36,43,
+                    10
+    CONTROL         "1280x960",IDC_ZOOM3,"Button",BS_AUTORADIOBUTTON,41,47,
+                    47,10
+    CONTROL         "Výchozí monitor",IDC_MON1,"Button",BS_AUTORADIOBUTTON | 
+                    WS_GROUP | WS_TABSTOP,119,25,66,10
+    CONTROL         "Druhý monitor",IDC_MON2,"Button",BS_AUTORADIOBUTTON,119,
+                    36,59,10
+    CONTROL         "Tøetí monitor",IDC_MON3,"Button",BS_AUTORADIOBUTTON,119,
+                    47,56,10
+    CONTROL         "Vždy naèíst celou úroveò do pamìti",IDC_PRELOAD,"Button",
+                    BS_AUTOCHECKBOX | WS_GROUP | WS_TABSTOP,26,62,129,10
+    CONTROL         "Povolit automatické ukládání na poslední pozici",
+                    IDC_AUTOSAVE,"Button",BS_AUTOCHECKBOX | WS_GROUP | 
+                    WS_TABSTOP,25,74,166,10
+    LTEXT           "Rychlost hry:",IDC_STATIC,21,102,42,8
+    CTEXT           "??",IDC_GAMESPEEDINFO,67,102,40,8
+    CONTROL         "Slider1",IDC_GAMESPEED,"msctls_trackbar32",
+                    TBS_AUTOTICKS | WS_TABSTOP,20,115,159,18
+    LTEXT           "Pomalu",IDC_STATIC,18,133,24,8
+    LTEXT           "Rychle",IDC_STATIC,162,133,23,8
+    LTEXT           "Urychlit bitvy:",IDC_STATIC,20,146,43,18,SS_CENTERIMAGE
+    CONTROL         "Slider1",IDC_BATTLEACC,"msctls_trackbar32",
+                    TBS_AUTOTICKS | WS_TABSTOP,70,146,109,18
+    PUSHBUTTON      "Výchozí",IDC_GAMESPEEDDEFAULT,143,168,50,14
+END
+
+IDD_CFGSOUND DIALOGEX 0, 0, 214, 195
+STYLE DS_SETFONT | DS_CONTROL | WS_CHILD
+FONT 8, "MS Sans Serif", 0, 0, 0x0
+BEGIN
+    LTEXT           "&Mixovací frekvence:",IDC_STATIC,20,15,66,12,
+                    SS_CENTERIMAGE
+    EDITTEXT        IDC_MIXFREQ,88,15,51,12,ES_CENTER | ES_AUTOHSCROLL | 
+                    ES_NUMBER
+    LTEXT           "Hz",IDC_STATIC,140,15,10,12,SS_CENTERIMAGE
+    GROUPBOX        "",IDC_STATIC,7,30,200,72
+    LTEXT           "Pozor: Nastavení hlasitostí se ukládá do herních pozic. Nastavení mùže být zmìnìno, pøi naètení hry z pozice. Zmìnu nastavení pro pozici proveïte ve høe:",
+                    IDC_STATIC,19,38,173,27
+    LTEXT           "&Hudba:",IDC_STATIC,19,67,29,15,SS_CENTERIMAGE
+    CONTROL         "Slider1",IDC_SNDMUSIC,"msctls_trackbar32",TBS_BOTH | 
+                    TBS_NOTICKS | WS_TABSTOP,55,67,130,15
+    LTEXT           "&Skøeky",IDC_STATIC,19,83,29,15,SS_CENTERIMAGE
+    CONTROL         "Slider1",IDC_SNDFX,"msctls_trackbar32",TBS_BOTH | 
+                    TBS_NOTICKS | WS_TABSTOP,55,83,130,15
+    LTEXT           "Pluginy",IDC_STATIC,7,111,24,12,SS_CENTERIMAGE
+    PUSHBUTTON      "Cesta na pluginy",IDC_CESTANAPLUGINY,36,111,171,12,
+                    BS_FLAT
+    LISTBOX         IDC_PLUGLIST,7,130,200,45,LBS_SORT | 
+                    LBS_NOINTEGRALHEIGHT | WS_VSCROLL | WS_TABSTOP
+    PUSHBUTTON      "Vlastnosti",IDC_PLUGVLASTNOSTI,168,177,39,11
+/*    PUSHBUTTON      "Nápovìda",IDC_PLUGINYNAPOVEDA,168,177,39,11*/
+    LTEXT           "Pozor: Vyžaduje pluginy z WinAmp 2.95 !!!\r\nLze získat na http://skeldal.jinak.cz",
+                    IDC_STATIC,7,176,158,16
+END
+
+IDD_CFGVIDEO DIALOG  0, 0, 152, 76
+STYLE DS_SETFONT | DS_CONTROL | WS_CHILD
+FONT 8, "MS Sans Serif"
+BEGIN
+    CONTROL         "Nepøehrávej intro pøi startu",IDC_SKIPINTRO,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,23,25,100,10
+    CONTROL         "Nezobrazuj video prokládanì",IDC_FULLRESVIDEO,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,23,44,108,10
+END
+
+IDD_CFGEXTRAS DIALOG  0, 0, 203, 198
+STYLE DS_SETFONT | DS_CONTROL | WS_CHILD
+FONT 8, "MS Sans Serif"
+BEGIN
+    CONTROL         "Náhodný backfire (pøi kouzlení)",IDC_EXRANDOMBACKFIRES,
+                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,7,115,10
+    CONTROL         "Recykluj nestvùry (zabité nestvùry se èasem obnoví)",
+                    IDC_EXRESPAWNMONSTERS,"Button",BS_AUTOCHECKBOX | 
+                    WS_TABSTOP,7,20,189,10
+    CONTROL         "Alternativni bojový systém",IDC_EXALTERNATEFIGHT,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,7,33,97,10
+    CONTROL         "Vracej do hry znièené nebo utopené pøedmìty",
+                    IDC_EXRECORVERITEMS,"Button",BS_AUTOCHECKBOX | 
+                    WS_TABSTOP,7,46,161,10
+    CONTROL         "Vloží pøedmìty ze zemì do batohu pomocí CTRL",
+                    IDC_EXBAGEXTENDED,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,
+                    7,59,189,10
+    CONTROL         "Lepší výhody štítù pøi soubojích",IDC_EXSHIELDBLOCKING,
+                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,72,116,10
+    CONTROL         "Rychlejší obchodování pøi použití CTRL",IDC_EXFASTTRADE,
+                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,85,142,10
+    CONTROL         "Zobrazuj minimapu i mimo boj",IDC_EXALWAYSMINIMAP,
+                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,98,107,10
+    CONTROL         "Hromadný útìk z boje",IDC_EXGROUPFLEE,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,7,111,85,10
+    CONTROL         "Vždy otevøi knihu pøi jejího zmìnì obsahu",
+                    IDC_EXAUTOOPENBOOK,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,
+                    7,124,147,10
+    CONTROL         "Vždy zobraz sebranou runu",IDC_EXAUTOSHOWRUNE,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,7,137,101,10
+    PUSHBUTTON      "Nápovìda",IDC_EXTRASHELP,129,177,67,14
+    CONTROL         "Malé nestvùry chodí také diagonálnì",IDC_EXMOBDIAGONAL,
+                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,150,133,10
+END
+
+IDD_CFGCHEATS DIALOG  0, 0, 169, 139
+STYLE DS_SETFONT | DS_CONTROL | WS_CHILD
+FONT 8, "MS Sans Serif"
+BEGIN
+    CONTROL         "Vypni hladovìní a žízeò",IDC_NOHUNGRY,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,43,22,91,10
+    CONTROL         "Povol ladící okno",IDC_DEBUGCONSOLE,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,43,43,71,10
+    CTEXT           "Ladící okno funguje jen u map, které nejsou zabezpeèené heslem\n\nToto omezení lze zrušit zadáním univerzálního cheatovacího hesla",
+                    IDC_STATIC,7,70,155,43
+    EDITTEXT        IDC_CHEATPASSWORD,7,118,155,14,ES_CENTER | ES_PASSWORD | 
+                    ES_AUTOHSCROLL | ES_NUMBER
+END
+
+IDD_RTFVIEWER DIALOG  0, 0, 311, 313
+STYLE DS_SETFONT | DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "Brány Skeldalu "
+FONT 8, "MS Sans Serif"
+BEGIN
+    DEFPUSHBUTTON   "OK",IDOK,254,292,50,14
+    CONTROL         "",IDC_RICHEDIT,"RichEdit20A",ES_MULTILINE | 
+                    ES_AUTOVSCROLL | ES_NOHIDESEL | ES_READONLY | WS_BORDER | 
+                    WS_VSCROLL | WS_TABSTOP,7,7,297,276
+END
+
+IDD_SELADV DIALOG  0, 0, 106, 149
+STYLE DS_SETFONT | DS_MODALFRAME | DS_CENTER | WS_POPUP | WS_CAPTION | 
+    WS_SYSMENU
+CAPTION "SKELDAL - Vyber dobrodružství"
+FONT 10, "MS Sans Serif"
+BEGIN
+    DEFPUSHBUTTON   "START!",IDOK,3,120,47,14
+    PUSHBUTTON      "Storno",IDCANCEL,56,120,47,14
+    LISTBOX         IDC_LIST,3,69,100,49,LBS_OWNERDRAWFIXED | LBS_HASSTRINGS | 
+                    LBS_NOINTEGRALHEIGHT | WS_VSCROLL | WS_TABSTOP
+    CONTROL         "Vytvoøit zástupce na ploše",IDC_CREATELINK,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,3,136,100,10
+    CONTROL         130,IDC_STATIC,"Static",SS_BITMAP,3,3,100,60
+END
+
+IDD_LISTDIALOG DIALOGEX 0, 0, 208, 191
+STYLE DS_SETFONT | DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "Vyber"
+FONT 8, "Courier", 400, 0, 0xEE
+BEGIN
+    DEFPUSHBUTTON   "OK",IDOK,7,170,194,14
+    LISTBOX         IDC_LIST,7,7,194,146,LBS_NOINTEGRALHEIGHT | 
+                    LBS_EXTENDEDSEL | WS_VSCROLL | WS_TABSTOP
+    LTEXT           "Hodnota",IDC_STATIC,7,154,31,12,SS_CENTERIMAGE
+    EDITTEXT        IDC_HODNOTA,41,154,160,12,ES_AUTOHSCROLL | WS_DISABLED
+END
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// DESIGNINFO
+//
+
+#ifdef APSTUDIO_INVOKED
+GUIDELINES DESIGNINFO 
+BEGIN
+    IDD_LADICIOKNO, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 380
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 214
+    END
+
+    IDD_CFGTABDIALOG, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 236
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 248
+    END
+
+    IDD_CFGGENERAL, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 193
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 183
+    END
+
+    IDD_CFGSOUND, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 207
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 188
+    END
+
+    IDD_CFGVIDEO, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 145
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 69
+    END
+
+    IDD_CFGEXTRAS, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 196
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 191
+    END
+
+    IDD_CFGCHEATS, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 162
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 132
+    END
+
+    IDD_RTFVIEWER, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 304
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 306
+    END
+
+    IDD_SELADV, DIALOG
+    BEGIN
+        LEFTMARGIN, 3
+        RIGHTMARGIN, 103
+        TOPMARGIN, 3
+        BOTTOMMARGIN, 146
+    END
+
+    IDD_LISTDIALOG, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 201
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 184
+    END
+END
+#endif    // APSTUDIO_INVOKED
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Bitmap
+//
+
+IDB_INITLOGO            BITMAP                  "logo.bmp"
+IDB_UVODNIPOZADI        BITMAP                  "uvodni.bmp"
+IDB_UVODNISELECT        BITMAP                  "uvodni_sel.bmp"
+IDB_SELADVDLG           BITMAP                  "seladv_male.bmp"
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Icon
+//
+
+// Icon with lowest ID value placed first to ensure application icon
+// remains consistent on all systems.
+IDI_MAINICON            ICON                    "icon.ico"
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// RTF
+//
+
+IDR_EXTRAS              RTF                     "extras.rtf"
+IDR_WINAMPPLUGS         RTF                     "plugins.rtf"
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Version
+//
+
+#include "..\game\version.h"
+
+VS_VERSION_INFO VERSIONINFO
+ VERSIONWINRES(FILEVERSION)
+ VERSIONWINRES(PRODUCTVERSION)
+ FILEFLAGSMASK 0x17L
+#ifdef _DEBUG
+ FILEFLAGS 0x1L
+#else
+ FILEFLAGS 0x0L
+#endif
+ FILEOS 0x4L
+ FILETYPE 0x1L
+ FILESUBTYPE 0x0L
+BEGIN
+    BLOCK "StringFileInfo"
+    BEGIN
+        BLOCK "040504b0"
+        BEGIN
+            VALUE "Comments", "Brány Skeldalu pro Windows"
+            VALUE "CompanyName", "Bredysoft"
+            VALUE "FileDescription", "Brány Skeldalu pro Windows"
+            VALUE "FileVersion", "1"
+            VALUE "InternalName", "Skeldal"
+            VALUE "LegalCopyright", "Copyright Bredysoft (C) 2005"
+            VALUE "LegalTrademarks", "Bredysoft"
+            VALUE "OriginalFilename", "Skeldal.exe"
+            VALUE "ProductName", " Skeldal"
+            VALUE "ProductVersion", "1"
+        END
+    END
+    BLOCK "VarFileInfo"
+    BEGIN
+        VALUE "Translation", 0x405, 1200
+    END
+END
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// String Table
+//
+
+STRINGTABLE 
+BEGIN
+    IDS_CFGGENERAL          "Obecné"
+    IDS_CFGSOUND            "Zvuk"
+    IDS_CFGVIDEO            "Video"
+    IDS_CFGEXTRAS           "Rozšíøení"
+    IDS_CFGCHEATS           "Cheaty"
+    IDS_NICVYBRANO          "Musíš nìco vybrat v seznamu."
+END
+
+STRINGTABLE 
+BEGIN
+    IDS_WINTITLE            "Brány Skeldalu Windows verze"
+END
+
+STRINGTABLE 
+BEGIN
+    IDS_CHEATWARNING1       "Upozornìní: Zapínání cheatù mùže zkazit celkový dojem hry, a mùže zpùsobit, že hra nebude bez použití cheatù dohratelná. Chcete opravdu povolit cheaty?"
+    IDS_CHEATWARNING2       "Bylo vám oznámeno, že cheaty vám opravdu mohou pøi hraní zkazit zábavu. Berete-li toto na vìdomí, stisknìte OK"
+    IDS_CHEATWARNING3       "Pøedchozí zprávu jste nevzal na vìdomí. Pøesto si prosím uvìdomte, že zapínání cheatu vede ke snížení hratelnosti a tím pádem zábavy ze hraní. Rozhodnì toto provádíte na vlastní riziko. Chcete pøesto opakovat své stanovisko?"
+    IDS_CHEATWARNING4       "Zcela evidentnì ignorujete varování, že cheaty mohou velice snížit zábavu z hraní. Budete v tom pokraèovat i nadále?"
+    IDS_CHEATWARNING5       "Byl jste varován!"
+    IDS_RICHEDMISSING       "Chybí propojovací knihovna RICHED20.DLL. Selhalo zobrazení okna"
+    IDS_MIXFREQINVALID      "Mixovaci frekvence je mimo povoleny rozsah (8000-44100). Hodnota nebude uložena."
+    IDS_SCREENBPPWARNING    "Plocha nepracuje v režimu 16bpp (65536 barev). Pro spuštìní hry je nutné pracovní plochu pøepnout do tohoto režimu. Pøepnutí se provede automaticky a po ukonèení hry se provede obnova nastavení plochy. Pokud by spuštìní hry v oknì zpùsobovalo obtíže, napøíklad by obrazovka zèernala, nebo by se obraz rozpadl, zkuste stisknou Alt+F4. Pak bude nutné pøed spuštìním hry v oknì provést zmìnu nastavení plochy ruènì, nebo hru spouštìt na celou obrazovku."
+END
+
+STRINGTABLE 
+BEGIN
+    IDS_INSTALLFILTER       "Složky|vyberslozky.$$$slozky$$$||"
+    IDS_INSTALLTITLE        "Vyber lokaci, kam chceš hru nainstalovat"
+    IDS_INSTALLPRENAME      "Brány Skeldalu"
+    IDS_INSTALLCDFILE       "INSTALL.INF"
+    IDS_INSTALLCDTITLE      "Kde se nachází instalaèní CD?"
+    IDS_INSTALLCDFILTER     "Instalaèní CD Brány Skeldalu|install.inf||"
+    IDS_CREATEDIR           "Složka %s neexistuje. Chcete jí vytvoøit?"
+    IDS_NELZEVYTVORITSLOZKU "Nelze vytvoøit složku %s"
+    IDS_INSTALLEDGAME       "Hra je nainstalovaná. Byl vytvoøen zástupce na ploše. Nyní mùžeš hru spustit."
+    IDS_INSTALLHDD          "Pøeješ si instalovat hru na pevný disk?\r\n\r\n* Odpovìï ANO zkopíruje všechny potøebné soubory na pevný disk (asi 300MB)\r\n* Odpovìï NE umožní hrát hru z CD (šetøí místo na pevném disku)"
+    IDS_INSTALLCHYBISOUBOR  "Chybi soubor(y): %s"
+    IDS_INSTALLTEXT1        "Instalace hry Brány Skeldalu krok 1.\r\n\r\nPøed zapoèetím instalace vložte do jednotky originální CD hry a v oknì, jenž se objeví po odklepnutí tlaèítka OK,vyhledejte vyjmenovaný soubor, který se na CD nalézá."
+    IDS_INSTALLTEXT2        "Instalace hry Brány Skeldalu krok 2.\r\n\r\nNyní je tøeba urèit lokaci, kam se hra nainstaluje. V následujícím oknì vyberte nejvhodnìjší umístìní. Jméno složky mùžete pozmìnit v dolní èásti okna"
+    IDS_DEFAULTADV          "Rovenland - Brány Skeldalu"
+END
+
+#endif    // Czech resources
+/////////////////////////////////////////////////////////////////////////////
+
+
+
+#ifndef APSTUDIO_INVOKED
+/////////////////////////////////////////////////////////////////////////////
+//
+// Generated from the TEXTINCLUDE 3 resource.
+//
+
+
+/////////////////////////////////////////////////////////////////////////////
+#endif    // not APSTUDIO_INVOKED
+

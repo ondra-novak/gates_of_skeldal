@@ -1,0 +1,30 @@
+Microsoft Visual Studio Solution File, Format Version 8.00
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ItemIcons", "ItemIcons.vcproj", "{ADB487B3-9F9B-4B49-8B02-92F8B2B5D563}"
+	ProjectSection(ProjectDependencies) = postProject
+	EndProjectSection
+EndProject
+Global
+	GlobalSection(SourceCodeControl) = preSolution
+		SccNumberOfProjects = 2
+		SccLocalPath0 = .
+		CanCheckoutShared = false
+		SolutionUniqueID = {B21D216F-7A5B-43A2-BED6-A3AB49EF2F3D}
+		SccProjectUniqueName1 = ItemIcons.vcproj
+		SccLocalPath1 = .
+		CanCheckoutShared = false
+	EndGlobalSection
+	GlobalSection(SolutionConfiguration) = preSolution
+		Debug = Debug
+		Release = Release
+	EndGlobalSection
+	GlobalSection(ProjectConfiguration) = postSolution
+		{ADB487B3-9F9B-4B49-8B02-92F8B2B5D563}.Debug.ActiveCfg = Debug|Win32
+		{ADB487B3-9F9B-4B49-8B02-92F8B2B5D563}.Debug.Build.0 = Debug|Win32
+		{ADB487B3-9F9B-4B49-8B02-92F8B2B5D563}.Release.ActiveCfg = Release|Win32
+		{ADB487B3-9F9B-4B49-8B02-92F8B2B5D563}.Release.Build.0 = Release|Win32
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+	EndGlobalSection
+	GlobalSection(ExtensibilityAddIns) = postSolution
+	EndGlobalSection
+EndGlobal

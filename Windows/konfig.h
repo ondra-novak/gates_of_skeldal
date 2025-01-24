@@ -1,0 +1,1 @@
+void OpenKonfig(HWND hParent);

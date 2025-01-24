@@ -1,0 +1,21 @@
+Microsoft Visual Studio Solution File, Format Version 8.00
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "AdvMan", "AdvMan.vcproj", "{D38E31E6-CC5E-4C25-B966-85BF48E8C53E}"
+	ProjectSection(ProjectDependencies) = postProject
+	EndProjectSection
+EndProject
+Global
+	GlobalSection(SolutionConfiguration) = preSolution
+		Debug = Debug
+		Release = Release
+	EndGlobalSection
+	GlobalSection(ProjectConfiguration) = postSolution
+		{D38E31E6-CC5E-4C25-B966-85BF48E8C53E}.Debug.ActiveCfg = Debug|Win32
+		{D38E31E6-CC5E-4C25-B966-85BF48E8C53E}.Debug.Build.0 = Debug|Win32
+		{D38E31E6-CC5E-4C25-B966-85BF48E8C53E}.Release.ActiveCfg = Release|Win32
+		{D38E31E6-CC5E-4C25-B966-85BF48E8C53E}.Release.Build.0 = Release|Win32
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+	EndGlobalSection
+	GlobalSection(ExtensibilityAddIns) = postSolution
+	EndGlobalSection
+EndGlobal

@@ -1,0 +1,43 @@
+Microsoft Visual Studio Solution File, Format Version 10.00
+# Visual Studio 2008
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "MapEdit", "mapedit\MapEdit.vcproj", "{F2CA5BB1-C021-4708-AED7-7290F7255537}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Skeldal", "Skeldal.vcproj", "{AE3E864A-642C-4280-93EC-77A551CF495C}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Lex_Lib", "mapedit\Lex_Lib\Lex_Lib.vcproj", "{E8075868-DD7C-4F22-8751-4847A3F33F55}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "CSpells", "mapedit\CSpells\CSpells.vcproj", "{9C3ABECA-90BA-4D59-BE93-BABE53117B89}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "CDialogy", "mapedit\CDialogy\CDialogy.vcproj", "{CA0202C1-2629-45BC-ACBF-1063EA1F4285}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Win32 = Debug|Win32
+		Release|Win32 = Release|Win32
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{F2CA5BB1-C021-4708-AED7-7290F7255537}.Debug|Win32.ActiveCfg = Debug|Win32
+		{F2CA5BB1-C021-4708-AED7-7290F7255537}.Debug|Win32.Build.0 = Debug|Win32
+		{F2CA5BB1-C021-4708-AED7-7290F7255537}.Release|Win32.ActiveCfg = Release|Win32
+		{F2CA5BB1-C021-4708-AED7-7290F7255537}.Release|Win32.Build.0 = Release|Win32
+		{AE3E864A-642C-4280-93EC-77A551CF495C}.Debug|Win32.ActiveCfg = Debug|Win32
+		{AE3E864A-642C-4280-93EC-77A551CF495C}.Debug|Win32.Build.0 = Debug|Win32
+		{AE3E864A-642C-4280-93EC-77A551CF495C}.Release|Win32.ActiveCfg = Release|Win32
+		{AE3E864A-642C-4280-93EC-77A551CF495C}.Release|Win32.Build.0 = Release|Win32
+		{E8075868-DD7C-4F22-8751-4847A3F33F55}.Debug|Win32.ActiveCfg = Debug|Win32
+		{E8075868-DD7C-4F22-8751-4847A3F33F55}.Debug|Win32.Build.0 = Debug|Win32
+		{E8075868-DD7C-4F22-8751-4847A3F33F55}.Release|Win32.ActiveCfg = Release|Win32
+		{E8075868-DD7C-4F22-8751-4847A3F33F55}.Release|Win32.Build.0 = Release|Win32
+		{9C3ABECA-90BA-4D59-BE93-BABE53117B89}.Debug|Win32.ActiveCfg = Debug|Win32
+		{9C3ABECA-90BA-4D59-BE93-BABE53117B89}.Debug|Win32.Build.0 = Debug|Win32
+		{9C3ABECA-90BA-4D59-BE93-BABE53117B89}.Release|Win32.ActiveCfg = Release|Win32
+		{9C3ABECA-90BA-4D59-BE93-BABE53117B89}.Release|Win32.Build.0 = Release|Win32
+		{CA0202C1-2629-45BC-ACBF-1063EA1F4285}.Debug|Win32.ActiveCfg = Debug|Win32
+		{CA0202C1-2629-45BC-ACBF-1063EA1F4285}.Debug|Win32.Build.0 = Debug|Win32
+		{CA0202C1-2629-45BC-ACBF-1063EA1F4285}.Release|Win32.ActiveCfg = Release|Win32
+		{CA0202C1-2629-45BC-ACBF-1063EA1F4285}.Release|Win32.Build.0 = Release|Win32
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal

@@ -1,0 +1,7 @@
+*.user
+*.old
+*.XML
+.svn
+_UpgradeReport_Files
+/Bin
+/Debug
