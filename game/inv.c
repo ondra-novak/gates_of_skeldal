@@ -61,7 +61,7 @@ TSHOP *cur_shop;
 TSHOP **shop_list=NULL;int max_shops=0; //shop_list=prima spojeni s obchody
 void *shop_hacek=NULL; //hacek za ktery visi cely shop strom (free(shop_hacek) - odalokuje shopy)
                        //hacek lze ulozit do savegame -> ulozi se cely stav obchodu
-long shop_hacek_size=0; //toto je jeho delka
+int32_t shop_hacek_size=0; //toto je jeho delka
 
 #define ico_extract(icnnum) (((char*)ablock(ikon_libs+(icnnum)/IT_LIB_SIZE))+IT_ICONE_SIZE*((icnnum)%IT_LIB_SIZE))
 
@@ -138,7 +138,7 @@ void item_sound_event(int item,int sector)
   play_sample_at_sector(glob_items[item].sound+sound_handle,viewsector,sector,0,0);
   }
 
-static void items_15to16_correct(void **p,long *s)
+static void items_15to16_correct(void **p,int32_t *s)
   {
   int i,j;
   char *cur=(char *)(*p);
@@ -161,7 +161,7 @@ void load_items()
   char *name;
   FILE *f;THANDLE_DATA *h;
   int sect,i,hs;
-  long size;
+  int32_t size;
   void *p;
 
   f=NULL;i=0;
@@ -349,7 +349,7 @@ short create_item_money(int obnos)
   return i+1;
   }
 
-void load_item_map(void *p,long s)
+void load_item_map(void *p,int32_t s)
   {
   word itmc;
   int sect;
@@ -1164,7 +1164,7 @@ void display_rings()
      }
   }
 
-void *build_items_wearing(THUMAN *h, long *s)
+void *build_items_wearing(THUMAN *h, int32_t *s)
   {
   int i,vzhled,it;
   word *p,hx,hy;
@@ -1215,7 +1215,7 @@ void *build_items_wearing(THUMAN *h, long *s)
   }
 
 
-void build_items_called(void **p,long *s)
+void build_items_called(void **p,int32_t *s)
   {
   *p=build_items_wearing(&postavy[memman_handle-H_POSTAVY], s);
   }
@@ -1343,8 +1343,8 @@ static T_INV_SCRIPT script[]=
 
 static int calc_value(int parm,int lenght)
   {
-  long l;
-  if (parm>=0) l=*(long *)(((char *)human_selected)+parm);
+  int32_t l;
+  if (parm>=0) l=*(int32_t *)(((char *)human_selected)+parm);
   else
      switch (parm)
         {
@@ -1357,10 +1357,10 @@ static int calc_value(int parm,int lenght)
         }
   switch(lenght)
      {
-     case 1:l=(long)((signed char)l);break;
+     case 1:l=(int32_t)((signed char)l);break;
      default:
-     case 2:l=(long)((short)l);break;
-     case 4:l=(long)l;break;
+     case 2:l=(int32_t)((short)l);break;
+     case 4:l=(int32_t)l;break;
      }
   return l;
   }
@@ -2164,7 +2164,7 @@ void *inv_keyboard(EVENT_MSG *msg,void **usr)
   usr;
   if (msg->msg==E_KEYBOARD)
      {
-     c=(*(int *)msg->data)>>8;
+     c=va_arg(msg->data, int)>>8;
      switch (c)
         {
         case 0x17:
@@ -2819,7 +2819,7 @@ void unwire_shop()
 
 void wire_shop()
   {
-  long size;
+  int32_t size;
   static TSHOP *last_shop=NULL;
   static void *pic=NULL;
   mute_all_tracks(0);

@@ -57,7 +57,7 @@ char start_mixing()
 void stop_mixing()
   {
   }
-void play_sample(int channel,void *sample,long size,long lstart,long sfreq,int type)
+void play_sample(int channel,void *sample,int32_t size,int32_t lstart,int32_t sfreq,int type)
   {
   }
 void set_channel_volume(int channel,int left,int right)
@@ -87,7 +87,7 @@ void mute_channel(int channel)
 void chan_break_loop(int channel)
   {
   }
-void chan_break_ext(int channel,void *org_sample,long size_sample) //zrusi loop s moznosti dohrat zvuk
+void chan_break_ext(int channel,void *org_sample,int32_t size_sample) //zrusi loop s moznosti dohrat zvuk
   {
   }
 

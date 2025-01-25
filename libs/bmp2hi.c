@@ -2,7 +2,7 @@
 #include "types.h"
 
 FILE *bmp;
-long xsize,ysize,nsize,xcor;
+int32_t xsize,ysize,nsize,xcor;
 char bmptype;
 char *buff,*buff2;
 char filename[]="sipka.bmp";
@@ -13,7 +13,7 @@ char genshadow=0;
 
 int load_file(char *filename)
   {
-  long size;
+  int32_t size;
 
   bmp=fopen(filename,"rb");
   if (!bmp) return -1;
@@ -30,11 +30,11 @@ int load_file(char *filename)
 
 void get_bmp_header()
   {
-  long *p_long;
+  int32_t *p_long;
 
-  p_long=(long *)(buff+18);
+  p_long=(int32_t *)(buff+18);
   xsize=*p_long;
-  p_long=(long *)(buff+22);
+  p_long=(int32_t *)(buff+22);
   ysize=*p_long;
   bmptype=*(buff+0x1c);
   if  (bmptype==8)
@@ -57,7 +57,7 @@ void conv_hicolor()
   char r,g,b;
   short hi;
   char *s,*s1,*t;
-  long x,y;
+  int32_t x,y;
 
   s=(buff+0x36+xsize*(ysize-1)*3);
   t=buff2;
@@ -157,7 +157,7 @@ void palette_shadow(int tr,int tg,int tb)
 void conv_256color()
   {
   char *s,*s1,*t;
-  long x,y;
+  int32_t x,y;
 
   s=(buff+0x36+1024+xcor*(ysize-1));
   t=buff2;

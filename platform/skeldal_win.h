@@ -1,4 +1,8 @@
+#include <stddef.h>
 #include <stdint.h>
+
+#ifndef _SKELDAL_PLATFORM_HEADER_
+#define _SKELDAL_PLATFORM_HEADER_
 
 #define BGSWITCHBIT 0x0020
 
@@ -15,7 +19,7 @@ extern "C"
 
 #define TIMERSPEED 20;
 
-unsigned long _bios_keybrd(int mode);
+uint32_t _bios_keybrd(int mode);
 
 
 //LRESULT GameMainWindowWindowProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
@@ -38,6 +42,8 @@ char *AutodetectWinAmp();
 
 void *LoadDefaultFont();
 void *LoadResourceFont(const char *name);
+void *map_file_to_memory(const char *name, size_t *sz);
+void unmap_file(void *ptr, size_t sz);
 
 void ShareCPU();
 void SetWheelMapping(char up, char down);
@@ -67,3 +73,5 @@ typedef struct _ReloadMapInfo {
    } ReloadMapInfo;
 
 
+
+#endif

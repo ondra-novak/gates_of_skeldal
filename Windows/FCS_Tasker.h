@@ -17,7 +17,7 @@ void suspend_task(int id_num,int msg);
 void shut_down_task(int id_num);
 void unsuspend_task(EVENT_MSG *msg);
 void *task_sleep(void *data);
-void *task_wait_event(long event_number);
+void *task_wait_event(int32_t event_number);
 int q_any_task();
 char task_quitmsg();
 char task_quitmsg_by_id(int id);

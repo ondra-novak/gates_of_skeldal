@@ -1,10 +1,11 @@
+#include <stdint.h>
 #include <stdio.h>
 
 #define SWAP_FREE_LIST 8192
 
 typedef struct sw_free_block
   {
-  long size,seek;
+  int32_t size,seek;
   }SW_FREE_BLOCK;
 
 SW_FREE_BLOCK swp_list[SWAP_FREE_LIST];
@@ -21,7 +22,7 @@ void swap_init(void)
   swp_ptr=1;
   }
 
-int swap_find_block(long size)
+int swap_find_block(int32_t size)
   {
   int i;
   SW_FREE_BLOCK *p;
@@ -33,10 +34,10 @@ int swap_find_block(long size)
   return 0;
   }
 
-int swap_add_block(long size)
+int swap_add_block(int32_t size)
   {
   int i;
-  long sp;
+  int32_t sp;
   SW_FREE_BLOCK *p;
 
   size+=255;
@@ -60,7 +61,7 @@ int swap_add_block(long size)
   return sp;
   }
 
-void swap_find_seek(long seek1,long seek2,int *pos1,int *pos2)
+void swap_find_seek(int32_t seek1,int32_t seek2,int *pos1,int *pos2)
   {
   int i;
   SW_FREE_BLOCK *p;
@@ -82,7 +83,7 @@ void swap_find_seek(long seek1,long seek2,int *pos1,int *pos2)
   }
 
 
-void alloc_swp_block(long seek,long size)
+void alloc_swp_block(int32_t seek,int32_t size)
   {
 
   if (swp_fnot_used<0 && swp_unuseds) swap_find_block(0x7fffffff);
@@ -106,7 +107,7 @@ void alloc_swp_block(long seek,long size)
      }
   }
 
-void swap_free_block(long seek,long size)
+void swap_free_block(int32_t seek,int32_t size)
   {
   int i1,i2;
 

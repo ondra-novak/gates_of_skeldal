@@ -444,7 +444,7 @@ typedef struct tdregisters
   {
   int h_num;
   char name[13];
-  void (*proc)(void **,long *);
+  void (*proc)(void **,int32_t *);
   char path;
   }TDREGISTERS;
 
@@ -453,7 +453,7 @@ typedef struct tstena
   char prim,sec,oblouk,side_tag;
   unsigned short sector_tag;
   char xsec,ysec;
-  unsigned long flags;
+  uint32_t flags;
   char prim_anim,sec_anim,lclip,action;
   }TSTENA;
 
@@ -504,7 +504,7 @@ typedef struct the_timer
   int id;
   int counter,count_max,calls;
   void (*proc)(struct the_timer *);
-  long userdata[4];
+  int32_t userdata[4];
   struct the_timer *next;
   char zavora;
   }THE_TIMER;
@@ -563,8 +563,8 @@ extern char group_sort[POCET_POSTAV]; //pretrideni skupin
 extern char global_anim_counter;
 extern char one_buffer;            //1 zapina pouziti pouze jednoho bufferu pro render
 extern char save_map;     //1 oznamuje ze pri opusteni levelu je nutne ulozit stav mapy
-extern long money;           //stav konta hracu
-extern long level_map[];        //tabulka urovni
+extern int32_t money;           //stav konta hracu
+extern int32_t level_map[];        //tabulka urovni
 extern char true_seeing;            //1 oznamuje ze bezi kouzlo true_seeing
 extern char set_halucination;
 extern int hal_sector;    //cislo sektoru a smeru pri halucinaci
@@ -572,7 +572,7 @@ extern int hal_dir;
 extern char side_touched;    //promena se nastavuje na 1 pri kazdem uspesnem dotyku steny
 extern char *texty_knihy;     //jmeno souboru s textamy knihy
 extern int cur_page;         //cislo stranky v knize;
-extern long game_time;              //hraci cas
+extern int32_t game_time;              //hraci cas
 extern char autoattack;
 extern char enable_sort;
 extern char last_send_action;      //naposled vyslana akce
@@ -622,15 +622,15 @@ void calc_animations(void);
 int load_map(char *filename);
 void other_draw();
 void refresh_scene();
-void pcx_fade_decomp(void **p,long *s);
-void pcx_15bit_decomp(void **p,long *s);
-void pcx_15bit_autofade(void **p,long *s);
-void pcx_15bit_backgrnd(void **p,long *s);
-void pcx_8bit_decomp(void **p,long *s);
-void hi_8bit_correct(void **p,long *s);
-void pcx_8bit_nopal(void **p,long *s);
-void set_background(void **p,long *s);
-void wav_load(void **p,long *s);
+void pcx_fade_decomp(void **p,int32_t *s);
+void pcx_15bit_decomp(void **p,int32_t *s);
+void pcx_15bit_autofade(void **p,int32_t *s);
+void pcx_15bit_backgrnd(void **p,int32_t *s);
+void pcx_8bit_decomp(void **p,int32_t *s);
+void hi_8bit_correct(void **p,int32_t *s);
+void pcx_8bit_nopal(void **p,int32_t *s);
+void set_background(void **p,int32_t *s);
+void wav_load(void **p,int32_t *s);
 void wire_main_functs();
 void ukaz_kompas(char mode);
 void *timming(EVENT_MSG *msg,void **data);
@@ -726,8 +726,8 @@ void turn_zoom(int smer);
 void a_touch(int sector,int dir);
 int do_action(int action_numb,int sector,int direct,int flags,int nosend);
 void delay_action(int action_numb,int sector,int direct,int flags,int nosend,int delay);
-long load_section(FILE *f,void **section, int *sct_type,long *sect_size);
-void prepare_graphics(int *ofs,char *names,long size,void *decomp,int class);
+int32_t load_section(FILE *f,void **section, int *sct_type,int32_t *sect_size);
+void prepare_graphics(int *ofs,char *names,int32_t size,void *decomp,int class);
 void show_automap(char full);
 void draw_medium_map();
 void anim_sipky(int h,int mode);
@@ -802,7 +802,7 @@ extern short water_breath;       //vec pro dychani pod vodou
 extern short flute_item;
 
 void load_items(void);
-void load_item_map(void *p,long s);
+void load_item_map(void *p,int32_t s);
 void draw_placed_items_normal(int celx,int cely,int sect,int side);
 
 #define SPL_INVIS 0x1           //hrac je neviditelny
@@ -930,7 +930,7 @@ typedef struct thuman
   short inv[MAX_INV];           //inventar
   short level;                  //uroven
   short weapon_expy[TPW_MAX];    //zkusenosti za zbrane
-  long exp;                     //zkusenost
+  int32_t exp;                     //zkusenost
   char female;                  //1 kdyz zena
   char utek;                    //hodnota udavajici pocet kroku pri uteku
   HUM_ACTION *zvolene_akce;     //ukazatel na tabulku zvolenych akci
@@ -968,7 +968,7 @@ void calc_fly();
 void zmen_skupinu(THUMAN *p);
 void add_to_group(int num);
 void group_all(void);
-void build_items_called(void **p,long *s);
+void build_items_called(void **p,int32_t *s);
 void real_regeneration(); //regenerace postav behem hry v realu (pouze kondice a mana)
 char sleep_regenerace(THUMAN *p);  //regenerace postav behem spani
 char check_jidlo_voda(THUMAN *p);
@@ -1154,7 +1154,7 @@ typedef struct tma_sound
   char volume;             //5
   char soundid;            //6
   unsigned short freq;     //8
-  long start_loop,end_loop,offset;//20
+  int32_t start_loop,end_loop,offset;//20
   char filename[12];       //32
   }TMA_SOUND;
 
@@ -1162,7 +1162,7 @@ typedef struct tma_sound
 typedef struct tma_text
   {
   char action,flags,eflags,pflags;
-  long textindex;
+  int32_t textindex;
   }TMA_TEXT;
 
 typedef struct tma_send_action
@@ -1247,7 +1247,7 @@ typedef struct tma_globe
   unsigned short sector;	  //sektor of action target, when event occured
   unsigned char side;		  //side of action target, when event occured
   unsigned char cancel;		  //1 - cancel event
-  unsigned long param;		  //event depend param - zero is default
+  uint32_t param;		  //event depend param - zero is default
   }TMA_GLOBE;
 
 
@@ -1396,7 +1396,7 @@ char test_playing(int track);
 void stop_track_free(int track);
 void mute_all_tracks(char all);
 void kill_all_sounds();
-void create_sound_table(char *template,long size);
+void create_sound_table(char *template,int32_t size);
 void create_sound_table_old();
 void start_play_flute(char );
 void stop_play_flute();
@@ -1458,7 +1458,7 @@ typedef struct tmob
   char flee_num;             //pravdepodobnost uteku
   char anim_counts[6];     //pocet animacnich policek pro kazdy pohyb
   char mobs_name[7];       //zaklad jmena souboru pro moba
-  long experience;          //zkusenost
+  int32_t experience;          //zkusenost
   char vlajky;             //BIT0 - 1 v boji
   char anim_phase;            //cinnost kterou mob dela
   short csektor;            //Cilovy sektor
@@ -1501,7 +1501,7 @@ char track_mob(int sect,int dir);//trackuje pritomnost potvory v urcitem smeru
 void stop_all_mobs();
 int utok_na_sektor(THUMAN *p,TMOB *m,int chaos,int bonus);
 int vyber_potvoru(int sect,int dir,int *chaos); //vybere potvoru ze sektoru a smeru. Vraci take pocet potvor v promenne *chaos
-void load_enemies(short *data,int size,int *grptr,TMOB *template,long tsize);
+void load_enemies(short *data,int size,int *grptr,TMOB *template,int32_t tsize);
 char mob_test_na_bitvu(TMOB *p);  //nastavi p->vlajky|MOB_INBATTLE pokud potvora muze vstoupit do bitvy;
 void send_mob_to(int m,word *path);
 void save_enemy_paths(TMPFILE_WR *f);
@@ -1622,7 +1622,7 @@ int message(int butts,char def,char canc,char *keys,...);
 void type_text(); //event procedura (parms: X,Y,TEXT,MAX_SPACE,MAX_CHARS);
 void type_text_v2(va_list args);//char *text_buffer,int x,int y,int max_size,int max_chars,int font,int color,void (*exit_proc)(char));
 void zalamovani(char *source,char *target,int maxxs,int *xs,int *ys);
-void col_load(void **data,long *size);
+void col_load(void **data,int32_t *size);
 void open_story_file();
 void write_story_text(char *text);
 void close_story_file();
@@ -1702,7 +1702,7 @@ typedef struct _tag_globalEventDef
   unsigned short sector;	  //sektor of action target, when event occured
   unsigned char side;		  //side of action target, when event occured
   unsigned char cancel;		  //
-  long param;		  //event depend param - zero is default
+  int32_t param;		  //event depend param - zero is default
 }SGlobalEventDef;
 
 extern SGlobalEventDef GlobEventList[MAGLOB_NEXTID];
@@ -1715,7 +1715,7 @@ static __inline char GlobEvent(int event, int sector, int side)
 }
 
 
-static __inline char GlobEvents(int firstevid, int lastevid, int sector, int side, long param)
+static __inline char GlobEvents(int firstevid, int lastevid, int sector, int side, int32_t param)
 {
   int i;
   for (i=firstevid;i<=lastevid;i++) if (GlobEventList[i].param==param)
@@ -1726,7 +1726,7 @@ static __inline char GlobEvents(int firstevid, int lastevid, int sector, int sid
 }
 
 
-static __inline char TimerEvents(int sector, int side, long time)
+static __inline char TimerEvents(int sector, int side, int32_t time)
 {
   int i;
   for (i=MAGLOB_ONTIMER1;i<=MAGLOB_ONTIMER4;i++) if (GlobEventList[i].param && GlobEventList[i].param<=time)

@@ -33,7 +33,7 @@ static int autostart_round=0;
 
 char autoattack=0;
 char immortality=0;
-long level_map[]=
+int32_t level_map[]=
   {400,                 //level 2
    1000,                     // 3
    1800,                     // 4
@@ -689,8 +689,8 @@ void wire_end_game()
 void konec_presunu(EVENT_MSG *msg,void **unused)
   {
   unused;
-
-  if (msg->msg==E_KEYBOARD && ((*(int *)msg->data)>>8)==28 && !pass_zavora)
+  int d = va_arg(msg->data, int);
+  if (msg->msg==E_KEYBOARD && (d>>8)==28 && !pass_zavora)
      {
      unwire_proc();
      wire_jadro_souboje();
@@ -1913,7 +1913,7 @@ void programming_keyboard(EVENT_MSG *msg,void **unused)
   unused;
   if (msg->msg==E_KEYBOARD)
      {
-     c=(*(int *)msg->data)>>8;
+     c=va_arg(msg->data, int)>>8;
      while (_bios_keybrd(_KEYBRD_READY) ) _bios_keybrd(_KEYBRD_READ);
      switch (c)
         {
@@ -2284,7 +2284,7 @@ void send_experience(TMOB *p,int dostal)
         player_check_death(postavy+select_player,0);
         }
      }
-  if (dostal>0) postavy[select_player].exp+=(long)((float)p->experience*(float)dostal/p->vlastnosti[VLS_MAXHIT]);
+  if (dostal>0) postavy[select_player].exp+=(int32_t)((float)p->experience*(float)dostal/p->vlastnosti[VLS_MAXHIT]);
   check_player_new_level(&postavy[select_player]);
   }
 

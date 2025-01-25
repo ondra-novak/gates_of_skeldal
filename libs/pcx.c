@@ -90,7 +90,7 @@ void palette_shadow(char *pal1,unsigned short pal2[][256],int tr,int tg,int tb)
   }
 
 
-int load_pcx(char *pcx,long fsize,int conv_type,char **buffer, ... )
+int load_pcx(char *pcx,int32_t fsize,int conv_type,char **buffer, ... )
   //dale nasleduji int hodnoty poctu prechodu a R,G,B barvy
   {
   unsigned short paleta2[256];
@@ -176,7 +176,7 @@ int open_pcx(char *filename,int type,char **buffer,...)
   {
   FILE *pcx;
   char *src;
-  long fsize;
+  int32_t fsize;
 
   pcx=fopen(filename,"rb");
   if (pcx==NULL) return -1;

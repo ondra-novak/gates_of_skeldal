@@ -1,8 +1,6 @@
 #include <skeldal_win.h>
 #include "types.h"
 #include <stdio.h>
-#include <dos.h>
-//#include <i86.h>
 #include <bios.h>
 #include "event.h"
 #include "devices.h"
@@ -19,15 +17,15 @@ TMS_BASIC_INFO ms_basic_info={0};
 static char ms_keys;
 
 void get_ms_event(MS_EVENT *event)
-  {  
+  {
   CheckMessageQueue();
   *event=win_mouseEvent;
   win_mouseEvent.event=0;
   }
 
-char cz_table_1[]=" 1!3457­908+,-./‚+ˆ¨‡©‘˜ ¡\"–?=:_2ABCDEFGHIJKLMNOPQRSTUVWXYZ£\\)6=;abcdefghijklmnopqrstuvwxyz/|(; ";
-char cz_table_2[]=" !\"#$%&'()*+,-./0123456789:;<=>?@BCDFGH‹JKŠMN•PQ«ST—VWXZ[\\]^_` bcd‚fgh¡jkmn¢pqªst£vwx˜z{|}~ ";
-char cz_table_3[]=" !\"#$%&'()*+,-./0123456789:;<=>?@AB€…‰FGHIJKœM¥§PQ›†¦VWXY’[\\]^_`ab‡ƒˆfghijkŒm¤“pq©¨Ÿ–vwxy‘{|}~ ";
+char cz_table_1[]=" 1!3457ï¿½908+,-./ï¿½+ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½\"ï¿½?=:_2ABCDEFGHIJKLMNOPQRSTUVWXYZï¿½\\)6=;abcdefghijklmnopqrstuvwxyz/|(; ";
+char cz_table_2[]=" !\"#$%&'()*+,-./0123456789:;<=>?@ï¿½BCDï¿½FGHï¿½JKï¿½MNï¿½PQï¿½STï¿½VWXï¿½Z[\\]^_`ï¿½bcdï¿½fghï¿½jkï¿½mnï¿½pqï¿½stï¿½vwxï¿½z{|}~ ";
+char cz_table_3[]=" !\"#$%&'()*+,-./0123456789:;<=>?@ABï¿½ï¿½ï¿½FGHIJKï¿½Mï¿½ï¿½PQï¿½ï¿½ï¿½ï¿½VWXYï¿½[\\]^_`abï¿½ï¿½ï¿½fghijkï¿½mï¿½ï¿½pqï¿½ï¿½ï¿½ï¿½vwxyï¿½{|}~ ";
 char *cz_key_tabs[]={cz_table_1,cz_table_2,cz_table_3};
 
 void keyboard(EVENT_MSG *msg,void *user_data)

@@ -174,7 +174,7 @@ void draw_it_all_c(int genMlhu)
 void read_palette(char *filename,void *paleta)
   {
   FILE *f;
-  long l;
+  int32_t l;
 
   f=fopen(filename,"rb");
   if (f==NULL) return;
@@ -267,7 +267,7 @@ void help()
   {
   printf("ONS Podlahar (C)1997 \n"
          "\n"
-         "Pou‘it¡: PODLAHY <obrazek1.pcx> <obrazek2.pcx> <rv> <gv> <bv> \n"
+         "Pouï¿½itï¿½: PODLAHY <obrazek1.pcx> <obrazek2.pcx> <rv> <gv> <bv> \n"
          "\n"
          "<obrazek1.pcx> <obrazek2.pcx>\n"
          "        soubory s texturami ve formatu pcx. Textura musi mit velikost 500x320\n\n"
@@ -344,8 +344,8 @@ main(int argv,char *argc[])
 */
 
 
-  long scr_linelen=1280;
-  long scr_linelen2=640;
+  int32_t scr_linelen=1280;
+  int32_t scr_linelen2=640;
 
   char *PodlahaStrop(int r, int g, int b, const char *filename1, const char *filename2, int genMlhu)
   {

@@ -31,7 +31,7 @@ extern "C" {
 
 
 //returns <0 error, >0 allocated size
-int load_pcx(char *pcx,long fsize,int conv_type,char **buffer, ... );
+int load_pcx(char *pcx,int32_t fsize,int conv_type,char **buffer, ... );
 int open_pcx(char *filename,int type,char **buffer,...);
 void palette_shadow(char *pal1,unsigned short pal2[][256],int tr,int tg,int tb);
 extern void *get_palette_ptr;

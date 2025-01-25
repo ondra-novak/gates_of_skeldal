@@ -98,8 +98,17 @@ void close_mgif()           //dealokuje buffery pro prehravani
   }
 
 
-int input_code(void *source,long *bitepos,int bitsize,int mask)
+int input_code(void *source,int32_t *bitepos,int bitsize,int mask)
   {
+    int32_t ofs = *bitepos >> 3;
+    int32_t shf = *bitepos & 0x7;
+    uint8_t *src = source;
+    uint8_t val1 = src[ofs];
+    uint8_t val2 = src[ofs+1];
+    uint16_t val = val1 + val2 * 256;
+    *bitepos+=bitsize;
+    return val >> shf;
+/*
   __asm
     {
     mov esi,source
@@ -116,6 +125,7 @@ int input_code(void *source,long *bitepos,int bitsize,int mask)
     and     eax,edx
     add     [edi],ebx
     }
+    */
   }
 //#pragma aux input_code parm [esi][edi][ebx][edx]=\    value[eax] modify [ecx];
 
@@ -135,9 +145,44 @@ int de_add_code(int group,int chr,int mask)
   }
 
 
-char fast_expand_code(int code,char **target)
-//#pragma aux fast_expand_code parm[eax][edi] modify [esi ecx] value [bl]
+int fast_expand_code(DOUBLE_S *compress_dic, int code,uint8_t **target, uint8_t *old_value)
   {
+
+    uint8_t out;
+    uint8_t w;
+    if (code >= 256) {
+
+        DOUBLE_S *pos = compress_dic+code;
+        uint8_t *t = *target + pos->first;
+        (**target) += pos->first+1;
+        short len = pos->first;
+        short group = pos->group;
+        do{
+            *t = pos->chr;
+            --t;
+            group = pos->group;
+            pos = compress_dic+group;
+        } while (group >= 256);
+        w=(uint8_t)group;
+        out = w;
+        w += *old_value;
+        *t = w;
+        while (len) {
+            ++t;
+            w = w + *t;
+            *t = w;
+            --len;
+        }
+        *old_value = w;
+    } else {
+        out = (uint8_t) code;
+        w = out + *old_value;
+        *old_value = w;
+        **target = out;
+        (*target)++;
+        return code;
+    }
+/*
   _asm
     {
      mov     eax,code
@@ -149,20 +194,20 @@ char fast_expand_code(int code,char **target)
      inc     dword ptr [edi]
      mov     bl,al
      add     al,old_value
-     mov     [esi],al
+     mov     [esi],al           //esi - target ptr
      mov     old_value,al
      jmp     end
 expand:
      mov     ebx,compress_dic
      lea     ecx,[eax*8+ebx]
-     movzx   eax,short ptr [ecx+4]
+     movzx   eax,short ptr [ecx+4]  // first
      add     [edi],eax
      push    eax
-     mov     esi,[edi]
-eloop:movzx   eax,short ptr [ecx+2]
+     mov     esi,[edi]          //esi - target ptr
+eloop:movzx   eax,short ptr [ecx+2] // chr
      mov     [esi],al
      dec     esi
-     movzx   eax,short ptr [ecx]
+     movzx   eax,short ptr [ecx]    //group
      lea     ecx,[eax*8+ebx]
      cmp     eax,256
      jnc     eloop
@@ -180,12 +225,13 @@ elp2:inc     esi
 end:
      movzx   eax,bl
     }
+    */
   }
 
 
 void lzw_decode(void *source,char *target)
   {
-  long bitpos=0;
+  int32_t bitpos=0;
   register int code;
   int old,i;
   //int group,chr;
@@ -195,12 +241,13 @@ void lzw_decode(void *source,char *target)
 
   for(i=0;i<LZW_MAX_CODES;i++) compress_dic[i].first=0;
   clear:
-  old_value=0;
+  uint8_t old_value=0;
   nextgroup=free_code;
   bitsize=init_bitsize;
   mask=(1<<bitsize)-1;
   code=input_code(source,&bitpos,bitsize,mask);
-  old_first=fast_expand_code(code,&target);
+  uint8_t *t = target;
+  old_first=fast_expand_code(compress_dic,code,&t,&old_value);
   old=code;
   while ((code=input_code(source,&bitpos,bitsize,mask))!=end_code)
      {
@@ -210,7 +257,7 @@ void lzw_decode(void *source,char *target)
         }
      else if (code<nextgroup)
         {
-        old_first=fast_expand_code(code,&target);
+        old_first=fast_expand_code(compress_dic,code,&t,&old_value);
         //group=old;
         //chr=old_first;
         mask=de_add_code(old,old_first,mask);
@@ -221,7 +268,7 @@ void lzw_decode(void *source,char *target)
         //p.group=old;
         //p.chr=old_first;
         mask=de_add_code(old,old_first,mask);
-        old_first=fast_expand_code(code,&target);
+        old_first=fast_expand_code(compress_dic,code,&t, &old_value);
         old=code;
         }
      }

@@ -1,11 +1,11 @@
 #include <string.h>
 #include <stdlib.h>
 #include <stdio.h>
-#include "WAV_MEM.H"
+#include "wav_mem.h"
 
 char *find_chunk(char *wav,char *name)
   {
-  long next;
+  int32_t next;
 
   wav+=12;
   do
@@ -20,7 +20,7 @@ char *find_chunk(char *wav,char *name)
 
 int get_chunk_size(char *wav)
   {
-  long size;
+  int32_t size;
 
   memcpy(&size,wav,4);
   return(size);

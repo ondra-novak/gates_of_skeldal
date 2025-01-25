@@ -26,7 +26,7 @@ typedef struct t_paragraph
   unsigned alt:15;
   unsigned visited:1;
   unsigned first:1;
-  long position;
+  int32_t position;
   }T_PARAGRAPH;
 
 #define STR_BUFF_SIZ 4096
@@ -126,7 +126,7 @@ static int glob_y;
 static int last_pgf;
 
 static word *paleta;
-static long loc_anim_render_buffer;
+static int32_t loc_anim_render_buffer;
 static short task_num=-1;
 
 void small_anm_buff(void *target,void *buff,void *paleta);
@@ -688,9 +688,9 @@ static void key_check(EVENT_MSG *msg,void **unused)
   unused;
   if (msg->msg==E_KEYBOARD)
      {
-     c=*(char *)msg->data;
-     d=*(int *)msg->data>>8;
-     if (c==0)
+     int c = va_arg(msg->data, int);
+     d=c>>8;
+     if (c & 0xFF)
         {
         switch(d)
            {

@@ -41,8 +41,8 @@ public:
   void Flush(int t) {}
   int GetOutputTime() {return 1;}
   int GetWrittenTime() {return 1;}
-  unsigned long AddRef() {return 1;}
-  unsigned long Release() {return 1;}
+  uint32_t AddRef() {return 1;}
+  uint32_t Release() {return 1;}
   int Pause(int pause);
   bool IsOpenned() {return _opened;}
 };
@@ -51,11 +51,11 @@ public:
 struct MusFileHeader
     {
     short channels;
-    long  freq;
-    long  ssize;
-    long  blocks;
-    long  reserved1;
-    long  reserved2;
+    int32_t  freq;
+    int32_t  ssize;
+    int32_t  blocks;
+    int32_t  reserved1;
+    int32_t  reserved2;
     short ampltable[256];
     };
   #pragma pack()

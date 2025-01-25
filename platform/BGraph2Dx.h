@@ -5,9 +5,9 @@
 extern "C" {
 #endif
 
-extern long scr_linelen;
-extern long scr_linelen2;
-extern long dx_linelen;
+extern int32_t scr_linelen;
+extern int32_t scr_linelen2;
+extern int32_t dx_linelen;
 
 
 //inicializuje a otevira rezim 640x480x16b v DX - otevre okno, pripravi vse pro beh hry
@@ -35,8 +35,8 @@ void DxDialogs(char enable);
 
 void setvesa_displaystart(int x,int y);
 
-extern long scr_linelen;
-extern long scr_linelen2;
+extern int32_t scr_linelen;
+extern int32_t scr_linelen2;
 
 void DxSetInitResolution(int x, int y);
 int DxGetResX();
@@ -47,7 +47,7 @@ void DXMouseTransform(unsigned short *x, unsigned short *y);
 //HWND GetGameWindow();
 //void DxLockBuffers(BOOL lock);
 
-void StripBlt(void *data, unsigned int startline, unsigned long width);
+void StripBlt(void *data, unsigned int startline, uint32_t width);
 
 
 #ifdef __cplusplus

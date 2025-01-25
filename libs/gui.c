@@ -36,6 +36,11 @@ void empty1(OBJREC *o)
   o;
   }
 
+void empty2_p(OBJREC *o, va_list)
+  {
+  o;
+  }
+
 void empty3(EVENT_MSG *ms,OBJREC *o)
   {
   o;ms;
@@ -119,15 +124,15 @@ int send_lost()
    msg.msg=E_LOST_FOCUS;
   if (o_aktual!=NULL)
      {
-     o_aktual->events[2]();
+     o_aktual->on_exit();
      if (f_cancel_event) return -1;
-     o_aktual->runs[2](&msg,o_aktual);
+     o_aktual->call_event(&msg,o_aktual);
      o_aktual=NULL;
      }
   return 0;
   }
 
-void select_window(long id)
+void select_window(int32_t id)
   {
   WINDOW *p,*q;
 
@@ -162,9 +167,9 @@ void select_window(long id)
 
   }
 
-long desktop_add_window(WINDOW *w)
+int32_t desktop_add_window(WINDOW *w)
   {
-  static long id_counter=0;
+  static int32_t id_counter=0;
 
   w->id=id_counter++;
   w->next=NULL;
@@ -180,8 +185,8 @@ long desktop_add_window(WINDOW *w)
         EVENT_MSG msg;
 
         msg.msg=E_LOST_FOCUS;
-        o_aktual->events[2]();
-        o_aktual->runs[2](&msg,o_aktual);
+        o_aktual->on_exit();
+        o_aktual->call_event(&msg,o_aktual);
         }
      waktual->next=w;
      waktual=w;
@@ -193,7 +198,7 @@ long desktop_add_window(WINDOW *w)
   }
 
 
-WINDOW *find_window(long id)
+WINDOW *find_window(int32_t id)
   {
   WINDOW *p;
 
@@ -262,7 +267,7 @@ void absolute_window(WINDOW *w,OBJREC *o, int *x, int *y)
   memcpy(&charcolors,&o->f_color,sizeof(charcolors));
 //  ws=waktual;
 //  waktual=w;
-  o->runs[1](x,y,x+o->xs,y+o->ys,o);
+  o->call_draw(x,y,x+o->xs,y+o->ys,o);
 //  waktual=ws;
   if (!o->enabled) disable_bar(x,y,o->xs,o->ys,o->color);
   ukaz_mysku();
@@ -322,21 +327,21 @@ void add_to_idlist(OBJREC *o)
 void define(int id,int x,int y,int xs,int ys,char align,void (*initproc)(OBJREC *),...)
   {
   OBJREC *o;
-  long *p;
+  int32_t *p;
 
   o=(OBJREC *)getmem(sizeof(OBJREC));
   o->x=x;o->y=y;o->xs=xs;o->ys=ys;
   o->id=id;
-  o->runs[0]=empty1;
-  o->runs[1]=empty2;
-  o->runs[2]=empty3;
-  o->runs[3]=empty1;
+  o->call_init=empty2_p;
+  o->call_draw=empty2;
+  o->call_event=empty3;
+  o->call_done=empty1;
   o->autoresizex=0;
   o->autoresizey=0;
-  o->events[0]=empty;
-  o->events[1]=empty;
-  o->events[2]=empty1;
-  o->events[3]=empty3;
+  o->on_event=empty;
+  o->on_enter=empty;
+  o->on_exit=empty1;
+  o->on_change=empty3;
   o->enabled=1;
   o->draw_error=0;
   o->color=waktual->color;memcpy(o->f_color,f_default,sizeof(f_default));
@@ -347,8 +352,10 @@ void define(int id,int x,int y,int xs,int ys,char align,void (*initproc)(OBJREC 
   o->datasize=0;
   initproc(o);
   if (o->datasize) o->data=(void *)getmem(o->datasize); else o->data=NULL;
-  p=(long *)&initproc;p++;
-  o->runs[0](o,p);
+  va_list vlst;
+  va_start(vlst, initproc);
+  o->call_init(o,vlst);
+  va_end(vlst);
   if (o->datasize && o->data==NULL) o->data=(void *)getmem(o->datasize);
   o->next=NULL;
   if (o_start==NULL)
@@ -494,7 +501,7 @@ void close_window(WINDOW *w)
      {
      q=w->objects;
      w->objects=q->next;
-     q->runs[3](q);
+     q->call_done(q);
      if (q->userptr!=NULL) free(q->userptr);
      if (q->data!=NULL) free(q->data);
      free(q);
@@ -553,7 +560,7 @@ OBJREC *get_next_id(OBJREC *o)
      p=p->next;
      if (p==NULL) p=waktual->idlist;
      o=p->obj;
-     if (o->enabled && o->runs[2]!=empty3) return o;
+     if (o->enabled && o->call_event!=empty3) return o;
      }
   while (1);
   }
@@ -579,7 +586,7 @@ OBJREC *get_prev_id(OBJREC *o)
         p=q;
         }
      o=p->obj;
-     if (o->enabled && o->runs[2]!=empty3) return o;
+     if (o->enabled && o->call_event!=empty3) return o;
      }
   while (1);
   }
@@ -598,7 +605,7 @@ void do_it_events(EVENT_MSG *msg,void **user_data)
   if (msg->msg==E_INIT) return;
   if (desktop==NULL) {exit_wait=1;return;}
   change_flag=0;f_cancel_event=0;
-  if (o_aktual!=NULL)o_aktual->events[0](msg,o_aktual);
+  if (o_aktual!=NULL)o_aktual->on_event(msg,o_aktual);
   if (msg->msg==E_MOUSE)
      {
      *oz=1;
@@ -608,33 +615,33 @@ void do_it_events(EVENT_MSG *msg,void **user_data)
         if (o_start!=NULL && (msev->tl1 || msev->tl2 || msev->tl3))
            {
            o_aktual=o_start;
-           while (o_aktual!=NULL && (!o_aktual->enabled || !mouse_in_object(msev,o_aktual,waktual) || o_aktual->runs[2]==empty3)) o_aktual=o_aktual->next;
+           while (o_aktual!=NULL && (!o_aktual->enabled || !mouse_in_object(msev,o_aktual,waktual) || o_aktual->call_event==empty3)) o_aktual=o_aktual->next;
            if (o_aktual==NULL) return;
            msg2.msg=E_GET_FOCUS;
-           o_aktual->runs[2](&msg2,o_aktual);
-           o_aktual->events[1]();
-           o_aktual->runs[2](msg,o_aktual);
+           o_aktual->call_event(&msg2,o_aktual);
+           o_aktual->on_enter();
+           o_aktual->call_event(msg,o_aktual);
            }
         else return;
         else
            {
         if (o_aktual->enabled) b=mouse_in_object(msev,o_aktual,waktual);else b=0;
         if (b)
-          o_aktual->runs[2](msg,o_aktual);
+          o_aktual->call_event(msg,o_aktual);
         if ((msev->tl1 || msev->tl2 || msev->tl3)&& !b)
           {
-          o_aktual->events[2]();
+          o_aktual->on_exit();
           if (f_cancel_event) return;
           msg2.msg=E_LOST_FOCUS;
-          o_aktual->runs[2](&msg2,o_aktual);
+          o_aktual->call_event(&msg2,o_aktual);
           p=o_start;
-          while (p!=NULL && (!p->enabled || !mouse_in_object(msev,p,waktual) || p->runs[2]==empty3))
+          while (p!=NULL && (!p->enabled || !mouse_in_object(msev,p,waktual) || p->call_event==empty3))
              p=p->next;
           if (p!=NULL) o_aktual=p;
           msg2.msg=E_GET_FOCUS;
-          o_aktual->runs[2](&msg2,o_aktual);
-          o_aktual->events[1]();
-          if (p!=NULL) o_aktual->runs[2](msg,o_aktual);
+          o_aktual->call_event(&msg2,o_aktual);
+          o_aktual->on_enter();
+          if (p!=NULL) o_aktual->call_event(msg,o_aktual);
           }
            }
      }
@@ -643,59 +650,62 @@ void do_it_events(EVENT_MSG *msg,void **user_data)
      *oz=1;
       if (o_aktual!=NULL)
         {
-        o_aktual->runs[2](msg,o_aktual);
+        o_aktual->call_event(msg,o_aktual);
         }
-     if ((*(int *)msg->data>>8)==0xf && waktual->idlist!=NULL)
+      int code = va_arg(msg->data, int);
+     if ((code>>8)==0xf && waktual->idlist!=NULL)
         {
         if (o_aktual==NULL) o_aktual=get_last_id();
         if (o_aktual!=NULL)
            {
            f_cancel_event=0;
-           o_aktual->events[2]();
+           o_aktual->on_exit();
            if (f_cancel_event) return;
            msg2.msg=E_LOST_FOCUS;
-           o_aktual->runs[2](&msg2,o_aktual);
+           o_aktual->call_event(&msg2,o_aktual);
            }
-        if((*(int *)msg->data & 0xff)==9) o_aktual=get_next_id(o_aktual);
+        if((code & 0xff)==9) o_aktual=get_next_id(o_aktual);
         else o_aktual=get_prev_id(o_aktual);
         if (o_aktual!=NULL)
            {
            msg2.msg=E_GET_FOCUS;
-           o_aktual->runs[2](&msg2,o_aktual);
-           o_aktual->events[1]();
+           o_aktual->call_event(&msg2,o_aktual);
+           o_aktual->on_enter();
            }
         }
      }
   if (msg->msg==E_TIMER && o_aktual!=NULL)
      {
-     o_aktual->runs[2](msg,o_aktual);
+     o_aktual->call_event(msg,o_aktual);
      if (!(cursor_tick--))
      {
      msg->msg=E_CURSOR_TICK;
-     o_aktual->runs[2](msg,o_aktual);
-     o_aktual->events[0](msg,o_aktual);
+     o_aktual->call_event(msg,o_aktual);
+     o_aktual->on_event(msg,o_aktual);
      cursor_tick=CURSOR_SPEED;
      }
      }
   if (msg->msg==E_GUI)
      {
      OBJREC *o;
-     EVENT_MSG msg2;
-     int *p;
+     int control = va_arg(msg->data, int);
+     msg->msg = va_arg(msg->data, int);
+     o=find_object(waktual,control);
 
-     p=msg->data;
-     o=find_object(waktual,*p++);
+     EVENT_MSG msg2;
+
      if (o!=NULL)
         {
-        msg2.msg=*p++;
-        msg2.data=p;
-        o->runs[2](&msg2,o);
-        o->events[0](&msg,o_aktual);
+        msg2.msg=msg->msg;
+        va_copy(msg2.data,msg->data);
+        o->call_event(&msg2,o);
+        o->on_event(msg,o_aktual);
+        va_end(msg2.data);
         }
 
      }
   if (msg->msg==E_CHANGE)
-     run_background(o_aktual->events[3]);
+     run_background(o_aktual->on_change);
   if (change_flag) send_message(E_CHANGE);
   }
 
@@ -726,24 +736,24 @@ void uninstall_gui(void)
 //send_message(E_GUI,cislo,E_UDALOST,data....)
 
 
-void on_change(void (*proc)())
+void on_control_change(void (*proc)())
   {
-  o_end->events[3]=proc;
+  o_end->on_change=proc;
   }
 
-void on_enter(void (*proc)())
+void on_control_enter(void (*proc)())
   {
-  o_end->events[1]=proc;
+  o_end->on_enter=proc;
   }
-void on_exit(void (*proc)())
+void on_control_exit(void (*proc)())
 {
-  o_end->events[2]=proc;
+  o_end->on_exit=proc;
   }
-void on_event(void (*proc)())
+void on_control_event(void (*proc)(EVENT_MSG *msg, struct objrec *))
 {
-  o_end->events[0]=proc;
+  o_end->on_event=proc;
   }
-void terminate(void)
+void terminate_gui(void)
   {
   exit_wait=1;
   }
@@ -810,8 +820,8 @@ void goto_control(int obj_id)
   if (send_lost()) return;
   o_aktual=find_object(waktual,obj_id);
   msg.msg=E_GET_FOCUS;
-  o_aktual->events[0](&msg,o_aktual);
-  o_aktual->runs[2](&msg,o_aktual);
+  o_aktual->on_event(&msg,o_aktual);
+  o_aktual->call_event(&msg,o_aktual);
   }
 
 void c_set_value(int win_id,int obj_id,int cnst)
@@ -880,12 +890,12 @@ void close_current()
 
 void background_runner(EVENT_MSG *msg,void **prog)
   {
-  register void (*p)();
+  void (*p)();
   char i=1;
 
   if (msg->msg==E_INIT)
      {
-     memcpy(prog,msg->data,4);
+     *prog = va_arg(msg->data, void (*)());
      return;
      }
   if (msg->msg==E_DONE)

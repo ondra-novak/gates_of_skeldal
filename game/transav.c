@@ -4,7 +4,7 @@
 #include <mem.h>
 #include <conio.h>
 #include <bios.h>
-#define EVENT_MSG long
+#define EVENT_MSG int32_t
 #include "globals.h"
 #include <memman.c>
 #include <strlite.c>
@@ -15,7 +15,7 @@ TSTR_LIST skini;
 #define PLAYERS 3
 
 void *datablast;
-long datablastsize;
+int32_t datablastsize;
 char *lasterror=NULL;
 char relarr[6];
 char szBuff[65536];
@@ -42,8 +42,8 @@ typedef struct s_save
   char stereing;
   char swapchans;
   char out_filter;
-  long glob_flags;
-  long game_time;
+  int32_t glob_flags;
+  int32_t game_time;
   char runes[5];
   char level_name[12];
   short picks;  //pocet_sebranych predmetu v mysi
@@ -72,7 +72,7 @@ typedef struct _tkzlall
   {
   TKOUZLO kouzlo;
   short vlstab[24];
-  long flagmap;
+  int32_t flagmap;
   }TKZLALL;
 
 THUMAN postavy[6],postavy2[6];
@@ -115,9 +115,9 @@ word keyconv(word key)
 
 #define ZAKLAD_CRC 0xC005
 
-static word vypocet_crc(char *data,long delka)
+static word vypocet_crc(char *data,int32_t delka)
   {
-  unsigned long l=0;
+  uint32_t l=0;
   do
      {
      l=(l<<8)|(delka>0?*data++:0);delka--;
@@ -171,10 +171,10 @@ void *loadmem(void *to,void *from,int size)
   return (void *)((char *)from+size);
   }
 
-long load_section(FILE *f,void **section, int *sct_type,long *sect_size)
+int32_t load_section(FILE *f,void **section, int *sct_type,int32_t *sect_size)
 //
   {
-  long s;
+  int32_t s;
   char c[20];
 
   *section=NULL;
@@ -189,11 +189,11 @@ long load_section(FILE *f,void **section, int *sct_type,long *sect_size)
   }
 
 
-static void load_specific_file(char *slotname,char *filename,void **out,long *size)
+static void load_specific_file(char *slotname,char *filename,void **out,int32_t *size)
   {
   FILE *slot;
   char *c,*d;
-  long siz;
+  int32_t siz;
   char fname[12];
   char succes=0;
 
@@ -490,7 +490,7 @@ int tracemap(char *name)
   FILE *f;
   void *section;
   int type;
-  long  size,s;
+  int32_t  size,s;
 
   f=fopen(name,"rb");
   if (f==NULL) return -1;

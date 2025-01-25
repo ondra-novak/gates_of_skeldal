@@ -9,7 +9,7 @@
 typedef struct t_wave
   {
   unsigned short wav_mode,chans;
-  long freq,bps;
+  int32_t freq,bps;
   }T_WAVE;
 
 char *find_chunk(char *wav,char *name);

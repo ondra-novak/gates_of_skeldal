@@ -92,7 +92,7 @@ static char bankmode=0;
 static char colr64=0;
 
 static void *bufpos;
-long vals_save=0x80008000;
+int32_t vals_save=0x80008000;
 
 static void *f,*temp;
 static int posyb,posyl;
@@ -112,7 +112,7 @@ static char screen_mode=SMD_256;
     char year[2];
     char eof;
     word ver;
-    long frames;
+    int32_t frames;
     word snd_chans;
     int snd_freq;
     short ampl_table[256];
@@ -167,8 +167,8 @@ static void close_mgf_file()
 
 static void load_frame(void *f)
   {
-  long frame_head;
-  long frame_size;
+  int32_t frame_head;
+  int32_t frame_size;
 
   bread(&frame_head,4);
   chunks=frame_head & 0xff;
@@ -248,7 +248,7 @@ static void show_frame(void *fr,void *temp)
   {
   int x;
   char *p,a;
-  long siz;
+  int32_t siz;
   int frmode=0,i;
   void *sound=NULL;int ssize;
   static last_counter=-1;
@@ -257,7 +257,7 @@ static void show_frame(void *fr,void *temp)
 
   for(x=0;x<chunks;x++)
      {
-     a=*p;siz=*(long *)p>>8;p+=4;
+     a=*p;siz=*(int32_t *)p>>8;p+=4;
      switch(a)
         {
         case MGIF_LZW:

@@ -424,7 +424,7 @@ void wizard_kbd(EVENT_MSG *msg,void **usr)
   usr;
   if (msg->msg==E_KEYBOARD)
      {
-     c=(*(int *)msg->data)>>8;
+     int c=va_arg(msg->data,int)>>8;
      msg->msg=-1;
      switch (c)
         {

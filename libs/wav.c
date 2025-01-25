@@ -7,7 +7,7 @@
 int find_chunk(FILE *riff,char *name)
   {
   char chunk_name[4];
-  long next;
+  int32_t next;
 
   fseek(riff,12,SEEK_SET);
   do
@@ -23,7 +23,7 @@ int find_chunk(FILE *riff,char *name)
 
 int get_chunk_size(FILE *riff)
   {
-  long size;
+  int32_t size;
 
   fread(&size,1,4,riff);
   fseek(riff,-4,SEEK_CUR);
@@ -32,7 +32,7 @@ int get_chunk_size(FILE *riff)
 
 int read_chunk(FILE *riff,void *mem)
   {
-  long size,res;
+  int32_t size,res;
 
   fread(&size,1,4,riff);
   res=fread(mem,1,size,riff);

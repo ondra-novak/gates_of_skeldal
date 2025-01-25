@@ -1,4 +1,3 @@
-#define MEMTEXT "Pamˆt: "
 
 #define E_STATUS_LINE 60
 

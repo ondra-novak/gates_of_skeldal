@@ -19,7 +19,7 @@ void sikma_zleva(void)
 	const unsigned char *pixmap = zoom.texture;
 	const short *ytable = zoom.ytable;
 	while (cy) {
-		const long *xtable = zoom.xtable;
+		const int32_t *xtable = zoom.xtable;
 		word cx = zoom.xmax;
 		word *scr_iter = scr;
 		const unsigned char *pixmap_iter = pixmap;
@@ -93,7 +93,7 @@ void sikma_zprava(void)
 	const unsigned char *pixmap = zoom.texture;
 	const short *ytable = zoom.ytable;
 	while (cy) {
-		const long *xtable = zoom.xtable;
+		const int32_t *xtable = zoom.xtable;
 		word cx = zoom.xmax;
 		word *scr_iter = scr;
 		const unsigned char *pixmap_iter = pixmap;
@@ -161,7 +161,7 @@ void fcdraw(void *source,void *target, void *table)
 	word *src = (word *)source;
 	word *trg = (word *)target;
 	T_FLOOR_MAP *t = (T_FLOOR_MAP *)table;
-	unsigned long cc;
+	uint32_t cc;
 
 	do {
 		word *ss = t->txtrofs/2+src;
@@ -368,8 +368,8 @@ void small_anm_delta(void *target,void *buff,void *paleta)
 {
 	word *t = (word *)target;
 	word *pal = (word *)paleta;
-	unsigned long *deltastart = (unsigned long *)buff;
-	unsigned long ofs = *deltastart++;
+	uint32_t *deltastart = (uint32_t *)buff;
+	uint32_t ofs = *deltastart++;
 	unsigned char *control = (unsigned char *)deltastart;
 	unsigned char *pixels = control + ofs;
 	int y;

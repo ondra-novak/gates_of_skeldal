@@ -23,7 +23,7 @@ static int initSizeY = 480;
 static unsigned short *mainBuffer=NULL;
 static unsigned short *secondBuffer=NULL;
 static unsigned short *curBuffer=NULL;
-static unsigned long main_linelen;
+static uint32_t main_linelen;
 
 #ifdef _DX_REF
 #define DXDEVICE_TYPE D3DDEVTYPE_REF
@@ -139,7 +139,7 @@ static void ColCalc()
   {
   do
     {
-    long val;
+    int32_t val;
     printf("number:");
     scanf("%X",&val);
     printf("RGB555(%d,%d,%d)\n",(val>>10),(val>>5) & 0x1F, val & 0x1F);
@@ -662,7 +662,7 @@ void DxLockBuffers(BOOL lock)
   else UnLockBuffers();
 }
 
-void StripBlt(void *data, unsigned int startline, unsigned long width)
+void StripBlt(void *data, unsigned int startline, uint32_t width)
 {
   unsigned short *start=startline*scr_linelen2+GetScreenAdr();
   while (width--)

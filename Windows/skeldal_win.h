@@ -15,7 +15,7 @@ extern "C"
 
 #define TIMERSPEED 20;
 
-unsigned long _bios_keybrd(int mode);
+uint32_t _bios_keybrd(int mode);
 
 
 LRESULT GameMainWindowWindowProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);

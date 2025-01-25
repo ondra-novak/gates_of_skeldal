@@ -303,12 +303,11 @@ void type_text(EVENT_MSG *msg,void **data)
      char *c;
 
      set_font(H_FBOLD,RGB555(31,31,31));
-     p=msg->data;
-     x=p[0];
-     y=p[1];
-     c=*(char **)(p+2);
-     max_size=*(int *)(p+3);
-     max_chars=*(int *)(p+4);
+     x=va_arg(msg->data, int);
+     y=va_arg(msg->data, int);
+     c=va_arg(msg->data, char *);
+     max_size=va_arg(msg->data,int);
+     max_chars=va_arg(msg->data, int);
      strcpy(text,c);
      source=c;
      index=strchr(text,0)-text;
@@ -330,9 +329,8 @@ void type_text(EVENT_MSG *msg,void **data)
      }
   else if (msg->msg==E_KEYBOARD)
      {
-     char c;
+     char c = va_arg(msg->data, int);
 
-     c=*(char *)msg->data;
      set_font(H_FBOLD,RGB555(31,31,31));
      if (c)
         {
@@ -487,7 +485,7 @@ void type_text_v2(va_list args)
   }
 
 
-void col_load(void **data,long *size)
+void col_load(void **data,int32_t *size)
   {
   int siz=*size;
   char *s,*c;
@@ -580,30 +578,31 @@ typedef struct radio_butt_data
   char *texty;
   }TRADIO_BUTT_DATA;
 
-static void radio_butts_init(OBJREC *o,long *params)
+static void radio_butts_init(OBJREC *o,va_list params)
   {
   char *c,*z;
-  long cnt=0,*q,*d,*zz;
+  int32_t cnt=0,*q,*zz;
   int i;
   TRADIO_BUTT_DATA *rd;
 
-  d=params;
-  for (i=0;i<*params;i++)
+  va_list d;
+  va_copy(d, params);
+  int count = va_arg(d, int);
+  for (i=0;i<count;i++)
      {
-     d+=1;
-     c=get_title(d);
+     c=va_arg(d, char *);
      cnt+=strlen(c);cnt++;
      }
   rd=New(TRADIO_BUTT_DATA);
   o->userptr=(void *)rd;
-  zz=q=(long *)getmem(cnt+8);
-  *q++=1;*q++=*params;
-  d=params;
+  zz=q=(int32_t *)getmem(cnt+8);
+  *q++=1;*q++=count;
+  va_end(d);
+  va_copy(d, params);
   z=(char *)q;
-  for (i=0;i<*params;i++)
+  for (i=0;i<count;i++)
      {
-     d+=1;
-     c=get_title(d);
+     c=va_arg(d, char *);
      strcpy(z,c);
      z=strchr(z,'\0');z++;
      }
@@ -614,14 +613,14 @@ static void radio_butts_init(OBJREC *o,long *params)
 static void radio_butts_draw(int x1,int y1,int x2,int y2,OBJREC *o)
   {
   int step,size,sizpul,i;
-  long *params;
+  int32_t *params;
   char *texts;
   CTL3D *clt;
   TRADIO_BUTT_DATA *rd;
 
   x2;
   rd=(TRADIO_BUTT_DATA *)o->userptr;
-  params=(long *)rd->texty;
+  params=(int32_t *)rd->texty;
   step=(y2-y1)/(*(params+1));
   size=(step*9)/10;
   sizpul=size>>1;
@@ -637,7 +636,7 @@ static void radio_butts_draw(int x1,int y1,int x2,int y2,OBJREC *o)
   clt=def_border(5,curcolor);
   for (i=0;i<*(params+1);i++,y1+=step)
      {
-     if (*(long *)o->data==i)
+     if (*(int32_t *)o->data==i)
         {
         int xx1=x1+2,yy1=y1+1,xx2=x1+size-2,yy2=y1+size-3,xxs=(xx1+xx2)>>1,yys=(yy1+yy2)>>1;
         curcolor=0x0;
@@ -670,13 +669,13 @@ static void radio_butts_event(EVENT_MSG *msg,OBJREC *o)
      if (ms->event_type & 0x02)
         {
         TRADIO_BUTT_DATA *rd;
-        long *params;
+        int32_t *params;
 
         rd=(TRADIO_BUTT_DATA *)o->userptr;
-        params=(long *)rd->texty;
+        params=(int32_t *)rd->texty;
         sel=(ms->y-o->locy)/(o->ys/(*(params+1)));
         if (sel>=*(params+1)) sel=*(params+1)-1;
-        *(long *)o->data=sel;
+        *(int32_t *)o->data=sel;
         *params=0;
         redraw_object(o);
         *params=1;
@@ -697,10 +696,10 @@ static void radio_butts_done(OBJREC *o)
 
 void radio_butts_gr(OBJREC *o)
   {
-  o->runs[0]=radio_butts_init;
-  o->runs[1]=radio_butts_draw;
-  o->runs[2]=radio_butts_event;;
-  o->runs[3]=radio_butts_done;;
+  o->call_init=radio_butts_init;
+  o->call_draw=radio_butts_draw;
+  o->call_event=radio_butts_event;;
+  o->call_done=radio_butts_done;;
   o->datasize=4;
   }
 
@@ -715,7 +714,7 @@ void radio_butts_gr(OBJREC *o)
   return znak=='A';
   }
 */
-long get_disk_free(char disk)
+int32_t get_disk_free(char disk)
   {
   return 10*1024*1024;
 /*  struct diskfree_t ds;
@@ -729,7 +728,7 @@ void start_check()
   /*
   char *c;
   unsigned drv;
-  long siz;
+  int32_t siz;
   struct meminfo memory;
   get_mem_info(&memory);
   concat(c,pathtable[SR_TEMP],TEMP_FILE);
@@ -762,7 +761,7 @@ void start_check()
 /*
 typedef struct dos_extra_block
   {
-  long sector;
+  int32_t sector;
   word pocet;
   word buffer_ofs;
   word buffer_seg;
@@ -772,7 +771,7 @@ typedef struct dos_extra_block
 typedef struct disk_label
   {
   word nula;
-  long serial;
+  int32_t serial;
   char label[11];
   char type[8];
   };
@@ -808,13 +807,13 @@ typedef struct disk_label
 
   */
 /*
-long read_serial(char drive)
+int32_t read_serial(char drive)
   {
   word segment;
   word selector;
   struct disk_label *p;
   RMREGS regs;
-  long serial;
+  int32_t serial;
 
   dosalloc(32,&segment,&selector);
   regs.eax=0x6900;
@@ -830,7 +829,7 @@ long read_serial(char drive)
 
 static void crash_event1(THE_TIMER *t)
   {
-  long serial;
+  int32_t serial;
   int i;
 
   serial=read_serial(t->userdata[1]);
@@ -843,7 +842,7 @@ static void crash_event1(THE_TIMER *t)
 
 static void crash_event2(THE_TIMER *t)
   {
-  long serial;
+  int32_t serial;
   int i;
 
   serial=read_serial(t->userdata[1]);
@@ -856,7 +855,7 @@ static void crash_event2(THE_TIMER *t)
 
 static void crash_event3(THE_TIMER *t)
   {
-  long serial;
+  int32_t serial;
   int i;
 
   serial=read_serial(t->userdata[1]);
@@ -875,21 +874,21 @@ void check_number_1phase(char *exename) //check serial number!
   int h;
   char buffer[_MAX_PATH];
   unsigned short date,time;
-  long serial;
+  int32_t serial;
 
   _fullpath(buffer,exename,_MAX_PATH);
   t=add_to_timer(TM_HACKER,2000,1,crash_event1);
-  t->userdata[0]=*(long *)error_hack;
-  t->userdata[1]=(long)buffer[0]-'@';
+  t->userdata[0]=*(int32_t *)error_hack;
+  t->userdata[1]=(int32_t)buffer[0]-'@';
   t=add_to_timer(TM_HACKER,3000,1,crash_event2);
-  t->userdata[0]=*(long *)error_hack;
-  t->userdata[1]=(long)buffer[0]-'@';
+  t->userdata[0]=*(int32_t *)error_hack;
+  t->userdata[1]=(int32_t)buffer[0]-'@';
   h=open(exename,O_RDONLY);
   _dos_getftime(h,&date,&time);
   serial=(date<<16) | time;
   t=add_to_timer(TM_HACKER,4000,1,crash_event3);
   t->userdata[0]=~serial;
-  t->userdata[1]=(long)buffer[0]-'@';
+  t->userdata[1]=(int32_t)buffer[0]-'@';
   close(h);
   }
 
@@ -958,20 +957,21 @@ void animate_checkbox(int first_id,int last_id,int step)
 
 void skeldal_checkbox(OBJREC *o)
   {
-//  o->runs[0]=skeldal_checkbox_init;
-  o->runs[1]=skeldal_checkbox_draw;
-  o->runs[2]=skeldal_checkbox_event;
+//  o->call_init=skeldal_checkbox_init;
+  o->call_draw=skeldal_checkbox_draw;
+  o->call_event=skeldal_checkbox_event;
   o->datasize=1;
   }
 
 //------------------------------------------
 
-static void setup_button_init(OBJREC *o,char **params)
+static void setup_button_init(OBJREC *o,va_list params)
   {
   void **d;
+  char title = va_arg(params, char *);
   d=NewArr(void *,2);
-  d[0]=NewArr(char,strlen(*params)+1);
-  strcpy(d[0],*params);
+  d[0]=NewArr(char,strlen(title)+1);
+  strcpy(d[0],title);
   d[1]=NULL;
   o->userptr=(void *)d;
   *(char *)o->data=0;
@@ -1038,10 +1038,10 @@ static void setup_button_done(OBJREC *o)
 
 void setup_ok_button(OBJREC *o)
   {
-  o->runs[0]=setup_button_init;
-  o->runs[1]=setup_button_draw;
-  o->runs[2]=setup_button_event;
-  o->runs[3]=setup_button_done;
+  o->call_init=setup_button_init;
+  o->call_draw=setup_button_draw;
+  o->call_event=setup_button_event;
+  o->call_done=setup_button_done;
   o->datasize=1;
   }
 
@@ -1052,10 +1052,10 @@ typedef struct skeldal_soupak_params_t {
     void *bgpic;
 } skeldal_soupak_params;
 
-static void skeldal_soupak_init (OBJREC *o,int *params)
+static void skeldal_soupak_init (OBJREC *o,va_list params)
   {
   skeldal_soupak_params *p = getmem(sizeof(skeldal_soupak_params));
-  p->range = *params;
+  p->range = va_arg(params, int);
   p->bgpic = NULL;
   o->userptr=p;
   }
@@ -1132,10 +1132,10 @@ static void skeldal_soupak_done(OBJREC *o)
 
 void skeldal_soupak(OBJREC *o)
   {
-  o->runs[0]=skeldal_soupak_init;
-  o->runs[1]=skeldal_soupak_draw;
-  o->runs[2]=skeldal_soupak_event;
-  o->runs[3]=skeldal_soupak_done;
+  o->call_init=skeldal_soupak_init;
+  o->call_draw=skeldal_soupak_draw;
+  o->call_event=skeldal_soupak_event;
+  o->call_done=skeldal_soupak_done;
   o->datasize=4;
   }
 
@@ -1479,7 +1479,8 @@ static void smlouvat_enter(EVENT_MSG *msg,OBJREC *o)
   o;
   if (msg->msg==E_KEYBOARD)
     {
-    switch( *(char *)msg->data)
+      int c = va_arg(msg->data, int);
+    switch(c)
       {
       case 13:goto_control(30);terminate_gui();break;
       case 27:goto_control(20);terminate_gui();break;

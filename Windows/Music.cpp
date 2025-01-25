@@ -250,7 +250,7 @@ int MusicPlayer::Write(const char *buf, int len)
     if (_crossfadebytes)
     {
       short *data=(short *)wrtptr;
-      long a=data[0]+sample[0];
+      int32_t a=data[0]+sample[0];
       if (a<-32767) a=-32767;
       if (a>32767) a=32767;
       data[0]=(short)a;
@@ -383,16 +383,16 @@ DWORD WINAPI MusDecoder::StartMusDecoder(LPVOID data)
 
 UINT MusDecoder::MusDecodingThread()
 {
-  long blocksRemain=_header.blocks;
+  int32_t blocksRemain=_header.blocks;
   char *packbuf=0;
   short *unpackbuf=0;
-  long packbufsz=0;
-  long unpackbufsz=0;
+  int32_t packbufsz=0;
+  int32_t unpackbufsz=0;
   for (int i=0;i<blocksRemain;i++)
   {
     if (_stop) break;
-    long packedSize;
-    long unpackedSize;
+    int32_t packedSize;
+    int32_t unpackedSize;
     DWORD bytesread;
     if (ReadFile(_file,&packedSize,sizeof(packedSize),&bytesread,NULL)==FALSE) break;
     if (ReadFile(_file,&unpackedSize,sizeof(unpackedSize),&bytesread,NULL)==FALSE) break;

@@ -36,15 +36,15 @@ bool DDLFile::ReadFile(void *data, size_t sz)
 
 bool DDLFile::EnumFiles(IDDLFileEnumerator &enmClass)
 {
-  unsigned long firstGroup;
-  unsigned long groupEndOffset;
-  unsigned long endGroups;
+  uint32_t firstGroup;
+  uint32_t groupEndOffset;
+  uint32_t endGroups;
   int i;
   int ngroups;
   SetFilePointer(_hFile,0,0,FILE_BEGIN);
   if (ReadFile(&firstGroup,sizeof(firstGroup))==false) return false;
   if (ReadFile(&groupEndOffset,sizeof(firstGroup))==false) return false;
-  unsigned long *group=(unsigned long *)alloca(groupEndOffset);
+  uint32_t *group=(uint32_t *)alloca(groupEndOffset);
   group[0]=firstGroup;
   group[1]=groupEndOffset;
   ngroups=groupEndOffset/8;
@@ -56,13 +56,13 @@ bool DDLFile::EnumFiles(IDDLFileEnumerator &enmClass)
   WString fname;
   for (i=0;i<ngroups;i++)
   {
-    unsigned long endGroup=(i+1)<ngroups?group[i*2+3]:endGroups;
+    uint32_t endGroup=(i+1)<ngroups?group[i*2+3]:endGroups;
     SetFilePointer(_hFile,group[i*2+1],0,FILE_BEGIN);
-    unsigned long pos=group[i*2+1];
+    uint32_t pos=group[i*2+1];
     while (pos<endGroup)
     {
       char buff[13];
-      unsigned long offset;
+      uint32_t offset;
       if (ReadFile(buff,12)==false) return false;
       if (ReadFile(&offset,4)==false) return false;
       buff[12]=0;
@@ -74,15 +74,15 @@ bool DDLFile::EnumFiles(IDDLFileEnumerator &enmClass)
   return true;
 }
 
-unsigned long DDLFile::GetFileSize(unsigned long offset)
+uint32_t DDLFile::GetFileSize(uint32_t offset)
 {
-  unsigned long sz=0;
+  uint32_t sz=0;
   SetFilePointer(_hFile,offset,0,FILE_BEGIN);
   ReadFile(&sz,4);
   return sz;
 }
 
-DDLData DDLFile::ExtractFile(unsigned long offset)
+DDLData DDLFile::ExtractFile(uint32_t offset)
 {
   SetFilePointer(_hFile,offset,0,FILE_BEGIN);
   DDLData data;

@@ -40,7 +40,7 @@ static jmp_buf jmpenv;
 char exit_wait=0;
 T_EVENT_ROOT *ev_tree=NULL;
 char freeze_on_exit=0;
-long ev_buff_msg[EVENT_BUFF_SIZE]={0};
+int32_t ev_buff_msg[EVENT_BUFF_SIZE]={0};
 void *ev_buff_dta[EVENT_BUFF_SIZE]={NULL};
 int ev_poz=0;
 char *otevri_zavoru;
@@ -53,9 +53,9 @@ char *task_info;
 int taskcount=0;
 int foretask=0;
 int nexttask=0;
-long taskparam;
+int32_t taskparam;
 
-long err_last_stack;
+int32_t err_last_stack;
 void *err_to_go;
 
 
@@ -226,7 +226,11 @@ void enter_event(T_EVENT_ROOT **tree,EVENT_MSG *msg)
            p->nezavora=p->nezavirat;
            otevri_zavoru=&p->nezavora;
            p->calls++;
-           z->proc(msg,&(z->user_data));
+           EVENT_MSG cpy;
+           cpy.msg = msg->msg;
+           va_copy(cpy.data, msg->data);
+           z->proc(&cpy,&(z->user_data));
+           va_end(cpy.data);
            p->calls--;
            p->nezavora=1;
            if (msg->msg==-2)
@@ -267,25 +271,32 @@ void enter_event(T_EVENT_ROOT **tree,EVENT_MSG *msg)
   unsuspend_task(msg);
   }
 
-T_EVENT_POINT *install_event(T_EVENT_ROOT **tree,long ev_num,EV_PROC proc,void *procdata,char end)
+typedef struct call_proc_context_t {
+    EV_PROC proc;
+    void **user;
+}call_proc_context;
+
+static int call_proc(EVENT_MSG *msg, void *ctx) {
+    call_proc_context *c = ctx;
+    c->proc(msg, c->user);
+    return 0;
+}
+
+T_EVENT_POINT *install_event(T_EVENT_ROOT **tree,int32_t ev_num,EV_PROC proc,void *procdata,char end)
 //instaluje novou udalost;
   {
   EVENT_MSG x;
-  void **user=NULL;
+  void *user=NULL;
   T_EVENT_POINT *p;
+  call_proc_context ctx = {proc, &user};
 
-  x.msg=E_INIT;
-  x.data=procdata;
-  proc(&x,&user);
-  if (x.data!=NULL)
-      {
-      p=add_event(tree,ev_num,proc,end);
-      p->user_data=user;
-      }
-   return p;
+  send_message_to(call_proc,&ctx, E_INIT, procdata);
+  p=add_event(tree,ev_num,proc,end);
+  p->user_data=user;
+  return p;
    }
 
-void deinstall_event(T_EVENT_ROOT **tree,long ev_num,EV_PROC proc,void *procdata)
+void deinstall_event(T_EVENT_ROOT **tree,int32_t ev_num,EV_PROC proc,void *procdata)
 //deinstaluje udalost;
   {
   EVENT_MSG x;
@@ -296,9 +307,8 @@ void deinstall_event(T_EVENT_ROOT **tree,long ev_num,EV_PROC proc,void *procdata
   if (r==NULL) return;
   find_event_proc(r->list,proc,p);
   if (p==NULL) return;
-  x.msg=E_DONE;
-  x.data=procdata;
-  proc(&x,&p->user_data);
+  call_proc_context ctx = {proc, &p->user_data};
+  send_message_to(call_proc, &ctx, E_DONE, procdata);
   if (p->user_data!=NULL) free(p->user_data);
   p->proc=NULL;
   p->user_data=NULL;
@@ -308,46 +318,62 @@ void deinstall_event(T_EVENT_ROOT **tree,long ev_num,EV_PROC proc,void *procdata
 void tree_basics(T_EVENT_ROOT **ev_tree,EVENT_MSG *msg)
 {
   char *p;
-  void *(*q)();
+  void (*q)();
   EVENT_MSG tg;
 
   if (msg->msg==E_ADD || msg->msg==E_ADDEND)
      {
      T_EVENT_POINT *r;
-     shift_msg(msg,tg);
-     p=(char *)(tg.data);
-     p+=4;
-     find_event_msg_proc(*ev_tree,tg.msg,tg.data,r);
+     shift_message(msg);
+     EV_PROC proc = va_arg(msg->data, EV_PROC);
+     void *procdata = va_arg(msg->data, void *);
+     find_event_msg_proc(*ev_tree,msg->msg,proc,r);
      assert(r==NULL);
      if (r==NULL)
-        install_event(ev_tree,tg.msg,*(EV_PROC *)tg.data,p,msg->msg==E_ADDEND);
+        install_event(ev_tree,msg->msg,proc,procdata,msg->msg==E_ADDEND);
      return;
      }
   if (msg->msg==E_INIT)
      {
-     memcpy(&q,msg->data,4);
-     q();
+      q = va_arg(msg->data, void (*)());
+      q();
      return;
      }
   if (msg->msg==E_DONE)
      {
-     shift_msg(msg,tg);
-     p=(char *)(tg.data);
-     p+=4;
-     deinstall_event(ev_tree,tg.msg,*(EV_PROC *) tg.data,p);
+     shift_message(msg);
+     EV_PROC proc = va_arg(msg->data, EV_PROC);
+     void *procdata = va_arg(msg->data, void *);
+     deinstall_event(ev_tree,msg->msg,proc,procdata);
      return;
      }
-  if (msg->msg==E_GROUP)
+/*  if (msg->msg==E_GROUP)
      {
      int pocet,i,addev;
      T_EVENT_POINT *pp;
      EVENT_MSG *tgm=&tg;
 
-     long *p;void *proc;
-     shift_msg(msg,tg);addev=tg.msg; if (addev!=E_ADD || addev!=E_ADDEND) return;
+     shift_message(msg);
+     addev = msg->msg;
+     if (addev!=E_ADD || addev!=E_ADDEND) return;
+     shift_message(msg);
+     int pocet = msg->msg;
+     va_list va_procdata;
+     va_copy(tmp, msg->data);
+     for (int i = 0; i < pocet; ++i) va_arg(va_procdata, EV_PROC);
+     for (int i = 0; i < pocet; ++i) {
+         EV_PROC proc = va_arg(msg->data, EV_PROC);
+         void *procdata = va_arg(va_procdata, void *)
+         if (i == 0) {
+             pp=install_event(ev_tree,proc,procdata,((int32_t *)proc+1),addev==E_ADDEND);
+         }
+     }
+
+     int32_t *p;void *proc;
+     shift_msg(msg,tg);addev=tg.msg;
      shift_msg(tgm,tg);
      pocet=tg.msg;
-     p=tg.data;proc=p+pocet*sizeof(long);
+     p=tg.data;proc=p+pocet*sizeof(int32_t);
      for(i=0;i<pocet;i++,p++) if (i!=0)
                                 {
                                 T_EVENT_POINT *q;
@@ -356,23 +382,36 @@ void tree_basics(T_EVENT_ROOT **ev_tree,EVENT_MSG *msg)
                                 q->proc=PROC_GROUP;
                                 }
         else
-           pp=install_event(ev_tree,*p,proc,((long *)proc+1),addev==E_ADDEND);
+           pp=install_event(ev_tree,*p,proc,((int32_t *)proc+1),addev==E_ADDEND);
      }
-
+*/
 
 }
 
-void send_message(long message,...)
-  {
-  long *p;
-  EVENT_MSG x;
+int send_message_to(int (*cb)(EVENT_MSG *, void *), void *ctx, int message, ...) {
+    EVENT_MSG x;
+    x.msg = message;
+    va_start(x.data, message);
+    int r = cb(&x, ctx);
+    va_end(x.data);
+}
 
-  p=&message;
-  x.msg=*p++;
-  x.data=(void *)p;
-  if (x.msg==E_ADD || x.msg==E_INIT || x.msg==E_DONE) tree_basics(&ev_tree,&x);
-     else
-        enter_event(&ev_tree,&x);
+static void send_message_to_tree(EVENT_MSG *x) {
+    if (x->msg==E_ADD || x->msg==E_INIT || x->msg==E_DONE) {
+        tree_basics(&ev_tree,x);
+    }
+    else {
+        enter_event(&ev_tree,x);
+    }
+}
+
+void send_message(int message,...)
+  {
+    EVENT_MSG x;
+    x.msg = message;
+    va_start(x.data, message);
+    send_message_to_tree(&x);
+    va_end(x.data);
   }
 
 
@@ -380,10 +419,10 @@ void send_message(long message,...)
 
 void timer(EVENT_MSG *msg)
   {
-  static unsigned long lasttime=0;  
+  static uint32_t lasttime=0;
   if (msg->msg==E_WATCH)
      {
-     unsigned long tm=GetTickCount()/TIMERSPEED;
+     uint32_t tm=get_game_tick_count()/TIMERSPEED;
      if (tm==lasttime) return;
      lasttime=tm;
      send_message(E_TIMER,tm);
@@ -483,7 +522,7 @@ void error_show(int error_number)
 
 
 void escape()
-  {  
+  {
 
   exit_wait=0;
   do
@@ -500,12 +539,11 @@ void escape()
 T_EVENT_ROOT *gate_basics(EVENT_MSG *msg, void **user_data)
   {
   T_EVENT_ROOT *p;
-  EVENT_MSG msg2;
 
   memcpy(&p,user_data,4);
-  shift_msg(msg,msg2);;
-  if (msg2.msg==E_ADD || msg2.msg==E_INIT || msg2.msg==E_DONE)
-      tree_basics((T_EVENT_ROOT **)user_data,&msg2);
+  shift_message(msg);
+  if (msg->msg==E_ADD || msg->msg==E_INIT || msg->msg==E_DONE)
+      tree_basics((T_EVENT_ROOT **)user_data,msg);
   return p;
   }
 /*
@@ -529,7 +567,7 @@ int create_task()
 */
 void task_terminating();
 /*
-long getflags();
+int32_t getflags();
 #pragma aux getflags = \
   "pushfd"\
   "pop  eax"\
@@ -538,7 +576,7 @@ long getflags();
 int add_task(int stack,void *name,...)
   {
   int task,i;
-  long *sp,*spp;
+  int32_t *sp,*spp;
 
   task=create_task();
   if (task==-1)
@@ -552,16 +590,16 @@ int add_task(int stack,void *name,...)
      send_message(E_MEMERROR);
      return -1;
      }
-  spp=(long *)((char *)sp+stack-17*4);
+  spp=(int32_t *)((char *)sp+stack-17*4);
   memset(sp,0,stack);
   memcpy(spp,&name,17*4);
-  *spp=(long )task_terminating;
-  spp--;*spp=(long)name;
+  *spp=(int32_t )task_terminating;
+  spp--;*spp=(int32_t)name;
   for(i=0;i<9;i++)
      {
      spp--;
      *spp=0;
-     if (i==5) *spp=(long)((char *)sp+stack);
+     if (i==5) *spp=(int32_t)((char *)sp+stack);
      }
   tasklist_low[task]=(void *)sp;
   tasklist_top[task]=(void *)((char *)sp+stack);
@@ -620,7 +658,7 @@ void shut_down_task(int id_num)
      }
   }
 */
-/*void *task_wait_event(long event_number)
+/*void *task_wait_event(int32_t event_number)
   {
   if (!curtask) return NULL;
   suspend_task(curtask,event_number);

@@ -25,7 +25,7 @@ typedef struct mgif_header
     char year[2];
     char eof;
     word ver;
-    long frames;
+    int32_t frames;
     word snd_chans;
     int snd_freq;
     short ampl_table[256];

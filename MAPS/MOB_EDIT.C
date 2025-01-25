@@ -106,9 +106,9 @@ void pcx_view_done(OBJREC *o)
 
 void pcx_view(OBJREC *o)
   {
-  o->runs[0]=pcx_view_init;
-  o->runs[1]=pcx_view_draw;
-  o->runs[3]=pcx_view_done;
+  o->call_init=pcx_view_init;
+  o->call_draw=pcx_view_draw;
+  o->call_done=pcx_view_done;
   o->datasize=129;
   }
 
@@ -146,8 +146,8 @@ void symetry_event(EVENT_MSG *msg,OBJREC *o)
 
 void symetry(OBJREC *o)
   {
-  o->runs[1]=symetry_draw;
-  o->runs[2]=symetry_event;
+  o->call_draw=symetry_draw;
+  o->call_event=symetry_event;
   o->datasize=4;
   }
 

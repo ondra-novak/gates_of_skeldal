@@ -76,7 +76,7 @@ char **texty;
 
 char skip_intro=0;
 char autosave_enabled=0;
-long game_time=0;
+int32_t game_time=0;
 int charmin=3;
 int charmax=3;
 
@@ -123,11 +123,11 @@ static char windowedzoom=1;
 static char monitor=0;
 static int refresh=0;
 
-void pcx_fade_decomp(void **p,long *s);
-void pcx_15bit_decomp(void **p,long *s);
-void pcx_15bit_autofade(void **p,long *s);
-void pcx_15bit_backgrnd(void **p,long *s);
-void pcx_8bit_decomp(void **p,long *s);
+void pcx_fade_decomp(void **p,int32_t *s);
+void pcx_15bit_decomp(void **p,int32_t *s);
+void pcx_15bit_autofade(void **p,int32_t *s);
+void pcx_15bit_backgrnd(void **p,int32_t *s);
+void pcx_8bit_decomp(void **p,int32_t *s);
 
 char *texty_knihy;
 static char *patch_file=NULL;
@@ -360,7 +360,7 @@ int ask_video()
   return c-1;
   }
 
-void pcx_fade_decomp(void **p,long *s)
+void pcx_fade_decomp(void **p,int32_t *s)
   {
   char *buff;
   int r = load_pcx(*p,*s,A_FADE_PAL,&buff,mglob.fade_r,mglob.fade_g,mglob.fade_b);
@@ -370,7 +370,7 @@ void pcx_fade_decomp(void **p,long *s)
   *p=buff;
   }
 
-void pcx_15bit_decomp(void **p,long *s)
+void pcx_15bit_decomp(void **p,int32_t *s)
   {
   char *buff;
   int r = load_pcx(*p,*s,A_16BIT,&buff);
@@ -380,7 +380,7 @@ void pcx_15bit_decomp(void **p,long *s)
   *p=buff;
   }
 
-void pcx_15bit_autofade(void **p,long *s)
+void pcx_15bit_autofade(void **p,int32_t *s)
   {
   char *buff;
   int r = load_pcx(*p,*s,A_16BIT,&buff);
@@ -391,16 +391,16 @@ void pcx_15bit_autofade(void **p,long *s)
   buff[5]=0x80;
   }
 
-void pcx_15bit_backgrnd(void **p,long *s)
+void pcx_15bit_backgrnd(void **p,int32_t *s)
   {
   char *buff;
-  long i;long *z;
+  int32_t i;int32_t *z;
 
   if (*p!=NULL)
      {
      int r = load_pcx(*p,*s,A_16BIT,&buff);
      assert(r>0);
-     z=(long *)buff;
+     z=(int32_t *)buff;
      *s=r;
      for(i=*s;i>0;i-=4,z++) *z|=0x80008000;
      free(*p);
@@ -408,7 +408,7 @@ void pcx_15bit_backgrnd(void **p,long *s)
      }
   }
 
-void pcx_8bit_nopal(void **p,long *s)
+void pcx_8bit_nopal(void **p,int32_t *s)
   {
   char *buff;
 
@@ -423,7 +423,7 @@ void pcx_8bit_nopal(void **p,long *s)
   }
 
 
-void pcx_8bit_decomp(void **p,long *s)
+void pcx_8bit_decomp(void **p,int32_t *s)
   {
   char *buff;
   int r = load_pcx(*p,*s,A_8BIT,&buff);
@@ -433,7 +433,7 @@ void pcx_8bit_decomp(void **p,long *s)
   *p=buff;
   }
 
-void hi_8bit_correct(void **p,long *s)
+void hi_8bit_correct(void **p,int32_t *s)
 {
   word *ptr=(word *)*p;
   int i;
@@ -447,7 +447,7 @@ void hi_8bit_correct(void **p,long *s)
 }
 
 
-void set_background(void **p,long *s)
+void set_background(void **p,int32_t *s)
   {
   word *data;
   word *ptr;
@@ -601,7 +601,7 @@ void *timming(EVENT_MSG *msg,void **data)
   data;
   if (msg->msg==E_INIT) return &timming;
   *otevri_zavoru=1;
-  j=*(int *)msg->data;
+  j=va_arg(msg->data,int);
   for (i=0;i<j;i++)
   {
   p=&timer_tree;
@@ -862,7 +862,7 @@ void global_kbd(EVENT_MSG *msg,void **usr)
   usr;
   if (msg->msg==E_KEYBOARD)
      {
-     c=(*(int *)msg->data)>>8;
+     c=va_arg(msg->data,int)>>8;
      if (c==';') save_dump(GetScreenAdr(), DxGetResX(), DxGetResY(), scr_linelen2);
      }
   return;
@@ -973,7 +973,7 @@ static void patch_error(int err)
 
 void init_skeldal(void)
   {
-  char c[200],d[200];
+  char c[MAX_FILESYSTEM_PATH],d[MAX_FILESYSTEM_PATH];
   int verr;
 
   boldcz=LoadDefaultFont();
@@ -998,7 +998,7 @@ SEND_LOG("(INIT) Initializing engine.",0,0);
 /*SEND_LOG("(INIT) Loading DOS error handler.",0,0);
   install_dos_error(device_error,(char *)getmem(4096)+4096);*/
   swap_error=swap_error_exception;
-  sprintf(d,"%s%s",pathtable[SR_DATA],"skeldal.ddl");
+  snprintf(d,sizeof(d),"%s%s",pathtable[SR_DATA],"skeldal.ddl");
 SEND_LOG("(INIT) Initializing memory manager",0,0);
   init_manager(d,c);
 SEND_LOG("(GAME) Memory manager initialized. Using DDL: '%s' Temp dir: '%s'",d,c);
@@ -1104,7 +1104,7 @@ extern char running_battle;
   if (msg->msg==E_RELOADMAP)
   {
 	int i;
-	ReloadMapInfo *minfo=(ReloadMapInfo *)msg->data;
+	ReloadMapInfo *minfo=va_arg(msg->data, ReloadMapInfo *);
 	const char *fname=minfo->fname;
 	int sektor=minfo->sektor;
 	strncpy(loadlevel.name,fname,sizeof(loadlevel.name));

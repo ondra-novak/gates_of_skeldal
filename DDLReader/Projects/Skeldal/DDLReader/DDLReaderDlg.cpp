@@ -281,7 +281,7 @@ static CString GetGroupName(int group)
   return res;
 }
 
-bool CDDLReaderDlg::File(WString name, int group, unsigned long offset)
+bool CDDLReaderDlg::File(WString name, int group, uint32_t offset)
 {
   LVITEM item;
   CString grpname=GetGroupName(group);
@@ -305,10 +305,10 @@ void CDDLReaderDlg::UpdateList(void)
   _ddlfile.EnumFiles(*this);
   for (int i=0,cnt=wFileList.GetItemCount();i<cnt;i++)
   {
-    unsigned long offset;
+    uint32_t offset;
     tmp=wFileList.GetItemText(i,3);
     offset=_wtoi(tmp);
-    unsigned long size=_ddlfile.GetFileSize(offset);
+    uint32_t size=_ddlfile.GetFileSize(offset);
     if (size<1024)
       tmp.Format(_T("%d B"),size);
     else
@@ -364,8 +364,8 @@ static int CALLBACK SortItemsInFileList(LPARAM lParam1, LPARAM lParam2, LPARAM l
   {
     sinfo.left=sinfo.list->GetItemText(lParam1,3);
     sinfo.right=sinfo.list->GetItemText(lParam2,3);
-    unsigned long l=_wtoi(sinfo.left);
-    unsigned long r=_wtoi(sinfo.right);
+    uint32_t l=_wtoi(sinfo.left);
+    uint32_t r=_wtoi(sinfo.right);
     l=sinfo._ddlfile->GetFileSize(l);
     r=sinfo._ddlfile->GetFileSize(r);
     res=(l>r)-(l<r);
@@ -463,9 +463,9 @@ void CDDLReaderDlg::OnBnClickedExport()
     pb.wProgress.SetPos(++cur);
     int i=wFileList.GetNextSelectedItem(pos);
     CString fname;
-    unsigned long offset;
+    uint32_t offset;
     fname=wFileList.GetItemText(i,1);
-    offset=(unsigned long)_wtoi64(wFileList.GetItemText(i,3));
+    offset=(uint32_t)_wtoi64(wFileList.GetItemText(i,3));
     pb.wDesc.SetWindowText(fname);
     if (PeekMessage(&msg,0,0,0,PM_NOREMOVE)==TRUE) AfxPumpMessage();
     if (pb.stop) break;
@@ -506,9 +506,9 @@ WPathname CDDLReaderDlg::CreateTemp(int index)
 {
   if (!_lastTemp.IsNull()) DeleteFile(_lastTemp);
   CString fname;
-  unsigned long offset;
+  uint32_t offset;
   fname=wFileList.GetItemText(index,1);
-  offset=(unsigned long)_wtoi64(wFileList.GetItemText(index,3));
+  offset=(uint32_t)_wtoi64(wFileList.GetItemText(index,3));
   _lastTemp.SetTempDirectory();
   _lastTemp.SetFileTitle(WSC("SkeldalDDLReader"));
   _lastTemp.SetExtension(WSC(".")+WString(fname));

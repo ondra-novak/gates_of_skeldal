@@ -11,7 +11,7 @@ void help()
 
 main(int argc,char **argv)
   {
-  void *z;long s;
+  void *z;int32_t s;
   FILE *f;
 
   if (argc==3) help();

@@ -43,8 +43,8 @@ public:
 	virtual void Flush(int t);	
     virtual int GetOutputTime();
     virtual int GetWrittenTime();
-    virtual unsigned long AddRef() {return 1;}
-    virtual unsigned long Release() {return 0;}
+    virtual uint32_t AddRef() {return 1;}
+    virtual uint32_t Release() {return 0;}
 };
 
 

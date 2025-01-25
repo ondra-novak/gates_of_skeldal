@@ -5,7 +5,7 @@
 #include "devices.h"
 
 
-#define get_mouse(info) ((MS_EVENT *)(*(long *) info->data))
+#define get_mouse(info) va_arg(info->data,MS_EVENT *)
 
 extern MS_EVENT ms_last_event;
 

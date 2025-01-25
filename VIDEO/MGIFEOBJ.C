@@ -36,8 +36,8 @@ static void done_bar_draw(int x1,int y1,int x2,int y2,OBJREC *o)
 
 void done_bar(OBJREC *o) //define(...done_bar,max);
   {
-  o->runs[0]=done_bar_init;
-  o->runs[1]=done_bar_draw;
+  o->call_init=done_bar_init;
+  o->call_draw=done_bar_draw;
   o->datasize=4;
   }
 
@@ -54,7 +54,7 @@ static void pic_view_draw(int x1,int y1,int x2,int y2,OBJREC *o)
 
 void pic_viewer(OBJREC *o) //define(...pic_view);set_value(ptr)
   {
-  o->runs[1]=pic_view_draw;
+  o->call_draw=pic_view_draw;
   o->datasize=4;
   }
 
@@ -196,9 +196,9 @@ static void track_view_click(EVENT_MSG *msg,OBJREC *o)
 
 void track_view(OBJREC *o) //track_view(void *track);set_value(pos);
   {
-  o->runs[0]=track_view_init;
-  o->runs[1]=track_view_draw;
-  o->runs[2]=track_view_click;
+  o->call_init=track_view_init;
+  o->call_draw=track_view_draw;
+  o->call_event=track_view_click;
   o->datasize=4;
   }
 
@@ -256,8 +256,8 @@ static void starts_view_draw(int x1,int y1,int x2,int y2,OBJREC *o)
 
 void starts_view(OBJREC *o) //track_view(void *track);set_value(pos);
   {
-  o->runs[0]=starts_view_init;
-  o->runs[1]=starts_view_draw;
+  o->call_init=starts_view_init;
+  o->call_draw=starts_view_draw;
   o->datasize=4;
   }
 
@@ -269,7 +269,7 @@ static void color_box_draw(int x1,int y1,int x2,int y2,OBJREC *o)
 
 void color_box(OBJREC *o)
   {
-  o->runs[1]=color_box_draw;
+  o->call_draw=color_box_draw;
   o->datasize=4;
   }
 

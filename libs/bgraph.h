@@ -6,7 +6,7 @@
 #define point point32
 
 word *GetScreenAdr();
-long GetScreenSizeBytes();
+int32_t GetScreenSizeBytes();
 word *GetBuffer2nd();
 void RedirectScreen(word *newaddr);
 void RestoreScreen();
@@ -14,15 +14,15 @@ void RedirectScreenBufferSecond();
 
 
 extern word curcolor,charcolors[7];
-extern long scr_linelen;
-extern long scr_linelen2;
-extern long dx_linelen;
+extern int32_t scr_linelen;
+extern int32_t scr_linelen2;
+extern int32_t dx_linelen;
 extern word *curfont,*writepos,writeposx;
 extern byte fontdsize;
 extern byte *palmem,*xlatmem;
 extern void (*showview)(word,word,word,word);
 extern char line480;
-extern long screen_buffer_size;
+extern int32_t screen_buffer_size;
 extern char banking;
 extern char __skip_change_line_test;
 extern char no_restore_mode;

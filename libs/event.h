@@ -1,3 +1,4 @@
+#include <stdarg.h>
 #ifndef __EVENT_H
 #define __EVENT_H
 //#define nodebug  // 0 znamena ze se nealokuje udalost pro chybu
@@ -11,7 +12,7 @@
 #define E_ADD 2       //pridani udalosti do stromu
 #define E_DONE 3      //odebrani udalosti ze stromu
 #define E_IDLE 4      //udalost volana v dobe necinnosti
-#define E_GROUP 5     //vytvareni skupin udalosti
+//#define E_GROUP 5     //vytvareni skupin udalosti
 #define E_ADDEND 7    //pridani udalosti do stromu na konec.
 #define E_MEMERROR 8  //udalost je vyvolana pri nedostatku pameti
                        // neni prirazena ZADNA standardni akce!!!
@@ -36,7 +37,8 @@
 
 #define TASK_EVENT_WAITING 2
 
-#define shift_msg(msgg,tg) ((tg.msg=*(long *)msgg->data),(tg.data=(void *)((long *)msgg->data+1)))
+
+//#define shift_msg(msgg,tg) ((tg.msg=*(int32_t *)msgg->data),(tg.data=(void *)((int32_t *)msgg->data+1)))
 
 #define EVENT_BUFF_SIZE 16
 
@@ -46,12 +48,12 @@ typedef void (*EV_PROC)(void *,void *) ;
 
 //typedef struct event_list
 //  {
-//  long *table; //tabulka udalosti
+//  int32_t *table; //tabulka udalosti
 //  EV_PROC *procs;  //co se ma pri danne udalosti stat
 //  void *(*user_data); //ukazatel na uzivatelska data
 //  char *zavora; //1 znamena ze udalost je povolena
-// long max_events; // maximalni pocet udalosti, na ktere je system rezervova
-//  long count; //aktualni pocet udalosti
+// int32_t max_events; // maximalni pocet udalosti, na ktere je system rezervova
+//  int32_t count; //aktualni pocet udalosti
 //  }EVENT_LIST;
 
 /* event procedura ma dva parametry
@@ -87,8 +89,8 @@ typedef struct t_event_root
 
 typedef struct event_msg
   {
-  long msg;
-  void *data;
+  int32_t msg;
+  va_list data;
   }EVENT_MSG;
 
 extern char exit_wait; // 1 - opousti aktivni cekaci event;
@@ -99,11 +101,13 @@ extern char *otevri_zavoru;
 
 void init_events();
  // inicalizuje zakladni strom udalosto
-void send_message(long message,...);
+void send_message(int message,...);
+
+int send_message_to(int (*cb)(EVENT_MSG *, void *), void *ctx, int message, ...);
  // posila zpravu do stromu
 void tree_basics(T_EVENT_ROOT **ev_tree,EVENT_MSG *msg);
  // pripojuje zakladni funkce brany, jako je instalace listu a jejich deinstalace
-T_EVENT_ROOT *gate_basics(EVENT_MSG *msg, void *user_data);
+T_EVENT_ROOT *gate_basics(EVENT_MSG *msg, void **user_data);
  // implementace brany
  /* vstupuji informace, jake dostane brana pri zavolani
     vystupuji informace s jakymi musi vstoupit do stromu.
@@ -112,6 +116,10 @@ T_EVENT_ROOT *gate_basics(EVENT_MSG *msg, void *user_data);
   */
 void enter_event(T_EVENT_ROOT **tree,EVENT_MSG *msg);
  //vstupuje do stromu s udalosti (msg)
+
+static __inline void shift_message(EVENT_MSG *msg) {
+    msg->msg = va_arg(msg->data, int);
+}
 
 void do_events();
 void escape();
@@ -129,7 +137,7 @@ void shut_down_task(int id_num);
  //Nasilne ukonci ulohu
 void raise_error(int error_number);
 
-EVENT_MSG *task_wait_event(long event_number);
+EVENT_MSG *task_wait_event(int32_t event_number);
 char is_running(int id_num);
 */
 void timer(EVENT_MSG *msg);
@@ -137,8 +145,8 @@ void timer(EVENT_MSG *msg);
 #define EVENT_PROC(name) void name(EVENT_MSG *msg,void **user_ptr)
 #define WHEN_MSG(msg_num) if (msg->msg==msg_num)
 #define UNTIL_MSG(msg_num) if (msg->msg!=msg_num)
-#define GET_DATA(data_type) (*(data_type *)msg->data)
-#define GET_DATA_PTR(data_type) ((data_type *)msg->data);
+#define GET_DATA(data_type) (va_arg(msg->data, data_type))
+#define GET_DATA_PTR(data_type) (va_arg(msg->data, data_type *))
 #define GET_USER(data_type) (*(data_type *)user_ptr)
 #define SAVE_USER_PTR(p) (*user_ptr=p)
 #define GET_USER_PTR() user_ptr

@@ -9,8 +9,8 @@
 // Construction/Destruction
 //////////////////////////////////////////////////////////////////////
 
-/** Funkce vytvoøí transitivní uzávìr.
-to znamená, že zruší všechny zøetìzené redirecty.
+/** Funkce vytvoï¿½ï¿½ transitivnï¿½ uzï¿½vï¿½r.
+to znamenï¿½, ï¿½e zruï¿½ï¿½ vï¿½echny zï¿½etï¿½zenï¿½ redirecty.
 */
 WStringProxy *WStringProxy::TransitivniUzaver()
 {
@@ -94,7 +94,7 @@ void WStringProxy::RenderStringToBuffer(wchar_t *renderPtr)
 	break;
   case OpEffect:	
 	{
-	  unsigned long offset=0;
+	  uint32_t offset=0;
 	  renderPtr[_stringSize]=0;		  //we can append zero, because right side of string is not yet rendered  
 	  //if this is end of string, one extra character for zero is also allocated.
 	  //efect functions can rely on it.

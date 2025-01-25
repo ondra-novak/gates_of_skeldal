@@ -1,7 +1,6 @@
 #include <skeldal_win.h>
 #include "types.h"
 #include <mem.h>
-#include <dos.h>
 #include <stdio.h>
 #include <malloc.h>
 #include <stdlib.h>
@@ -10,8 +9,8 @@
 //#include <i86.h>
 #include "swaper.c"
 #include <fcntl.h>
-#include <io.h>
-#include <SYS\STAT.H>
+#include <sys/stat.h>
+#include <unistd.h>
 
 #define DPMI_INT 0x31
 #define LOAD_BUFFER 4096
@@ -24,7 +23,7 @@ void bonz_table();
 char **mman_pathlist=NULL;
 static char swap_status=0;
 
-static int swap;
+static FILE *swap = NULL;
 char mman_patch=0;
 
 int memman_handle;
@@ -33,12 +32,7 @@ static int max_handle=0;
 
 void (*mman_action)(int action)=NULL;
 
-long last_load_size;
-void get_mem_info(MEMORYSTATUS *mem)
-  {
-  mem->dwLength=sizeof(*mem);
-  GlobalMemoryStatus(mem);
-  }
+int32_t last_load_size;
 
 
 void standard_mem_error(size_t size)
@@ -46,8 +40,8 @@ void standard_mem_error(size_t size)
   char buff[256];
   SEND_LOG("(ERROR) Memory allocation error detected, %u bytes missing",size,0);
   DXCloseMode();
-  sprintf(buff,"Memory allocation error\n Application can't allocate %u bytes of memory (%xh)\n",size,memman_handle);
-  MessageBox(NULL,buff,NULL,MB_OK|MB_ICONSTOP);  
+  sprintf(buff,"Memory allocation error\n Application can't allocate %lu bytes of memory (%xh)\n",size,memman_handle);
+  display_error(buff);
   exit(1);
   }
 
@@ -60,7 +54,7 @@ void load_error(char *filename)
   #endif
   DXCloseMode();
   sprintf(buff,"Load error while loading file: %s", filename);
-  MessageBox(NULL,buff,NULL,MB_OK|MB_ICONSTOP);  
+  display_error(buff);
   exit(1);
   }
 
@@ -69,7 +63,7 @@ void standard_swap_error()
   char buff[256];
   DXCloseMode();
   sprintf(buff,"Swap error. Maybe disk is full");
-  MessageBox(NULL,buff,NULL,MB_OK|MB_ICONSTOP);  
+  display_error(buff);
   exit(1);
   }
 
@@ -77,7 +71,7 @@ void standard_swap_error()
 void (*mem_error)(size_t)=standard_mem_error;
 void (*swap_error)()=standard_swap_error;
 
-void *getmem(long size)
+void *getmem(int32_t size)
   {
   void *p,*res;
 
@@ -94,24 +88,29 @@ void *getmem(long size)
      if (p==NULL) mem_error(size);
      }
   while (p==NULL);
-//  SEND_LOG("(ALLOC) **** Alloc: %p size %d",p,*((long *)p-1));
+//  SEND_LOG("(ALLOC) **** Alloc: %p size %d",p,*((int32_t *)p-1));
   return p;
   }
 
 
 void *load_file(char *filename)
   {
-  int f;
-  long size,*p;
+  FILE *f;
+  int32_t size,*p;
 
   if (mman_action!=NULL) mman_action(MMA_READ);
   SEND_LOG("(LOAD) Loading file '%s'",filename,0);
-  f=open(filename,O_BINARY | O_RDONLY);
-  if (f==-1) load_error(filename);
-  size=filelength(f);
+  f=fopen(filename, "rb");
+  if (f==NULL) {
+      load_error(filename);
+      return NULL;
+  }
+  fseek(f,0, SEEK_END);
+  size=ftell(f);
+  fseek(f,0, SEEK_SET);
   p=(void *)getmem(size);
-  if (read(f,p,size)!=size) load_error(filename);
-  close(f);
+  if (fread(p,1,size,f)!=size) load_error(filename);
+  fclose(f);
   last_load_size=size;
   return p;
   }
@@ -121,11 +120,11 @@ void *load_file(char *filename)
 typedef struct tnametable
         {
         char name[12];
-        long seek;
+        int32_t seek;
         }TNAMETABLE;
 
 
-static long *grptable,grptabsiz;
+static int32_t *grptable,grptabsiz;
 static TNAMETABLE *nametable;
 static int nmtab_size;
 static int next_name_read=0;
@@ -133,9 +132,9 @@ static int last_group;
 
 char *main_file_name=NULL;
 handle_groups _handles;
-static int bmf=-1;
-static int patch=-1;
-unsigned long bk_global_counter=0;
+static FILE *bmf=NULL;
+static FILE *patch=NULL;
+uint32_t bk_global_counter=0;
 char *swap_path;
 
 #ifdef LOGFILE
@@ -164,14 +163,14 @@ static int test_file_exist_DOS(int group,char *filename)
 
 void load_grp_table()
   {
-  long i;
+  int32_t i;
 
   SEND_LOG("(LOAD) Loading Group Table",0,0);
-  lseek(bmf,4,SEEK_SET);
-  read(bmf,&i,4);
-  grptable=(long *)getmem(i+4);
-  lseek(bmf,0,SEEK_SET);
-  read(bmf,grptable,i);
+  fseek(bmf,4,SEEK_SET);
+  fread(&i,4,1,bmf);
+  grptable=(int32_t *)getmem(i+4);
+  fseek(bmf,0,SEEK_SET);
+  fread(grptable,i,1,bmf);
   grptabsiz=i;
   for(i=0;i<(grptabsiz>>3);i++) grptable[i*2+1]=(grptable[i*2+1]-grptabsiz)>>4;
   SEND_LOG("(LOAD) Group Table Loaded",0,0);
@@ -183,13 +182,13 @@ void load_file_table()
   void *p;
 
   SEND_LOG("(LOAD) Loading File Table",0,0);
-  lseek(bmf,grptabsiz,SEEK_SET);
-  lseek(bmf,12,SEEK_CUR);
-  read(bmf,&strsize,4);
+  fseek(bmf,grptabsiz,SEEK_SET);
+  fseek(bmf,12,SEEK_CUR);
+  fread(&strsize,4,1,bmf);
   strsize-=grptabsiz;
-  lseek(bmf,grptabsiz,SEEK_SET);
+  fseek(bmf,grptabsiz,SEEK_SET);
   p=getmem(strsize);memcpy(&nametable,&p,4);
-  read(bmf,nametable,strsize);
+  fread(nametable,1,strsize,bmf);
   nmtab_size=strsize/sizeof(*nametable);
   SEND_LOG("(LOAD) File Table Loaded",0,0);
   }
@@ -224,17 +223,16 @@ int get_file_entry(int group,char *name)
   }
 int swap_block(THANDLE_DATA *h)
   {
-  long wsize,pos;
+  int32_t wsize,pos;
 
   if (mman_action!=NULL) mman_action(MMA_SWAP);
-  if (swap==-1) return -1;
+  if (!swap) return -1;
   if (h->flags & BK_HSWAP) pos=h->seekpos; else pos=swap_add_block(h->size);
-  lseek(swap,0,SEEK_END);
-  wsize=tell(swap);
-  if (wsize<pos) write(swap,NULL,pos-wsize);
-  lseek(swap,pos,SEEK_SET);
+  fseek(swap,0,SEEK_END);
+  wsize=ftell(swap);
+  fseek(swap,pos,SEEK_SET);
   SEND_LOG("(SWAP) Swaping block '%-.12hs'",h->src_file,0);
-  wsize=write(swap,h->blockdata,h->size);
+  wsize=fwrite(h->blockdata,1,h->size,swap);
   swap_status=1;
   if ((unsigned)wsize==h->size)
      {
@@ -271,7 +269,7 @@ void heap_error(size_t size) //heap system
   {
   int i,j;
   char swaped=0;
-  unsigned long maxcounter=0;
+  uint32_t maxcounter=0;
   THANDLE_DATA *sh;
   char repeat=0,did=0;
   THANDLE_DATA *lastblock=NULL;
@@ -285,7 +283,7 @@ void heap_error(size_t size) //heap system
   for(i=0;i<BK_MAJOR_HANDLES;i++)
        if (_handles[i]!=NULL)
          {
-         unsigned long c,max=0xffffffff,d;
+         uint32_t c,max=0xffffffff,d;
          for (j=0;j<BK_MINOR_HANDLES;j++)
            {
            THANDLE_DATA *h;
@@ -375,7 +373,7 @@ THANDLE_DATA *zneplatnit_block(int handle)
   return h;
   }
 
-void init_manager(char *filename,char *swp) // filename= Jmeno datoveho souboru nebo NULL pak
+void init_manager(char *filename,char */*swap is not supported*/) // filename= Jmeno datoveho souboru nebo NULL pak
                                   // se pouzije DOS
                                             // swp je cesta do TEMP adresare
   {
@@ -384,8 +382,8 @@ void init_manager(char *filename,char *swp) // filename= Jmeno datoveho souboru 
   memset(_handles,0,sizeof(_handles));
   if (filename!=NULL)
      {
-     bmf=open(filename,O_BINARY | O_RDONLY);
-     if (bmf!=-1)
+     bmf=fopen(filename,"rb");
+     if (bmf)
         {
         main_file_name=(char *)getmem(strlen(filename)+1);
         strcpy(main_file_name,filename);
@@ -398,13 +396,7 @@ void init_manager(char *filename,char *swp) // filename= Jmeno datoveho souboru 
   else
      main_file_name=NULL;
   mem_error=heap_error;
-  if (swp!=NULL)
-     {
-     swap=open(swp,O_BINARY | O_RDWR | O_CREAT | O_TRUNC,_S_IREAD | _S_IWRITE);
-     swap_init();
-     }
-  else
-     swap=-1;
+  swap=NULL;
   }
 
 void *load_swaped_block(THANDLE_DATA *h)
@@ -414,8 +406,8 @@ void *load_swaped_block(THANDLE_DATA *h)
   if (mman_action!=NULL) mman_action(MMA_SWAP_READ);
   i=getmem(h->size);
   SEND_LOG("(LOAD)(SWAP) Loading block from swap named '%-.12hs'",h->src_file,0);
-  lseek(swap,h->seekpos,SEEK_SET);
-  read(swap,i,h->size);
+  fseek(swap,h->seekpos,SEEK_SET);
+  fread(i,1,h->size,swap);
   h->status=BK_PRESENT;
   return i;
   }
@@ -430,7 +422,7 @@ int find_same(char *name,void *decomp)
   if (name[0]==0) return -1;
   for(i=0;i<BK_MAJOR_HANDLES;i++)
      if (_handles[i]!=NULL)
-     {     
+     {
      p=(THANDLE_DATA *)(_handles[i]);
      for(j=0;j<BK_MINOR_HANDLES;j++)
         if ((!strncmp(p[j].src_file,name,12))&& (p[j].loadproc==decomp)) return i*BK_MINOR_HANDLES+j;
@@ -483,10 +475,10 @@ THANDLE_DATA *def_handle(int handle,char *filename,void *decompress,char path)
   return h;
   }
 
-void *afile(char *filename,int group,long *blocksize)
+void *afile(char *filename,int group,int32_t *blocksize)
   {
   char *c,*d;
-  long entr;
+  int32_t entr;
   void *p;
 
   d=alloca(strlen(filename)+1);
@@ -496,13 +488,13 @@ void *afile(char *filename,int group,long *blocksize)
   else entr=get_file_entry(group,d);
   if (entr!=0)
      {
-		 int hnd;
+		 FILE *hnd;
 		 SEND_LOG("(LOAD) Afile is loading file '%s' from group %d",d,group);
 		 if (entr<0) entr=-entr,hnd=patch;else hnd=bmf;
-     lseek(hnd,entr,SEEK_SET);
-     read(hnd,blocksize,4);
+     fseek(hnd,entr,SEEK_SET);
+     fread(blocksize,1,4,hnd);
      p=getmem(*blocksize);
-     read(hnd,p,*blocksize);
+     fread(p,1,*blocksize,hnd);
      }
   else if (mman_pathlist!=NULL)
      {
@@ -536,7 +528,7 @@ void *ablock(int handle)
      }
   if (h->status==BK_NOT_LOADED)
      {
-        void *p;long s;
+        void *p;int32_t s;
         char c[200];
 
         SEND_LOG("(LOAD) Loading file as block '%-.12hs' %04X",h->src_file,handle);
@@ -563,13 +555,14 @@ void *ablock(int handle)
            }
         else
            {
-					 int entr=h->seekpos,hnd;
+					 int entr=h->seekpos;
+					 FILE *hnd;
            if (mman_action!=NULL) mman_action(MMA_READ);
 					 if (entr<0) entr=-entr,hnd=patch;else hnd=bmf;
-           lseek(hnd,entr,SEEK_SET);
-           read(hnd,&s,4);
+           fseek(hnd,entr,SEEK_SET);
+           fread(&s,1,4,hnd);
            p=getmem(s);
-           read(hnd,p,s);
+           fread(p,1,s,hnd);
            if (h->loadproc!=NULL) h->loadproc(&p,&s);
            h->blockdata=p;
            h->status=BK_PRESENT;
@@ -642,16 +635,16 @@ void apreload(int handle)
      }
   }
 
-static long *apr_sign=NULL;
-static long max_sign;
+static int32_t *apr_sign=NULL;
+static int32_t max_sign;
 
 void apreload_sign(int handle,int max_handle)
   {
   THANDLE_DATA *h;
   if (apr_sign==NULL)
      {
-     apr_sign=NewArr(long,max_handle);
-     memset(apr_sign,0x7f,sizeof(long)*max_handle);
+     apr_sign=NewArr(int32_t,max_handle);
+     memset(apr_sign,0x7f,sizeof(int32_t)*max_handle);
      max_sign=max_handle;
      }
   if (handle>=max_sign)
@@ -664,9 +657,9 @@ void apreload_sign(int handle,int max_handle)
      if (!(h->flags & BK_PRELOAD) || !(h->flags & BK_HSWAP)) apr_sign[handle]=h->seekpos;
   }
 
-static int apreload_sort(const void *val1,const void *val2)
+int apreload_sort(const void *val1,const void *val2)
   {
-  long vl1,vl2;
+  int32_t vl1,vl2;
 
   vl1=apr_sign[*(word *)val1];
   vl2=apr_sign[*(word *)val2];
@@ -728,9 +721,9 @@ void close_manager()
      free(_handles[i]);
      }
   free(main_file_name);
-  close(bmf);
-  if (swap!=-1) close(swap);
-//  fclose(log);
+  if (bmf) fclose(bmf);
+  if (patch) fclose(patch);
+  if (swap) fclose(swap);
   free(grptable); grptable=NULL;
   free(nametable); nametable=NULL;
   max_handle=0;
@@ -761,9 +754,8 @@ void display_status()
   char flags[]={"LS*PH"};
   char copys[6]="     ";
   char nname[14];
-  long total_data=0;
-  long total_mem=0;
-  MEMORYSTATUS mem;
+  int32_t total_data=0;
+  int32_t total_mem=0;
   int ln=0;
 
   //block();
@@ -781,9 +773,9 @@ void display_status()
 
            for(k=0;k<5;k++) copys[k]=h->flags & (1<<k)?flags[k]:'.';
            if (h->src_file[0]) strncpy(nname,h->src_file,12);else strcpy(nname,"<local>");
-           printf("%04Xh ... %12s %s %s %08Xh %6d %10d %6d \n",i*BK_MINOR_HANDLES+j,
+           printf("%04Xh ... %12s %s %s %08lXh %6d %10d %6d \n",i*BK_MINOR_HANDLES+j,
            nname,names[h->status-1],
-           copys,(int)h->blockdata,h->size,h->counter,h->lockcount);
+           copys,(uintptr_t)h->blockdata,h->size,h->counter,h->lockcount);
            ln++;
            total_data+=h->size;
            if(h->status==BK_PRESENT)total_mem+=h->size;
@@ -802,33 +794,29 @@ void display_status()
         }
 
      }
-  get_mem_info(&mem);
-  printf("Data: %7d KB, Loaded: %7d KB, Largest free: %7d KB",total_data/1024,total_mem/1024,mem.dwAvailPageFile/1024);
+  printf("Data: %7d KB, Loaded: %7d KB",total_data/1024,total_mem/1024);
   while (getchar()!='\n');
   }
 
-void *grealloc(void *p,long size)
+void *grealloc(void *p,int32_t size)
   {
   void *q;
-  long scop;
+  int32_t scop;
 
   if (!size)
      {
      free(p);
      return NULL;
      }
-  /*q=realloc(p,size);
+  q=realloc(p,size);
   if (q!=NULL)
      {
-     SEND_LOG("(ALLOC) **** Realloc: New %p size %d\n",q,*((long *)q-1));
+     SEND_LOG("(ALLOC) **** Realloc: New %p size %d\n",q,*((int32_t *)q-1));
      return q;
-     }*/
+     }
   q=getmem(size);
-  if (p==NULL) return q;
-  scop=_msize(p);
-  if (scop>size) scop=size;
-  memmove(q,p,scop);
-  free(p);
+  free(q);
+  q=realloc(p,size);
   return q;
   }
 
@@ -847,25 +835,25 @@ int read_group(int index)
 
 char add_patch_file(char *filename)
 	{
-	long l;
-	long poc;
+	int32_t l;
+	int32_t poc;
 	int i,cc=0;
 	TNAMETABLE p;
 	SEND_LOG("Adding patch: %s",filename,0);
-	if (patch!=-1) return 2;
-	if (bmf==-1) return 3;
-	patch=open(filename,O_BINARY|O_RDONLY);
-	if (patch==-1) return 1;
-	lseek(patch,4,SEEK_SET);
-	read(patch,&l,4);
-	lseek(patch,l,SEEK_SET);
-	read(patch,&p,sizeof(p));
+	if (!patch) return 2;
+	if (!bmf) return 3;
+	patch=fopen(filename,"rb");
+	if (!patch) return 1;
+	fseek(patch,4,SEEK_SET);
+	fread(&l,1,4,patch);
+	fseek(patch,l,SEEK_SET);
+	fread(&p,1,sizeof(p),patch);
 	poc=(p.seek-l)/sizeof(p);
-	lseek(patch,l,SEEK_SET);
+	fseek(patch,l,SEEK_SET);
 	for(i=0;i<poc;i++)
 		{
 		int j;
-		read(patch,&p,sizeof(p));
+		fread(&p,1,sizeof(p),patch);
 		j=find_name(read_group(0),p.name);
 		if (j==-1)
 			{
@@ -883,7 +871,7 @@ char add_patch_file(char *filename)
 void free(void *c)
   {
   if (c==NULL) return;
-  SEND_LOG("(ALLOC)úúú Dealloc: %p size %d",c,*((long *)c-1));
+  SEND_LOG("(ALLOC)ï¿½ï¿½ï¿½ Dealloc: %p size %d",c,*((int32_t *)c-1));
   free(c);
   }
 */
@@ -914,7 +902,7 @@ char *get_time_str()
   static char text[20];
 
 
-  time( &long_time );                /* Get time as long integer. */
+  time( &long_time );                /* Get time as int32_t integer. */
   newtime = localtime( &long_time ); /* Convert to local time. */
 
   sprintf(text,"%02d:%02d:%02d",newtime->tm_hour,newtime->tm_min,newtime->tm_sec);
@@ -924,7 +912,7 @@ char *get_time_str()
 
 #endif
 
-long get_handle_size(int handle)
+int32_t get_handle_size(int handle)
   {
   THANDLE_DATA *h;
 
@@ -942,7 +930,7 @@ long get_handle_size(int handle)
   if (log!=NULL && zavora)
      {
      zavora=0;
-     fprintf(log,"Alloc: %p size %d\n",c,*((long *)c-1));
+     fprintf(log,"Alloc: %p size %d\n",c,*((int32_t *)c-1));
      zavora=1;
      }
   return c;
@@ -951,7 +939,7 @@ long get_handle_size(int handle)
 
 FILE *afiletemp(char *filename, int group)
   {
-  long size;  
+  int32_t size;
   void *p=afile(filename,group,&size);
   FILE *f;
   if (p==NULL) return NULL;

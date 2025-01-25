@@ -27,15 +27,15 @@ typedef struct meminfo {
 typedef struct thandle_data
   {
   char src_file[12];  //12
-  long seekpos;       //16
+  int32_t seekpos;       //16
   void *blockdata;    //20
   char flags;        //21
   char path;        //22
   short status;
-  void (*loadproc)(void **data,long *size);//28
+  void (*loadproc)(void **data,int32_t *size);//28
   unsigned short lockcount;               //32
-  unsigned long counter;
-  unsigned long size;
+  uint32_t counter;
+  uint32_t size;
   }THANDLE_DATA;
 
 #define BK_MAJOR_HANDLES 256 // maximalni pocet skupin rukojeti
@@ -64,8 +64,8 @@ extern void (*mem_error)(size_t);    //pokud neni NULL je tato funkce volana vzd
 extern void (*swap_error)();
 extern int memman_handle; //cislo handle naposled zpracovavaneho prikazem ablock
 extern char mman_patch;    //jednicka zapina moznost pouziti patchu
-void *getmem(long size);        //alokace pameti pres memman. alokovat pomoci malloc lze ale hrozi nebezpeci ze vrati NULL
-void *grealloc(void *m,long size); //realokace pameti pres memman
+void *getmem(int32_t size);        //alokace pameti pres memman. alokovat pomoci malloc lze ale hrozi nebezpeci ze vrati NULL
+void *grealloc(void *m,int32_t size); //realokace pameti pres memman
 void *load_file(char *filename); //obycejne natahne soubor do pameti a vrati ukazatel.
 void init_manager(char *filename,char *swp); //inicializuje manager. Jmeno filename i swapname nejsou povinne (musi byt NULL kdyz nejsou pouzity)
 THANDLE_DATA *def_handle(int handle,char *filename,void *decompress,char path); //deklaruje rukojet. promenna decompress je ukazatel na funkci ktera upravi data pred vracenim ukazatele
@@ -82,8 +82,8 @@ THANDLE_DATA *zneplatnit_block(int handle); //zneplatni data bloku
 THANDLE_DATA *get_handle(int handle); //vraci informace o rukojeti
 int find_handle(char *name,void *decomp);   //hleda mezi rukojeti stejnou definici
 int test_file_exist(int group,char *filename); //testuje zda soubor existuje v ramci mmanageru
-void *afile(char *filename,int group,long *blocksize); //nahraje do pameti soubor registrovany v ramci mmanageru
-long get_handle_size(int handle);
+void *afile(char *filename,int group,int32_t *blocksize); //nahraje do pameti soubor registrovany v ramci mmanageru
+int32_t get_handle_size(int handle);
 //void get_mem_info(MEMORYSTATUS *mem);
 
 void apreload_sign(int handle,int max_handle);     //pripravi preloading pro nacteni dat z CD (sekvencne)

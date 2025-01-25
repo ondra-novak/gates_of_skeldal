@@ -85,16 +85,16 @@ char force_start_dialog=0;
 int start_dialog_number=0;
 int start_dialog_mob=0;
 
-long money=0;
+int32_t money=0;
 
 char runes[5]={0,0,0,0,0};
 
 char group_sort[POCET_POSTAV]={0,1,2,3,4,5};
 
-long load_section(FILE *f,void **section, int *sct_type,long *sect_size)
+int32_t load_section(FILE *f,void **section, int *sct_type,int32_t *sect_size)
 //
   {
-  long s;
+  int32_t s;
   char c[20];
 
   *section=NULL;
@@ -109,7 +109,7 @@ long load_section(FILE *f,void **section, int *sct_type,long *sect_size)
   }
 
 
-void prepare_graphics(int *ofs,char *names,long size,void *decomp,int class)
+void prepare_graphics(int *ofs,char *names,int32_t size,void *decomp,int class)
   {
   char *p,*end;
 
@@ -192,7 +192,7 @@ char *pripona(char *filename,char *pripona)
 void show_loading_picture(char *filename)
   {
   void *p;
-  long s;
+  int32_t s;
 
   p=afile(filename,SR_BGRAFIKA,&s);
   put_picture(0,0,p);
@@ -211,13 +211,13 @@ int load_map(char *filename)
   FILE *f;
   void *temp;
   int sect;
-  long size,r;
+  int32_t size,r;
   char nmapend=1;
   int ofsts=START_HANDLE;
   char *c,*d;
   char snd_load=0;
   void *mob_template;
-  long mob_size;
+  int32_t mob_size;
   int suc;
 
   map_with_password=0;
@@ -312,7 +312,7 @@ int load_map(char *filename)
                   SEND_LOG("(GAME) Loading enemies...",0,0);
                   if (mob_template==NULL)
                     {
-                    long h;char *p;
+                    int32_t h;char *p;
 
                     alock(H_ENEMY);
                     p=ablock(H_ENEMY);p+=8;
@@ -492,7 +492,7 @@ void leave_current_map()
 
 
 
-long actn_flags(TSTENA *q,long flags)
+int32_t actn_flags(TSTENA *q,int32_t flags)
   {
   flags>>=24;
   flags&=0x1f;
@@ -697,7 +697,7 @@ void calc_fly()
 
   }
 
-extern long sound_side_flags;
+extern int32_t sound_side_flags;
 
 
 void calc_animations()
@@ -789,7 +789,7 @@ int get_action_delay(TSTENA *q)
      return 0;
   }
 */
-void check_codelock_log(int sector,unsigned long flags)
+void check_codelock_log(int sector,uint32_t flags)
   {
   int i;
   TSTENA *p;
@@ -1912,7 +1912,7 @@ void *game_keyboard(EVENT_MSG *msg,void **usr)
   if (cur_mode==MD_END_GAME) return NULL;
   if (msg->msg==E_KEYBOARD)
      {
-     c=(*(int *)msg->data)>>8;
+      c=va_arg(msg->data, int)>>8;
      while (_bios_keybrd(_KEYBRD_READY) ) _bios_keybrd(_KEYBRD_READ);
      switch (c)
         {

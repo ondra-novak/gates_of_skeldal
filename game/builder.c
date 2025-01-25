@@ -181,7 +181,7 @@ void show_money()
   {
   char c[20];
   set_font(H_FONT7,RGB555(28,28,21));
-  sprintf(c,"%ld",money);
+  sprintf(c,"%d",money);
   set_aligned_position(460,13,2,2,c);
   outtext(c);
   }
@@ -275,7 +275,7 @@ word *bott_clear(void)
   {
   word *bott_scr;
 
-  long sz;
+  int32_t sz;
   bott_scr=(word *)getmem(sz = scr_linelen2*104*2);
   memset(bott_scr,0,sz);
   return bott_scr;
@@ -290,7 +290,7 @@ static void draw_small_icone(int num,int x,int y)
   put_textured_bar(pic,x,y,13,13,num,0);
   }
 
-static void bott_fletna_normal(void **pp,long *s)
+static void bott_fletna_normal(void **pp,int32_t *s)
   {
   word *bott_scr;
   int i,x;
@@ -308,7 +308,7 @@ static void bott_fletna_normal(void **pp,long *s)
   RestoreScreen();
   }
 
-static void bott_draw_normal(void **pp,long *s)
+static void bott_draw_normal(void **pp,int32_t *s)
   {
   int i,j;int x,xs=0,y;
   word *bott_scr;
@@ -415,7 +415,7 @@ void bott_timer_draw(struct the_timer *q)
   bott_timer=NULL;
   }
 
-void bott_disp_text_proc(void **pp,long *ss)
+void bott_disp_text_proc(void **pp,int32_t *ss)
   {
   char *p,*text;
   int y=20;
@@ -471,7 +471,7 @@ static void MaskPutPicture(int x, int y, char mask, word color, char blend, void
   }
 
 
-void bott_draw_rune(void **pp,long *ss)
+void bott_draw_rune(void **pp,int32_t *ss)
   {
   int sel_zivel=showrune/10;
   int sel_rune=showrune%10;
@@ -519,7 +519,7 @@ void bott_text_forever()
   bott_timer=NULL;
   }
 
-void bott_draw_proc(void **p,long *s)
+void bott_draw_proc(void **p,int32_t *s)
   {
   switch (bott_display)
      {
@@ -645,7 +645,7 @@ int enter_tab[VIEW3D_Z+1][VIEW3D_X*2+1]=
 void crt_minimap_itr(int sector,int smer,int itrx,int itry, int automap)
   {
   static int sector_temp;
-  static long sideflags;
+  static int32_t sideflags;
   static short enter=0;
   short savee;
 

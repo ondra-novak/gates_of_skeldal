@@ -15,7 +15,7 @@ public:
   @param curSize size of string that enters to the effect
   @return count of extra characters needs to effects;
   */
-  virtual unsigned long GetEffectExtraSize(unsigned long curSize) {return 0;}
+  virtual uint32_t GetEffectExtraSize(uint32_t curSize) {return 0;}
 
   ///function renders begin of string. 
   /** Function returns number of characters rendered, and must be <= then size returned by GetEffectExtraSize()
@@ -23,14 +23,14 @@ public:
   @param curSize size of string that enters to the effect
   @return number of characters rendered. Entered string will be rendered behind.
   */
-  virtual unsigned long PreRenderString(wchar_t *renderPtr,unsigned long curSize) {return 0;}
+  virtual uint32_t PreRenderString(wchar_t *renderPtr,uint32_t curSize) {return 0;}
 
   ///function renders effect. 
   /** 
   @param renderPtr pointer to begin of render buffer.
   @param rendered number of characters rendered by previous effect. Value doesn't point to the end
   of buffer, function must add result of PreRenderString */
-  virtual void RenderString(wchar_t *renderPtr, unsigned long rendered)=0;
+  virtual void RenderString(wchar_t *renderPtr, uint32_t rendered)=0;
 };
 
 #endif

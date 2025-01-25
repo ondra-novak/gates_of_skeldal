@@ -122,7 +122,7 @@ jp1:lodsb
   }
 }*/
 
-static void nahraj_rozdilovy_pcx(void **pp,long *s)
+static void nahraj_rozdilovy_pcx(void **pp,int32_t *s)
   {
   char *org,*pos;
   char *vysl;
@@ -315,8 +315,8 @@ static void klavesnice(EVENT_MSG *msg,void **unused)
      {
      for(cursor=0;cursor<5;cursor++) if (cur_dir[cursor]==SELECT) break;
      if (cursor==5) cursor=-1;
-
-     switch(*((char *)msg->data+1))
+     int c = va_arg(msg->data,int);
+     switch(c)
         {
         case 'H':cursor--;if (cursor<0) cursor=0;break;
         case 'P':cursor++;if (cursor>4) cursor=4;break;

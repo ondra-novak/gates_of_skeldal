@@ -3,7 +3,7 @@
 
 #define LOAD_BUFFER 4096
 
-int _fast_load(char *ptr,long size,FILE *f)
+int _fast_load(char *ptr,int32_t size,FILE *f)
   {
   if (size>LOAD_BUFFER) size=4096;
   return fread(ptr,1,size,f);
@@ -11,7 +11,7 @@ int _fast_load(char *ptr,long size,FILE *f)
 
 size_t fread(void *ptr,size_t i,size_t j,FILE *f)
   {
-  long s,z,celk=0;
+  int32_t s,z,celk=0;
   char *c;
 
   c=ptr;

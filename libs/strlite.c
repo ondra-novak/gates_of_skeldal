@@ -4,38 +4,27 @@
 #include <stdio.h>
 #include <mem.h>
 #include <malloc.h>
-#include <dos.h>
 #include "types.h"
 #include "memman.h"
 
 TSTR_LIST create_list(int count)
   {
-  register TSTR_LIST p;int i,j;
+  TSTR_LIST p;int i,j;
 
-  p=(TSTR_LIST)malloc(count*sizeof(*p));
+  size_t *s=(size_t *)malloc(count*sizeof(*p)+sizeof(size_t));
   if (p==NULL) return NULL;
-  j=_msize(p)/sizeof(*p);
-  for(i=0;i<j;i++) p[i]=NULL;
+  *s = count;
+  p = (TSTR_LIST)s;
+  for(i=0;i<count;i++) p[i]=NULL;
   return p;
   }
 
-TSTR_LIST find_ptr(TSTR_LIST source,void *_ptr,int _size)
+int find_ptr(TSTR_LIST source,void *_ptr,int _size)
   {
-  __asm
-    {
-    mov edi, source
-    mov eax, _ptr
-    mov ecx, _size
-
-    cld
-    repnz scasd
-    jnz  skok
-    sub  edi,4
-    skok:
-    mov eax, edi
-    }
+   for (int i = 0; i < _size; ++i)
+       if (source[i] ==_ptr) return i;
+   return _size;
   }
-    //parm [edi][eax][ecx] value[edi];
 
 const char *str_replace(TSTR_LIST *list,int line,const char *text)
   {
@@ -46,18 +35,15 @@ const char *str_replace(TSTR_LIST *list,int line,const char *text)
   count=str_count(*list);
   if (line>=count)
      {
-     int plus;
-
-        plus=count-line;
-        plus=(plus/STR_REALLOC_STEP+1)*STR_REALLOC_STEP;
-        p=getmem((count+plus)*sizeof(*p));
-        memcpy(p,*list,count*sizeof(*p));
-        free(*list);
-        j=_msize(p)/sizeof(*p);
-        i=count;
-        for(;i<j;i++) p[i]=NULL;
-        i=count;count=j;
-        *list=p;
+     int new_count = count * 2;
+     if (new_count <= line) new_count = line+1;
+     TSTR_LIST new_list = create_list(new_count);
+     for (int i = 0; i < count; ++i) {
+         new_list[i] = (*list)[i];
+         (*list)[i] = NULL;
+     }
+     release_list(*list);
+     *list = new_list;
      }
   if ((*list)[line]!=NULL) free((*list)[line]);
   if (text!=NULL)
@@ -78,8 +64,7 @@ int str_add(TSTR_LIST *list,const char *text)
   TSTR_LIST p;
 
   count=str_count(*list);
-  p=find_ptr(*list,NULL,count);
-  i=p-*list;
+  i=find_ptr(*list,NULL,count);
   str_replace(list,i,text);
   return i;
   }
@@ -90,8 +75,7 @@ const char *str_insline(TSTR_LIST *list,int before,const char *text)
   TSTR_LIST p;
 
   count=str_count(*list);
-  p=find_ptr(*list,NULL,count);
-  punkt=p-*list;
+  punkt=find_ptr(*list,NULL,count);
   str_replace(list,punkt,NULL);
   for(i=punkt;i>before;i--) (*list)[i]=(*list)[i-1];
   (*list)[before]=NULL;
@@ -108,14 +92,10 @@ void str_delfreelines(TSTR_LIST *list)
   int count,i,j;
   TSTR_LIST p;
 
-  count=_msize(*list)/sizeof(*p);
+  count=str_count(*list);
   j=0;
   for(i=0;i<count;i++)
      if ((*list)[i]!=NULL) (*list)[j++]=(*list)[i];
-  if (j==0) j++;
-  p=(TSTR_LIST)realloc(*list,j*sizeof(*p));
-  if (p!=NULL) *list=p;
-  count=_msize(*list)/sizeof(*p);
   for(i=j;i<count;i++) (*list)[i]=NULL;
   }
 
@@ -124,8 +104,7 @@ int str_count(TSTR_LIST p)
   int count;
 
   if (p==NULL) return 0;
-  count=_msize(p)/sizeof(*p);
-  return count;
+  return *((size_t *)p-1);
   }
 
 void release_list(TSTR_LIST list)
@@ -136,146 +115,26 @@ void release_list(TSTR_LIST list)
   j=str_count(list);
   for(i=0;i<j;i++)
      str_remove(&list, i);
-  free(list);
+  size_t *s = (size_t *)list-1;
+  free(s);
   }
 
-typedef struct tuzel
-  {
-  char *data;
-  struct tuzel *levy,*pravy,*spatky;
-  }
-  TUZEL;
 
 
-int sort_add_to_tree(TUZEL *uzel,const char *text, int dir)
-  {
-  TUZEL *q;
-  if (uzel->data==NULL)
-     {
-     uzel->data=text;
-     return 0;
-     }
-  q=(TUZEL *)getmem(sizeof(TUZEL));
-  if (q==NULL) return -1;
-  q->data=text;
-  q->levy=NULL;q->pravy=NULL;
-  while (uzel!=NULL)
-     if (strcmp(text,uzel->data)==dir)
-        {
-        if (uzel->levy==NULL)
-           {
-           uzel->levy=q;
-           q->spatky=uzel;
-           uzel=NULL;
-           }
-        else
-           uzel=uzel->levy;
-        }
-     else
-        {
-        if (uzel->pravy==NULL)
-           {
-           uzel->pravy=q;
-           q->spatky=uzel;
-           uzel=NULL;
-           }
-        else
-           uzel=uzel->pravy;
-        }
-  return 0;
-  }
+static int cmp_list_forward(const void *pa, const void *pb) {
+    return strcmp(*(char *const *)pa, *(char *const *)pb);
+}
+static int cmp_list_backward(const void *pa, const void *pb) {
+    return -strcmp(*(char *const *)pa, *(char * const *)pb);
+}
 
-void sort_read_list(TUZEL *uzel,TSTR_LIST list)
-  {
-  int counter=0;
-  TUZEL *ptr,*last;
-  int c;
-
-  if (uzel->data==NULL) return;
-  last=NULL;
-  while (uzel!=NULL)
-     {
-     if (last==NULL)
-        {
-        ptr=uzel;
-        uzel=uzel->levy;
-        last=NULL;
-        c=1;
-        }
-     else if (last==uzel->levy || (int)last==1)
-        {
-        ptr=uzel;
-        list[counter++]=uzel->data;
-        uzel=uzel->pravy;
-        last=NULL;
-        c=2;
-        }
-     else if (last==uzel->pravy || (int)last==2)
-        {
-        last=uzel;
-        uzel=uzel->spatky;
-        continue;
-        }
-     if (uzel==NULL)
-        {
-        last=(TUZEL *)c;
-        uzel=ptr;
-        }
-     }
-  }
-void sort_release_tree(TUZEL *uzel)
-  {
-  TUZEL *ptr,*last;
-  int c;
-
-  if (uzel->data==NULL) return;
-  last=NULL;
-  while (uzel!=NULL)
-     {
-     if (last==NULL)
-        {
-        ptr=uzel;
-        uzel=uzel->levy;
-        last=NULL;
-        c=1;
-        }
-     else if (last==uzel->levy || (int)last==1)
-        {
-        ptr=uzel;
-        uzel=uzel->pravy;
-        last=NULL;
-        c=2;
-        }
-     else if (last==uzel->pravy || (int)last==2)
-        {
-        last=uzel;
-        uzel=uzel->spatky;
-        if (last->spatky!=NULL) free(last);
-        continue;
-        }
-     if (uzel==NULL)
-        {
-        last=(TUZEL *)c;
-        uzel=ptr;
-        }
-     }
-  }
 TSTR_LIST sort_list(TSTR_LIST list,int direction)
   {
-  TUZEL uz;
-  int i,j;
-
-  uz.data=NULL;uz.levy=NULL;uz.pravy=NULL;
-  uz.spatky=NULL;
-  j=str_count(list);
-  for(i=0;i<j;i++)
-     if (list[i]!=NULL) if (sort_add_to_tree(&uz,list[i],direction))
-                             {
-                             sort_release_tree(&uz);
-                             return NULL;
-                             }
-  sort_read_list(&uz,list);
-  sort_release_tree(&uz);
+    if (direction > 0) {
+        qsort(list, str_count(list), sizeof(char *), cmp_list_forward);
+    } else if (direction < 0) {
+        qsort(list, str_count(list), sizeof(char *), cmp_list_backward);
+    }
   return list;
   }
 

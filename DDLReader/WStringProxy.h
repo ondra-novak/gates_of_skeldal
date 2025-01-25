@@ -90,24 +90,24 @@ public:
   };
 public:
 
-  unsigned long _refCount;  //reference count
-  unsigned long _stringSize:30;  //string size in characters (maximum size 1073741823 characters ~ 2147483646 bytes)
+  uint32_t _refCount;  //reference count
+  uint32_t _stringSize:30;  //string size in characters (maximum size 1073741823 characters ~ 2147483646 bytes)
   Operation _operation:2;		//operation with string or proxy type
 
   union
   {
 	WStringProxy *_baseString;	//pointer to next proxy referenced by this proxy
-	unsigned long _blockData;	//user defined block data for OpMemBlock proxy type
+	uint32_t _blockData;	//user defined block data for OpMemBlock proxy type
 	const wchar_t *_redirect;   //used for OpMemBlock, when _blockData2 is zero.
   };
 
   union
   {
 	WStringProxy *_secondString;  //pointer to second string for OpConcat
-	unsigned long _offset;		  //offset of substring for OpSubstr
+	uint32_t _offset;		  //offset of substring for OpSubstr
 	Effect _effect;				  //effect selector for OpEffect
 	IWStringEffect *_userEffect;  //user effect defined by IWStringEffect interface (valid when _effect is invalid)
-	unsigned long _blockData2;	//user defined block data for OpMemBlock proxy type - exception: if this value is zero, member _redirect is valid
+	uint32_t _blockData2;	//user defined block data for OpMemBlock proxy type - exception: if this value is zero, member _redirect is valid
 	
   };
 
@@ -128,7 +128,7 @@ public:
 	  _offset(0) 
 	  {_baseString->AddRef();} 
 
-  WStringProxy(WStringProxy *other, unsigned long offset, unsigned long size):
+  WStringProxy(WStringProxy *other, uint32_t offset, uint32_t size):
 	  _refCount(0),
 	  _stringSize(size),
 	  _baseString(other),
@@ -160,7 +160,7 @@ public:
 	  _userEffect(userEffect)
 	  {_baseString->AddRef();} 
 
-  WStringProxy(unsigned long size, unsigned long user1, unsigned long user2):
+  WStringProxy(uint32_t size, uint32_t user1, uint32_t user2):
 	  _refCount(0),
 	  _stringSize(size),
 	  _operation(OpMemBlck),
@@ -200,7 +200,7 @@ public:
   }
 
 
-  unsigned long GetLength() {return _stringSize;}
+  uint32_t GetLength() {return _stringSize;}
   void AddRef() {if (this) WStringMemory::AddRefProxy(this);}
   void Release() {if (this) if (WStringMemory::ReleaseRefProxy(this)) WStringMemory::FreeProxy(this);}
 

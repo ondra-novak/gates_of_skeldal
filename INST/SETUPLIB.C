@@ -58,8 +58,8 @@ static void done_bar_draw(int x1,int y1,int x2,int y2,OBJREC *o)
 
 void done_bar(OBJREC *o) //define(...done_bar,max);
   {
-  o->runs[0]=done_bar_init;
-  o->runs[1]=done_bar_draw;
+  o->call_init=done_bar_init;
+  o->call_draw=done_bar_draw;
   o->datasize=4;
   }
 
@@ -238,8 +238,8 @@ static void view_line_draw(int x1,int y1, int x2, int y2, OBJREC *o)
 
 void view_line(OBJREC *o)
   {
-  o->runs[0]=view_line_init;
-  o->runs[1]=view_line_draw;
+  o->call_init=view_line_init;
+  o->call_draw=view_line_draw;
   }
 
 
@@ -369,8 +369,8 @@ char do_script(int section)
                  {
                  char s[200];
 
-                 sprintf(s,"Instal tor nedok z l zpracovat © dek '%s' - P©¡kaz '%s' vr til chybu",command,commands[i]);
-                 if (msg_box("Chyba v INF",'\x1',s,"Ignoruj","P©eru¨it",NULL)==2) return 1;
+                 sprintf(s,"Instalï¿½tor nedokï¿½zï¿½l zpracovat ï¿½ï¿½dek '%s' - Pï¿½ï¿½kaz '%s' vrï¿½til chybu",command,commands[i]);
+                 if (msg_box("Chyba v INF",'\x1',s,"Ignoruj","Pï¿½eruï¿½it",NULL)==2) return 1;
                  }
            }
         }
@@ -412,7 +412,7 @@ char *get_cdrom()
      }
   else
      {
-     strcpy(s,"<nen¡>");
+     strcpy(s,"<nenï¿½>");
      }
   return s;
   }

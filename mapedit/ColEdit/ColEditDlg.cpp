@@ -280,7 +280,7 @@ void CColEditDlg::OnSelchangeColorlist()
 extern "C"
 {
   
-  void *getmem(long sz)
+  void *getmem(int32_t sz)
   {
 	return malloc(sz);
   }

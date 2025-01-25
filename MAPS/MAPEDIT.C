@@ -441,10 +441,10 @@ void dtext_draw(int x1,int y1,int x2, int y2,OBJREC *o)
 
 void dtext(OBJREC *o)
   {
-  o->runs[0]=dtext_init;
-  o->runs[1]=dtext_draw;
-  //o->runs[2]=sample_event;
-  //o->runs[3]=sample_done;
+  o->call_init=dtext_init;
+  o->call_draw=dtext_draw;
+  //o->call_event=sample_event;
+  //o->call_done=sample_done;
   }
 
 void about()
@@ -485,7 +485,7 @@ void fog_bar_draw(int x1,int y1,int x2,int y2,OBJREC *o)
 
 void fog_bar(OBJREC *o)
   {
-  o->runs[1]=fog_bar_draw;
+  o->call_draw=fog_bar_draw;
   }
 
 void close_app(void)

@@ -56,37 +56,37 @@ char detect_enables[8];
 typedef struct tchannel
   {
   char *play_pos, *start_loop, *end_loop;
-  long speed_maj;
+  int32_t speed_maj;
   unsigned short speed_min, minor_pos, sample_type, vol_left, vol_right;
   }TCHANNEL;
 
 TCHANNEL chaninfo[32];
 char *mixbuffer=NULL;
 char backsndbuff[BACK_BUFF_SIZE];
-volatile long backsnd=0;
-volatile long backstep=0x10000;
+volatile int32_t backsnd=0;
+volatile int32_t backstep=0x10000;
 volatile int  backfine=0;
-long ticker_save;
-/*long jumptable[3];
-long getdma;
-long ido;*/
+int32_t ticker_save;
+/*int32_t jumptable[3];
+int32_t getdma;
+int32_t ido;*/
 unsigned short predstih=0x960;
-long lastdma;
-long lastmix;
-long mixpos;
-long surpos;
-long mixsize;
-long dmaposadr;
-long dmasizadr;
-long dmapageadr;
-long dmanum;
+int32_t lastdma;
+int32_t lastmix;
+int32_t mixpos;
+int32_t surpos;
+int32_t mixsize;
+int32_t dmaposadr;
+int32_t dmasizadr;
+int32_t dmapageadr;
+int32_t dmanum;
 int dmamask;
 int dmamode;
 int dmamodenum=0x58;//rezim DMA (default pro SB - POZOR zmenit pro GUS na 0x48
 int device;
-long samplerate=22050;
-long mixfreq=50;
-long idt_map[2];
+int32_t samplerate=22050;
+int32_t mixfreq=50;
+int32_t idt_map[2];
 int call_back_data;
 int call_back_sel;
 static char *countdown=(char *)0x440;
@@ -99,7 +99,7 @@ short btable[256];
 int bfreq,bblocks,bblock_size,bvolume=255;
 int bxbass=0;
 static int gfxvol=255;
-long blength;
+int32_t blength;
 static char depack[32768];
 void (__far __interrupt *oldvect)();
 static char swap_chans=0;
@@ -194,13 +194,13 @@ outp(dmamode,(dmanum & 3)+dmamodenum);
 if (dmanum>3)
   {
   block>>=1;
-  poz=(long)adr>>1;
-  page=((long)adr>>16) & ~1;
+  poz=(int32_t)adr>>1;
+  page=((int32_t)adr>>16) & ~1;
   }
 else
   {
-  poz=(long)adr;
-  page=(long)adr>>16;
+  poz=(int32_t)adr;
+  page=(int32_t)adr>>16;
   }
 block--;
 outp(dmaposadr,poz & 0xff);
@@ -442,7 +442,7 @@ int open_backsound(char *filename)
 
 int load_music_block()
   {
-  long remain;
+  int32_t remain;
   if (bsnd!=NULL && !clear_buffer)
      {
      fread(&remain,1,sizeof(remain),bsnd);
@@ -604,12 +604,12 @@ switch (mode)
   }
 //backsndbuff[0]=128;backstep=0;backsnd=0;
 lastdma=0;
-mixpos=(long)(mixbuffer+predstih);
+mixpos=(int32_t)(mixbuffer+predstih);
 memset(chaninfo,0,sizeof(TCHANNEL)*32);
 memset(mixbuffer,0x80,65536);
 }
 
-void play_sample(int channel,void *sample,long size,long lstart,long sfreq,int type)
+void play_sample(int channel,void *sample,int32_t size,int32_t lstart,int32_t sfreq,int type)
   {
   chaninfo[channel].play_pos=sample;
   chaninfo[channel].start_loop=(char *)sample+lstart;
@@ -619,7 +619,7 @@ void play_sample(int channel,void *sample,long size,long lstart,long sfreq,int t
   chaninfo[channel].sample_type=type;
   }
 
-void chan_break_ext(int channel,void *org_sample,long size_sample)
+void chan_break_ext(int channel,void *org_sample,int32_t size_sample)
   {
   chaninfo[channel].start_loop=chaninfo[channel].end_loop=(char *)org_sample+size_sample;
   }
@@ -783,12 +783,12 @@ void set_mixing_device(int mix_dev,int mix_freq,...)
                if (p[0]==0x42) set_mixing_device(DEV_PCSPEAKER,mix_freq);
                else
                  {
-                 rm_proc_set((long)mixbuffer>>4,dpmiselector,p[0],DAC_MODE);
+                 rm_proc_set((int32_t)mixbuffer>>4,dpmiselector,p[0],DAC_MODE);
                  if (samplerate>22050) samplerate=22050;
                  }
                break;
      case DEV_PCSPEAKER:
-               rm_proc_set((long)mixbuffer>>4,dpmiselector,0x42,SPK_MODE);
+               rm_proc_set((int32_t)mixbuffer>>4,dpmiselector,0x42,SPK_MODE);
                if (samplerate>19000) samplerate=19000;
                break;
      case DEV_ULTRA:
@@ -804,11 +804,11 @@ void set_mixing_device(int mix_dev,int mix_freq,...)
      }
   }
 
-long pc_speak_position(void);
+int32_t pc_speak_position(void);
 
 void start_mixing()
   {
-  ticker_save=*(long *)0x46c;
+  ticker_save=*(int32_t *)0x46c;
   test_counter=0;
   switch (device)
      {
@@ -867,7 +867,7 @@ void stop_mixing()
   {
   mixer_zavora=1;
   _disable();
-  *(long *)0x46c=ticker_save+(long)(((float)test_counter/mixfreq)*(18.2059));
+  *(int32_t *)0x46c=ticker_save+(int32_t)(((float)test_counter/mixfreq)*(18.2059));
   outp(0x43,0x34);
   outp(0x40,0);
   outp(0x40,0);

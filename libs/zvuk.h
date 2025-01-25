@@ -25,7 +25,7 @@ int sound_detect(int *dev,int *port,int *dma, int *irq);
 void set_mixing_device(int mix_dev,int mix_freq,...);
 char start_mixing();
 void stop_mixing();
-void play_sample(int channel,void *sample,long size,long lstart,long sfreq,int type);
+void play_sample(int channel,void *sample,int32_t size,int32_t lstart,int32_t sfreq,int type);
 void set_channel_volume(int channel,int left,int right);
 void init_winamp_plugins(const char *path);
 
@@ -43,14 +43,14 @@ char get_channel_state(int channel);
 void get_channel_volume(int channel,int *left,int *right);
 void mute_channel(int channel);
 void chan_break_loop(int channel);
-void chan_break_ext(int channel,void *org_sample,long size_sample); //zrusi loop s moznosti dohrat zvuk
+void chan_break_ext(int channel,void *org_sample,int32_t size_sample); //zrusi loop s moznosti dohrat zvuk
 
 char set_snd_effect(int funct,int data);
 char check_snd_effect(int funct);
 int  get_snd_effect(int funct);
 
 void *PrepareVideoSound(int mixfreq, int buffsize);
-char LoadNextVideoFrame(void *buffer, char *data, int size, short *xlat, short *accnums, long *writepos);
+char LoadNextVideoFrame(void *buffer, char *data, int size, short *xlat, short *accnums, int32_t *writepos);
 void DoneVideoSound(void *buffer);
 
 

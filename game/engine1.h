@@ -50,8 +50,8 @@ void clear_buff(word *background,word backcolor,int lines);
 typedef struct zoominfo
   {
      void *startptr, *texture;
-     long texture_line,line_len;
-     long *xtable;
+     int32_t texture_line,line_len;
+     int32_t *xtable;
      short *ytable;
      word *palette;
      word ycount;
@@ -61,7 +61,7 @@ typedef struct zoominfo
 
 typedef struct t_info_y
   {
-  long drawline; //ukazatel na radku na ktere bude stena zacinat
+  int32_t drawline; //ukazatel na radku na ktere bude stena zacinat
   word vert_size; //konecna velikost steny, pokud ma pocatecni velikost TXT_SIZE_Y
   word vert_total; //maximalni velikost textury aby jeste nepresahla obrazovku
   short zoom_table[TAB_SIZE_Y];  //tabulka pro zoomovaci rutiny
@@ -73,7 +73,7 @@ typedef struct t_info_x_3d
   integer xpos;      //bod od leveho okraje
   word txtoffset; //posunuti x vuci texture
   word point_total; //rozdil mezi levym prednim a levym zadnim okrajem postranni steny (v adresach)
-  long zoom_table[VIEW_SIZE_X]; //zoomovaci tabulka pro osu x pro postranni steny
+  int32_t zoom_table[VIEW_SIZE_X]; //zoomovaci tabulka pro osu x pro postranni steny
   }T_INFO_X_3D;
 
 typedef struct t_info_x
@@ -84,12 +84,12 @@ typedef struct t_info_x
   word txtoffset; //posunuti x vuci texture
   word max_x; //pocet viditelnych bodu z textury
   word point_total;  //celkovy pocet adres mezi levym a pravym okrajem
-  long zoom_table[VIEW_SIZE_X]; //zoomovaci tabulka pro osu x pro kolme steny
+  int32_t zoom_table[VIEW_SIZE_X]; //zoomovaci tabulka pro osu x pro kolme steny
   }T_INFO_X;
 
 typedef struct t_floor_map
   {
-  long lineofs,linesize,counter,txtrofs;
+  int32_t lineofs,linesize,counter,txtrofs;
   }T_FLOOR_MAP;
 
 typedef struct all_view

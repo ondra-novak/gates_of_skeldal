@@ -9,7 +9,7 @@
 typedef struct t_wave
   {
   unsigned short wav_mode,chans;
-  long freq,bps;
+  int32_t freq,bps;
   }T_WAVE;
 
 int find_chunk(FILE *riff,char *name); //-1 neuspech, jinak pozice

@@ -208,14 +208,12 @@ void psani_poznamek_event(EVENT_MSG *msg,void **data)
   data;
   if (msg->msg==E_INIT)
      {
-     int *p;
-     char *c;
+      char *c;
+     x = va_arg(msg->data, int);
+     y = va_arg(msg->data, int);
+     c = va_arg(msg->data, char *);
 
      set_font(H_FLITT5,NOSHADOW(0));
-     p=msg->data;
-     x=p[0];
-     y=p[1];
-     c=*(char **)(p+2);
      strcpy(text,c);
      save=(char *)getmem(strlen(text)+1);
      strcpy(save,text);
@@ -242,7 +240,7 @@ void psani_poznamek_event(EVENT_MSG *msg,void **data)
      {
      char c;
 
-     c=*(char *)msg->data;
+     c=va_arg(msg->data, int);
      set_font(H_FLITT5,NOSHADOW(0));
      if (c)
         {
@@ -438,7 +436,7 @@ static void draw_amap_sector(int x,int y,int sector,int mode,int turn,int line1,
 void herni_cas(char *s)
   {
   int mes,den,hod,min;
-  long cas;
+  int32_t cas;
 
   cas=game_time;
   mes=cas/(360*24*30);cas%=360*24*30;
@@ -464,7 +462,7 @@ void herni_cas(char *s)
 static void zobraz_herni_cas(void)
   {
   static char text[100];
-  static long old_time=-1;
+  static int32_t old_time=-1;
   char cas[100];
 
   if (old_time!=game_time)
@@ -627,7 +625,8 @@ void *map_keyboard(EVENT_MSG *msg,void **usr)
   if (msg->msg==E_AUTOMAP_REDRAW) draw=4;
   if (msg->msg==E_KEYBOARD)
      {
-     c=(*(int *)msg->data)>>8;
+      int d = va_arg(msg->data, int);
+     c=d>>8;
      switch (c)
         {
         case 'H':yr++;draw=4;break;
@@ -641,10 +640,8 @@ void *map_keyboard(EVENT_MSG *msg,void **usr)
         case 15:
         case 50:
         case 1:
-              (*(int *)msg->data)=0;
               unwire_proc();
               wire_proc();
-
               break;
          }
      }
@@ -893,13 +890,15 @@ char map_target_cancel(int id,int xa,int ya,int xr,int yr)
 void map_teleport_keyboard(EVENT_MSG *msg,void **usr)
   {
   usr;
-  if (msg->msg==E_KEYBOARD)
-     switch (*(short *)msg->data>>8)
+  if (msg->msg==E_KEYBOARD) {
+      int c = va_arg(msg->data, int);
+     switch (c>>8)
         {
         case 1:
         case 15:
         case 50: exit_wait=1; msg->msg=-1;break;
         }
+  }
   }
 
 

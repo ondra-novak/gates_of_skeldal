@@ -1590,7 +1590,7 @@ void show_3dbox_draw(int x1,int y1,int x2,int y2,OBJREC *o)
 
 void show_3dbox(OBJREC *o)
   {
-  o->runs[1]=show_3dbox_draw;
+  o->call_draw=show_3dbox_draw;
   }
 
 void tma_fireball(TMULTI_ACTION *p)

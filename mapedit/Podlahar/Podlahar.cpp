@@ -1,4 +1,4 @@
-// Podlaháø.cpp : Defines the class behaviors for the application.
+// Podlahï¿½ï¿½.cpp : Defines the class behaviors for the application.
 //
 
 #include "stdafx.h"
@@ -92,5 +92,5 @@ extern "C"
   trans_bar() {abort();}
   text_width() {abort();}
   RedirectScreenBufferSecond() {abort();}
-  void *getmem(long size) {return malloc(size);}
+  void *getmem(int32_t size) {return malloc(size);}
 }

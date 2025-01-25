@@ -1,6 +1,6 @@
 TSTR_LIST read_config(const char *filename);
 void add_field_txt(TSTR_LIST *ls,const char *name,const char *text);
-void add_field_num(TSTR_LIST *ls,const char *name,long number);
+void add_field_num(TSTR_LIST *ls,const char *name,int32_t number);
 int save_config(TSTR_LIST ls,const char *filename);
 const char *get_text_field(TSTR_LIST ls,const char *name);
 int get_num_field(TSTR_LIST ls,const char *name,int *num);

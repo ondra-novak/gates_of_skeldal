@@ -48,7 +48,7 @@ word *mapvesaadr1(word *a)
   {
   word bank;
 
-  bank=(long)a>>16;
+  bank=(int32_t)a>>16;
   if (bank!=lastbank)
      {
      lastbank=bank;
@@ -61,7 +61,7 @@ word *mapvesaadr1(word *a)
            int386 (0x10,&regs,&regs); // window A
           }
      }
- return (word *)(((long)a & 0xffff)+0xa0000);
+ return (word *)(((int32_t)a & 0xffff)+0xa0000);
 }
 
 void switchvesabank(word bank)

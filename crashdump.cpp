@@ -117,7 +117,7 @@ static DWORD WINAPI PostError(LPVOID p)
       "<html xmlns=\"http://www.w3.org/1999/xhtml\" xml:lang=\"cs\" lang=\"cs\">"
       "<head>"
       "<meta http-equiv=\"Content-Type\" content=\"text/html; charset=windows-1250\" />"
-      "<title>Brány Skeldalu - formulář k odeslání chyby</title>"
+      "<title>Brďż˝ny Skeldalu - formulďż˝ďż˝ k odeslďż˝nďż˝ chyby</title>"
       "<style type=\"text/css\">\n"
       "@import url(\"http://skeldal.jinak.cz/style.css\");\n"
       "</style>"
@@ -125,26 +125,26 @@ static DWORD WINAPI PostError(LPVOID p)
       "<body>"
       "<div style=\"float: left; width: 155px;\"><img src=\"http://skeldal.jinak.cz/logo.jpg\" alt=\"logo\" width=\"150\" height=\"82\"/></div>"
       "<div style=\"margin-left: 180px;margin-right: 50px;\">"
-      "<h1>Brány Skeldalu - formulář k odeslání chyby</h1>"
-      "<p>Autor programu se omlouvá za chybu a prosí Vás, abyste pomohl při odhalování chyb.<br />"
-      "Stačí když pravdivě vyplníte odešlete následující formulář.<br />"
-      "Pokuste se prosím napsat co nejvíce informací.<br />"
-      "<b>K formuláři je přiložen soubor obsahující záznam o chybě.</b><br /><br />"
-      "Děkujeme za spolupráci</p>"
+      "<h1>Brďż˝ny Skeldalu - formulďż˝ďż˝ k odeslďż˝nďż˝ chyby</h1>"
+      "<p>Autor programu se omlouvďż˝ za chybu a prosďż˝ Vďż˝s, abyste pomohl pďż˝i odhalovďż˝nďż˝ chyb.<br />"
+      "Staďż˝ďż˝ kdyďż˝ pravdivďż˝ vyplnďż˝te odeďż˝lete nďż˝sledujďż˝cďż˝ formulďż˝ďż˝.<br />"
+      "Pokuste se prosďż˝m napsat co nejvďż˝ce informacďż˝.<br />"
+      "<b>K formulďż˝ďż˝i je pďż˝iloďż˝en soubor obsahujďż˝cďż˝ zďż˝znam o chybďż˝.</b><br /><br />"
+      "Dďż˝kujeme za spoluprďż˝ci</p>"
       "<hr />"
       "<form enctype=\"multipart/form-data\" action=\"http://skeldal.jinak.cz/bugreport.php\" method=\"post\"><div>"
-      "<div>Váš e-mail pro případ, že bysme vás chtěli kontaktovat: (nepovinné)</div>"
+      "<div>Vďż˝ e-mail pro pďż˝ďż˝pad, ďż˝e bysme vďż˝s chtďż˝li kontaktovat: (nepovinnďż˝)</div>"
       "<input type=\"text\" name=\"email\" value=\"\" size=\"50\"/>"
-      "<div>Napište prosím další informace o tom, za jakých podmínek chyba vznikla, popřípadě jak chybu znovu vyvolat</div>"
+      "<div>Napiďż˝te prosďż˝m dalďż˝ďż˝ informace o tom, za jakďż˝ch podmďż˝nek chyba vznikla, popďż˝ďż˝padďż˝ jak chybu znovu vyvolat</div>"
       "<textarea cols=\"50\" rows=\"10\" name=\"popis\" style=\"width:100%\"></textarea>"
-      "<div>Případně přiložte uloženou pozici nebo jiné soubory související s chybou</div>"
+      "<div>Pďż˝ďż˝padnďż˝ pďż˝iloďż˝te uloďż˝enou pozici nebo jinďż˝ soubory souvisejďż˝cďż˝ s chybou</div>"
       "<input name=\"userfile\" type=\"file\" size=\"50\" />"
       "<hr /><div>"
-      "Pozor: Formulář také obsahuje informace o poslední chybě.<br />"
-      "Nepoužívejte tento formulář k odeslání jiných chybových hlášení.</div>"
-      "<p><a href=\"http://skeldal.jinak.cz/main.php?page=soukromí\">Prohlášení o ochraně soukromých údajů</a></p>"
+      "Pozor: Formulďż˝ďż˝ takďż˝ obsahuje informace o poslednďż˝ chybďż˝.<br />"
+      "Nepouďż˝ďż˝vejte tento formulďż˝ďż˝ k odeslďż˝nďż˝ jinďż˝ch chybovďż˝ch hlďż˝enďż˝.</div>"
+      "<p><a href=\"http://skeldal.jinak.cz/main.php?page=soukromďż˝\">Prohlďż˝enďż˝ o ochranďż˝ soukromďż˝ch ďż˝dajďż˝</a></p>"
       "<hr />"
-      "<input type=\"submit\" value=\"Odeslat záznam o chybě\" /><br />"
+      "<input type=\"submit\" value=\"Odeslat zďż˝znam o chybďż˝\" /><br />"
       "<input type=\"hidden\" name=\"data\" value=\"";
     WriteFile(h,(void *)(form1),strlen(form1),&wrt,0);
     HANDLE v=CreateFile(dmp,GENERIC_READ,0,0,OPEN_EXISTING,0,0);
@@ -211,7 +211,7 @@ static DWORD WINAPI CrashReportGenerateThread(LPVOID data)
 	  WS_DLGFRAME|WS_VISIBLE|SS_CENTER,0,0,640,80,NULL,NULL,GetModuleHandle(NULL),NULL);
 	UpdateWindow(hwnd);
     if (GenerateMinidump(ExceptionInfo,MiniDumpNormal,".short.dmp")==false) return 0;
-    GenerateMinidump(ExceptionInfo,MiniDumpWithDataSegs,".long.dmp");
+    GenerateMinidump(ExceptionInfo,MiniDumpWithDataSegs,".int32_t.dmp");
     GenerateMinidump(ExceptionInfo,MiniDumpWithFullMemory,".full.dmp");
     PostError(0);
 	DestroyWindow(hwnd);

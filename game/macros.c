@@ -22,7 +22,7 @@
 int **macros=NULL;
 void *macro_block;
 int macro_block_size;
-long sound_side_flags=0; //kopie flagu steny pro zvuk
+int32_t sound_side_flags=0; //kopie flagu steny pro zvuk
 static char codelock_memory[16][8];
 static short rand_value;
 static int program_counter=0;
@@ -501,7 +501,7 @@ static void ma_wbook(TMA_LOADLEV *l)
 	free(s);
   }
 
-static void ma_send_experience(long what)
+static void ma_send_experience(int32_t what)
   {
   int maxl,i;
   THUMAN *h;
@@ -627,9 +627,9 @@ void macro_register_global_event(TMULTI_ACTION *q)
       GlobEventList[q->globe.event].param+=game_time;
     else
     {
-      long den=24*60*6;
-      long cas=((-GlobEventList[q->globe.event].param/100)*60+(-GlobEventList[q->globe.event].param%100))*6;
-      long curtm=game_time % den;
+      int32_t den=24*60*6;
+      int32_t cas=((-GlobEventList[q->globe.event].param/100)*60+(-GlobEventList[q->globe.event].param%100))*6;
+      int32_t curtm=game_time % den;
       if (cas<=curtm) cas+=den;
       GlobEventList[q->globe.event].param=game_time-curtm+cas;
     }

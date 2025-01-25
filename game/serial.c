@@ -3,7 +3,7 @@
 #define DELITEL 0xC005
 
 
-unsigned long vysledek;
+uint32_t vysledek;
 
 main()
   {

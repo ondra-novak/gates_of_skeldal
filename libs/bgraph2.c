@@ -8,21 +8,20 @@
 #include <stdlib.h>
 #include <malloc.h>
 //#include <graph.h>
-#include <conio.h>
 #include "bgraph.h"
 #include "memman.h"
 
 word *screen;
 word curcolor,charcolors[7] = {0x0000,RGB555(0,31,0),RGB555(0,28,0),RGB555(0,24,0),RGB555(0,20,0),0x0000,0x0000};
-long scr_linelen;
-long scr_linelen2;
-long dx_linelen;
+int32_t scr_linelen;
+int32_t scr_linelen2;
+int32_t dx_linelen;
 word *curfont,*writepos,writeposx;
 byte fontdsize=0;
 byte *palmem=NULL,*xlatmem=NULL;
 void (*showview)(word,word,word,word);
 char line480=0;
-long screen_buffer_size=0;
+int32_t screen_buffer_size=0;
 char banking=0;
 char screenstate=0;
 char __skip_change_line_test=0;
@@ -32,7 +31,7 @@ void *mscursor,*mssavebuffer=NULL;
 integer mscuroldx=0,mscuroldy=0;
 integer mscuroldxs=1,mscuroldys=1;
 char write_window=0;
-long pictlen; // Tato promenna je pouze pouzita v BGRAPH1.ASM
+int32_t pictlen; // Tato promenna je pouze pouzita v BGRAPH1.ASM
 
 void text_mode();
 
@@ -104,7 +103,7 @@ void write_vesa_info(int mode)
   getmodeinfo(&vesadata,mode);
   if (vesadata[0].modeattr & MA_SUPP)
      {
-     if (vesadata[0].modeattr & MA_LINEARFBUF) sprintf(c,"%8Xh",(long)vesadata[0].linearbuffer); else strcpy(c,"None");
+     if (vesadata[0].modeattr & MA_LINEARFBUF) sprintf(c,"%8Xh",(int32_t)vesadata[0].linearbuffer); else strcpy(c,"None");
     printf("Mode:        %04X \n"
            "WinA           %02X\n"
            "WinB           %02X\n"
@@ -271,7 +270,7 @@ word *mapvesaadr1(word *a)
   {
   word bank;
 
-  bank=(long)a>>16;
+  bank=(int32_t)a>>16;
   if (bank!=lastbank)
      {
      lastbank=bank;
@@ -284,7 +283,7 @@ word *mapvesaadr1(word *a)
            int386 (0x10,&regs,&regs); // window A
           }
      }
- return (word *)(((long)a & 0xffff)+0xa0000);
+ return (word *)(((int32_t)a & 0xffff)+0xa0000);
 }
 
 void switchvesabank(word bank)
@@ -318,7 +317,7 @@ int initmode256(void *paletefile)
   if (!(data.modeattr & MA_LINEARFBUF)) return initmode256b(paletefile);
   //write_vesa_info(0x101);
   setvesamode(0x4101,-1);
-  if (lbuffer==NULL)lbuffer=(word *)physicalalloc((long)data.linearbuffer,screen_buffer_size>>1);
+  if (lbuffer==NULL)lbuffer=(word *)physicalalloc((int32_t)data.linearbuffer,screen_buffer_size>>1);
   screen=lbuffer;
   linelen=640*2;
   palmem=(char *)paletefile;
@@ -417,7 +416,7 @@ void closemode()
 
   }
 
-static void showview_dx(word x,word y,word xs,word ys)
+void showview_dx(word x,word y,word xs,word ys)
   {
 //  register longint a;
 
@@ -427,7 +426,7 @@ static void showview_dx(word x,word y,word xs,word ys)
   xs+=2;ys+=2;
   if (x+xs>DxGetResX()) xs=DxGetResX()-x;
   if (y+ys>DxGetResY()) ys=DxGetResY()-y;
-  DXCopyRects64(x,y,xs,ys);  
+  DXCopyRects64(x,y,xs,ys);
   }
 /*
 static void showview64b(word x,word y,word xs,word ys)
@@ -595,16 +594,16 @@ void set_aligned_position(int x,int y,char alignx,char aligny,char *text)
 
 /*void pal_optimize()
   {
-  long *stattable;
+  int32_t *stattable;
   word *c;
   char *d;
   int i;
-  long maxr,maxg,maxb,max;
+  int32_t maxr,maxg,maxb,max;
   int j;
 
   if (palmem==NULL) return;
-  stattable=(long *)getmem(32768*sizeof(long));
-  memset(stattable,0,32768*sizeof(long));
+  stattable=(int32_t *)getmem(32768*sizeof(int32_t));
+  memset(stattable,0,32768*sizeof(int32_t));
   c=screen;
   for(i=0;i<screen_buffer_size;i++,c++)
      stattable[*c & 0x7fff]++;

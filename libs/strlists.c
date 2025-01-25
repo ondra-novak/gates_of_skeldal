@@ -1,5 +1,4 @@
 #include <skeldal_win.h>
-#include <debug.h>
 #include "strlite.c"
 
 #include "devices.h"
@@ -10,87 +9,11 @@
 #include "strlists.h"
 
 
-#define SEC(t) (((t) & 0x1f)<<1)
-#define MIN(t) (((t)>>5)& 0x3f)
-#define HOUR(t) ((t)>>11)
-#define DAY(t) ((t) & 0x1f)
-#define MONTH(t) (((t)>>5)& 0x0f)
-#define YEAR(t) ((t)>>9)
 
-TSTR_LIST read_directory(char *mask,int view_type,int attrs)
+TSTR_LIST read_directory(const char *mask,int view_type,int attrs)
   {
-  TSTR_LIST flist;
-  int index=0;
-  char c[2*MAX_PATH];
-  WIN32_FIND_DATA s;
-  HANDLE h;
-  char rc;
-
-  flist=create_list(256);
-  if (flist==NULL) return flist;
-  h=FindFirstFile(mask,&s);
-  if (h!=INVALID_HANDLE_VALUE)
-	{
-    do 
-     {
-     char d[MAX_PATH],*p;
-     int i=0;
-
-     if (attrs==_A_NORMAL || s.dwFileAttributes & attrs)
-        {
-        p=d;d[MAX_PATH-1]=0;
-/*        if (view_type!=DIR_NAMES)
-           {
-           while (s.cFileName[i]!='.' && s.cFileName[i]!='\0' ) *p++=s.cFileName[i++];
-           if (s.cFileName[i]!='\0') j=i+1;else j=i;
-           while (i<8)
-              {
-              *p++=32;i++;
-              }
-           i=3;
-           *p++='.';
-           while (s.name[j]!='\0')
-              {
-              *p++=s.name[j++];
-              i--;
-              }
-           while (i>0)
-              {
-              *p++=32;
-              i--;
-              }
-           }
-        else */strncpy(d,s.cFileName,MAX_PATH-1);
-       switch (view_type)
-          {
-       case DIR_FULL:sprintf(c,"%s %10d",
-                            d,
-                            s.nFileSizeLow
-                            );
-                 break;
-        case DIR_SHORT:sprintf(c,"%s %10d",d,s.nFileSizeLow);break;
-        case DIR_NAMES:
-        case DIR_BREIF:sprintf(c,"%s",d);break;
-        }
-     if (str_replace(&flist,index++,c)==NULL)
-        {
-        release_list(flist);
-        return NULL;
-        }
-        }
-     rc=FindNextFile(h,&s);
-     }
-	while (rc);
-	}
-  FindClose(h);
-  if (flist[0]==NULL)
-     {
-     release_list(flist);
-     return NULL;
-     }
-  sort_list(flist,-1);
-  str_delfreelines(&flist);
-  return flist;
+  TSTR_LIST flist = create_list(256);
+   return flist;
   }
 
 void name_conv(char *c)
@@ -112,15 +35,15 @@ typedef struct string_list_data
   }
   STRING_LIST_DATA;
 
-void string_list_init(OBJREC *o,int *params)
+void string_list_init(OBJREC *o,va_list params)
   {
   STRING_LIST_DATA *p;
 
   p=(STRING_LIST_DATA *)getmem(sizeof(STRING_LIST_DATA));
   p->topline=0;
-  p->list=(TSTR_LIST)*params++;
-  p->selcolor=*params++;
-  p->skipshow=*params++;
+  p->list=va_arg(params,TSTR_LIST);
+  p->selcolor=va_arg(params, int);
+  p->skipshow=va_arg(params, int);
   o->userptr=p;
   p->obj_win=waktual->id;
   }
@@ -217,7 +140,7 @@ void string_list_draw(int x1,int y1,int x2,int y2,OBJREC *o)
         i++;
       }
       while (y+znh<y2 && i<p->maxitems);
-      if (p->topline && y+2*znh<y2 && znh) 
+      if (p->topline && y+2*znh<y2 && znh)
       {
         int dif=y2-(y+znh);
         p->topline-=(dif*2/3)/znh+1;
@@ -235,7 +158,7 @@ void string_list_draw(int x1,int y1,int x2,int y2,OBJREC *o)
         if (ob!=NULL)
            {
            send_message(E_GUI,o->id+1,E_CONTROL,0,max-p->maxview,p->maxview);
-           ob->events[3]=string_list_change;
+           ob->on_change=string_list_change;
            }
         c_set_value(p->obj_win,o->id+1,p->topline);
         }
@@ -318,18 +241,17 @@ void string_list_event(EVENT_MSG *msg,OBJREC *o)
 		 }
 		break;
 	   }
-	   
+
      case E_CONTROL:
         {
-        int *q;
+        int q = va_arg(msg->data, int);
 
-        q=msg->data;
-        switch (*q++)
+        switch (q)
            {
-           case 1:p->list=(TSTR_LIST)*q;
+           case 1:p->list=va_arg(msg->data, TSTR_LIST);
                   redraw_object(o);
                   break;
-           case 0:*(void **)*q=p->list;
+           case 0:*va_arg(msg->data, char ***)=p->list;
                   break;
            case 2:
                   i=get_to_topline(ls,p->topline,NULL);
@@ -347,9 +269,9 @@ void string_list_event(EVENT_MSG *msg,OBJREC *o)
 void listbox(OBJREC *o)
   {
   o->datasize=sizeof(int);
-  o->runs[0]=string_list_init;
-  o->runs[1]=string_list_draw;
-  o->runs[2]=string_list_event;
+  o->call_init=string_list_init;
+  o->call_draw=string_list_draw;
+  o->call_event=string_list_event;
   //o->done=string_list_done;
   }
 

@@ -109,7 +109,7 @@ void string_list_sup_call()
   v=string_list(*(char **)(o_aktual->userptr),v);
   if (v+1) c_set_value(0,id,v);
   o_aktual=p;
-  p->events[3]();
+  p->on_change();
   o_aktual=o_start;
    }
 
@@ -156,9 +156,9 @@ void str_line_event(EVENT_MSG *msg,OBJREC *o)
 
 void str_line(OBJREC *o)
   {
-  o->runs[0]=str_line_init;
-  o->runs[1]=str_line_draw;
-  o->runs[2]=str_line_event;
+  o->call_init=str_line_init;
+  o->call_draw=str_line_draw;
+  o->call_event=str_line_event;
   o->datasize=4;
   }
 
@@ -293,7 +293,7 @@ void value_store_init(OBJREC *o,int *bytes)
 
 void value_store(OBJREC *o)
   {
-  o->runs[0]=value_store_init;
+  o->call_init=value_store_init;
   }
 
 void action_flags()
@@ -623,7 +623,7 @@ void chozeni2(EVENT_MSG *msg,OBJREC *o)
   if (msg->msg==E_DONE) return ;
   if (msg->msg==E_KEYBOARD)
      {
-     if (o_aktual==NULL || o_aktual->events[3]!=chozeni2) return;
+     if (o_aktual==NULL || o_aktual->on_change!=chozeni2) return;
      if (waktual->id==map_win || waktual->id==tool_bar)
         select_window(sektor_win);
      if (waktual->id!=sektor_win) return;
@@ -907,10 +907,10 @@ void open_sector_win(void)
      c_default(0); on_control_enter(string_list_sup);on_control_change(set_change_map);
      define(80,5,125,95,12,0,str_line,side_names);property(&b2,NULL,&f_sel,WINCOLOR);
      c_default(0); on_control_enter(string_list_sup);on_control_change(set_change_map);
-     define(140,103,35,12,12,0,check_box,"");o_end->runs[2]=o_end->events[3];
-     define(150,103,65,12,12,0,check_box,"");o_end->runs[2]=o_end->events[3];
-     define(160,103,95,12,12,0,check_box,"");o_end->runs[2]=o_end->events[3];
-     define(170,103,125,12,12,0,check_box,"");o_end->runs[2]=o_end->events[3];
+     define(140,103,35,12,12,0,check_box,"");o_end->call_event=o_end->on_change;
+     define(150,103,65,12,12,0,check_box,"");o_end->call_event=o_end->on_change;
+     define(160,103,95,12,12,0,check_box,"");o_end->call_event=o_end->on_change;
+     define(170,103,125,12,12,0,check_box,"");o_end->call_event=o_end->on_change;
      define(200,5,155,110,12,0,str_line,ceils);property(&b2,NULL,&f_sel,WINCOLOR);
      c_default(0); on_control_enter(string_list_sup);on_control_change(set_change_map);
      define(210,5,185,110,12,0,str_line,floors);property(&b2,NULL,&f_sel,WINCOLOR);

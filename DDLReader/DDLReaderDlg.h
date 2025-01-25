@@ -60,7 +60,7 @@ public:
   DDLFile _ddlfile;
   afx_msg void OnEnKillfocusDdlfile();
   void UpdateList(void);
-  virtual bool File(WString name, int group, unsigned long offset);  
+  virtual bool File(WString name, int group, uint32_t offset);  
   afx_msg void OnBnClickedDdlbrowse();
   afx_msg void OnLvnColumnclickFilelist(NMHDR *pNMHDR, LRESULT *pResult);
   afx_msg void OnBnClickedBrowse();

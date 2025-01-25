@@ -64,8 +64,8 @@ typedef struct s_save
   char stereing;
   char swapchans;
   char out_filter;
-  long glob_flags;
-  long game_time;
+  int32_t glob_flags;
+  int32_t game_time;
   char runes[5];
   char level_name[12];
   short picks;  //pocet_sebranych predmetu v mysi
@@ -78,9 +78,9 @@ typedef struct s_save
 
 static int get_list_count();
 
-static word vypocet_crc(char *data,long delka)
+static word vypocet_crc(char *data,int32_t delka)
   {
-  unsigned long l=0;
+  uint32_t l=0;
   do
      {
      l=(l<<8)|(delka>0?*data++:0);delka--;
@@ -118,7 +118,7 @@ int load_org_map(char *filename,TSTENA **sides,TSECTOR **sectors,TMAP_EDIT_INFO 
   FILE *f;
   void *temp;
   int sect;
-  long size,r;
+  int32_t size,r;
   char nmapend=1;
   char *c;
 
@@ -352,7 +352,7 @@ int save_map_state() //uklada stav mapy pro savegame (neuklada aktualni pozici);
   char *bf;
   TMPFILE_WR *fsta;
   int i;
-  long siz;
+  int32_t siz;
  TSTENA *org_sides;
  TSECTOR *org_sectors;
   short res=-1;
@@ -432,7 +432,7 @@ int load_map_state() //obnovuje stav mapy; nutno volat po zavolani load_map;
   char *bf;
   TMPFILE_RD *fsta;
   int i;
-  long siz;
+  int32_t siz;
   short res=-2;
   unsigned char ver=0;
 
@@ -867,11 +867,11 @@ int load_game(int slotnum)
   return r;
   }
 
-static void load_specific_file(int slot_num,char *filename,void **out,long *size) //call it in task!
+static void load_specific_file(int slot_num,char *filename,void **out,int32_t *size) //call it in task!
   {
   FILE *slot;
   char *c,*d;
-  long siz;
+  int32_t siz;
   char fname[12];
   char succes=0;
 
@@ -1028,7 +1028,7 @@ static void read_story_task(va_list args)
   TSTR_LIST ls;
   void *text_data;
   char *c,*d;
-  long size;
+  int32_t size;
 
   load_specific_file(slot,STORY_BOOK,&text_data,&size);
   if (text_data!=NULL)
@@ -1258,12 +1258,12 @@ static int slot_pos;
 
 void save_step_next(EVENT_MSG *msg,void **unused)
   {
-  char c;
+  int c;
 
   unused;
   if (msg->msg==E_KEYBOARD)
      {
-     c=*(char *)msg->data;
+     c=va_arg(msg->data, int);
      if (c==13)
         {
         send_message(E_KEYBOARD,c);
@@ -1471,7 +1471,7 @@ static int load_map_state_partial(char *level_fname,int mapsize) //obnovuje stav
   char *bf;
   TMPFILE_RD *fsta;
   int i;
-  long siz;
+  int32_t siz;
   short res=-2;
   unsigned char ver;
 

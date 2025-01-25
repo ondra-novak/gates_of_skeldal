@@ -1,3 +1,4 @@
+#include <skeldal_win.h>
 #include <stdio.h>
 #include <malloc.h>
 #include <stdlib.h>
@@ -99,7 +100,7 @@ void add_field_txt(TSTR_LIST *ls,const char *name,const char *text)
      str_replace(ls,i,d);
   }
 
-void add_field_num(TSTR_LIST *ls,const char *name,long number)
+void add_field_num(TSTR_LIST *ls,const char *name,int32_t number)
   {
   char buff[20];
 

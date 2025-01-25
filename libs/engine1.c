@@ -33,8 +33,8 @@
 typedef struct zoominfo
   {
      void *startptr, *texture;
-     long texture_line,line_len;
-     long *xtable;
+     int32_t texture_line,line_len;
+     int32_t *xtable;
      short *ytable;
      word *palette;
      word ycount;
@@ -44,7 +44,7 @@ typedef struct zoominfo
 
 typedef struct t_info_y
   {
-  long drawline; //ukazatel na radku na ktere bude stena zacinat
+  int32_t drawline; //ukazatel na radku na ktere bude stena zacinat
   word vert_size; //konecna velikost steny, pokud ma pocatecni velikost TXT_SIZE_Y
   word vert_total; //maximalni velikost textury aby jeste nepresahla obrazovku
   short zoom_table[TAB_SIZE_Y];  //tabulka pro zoomovaci rutiny
@@ -56,7 +56,7 @@ typedef struct t_info_x_3d
   word xpos;      //bod od leveho okraje
   word txtoffset; //posunuti x vuci texture
   word point_total; //rozdil mezi levym prednim a levym zadnim okrajem postranni steny (v adresach)
-  long zoom_table[MIDDLE_X]; //zoomovaci tabulka pro osu x pro postranni steny
+  int32_t zoom_table[MIDDLE_X]; //zoomovaci tabulka pro osu x pro postranni steny
   }T_INFO_X_3D;
 
 typedef struct t_info_x
@@ -67,12 +67,12 @@ typedef struct t_info_x
   word txtoffset; //posunuti x vuci texture
   word max_x; //pocet viditelnych bodu z textury
   word point_total;  //celkovy pocet adres mezi levym a pravym okrajem
-  long zoom_table[VIEW_SIZE_X]; //zoomovaci tabulka pro osu x pro kolme steny
+  int32_t zoom_table[VIEW_SIZE_X]; //zoomovaci tabulka pro osu x pro kolme steny
   }T_INFO_X;
 
 typedef struct t_floor_map
   {
-  long lineofs,linesize,counter;
+  int32_t lineofs,linesize,counter;
   }T_FLOOR_MAP;
 
 typedef struct all_view
@@ -127,11 +127,11 @@ void sikma_zleva(void);
 #pragma aux sikma_zleva parm modify [EAX EBX ECX EDX ESI EDI]
 void sikma_zprava(void);
 #pragma aux sikma_zprava parm modify [EAX EBX ECX EDX ESI EDI]
-void zooming32(void *source,void *target,void *xlat,long xysize);
+void zooming32(void *source,void *target,void *xlat,int32_t xysize);
 #pragma aux zooming32 parm [ESI][EDI][EBX][ECX] modify [EAX EDX]
-void zooming_lo(void *source,void *target,void *xlat,long xysize);
+void zooming_lo(void *source,void *target,void *xlat,int32_t xysize);
 #pragma aux zooming_lo parm [ESI][EDI][EBX][ECX] modify [EAX EDX]
-void zooming256(void *source,void *target,void *xlat,long xysize);
+void zooming256(void *source,void *target,void *xlat,int32_t xysize);
 #pragma aux zooming256 parm [ESI][EDI][EBX][ECX] modify [EAX EDX]
 void scroll_support_32(void *lbuf,void *src1,void *src2,int size1);
 #pragma aux scroll_support_32 parm [EDI][ESI][EDX][ECX] modify [EAX]
@@ -143,32 +143,32 @@ void fcdraw(void *source,void *target, void *table);
 
 
 void *p,*p2,*pozadi,*podlaha,*strop,*sit;int i;
-void (*zooming)(void *source,long target,void *xlat,long xysize);
-void (*turn)(long lbuf,void *src1,void *src2,int size1);
+void (*zooming)(void *source,int32_t target,void *xlat,int32_t xysize);
+void (*turn)(int32_t lbuf,void *src1,void *src2,int size1);
 word *buffer_2nd;
 char debug=0,nosides=0,nofloors=0,drwsit=0;
 
-void zooming1(void *source,long target,void *xlat,long xysize)
+void zooming1(void *source,int32_t target,void *xlat,int32_t xysize)
   {
   zooming32(source,lbuffer+target,xlat,xysize);
   }
 
-void zooming2(void *source,long target,void *xlat,long xysize)
+void zooming2(void *source,int32_t target,void *xlat,int32_t xysize)
   {
   zooming256(source,lbuffer+(target>>1),xlat,xysize);
   }
 
-void zooming3(void *source,long target,void *xlat,long xysize)
+void zooming3(void *source,int32_t target,void *xlat,int32_t xysize)
   {
   zooming_lo(source,lbuffer+target,xlat,xysize);
   }
 
-void turn1(long lbuf,void *src1,void *src2,int size1)
+void turn1(int32_t lbuf,void *src1,void *src2,int size1)
   {
      scroll_support_32(lbuf+lbuffer,src1,src2,size1);
   }
 
-void turn2(long lbuf,void *src1,void *src2,int size1)
+void turn2(int32_t lbuf,void *src1,void *src2,int size1)
   {
      scroll_support_256((lbuf>>1)+lbuffer,src1,src2,size1,xlatmem);
   }
@@ -202,7 +202,7 @@ void calc_points(void)
      }
   }
 
-void calc_x_buffer(long *ptr,long txt_size_x, long len,long total)
+void calc_x_buffer(int32_t *ptr,int32_t txt_size_x, int32_t len,int32_t total)
   {
   int i,j,old;
 
@@ -215,7 +215,7 @@ void calc_x_buffer(long *ptr,long txt_size_x, long len,long total)
      }
   }
 
-void calc_y_buffer(short *ptr,long txt_size_y, long len,long total)
+void calc_y_buffer(short *ptr,int32_t txt_size_y, int32_t len,int32_t total)
   {
   int i,j,old;
 
@@ -403,7 +403,7 @@ void zooming_forward(void)
   int i;
   for (i=0;i<ZOOM_PHASES;i+=zooming_step)
      {
-     zoom.xtable=(long *)&zooming_xtable[i];
+     zoom.xtable=(int32_t *)&zooming_xtable[i];
      zoom.ytable=(short *)&zooming_ytable[i];
      zoom.texture_line=0;
      zooming(screen+zooming_points[i][2]+zooming_points[i][3]*640+SCREEN_OFFSET,SCREEN_OFFSET,xlatmem,(360<<16)+320);
@@ -414,22 +414,22 @@ void zooming_backward(void)
   int i;
   for (i=ZOOM_PHASES-1;i>=0;i-=zooming_step)
      {
-     zoom.xtable=(long *)&zooming_xtable[i];
+     zoom.xtable=(int32_t *)&zooming_xtable[i];
      zoom.ytable=(short *)&zooming_ytable[i];
      zoom.texture_line=0;
      zooming(screen+zooming_points[i][2]+zooming_points[i][3]*640+SCREEN_OFFSET,SCREEN_OFFSET,xlatmem,(360<<16)+320);
      }
   }
 
-/*  zoom.xtable=(long *)&zooming_xtable[0];
+/*  zoom.xtable=(int32_t *)&zooming_xtable[0];
   zoom.ytable=(short *)&zooming_ytable[0];
   zoom.texture_line=0;
   zooming(screen+35+25*640+SCREEN_OFFSET,lbuffer+SCREEN_OFFSET,xlatmem,(360<<16)+320);
-  zoom.xtable=(long *)&zooming_xtable[1];
+  zoom.xtable=(int32_t *)&zooming_xtable[1];
   zoom.ytable=(short *)&zooming_ytable[1];
   zoom.texture_line=0;
   zooming(screen+70+40*640+SCREEN_OFFSET,lbuffer+SCREEN_OFFSET,xlatmem,(360<<16)+320);
-  zoom.xtable=(long *)&zooming_xtable[2];
+  zoom.xtable=(int32_t *)&zooming_xtable[2];
   zoom.ytable=(short *)&zooming_ytable[2];
   zoom.texture_line=0;
   zooming(screen+95+60*640+SCREEN_OFFSET,lbuffer+SCREEN_OFFSET,xlatmem,(360<<16)+320);

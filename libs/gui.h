@@ -1,3 +1,8 @@
+#include <stdarg.h>
+
+#ifndef SKELDAL_LIB_GUI
+#define SKELDAL_LIB_GUI
+
 #define E_MS_CLICK 50
 #define E_MS_MOVE 51
 #define E_GET_FOCUS 52
@@ -10,7 +15,7 @@
 #define E_CONTROL 59 //User defined feature, enables direct controling desktop objects
 
 #define CURSOR_SPEED 5;
-#define get_title(title) (char *)*(long *)(title);
+#define get_title(title) (char *)*(int32_t *)(title);
 #define DESK_TOP_COLOR RGB555(0,15,15);
 #define MINSIZX 60
 #define MINSIZY 40
@@ -48,7 +53,9 @@ typedef FC_TABLE FC_PALETTE[16];
      DONE(OBJREC *object);
 */
 
-typedef void (*RUN_ROUTS[4])();
+typedef struct objrec OBJREC;
+
+typedef void (*RUN_ROUTS[4])(OBJREC *, va_list);
 
 typedef struct objrec
   {
@@ -59,13 +66,19 @@ typedef struct objrec
   char align,autoresizex,autoresizey;
   char enabled;
   short locx,locy;
-  long datasize;
+  int32_t datasize;
   void *data;
   FC_TABLE f_color;
   word *font;
   void *userptr;
-  RUN_ROUTS runs;
-  RUN_ROUTS events;
+  void (*call_init)(struct objrec *, va_list);
+  void (*call_draw)(int , int, int, int, struct objrec *);
+  void (*call_event)(EVENT_MSG *msg, struct objrec *);
+  void (*call_done)(struct objrec *);
+  void (*on_event)(EVENT_MSG *msg, struct objrec *);
+  void (*on_enter)();
+  void (*on_exit)();
+  void (*on_change)();
   char draw_error;       //1 znamena ze objekt zpusobil chybu a nebude vykreslovan
   struct objrec *next;
   }OBJREC;
@@ -94,7 +107,7 @@ typedef struct window
   CTL3D border3d;
   word color;
   OBJREC *objects;
-  long id;
+  int32_t id;
   char modal,minimized,popup;
   word minsizx,minsizy;
   char *window_name;
@@ -117,9 +130,9 @@ extern void *gui_background;
 
 void draw_border(integer x,integer y,integer xs,integer ys,CTL3D *btype);
 WINDOW *create_window(int x,int y, int xs, int ys, word color, CTL3D *okraj);
-long desktop_add_window(WINDOW *w);
-void select_window(long id);
-WINDOW *find_window(long id);
+int32_t desktop_add_window(WINDOW *w);
+void select_window(int32_t id);
+WINDOW *find_window(int32_t id);
 void redraw_object(OBJREC *o);
 void redraw_window();
 void define(int id,int x,int y,int xs,int ys,char align,void (*initproc)(OBJREC *),...);
@@ -154,7 +167,7 @@ void disable_bar(int x,int y,int xs,int ys,word color);
 void movesize_win(WINDOW *w, int newx,int newy, int newxs, int newys);
 void goto_control(int obj_id);
 
-
+#endif
 
 
 

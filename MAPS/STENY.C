@@ -176,9 +176,9 @@ void strlist_event(EVENT_MSG *msg,OBJREC *o)
 
 void strlist(OBJREC *o)
   {
-  o->runs[0]=strlist_init;
-  o->runs[1]=strlist_draw;
-  o->runs[2]=strlist_event;
+  o->call_init=strlist_init;
+  o->call_draw=strlist_draw;
+  o->call_event=strlist_event;
   o->datasize=4;
 
   }

@@ -1,7 +1,8 @@
 #include <skeldal_win.h>
 #include "types.h"
 #include "bgraph.h"
-#include <debug.h>
+
+#include <string.h>
 
 
 void bar32(int x1,int y1, int x2, int y2)
@@ -28,17 +29,17 @@ void hor_line32(int x1,int y1,int x2)
   {
   word *begline;
   int i;
-  unsigned long curcolor2=curcolor | (curcolor<<16);
+  uint32_t curcolor2=curcolor | (curcolor<<16);
 
   int mx =  DxGetResX() - 1;
   int my =  DxGetResY() - 1;
 
   if (y1<0 || y1>my) return;
-  if (x1>x2) swap_int(x1,x2);  
+  if (x1>x2) swap_int(x1,x2);
   if (x1<0) x1=0;
   if (x2>mx) x2=mx;
   begline=GetScreenAdr()+scr_linelen2*y1;
-  for (i=x1;i<x2;i+=2) *(unsigned long *)(begline+i)=curcolor2;
+  for (i=x1;i<x2;i+=2) *(uint32_t *)(begline+i)=curcolor2;
   if (i==x2) begline[i]=curcolor;
   }
 
@@ -56,22 +57,22 @@ void ver_line32(int x1,int y1,int y2)
   begline=GetScreenAdr()+scr_linelen2*y1+x1;
   for (i=y1;i<=y2;i++,begline+=scr_linelen2) *begline=curcolor;
   }
-  
+
 void hor_line_xor(int x1,int y1,int x2)
   {
   word *begline;
   int i;
-  unsigned long curcolor2=curcolor | (curcolor<<16);
+  uint32_t curcolor2=curcolor | (curcolor<<16);
 
   int mx =  DxGetResX() - 1;
   int my =  DxGetResY() - 1;
 
   if (y1<0 || y1>my) return;
-  if (x1>x2) swap_int(x1,x2);  
+  if (x1>x2) swap_int(x1,x2);
   if (x1<0) x1=0;
   if (x2>mx) x2=mx;
   begline=GetScreenAdr()+scr_linelen2*y1;
-  for (i=x1;i<x2;i+=2) *(unsigned long *)(begline+i)^=curcolor2;
+  for (i=x1;i<x2;i+=2) *(uint32_t *)(begline+i)^=curcolor2;
   if (i==x2) begline[i]^=curcolor;
   }
 
@@ -120,14 +121,14 @@ void char_32(word *posit,word *font,char znak)
   {
 
 	word *edi = posit;
-	unsigned char *esi = font;
+	unsigned char *esi = (unsigned char *)font;
 	int al = znak;
 	unsigned char dl,cl,ch,dh;
 	word *ebx;
 
 	word ax = esi[al*2]+256*esi[al*2+1];
 	if (ax == 0) goto chrend;
-	esi += ax;	
+	esi += ax;
 	dl = 0;
 	cl = *esi++;
 	ch = *esi++;
@@ -155,7 +156,7 @@ chr4: ebx+=scr_linelen2;
 	  if (cl!=0) goto chr6;
 chrend:;
 
-	
+
 /*
 
   __asm
@@ -218,7 +219,7 @@ void char2_32(word *posit,word *font,char znak)
         mov edi,posit
         mov esi,font
         mov al,znak
-    
+
                         ;edi - pozice na obrazovce
                         ;esi - ukazatel na font
                         ;al - znak
@@ -271,13 +272,13 @@ chr2end:              ;konec
 word charsize(word *font,char znak)
   {
 
-	  unsigned char *esi = font;
+	  unsigned char *esi = (unsigned char *)font;
 	  int al = znak;
 	  unsigned char cl,ch;
 
 	  word ax = esi[al*2]+256*esi[al*2+1];
 	  if (ax == 0) return 0;
-	  esi += ax;	
+	  esi += ax;
 	  cl = *esi++;
 	  ch = *esi++;
 	  ax = (int)cl+256*(int)ch;
@@ -321,9 +322,9 @@ void put_picture(word x,word y,void *p)
     {
     int i;
     int j;
-    
+
     for (i=0;i<yss;i++,adr+=scr_linelen2,data+=(xs-xss))
-      for (j=0;j<xss;j++) 
+      for (j=0;j<xss;j++)
         {
         adr[j]=((*data & ~0x1f)<<1) | (*data & 0x1f);
         data++;
@@ -333,9 +334,9 @@ void put_picture(word x,word y,void *p)
     {
     int i;
     int j;
-    
+
     for (i=0;i<yss;i++,adr+=scr_linelen2,data+=(xs-xss))
-      for (j=0;j<xss;j++) 
+      for (j=0;j<xss;j++)
         {
         adr[j]=*data;
         data++;
@@ -347,7 +348,7 @@ void put_picture(word x,word y,void *p)
     char *cdata=(char *)(data+(mode==264?10*256:256));
     int i;
     int j;
-    
+
     for (i=0;i<yss;i++,adr+=scr_linelen2,cdata+=(xs-xss))
       for (j=0;j<xss;j++)
         {
@@ -362,7 +363,7 @@ void put_picture(word x,word y,void *p)
     char *cdata=(char *)(data+256);
     int i;
     int j;
-    
+
     for (i=0;i<yss;i++,adr+=scr_linelen2,cdata+=(xs-xss))
       for (j=0;j<xss;j++)
         {
@@ -381,7 +382,7 @@ void get_picture(word x,word y,word xs,word ys,void *p)
 
   if (x+xss>=DxGetResX()) xss=DxGetResX()-x;
   if (y+yss>=DxGetResY()) yss=DxGetResY()-y;
-  
+
   data[0]=xss;
   data[1]=yss;
   data[2]=16;
@@ -389,9 +390,9 @@ void get_picture(word x,word y,word xs,word ys,void *p)
     {
     int i;
     int j;
-    
+
     for (i=0;i<yss;i++,adr+=scr_linelen2)
-      for (j=0;j<xss;j++) 
+      for (j=0;j<xss;j++)
         {
         *data=adr[j];
         data++;
@@ -408,11 +409,11 @@ void put_image(word *image,word *target,int start_line,int sizex,int sizey)
 	int eax = start_line;
 	int ebx = sizex;
 	int edx = sizey;
-	int ecx = esi[0];	
+	int ecx = esi[0];
 	esi = esi + 3 + start_line * ecx;
 
 	while (edx) {
-		memcpy(edi,esi,ecx*2);	
+		memcpy(edi,esi,ecx*2);
 		esi += ecx;
 		edi += scr_linelen2;
 		edx--;
@@ -461,7 +462,7 @@ void put_8bit_clipped(void *src,void *trg,int startline,int velx,int vely)
 		  word *esi = src;
 		  word *edi = trg;
 		  word *paleta = esi+3;
-		  int cx = esi[0];	
+		  int cx = esi[0];
 		  unsigned char *imgdata = (unsigned char *)(esi + 3 + 256)+ startline * cx;
 
 		  while (vely) {
@@ -474,7 +475,7 @@ void put_8bit_clipped(void *src,void *trg,int startline,int velx,int vely)
 		  }
 	  }
 }
-  
+
   /*_asm
     {
         mov     esi,src
@@ -538,7 +539,7 @@ void put_textured_bar_(void *src,void *trg,int xsiz,int ysiz,int xofs,int yofs)
 	int y;
 
 	xofs = xofs % cx;
-	
+
 	if (tp != 8) return;
 
 	for (y = 0; y < ysiz; y++) {
@@ -547,7 +548,7 @@ void put_textured_bar_(void *src,void *trg,int xsiz,int ysiz,int xofs,int yofs)
 		int x;
 		for (x = 0; x < xsiz; x++) {
 			unsigned char c = row[(x + xofs) % cx];
-			if (c) target[x] = paleta[c];			
+			if (c) target[x] = paleta[c];
 		}
 		target+=scr_linelen2;
 	}
@@ -624,8 +625,8 @@ ptb_skip2:
         sub     edi,edx
         dec     ecx             ;odecti 1 od globalniho citace radek
         jnz     ptb_l2          ;konec velke smycky
-        POP     EBP        
-    }    
+        POP     EBP
+    }
   }
 */
 #define MIXTRANSP(a,b) ((((a) & 0xF7DE)+((b) & 0xF7DE))>>1)
@@ -699,7 +700,7 @@ void wait_retrace()
 void put_picture2picture(word *source,word *target,int xp,int yp)
 //#pragma aux put_picture2picture parm [ESI][EDI][EAX][EDX] modify [ECX]
   {
-	
+
    word *srchdr = (word *)source;
    word *trghdr = (word *)target;
    word src_cx = srchdr[0];
@@ -707,7 +708,7 @@ void put_picture2picture(word *source,word *target,int xp,int yp)
    word src_cy = srchdr[1];
    word trg_cy = trghdr[1];
    word y;
-   
+
    unsigned char *srcimagedata = (unsigned char *)source+pic_start;
    unsigned char *trgimagedata = (unsigned char *)target+pic_start;
    trgimagedata+=trg_cx * yp + xp;

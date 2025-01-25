@@ -67,17 +67,17 @@ class SoundChannelInfo
   CRITICAL_SECTION sect;
   char *play_pos, *start_loop, *end_loop;
   IDirectSoundBuffer8 *buffer;
-  unsigned long chantype;
-  unsigned long idsPlayPos;
-  unsigned long idsWritePos;
-  unsigned long idsBuffSize;
-  long volume;    //volume for DS
-  long pan;       //pan for DS
+  uint32_t chantype;
+  uint32_t idsPlayPos;
+  uint32_t idsWritePos;
+  uint32_t idsBuffSize;
+  int32_t volume;    //volume for DS
+  int32_t pan;       //pan for DS
   int volleft;    //left volume for skeldal
   int volright;   //right volume for skeldal
-  unsigned long preload;
-  unsigned long stopTime; //time, when buffer reached end. For calculating idle time
-  unsigned long startTime; //time, when buffer started. For calculating idle time, use 0 to sticky buffer
+  uint32_t preload;
+  uint32_t stopTime; //time, when buffer reached end. For calculating idle time
+  uint32_t startTime; //time, when buffer started. For calculating idle time, use 0 to sticky buffer
   SoundChannelInfo() 
     {
     buffer=NULL;
@@ -87,7 +87,7 @@ class SoundChannelInfo
     volume=DSBVOLUME_MAX;
     }
   ~SoundChannelInfo() {if (buffer) buffer->Release();DeleteCriticalSection(&sect);}
-  unsigned long CalculateLockSize();
+  uint32_t CalculateLockSize();
   void ChannelMaintaince();     
   bool IsPlaying() {return play_pos!=NULL;}  
 //  bool IsFree(char type) {return play_pos==NULL || (type==chantype && play_pos==end_loop);}
@@ -96,14 +96,14 @@ class SoundChannelInfo
   void Lock() {EnterCriticalSection(&sect);}
   void Unlock() {LeaveCriticalSection(&sect);}
   bool TryLock() {return TryEnterCriticalSection(&sect)!=FALSE;}
-  void SetVolume(long vol) 
+  void SetVolume(int32_t vol) 
     {
     Lock();
     if (volume!=vol) if (buffer && play_pos ) hres=buffer->SetVolume(vol);
     volume=vol;    
     Unlock();
     }
-  void SetPan(long p) 
+  void SetPan(int32_t p) 
     {
     Lock();
     if (pan!=p) if (buffer && play_pos ) hres=buffer->SetPan(p);
@@ -194,18 +194,18 @@ static void DSStop()
   ds8=NULL;
   }
   
-unsigned long SoundChannelInfo::CalculateLockSize()
+uint32_t SoundChannelInfo::CalculateLockSize()
   {
   if (buffer==NULL) return 0;
-  unsigned long playpos;
+  uint32_t playpos;
   buffer->GetCurrentPosition(NULL,&playpos);
-  long diff=(signed)playpos-(signed)idsPlayPos;
+  int32_t diff=(signed)playpos-(signed)idsPlayPos;
   if (diff<0) diff+=idsBuffSize;
-  unsigned long wendpos=playpos+preload; 
+  uint32_t wendpos=playpos+preload; 
   if (wendpos>=idsBuffSize) wendpos-=idsBuffSize;
   if (wendpos<idsWritePos && wendpos>playpos) return 0;
   if (wendpos<idsWritePos) wendpos+=idsBuffSize;
-  unsigned long sz=(wendpos-idsWritePos+3) & ~3;
+  uint32_t sz=(wendpos-idsWritePos+3) & ~3;
   if (sz>idsBuffSize/2) sz=idsBuffSize/2;
   idsPlayPos=playpos;
   return sz;
@@ -217,17 +217,17 @@ void SoundChannelInfo::ChannelMaintaince()
   if (play_pos!=NULL)
     {
     if (play_pos!=end_loop) stopTime=GetTickCount();
-    unsigned long lockSize=CalculateLockSize();
+    uint32_t lockSize=CalculateLockSize();
     if (lockSize)
       {
   //    printf("%8d\r",lockSize);
       void *audioptrs[2];
-      unsigned long sizes[2];
+      uint32_t sizes[2];
       hres=buffer->Lock(idsWritePos,lockSize,audioptrs,sizes,audioptrs+1,sizes+1,0);
       for (int i=0;i<2 && audioptrs[i];i++)
         {
         char *wrt=(char *)audioptrs[i];
-        for (unsigned long j=0;j<sizes[i];j++) if (play_pos!=end_loop) 
+        for (uint32_t j=0;j<sizes[i];j++) if (play_pos!=end_loop) 
           {
           *wrt++=*play_pos++;
           if (play_pos==end_loop) play_pos=start_loop;               
@@ -271,7 +271,7 @@ void SoundChannelInfo::Reset()
 void SoundChannelInfo::InitChannel(char type, char *ppos, char *bloop,char *eloop, int freq)
   {
   Lock();
-  unsigned long newchantype=type+freq*4;
+  uint32_t newchantype=type+freq*4;
   if (chantype!=newchantype || buffer==NULL)
     {
     Reset();
@@ -394,7 +394,7 @@ void stop_mixing()
   DSStop();
   }
  
-void play_sample(int channel,void *sample,long size,long lstart,long sfreq,int type)
+void play_sample(int channel,void *sample,int32_t size,int32_t lstart,int32_t sfreq,int type)
   {  
   char *start=(char *)sample;
   channels[channel].InitChannel(type,start,start+lstart,start+size,sfreq);
@@ -436,7 +436,7 @@ void chan_break_loop(int channel)
   channels[channel].BreakLoop();
   }
 
-void chan_break_ext(int channel,void *org_sample,long size_sample) //zrusi loop s moznosti dohrat zvu
+void chan_break_ext(int channel,void *org_sample,int32_t size_sample) //zrusi loop s moznosti dohrat zvu
   {
   char *end_sample=(char *)org_sample+size_sample;
   channels[channel].BreakLoopEx(end_sample);
@@ -502,11 +502,11 @@ static DWORD Mus_silentPlay=0;
 struct MusFile
   {
   short channels;
-  long  freq;
-  long  ssize;
-  long  blocks;
-  long  reserved1;
-  long  reserved2;
+  int32_t  freq;
+  int32_t  ssize;
+  int32_t  blocks;
+  int32_t  reserved1;
+  int32_t  reserved2;
   short ampltable[256];
   };
   
@@ -607,7 +607,7 @@ static char music_decompres_block()
           }
       if (fadetime)
         {
-        long ftime=FADELENGTH-(GetTickCount()-fadetime);
+        int32_t ftime=FADELENGTH-(GetTickCount()-fadetime);
         if (ftime<0) ftime=0;
         float mul=(float)ftime*(float)ftime/(float)(FADELENGTH*FADELENGTH);
         val=(short)(val*mul);        
@@ -787,7 +787,7 @@ void *PrepareVideoSound(int mixfreq, int buffsize)
 	return (void *)ds_music;
   }
 
-char LoadNextVideoFrame(void *buffer, char *data, int size, short *xlat,short *accnums, long *writepos)
+char LoadNextVideoFrame(void *buffer, char *data, int size, short *xlat,short *accnums, int32_t *writepos)
   {
   IDirectSoundBuffer8 *ds_music=(IDirectSoundBuffer8 *)buffer;
   DSBCAPS caps;
@@ -795,7 +795,7 @@ char LoadNextVideoFrame(void *buffer, char *data, int size, short *xlat,short *a
   ds_music->GetCaps(&caps);
   DWORD play;
   ds_music->GetCurrentPosition(&play,NULL);
-  long remain=play-*writepos;
+  int32_t remain=play-*writepos;
   if (remain<0) remain+=caps.dwBufferBytes;
   if (remain<size*2) return 0;
   char curchan=0;

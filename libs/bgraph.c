@@ -17,12 +17,12 @@ byte fontdsize=0;
 byte *palmem,*xlatmem;
 void (*showview)(word,word,word,word);
 char line480=0;
-long screen_buffer_size=512000;
+int32_t screen_buffer_size=512000;
 
 void *mscursor,*mssavebuffer=NULL;
 integer mscuroldx=0,mscuroldy=0;
 integer msshowx=0,msshowy=0;
-long pictlen; // Tato promenna je pouze pouzita v BGRAPH1.ASM
+int32_t pictlen; // Tato promenna je pouze pouzita v BGRAPH1.ASM
 
 void line32(word x1,word y1, word x2, word y2)
   {
@@ -68,7 +68,7 @@ int initmode32()
   if (!(data.modeattr & MA_SUPP)) return -1;
   if (!(data.modeattr & MA_LINEARFBUF)) return -2;
   setvesamode(0x411e-line480*0xe,-1);
-  lbuffer=(word *)physicalalloc((long)data.linearbuffer,screen_buffer_size);
+  lbuffer=(word *)physicalalloc((int32_t)data.linearbuffer,screen_buffer_size);
   screen=lbuffer;
   linelen=640*2;
   showview=showview32;
@@ -83,7 +83,7 @@ int initmode256(void *paletefile)
   if (!(data.modeattr & MA_SUPP)) return -1;
   if (!(data.modeattr & MA_LINEARFBUF)) return -2;
   setvesamode(0x4100+line480,-1);
-  lbuffer=(word *)physicalalloc((long)data.linearbuffer,screen_buffer_size>>1);
+  lbuffer=(word *)physicalalloc((int32_t)data.linearbuffer,screen_buffer_size>>1);
   screen=lbuffer;
   linelen=640*2;
   palmem=(char *)paletefile;

@@ -45,21 +45,21 @@ void sikma_zleva(void);
 //#pragma aux sikma_zleva parm modify [EAX EBX ECX EDX ESI EDI]
 void sikma_zprava(void);
 //#pragma aux sikma_zprava parm modify [EAX EBX ECX EDX ESI EDI]
-/*void zooming_dx(void *source,void *target,void *background,void *xlat,long xysize);
+/*void zooming_dx(void *source,void *target,void *background,void *xlat,int32_t xysize);
 //#pragma aux zooming_dx parm [ESI][EDI][EAX][EBX][ECX] modify [EDX]
-void zooming32(void *source,void *target,void *background,void *xlat,long xysize);
+void zooming32(void *source,void *target,void *background,void *xlat,int32_t xysize);
 //#pragma aux zooming32 parm [ESI][EDI][EAX][EBX][ECX] modify [EDX]
-void zooming32b(void *source,void *target,void *background,void *xlat,long xysize);
+void zooming32b(void *source,void *target,void *background,void *xlat,int32_t xysize);
 //#pragma aux zooming32b parm [ESI][EDI][EAX][EBX][ECX] modify [EAX EDX]
-void zooming_lo(void *source,void *target,void *xlat,long xysize);
+void zooming_lo(void *source,void *target,void *xlat,int32_t xysize);
 //#pragma aux zooming_lo parm [ESI][EDI][EBX][ECX] modify [EAX EDX]
-void zooming256(void *source,void *target,void *background,void *xlat,long xysize);
+void zooming256(void *source,void *target,void *background,void *xlat,int32_t xysize);
 //#pragma aux zooming256 parm [ESI][EDI][EAX][EBX][ECX] modify [EDX]
-void zooming256b(void *source,void *target,void *background,void *xlat,long xysize);
+void zooming256b(void *source,void *target,void *background,void *xlat,int32_t xysize);
 //#pragma aux zooming256b parm [ESI][EDI][EAX][EBX][ECX] modify [EAX EDX]
-void zooming64(void *source,void *target,void *background,void *xlat,long xysize);
+void zooming64(void *source,void *target,void *background,void *xlat,int32_t xysize);
 //#pragma aux zooming64 parm [ESI][EDI][EAX][EBX][ECX] modify [EDX]
-void zooming64b(void *source,void *target,void *background,void *xlat,long xysize);
+void zooming64b(void *source,void *target,void *background,void *xlat,int32_t xysize);
 //#pragma aux zooming64b parm [ESI][EDI][EAX][EBX][ECX] modify [EAX EDX]
 void scroll_support_dx(void *lbuf,void *src1,void *src2,int size1);
 //#pragma aux scroll_support_dx parm [EDI][ESI][EDX][ECX] modify [EAX]
@@ -78,38 +78,38 @@ void scroll_support_64b(void *lbuf,void *src1,void *src2,int size1,void *xlat);
 void fcdraw(void *source,void *target, void *table);
 //#pragma aux fcdraw parm [EDX][EBX][EAX] modify [ECX ESI EDI];
 
-/*void lodka32(void *source,void *target,void *background,void *xlat,long xysize);
+/*void lodka32(void *source,void *target,void *background,void *xlat,int32_t xysize);
 //#pragma aux lodka32 parm [ESI][EDI][EAX][EBX][ECX] modify [EDX]
-void lodka_dx(void *source,void *target,void *background,void *xlat,long xysize);
+void lodka_dx(void *source,void *target,void *background,void *xlat,int32_t xysize);
 //#pragma aux lodka_dx parm [ESI][EDI][EAX][EBX][ECX] modify [EDX]
-void lodka32b(void *source,void *target,void *background,void *xlat,long xysize);
+void lodka32b(void *source,void *target,void *background,void *xlat,int32_t xysize);
 //#pragma aux lodka32b parm [ESI][EDI][EAX][EBX][ECX] modify [EDX]
 
-void lodka256(void *source,void *target,void *background,void *xlat,long xysize);
+void lodka256(void *source,void *target,void *background,void *xlat,int32_t xysize);
 //#pragma aux lodka256 parm [ESI][EDI][EAX][EBX][ECX] modify [EDX]
-void lodka256b(void *source,void *target,void *background,void *xlat,long xysize);
+void lodka256b(void *source,void *target,void *background,void *xlat,int32_t xysize);
 //#pragma aux lodka256b parm [ESI][EDI][EAX][EBX][ECX] modify [EAX EDX]
 
-void lodka64(void *source,void *target,void *background,void *xlat,long xysize);
+void lodka64(void *source,void *target,void *background,void *xlat,int32_t xysize);
 //#pragma aux lodka64 parm [ESI][EDI][EAX][EBX][ECX] modify [EDX]
-void lodka64b(void *source,void *target,void *background,void *xlat,long xysize);
+void lodka64b(void *source,void *target,void *background,void *xlat,int32_t xysize);
 //#pragma aux lodka64b parm [ESI][EDI][EAX][EBX][ECX] modify [EAX EDX]
 */
 
 void *p,*p2,*pozadi,*podlaha,*strop,*sit;int i;
-void (*zooming)(void *source,long target,word *background,void *xlat,long xysize);
-void (*turn)(long lbuf,void *src1,void *src2,int size1);
+void (*zooming)(void *source,int32_t target,word *background,void *xlat,int32_t xysize);
+void (*turn)(int32_t lbuf,void *src1,void *src2,int size1);
 word *GetBuffer2nd();
 word *background;
 char debug=0,nosides=0,nofloors=0,drwsit=0,show_names=0,show_lives=0;
-static long old_timer;
+static int32_t old_timer;
 
 static void wait_timer()
   {
     sleep_ms(10);
   }
 
-/*void zooming1(void *source,long target,word *background,void *xlat,long xysize)
+/*void zooming1(void *source,int32_t target,word *background,void *xlat,int32_t xysize)
   {
   wait_timer();
   if (backgrnd_mode)
@@ -119,7 +119,7 @@ static void wait_timer()
   showview(0,0,0,0);
   }
 /*
-void zooming2(void *source,long target,word *background,void *xlat,long xysize)
+void zooming2(void *source,int32_t target,word *background,void *xlat,int32_t xysize)
   {
   word *lbuffer=LockDirectScreen();
   wait_timer();
@@ -130,12 +130,12 @@ void zooming2(void *source,long target,word *background,void *xlat,long xysize)
   UnlockDirectScreen();
   }
 
-void zooming3(void *source,long target,word *background,void *xlat,long xysize)
+void zooming3(void *source,int32_t target,word *background,void *xlat,int32_t xysize)
   {
   source;target;background;xlat;xysize;
   }
 
-/*void zooming4(void *source,long target,word *background,void *xlat,long xysize)
+/*void zooming4(void *source,int32_t target,word *background,void *xlat,int32_t xysize)
   {
   word *lbuffer=LockDirectScreen();
   wait_timer();
@@ -146,7 +146,7 @@ void zooming3(void *source,long target,word *background,void *xlat,long xysize)
   UnlockDirectScreen();
   }*/
 /*
-void zooming5(void *source,long target,word *background,void *xlat,long xysize)
+void zooming5(void *source,int32_t target,word *background,void *xlat,int32_t xysize)
   {
   wait_timer();
   if (backgrnd_mode)
@@ -155,7 +155,7 @@ void zooming5(void *source,long target,word *background,void *xlat,long xysize)
      zooming256b(source,(void *)target,background+3,xlat,xysize);
   }
 
-void zooming6(void *source,long target,word *background,void *xlat,long xysize)
+void zooming6(void *source,int32_t target,word *background,void *xlat,int32_t xysize)
   {
   word *lbuffer=LockDirectScreen();
   wait_timer();
@@ -166,7 +166,7 @@ void zooming6(void *source,long target,word *background,void *xlat,long xysize)
   UnlockDirectScreen();
   }
 /*
-void zooming7(void *source,long target,word *background,void *xlat,long xysize)
+void zooming7(void *source,int32_t target,word *background,void *xlat,int32_t xysize)
   {
   wait_timer();
   if (backgrnd_mode)
@@ -176,38 +176,38 @@ void zooming7(void *source,long target,word *background,void *xlat,long xysize)
   }
 */
 
-void turn1(long lbuf,void *src1,void *src2,int size1)
+void turn1(int32_t lbuf,void *src1,void *src2,int size1)
   {
 //wait_timer();
 //     scroll_support_dx(lbuf+GetScreenAdr(),src1,src2,size1);
   showview(0,0,0,0);
   }
 
-/*void turn2(long lbuf,void *src1,void *src2,int size1)
+/*void turn2(int32_t lbuf,void *src1,void *src2,int size1)
   {
   wait_timer();
      scroll_support_256((lbuf>>1)+lbuffer,src1,src2,size1,xlatmem);
   }
 */
-void turn3(long lbuf,void *src1,void *src2,int size1)
+void turn3(int32_t lbuf,void *src1,void *src2,int size1)
   {
   lbuf;src1;src2;size1;
   }
 /*
-void turn4(long lbuf,void *src1,void *src2,int size1)
+void turn4(int32_t lbuf,void *src1,void *src2,int size1)
   {
   wait_timer();
      scroll_support_32b((void *)(lbuf*2),src1,src2,size1);
   }
 
-void turn5(long lbuf,void *src1,void *src2,int size1)
+void turn5(int32_t lbuf,void *src1,void *src2,int size1)
   {
   wait_timer();
      scroll_support_256b((void *)lbuf,src1,src2,size1,xlatmem);
   }
 */
 /*
-void turn6(long lbuf,void *src1,void *src2,int size1)
+void turn6(int32_t lbuf,void *src1,void *src2,int size1)
   {
   word *lbuffer=LockDirectScreen();
   wait_timer();
@@ -215,7 +215,7 @@ void turn6(long lbuf,void *src1,void *src2,int size1)
   UnlockDirectScreen();
   }
 /*
-void turn7(long lbuf,void *src1,void *src2,int size1)
+void turn7(int32_t lbuf,void *src1,void *src2,int size1)
   {
   wait_timer();
      scroll_support_64b((void *)(lbuf*2),src1,src2,size1,xlatmem);
@@ -245,7 +245,7 @@ void calc_points(void)
      }
   }
 
-void calc_x_buffer(long *ptr,long txt_size_x, long len,long total,long scale1)
+void calc_x_buffer(int32_t *ptr,int32_t txt_size_x, int32_t len,int32_t total,int32_t scale1)
   {
   int i,j,old,z=-1;
 
@@ -264,7 +264,7 @@ void calc_x_buffer(long *ptr,long txt_size_x, long len,long total,long scale1)
 
   }
 
-void calc_y_buffer(short *ptr,long txt_size_y, long len,long total)
+void calc_y_buffer(short *ptr,int32_t txt_size_y, int32_t len,int32_t total)
   {
   int i,j,old;
 
@@ -445,7 +445,7 @@ static void zooming_forward_backward(word *background,char back)
   {
   if (!zooming_step) return;
     {
-    long tmp=get_timer_value();
+    int32_t tmp=get_timer_value();
     void *buffer=DxPrepareWalk(SCREEN_OFFLINE);
     int tpoints[4]={90,31,90+460,31+259};
 
@@ -482,7 +482,7 @@ void zooming_backward(word *background)
   if (!zooming_step) return;
   for (i=0;i<ZOOM_PHASES;i+=zooming_step)
      {
-     zoom.xtable=(long *)&zooming_xtable[i];
+     zoom.xtable=(int32_t *)&zooming_xtable[i];
      zoom.ytable=(short *)&zooming_ytable[i];
      zoom.texture_line=0;
      do_events();
@@ -495,7 +495,7 @@ void zooming_backward(word *background)
   if (!zooming_step) return;
   for (i=ZOOM_PHASES-1;i>=0;i-=zooming_step)
      {
-     zoom.xtable=(long *)&zooming_xtable[i];
+     zoom.xtable=(int32_t *)&zooming_xtable[i];
      zoom.ytable=(short *)&zooming_ytable[i];
      zoom.texture_line=0;
      do_events();
@@ -510,7 +510,7 @@ static void turn_left_right(char right)
   {
   if (!rot_phases) return;
     {
-    long tmp=get_timer_value();
+    int32_t tmp=get_timer_value();
     void *buffer=DxPrepareTurn(SCREEN_OFFLINE);
 
 	int maxtime=5*rot_phases;
@@ -959,7 +959,7 @@ void map_pos(int celx,int cely,int posx,int posy,int posz,int *x,int *y)
   T_INFO_Y *yd;
   T_INFO_X *x3d;
   int ys1,ys2,xs1,xs2;
-  static long zoomtab_x[640];
+  static int32_t zoomtab_x[640];
   static short zoomtab_y[360];
   static lastcely=-1;
   int randx,randy;
@@ -1012,14 +1012,14 @@ void map_pos(int celx,int cely,int posx,int posy,int posz,int *x,int *y)
   if ((cely<<1)+posy!=lastcely)
      {
      lastcely=(cely<<1)+posy;
-     calc_x_buffer((long *)&zoomtab_x,xs2,xs1,640,xs2);
+     calc_x_buffer((int32_t *)&zoomtab_x,xs2,xs1,640,xs2);
      calc_y_buffer((short *)&zoomtab_y,ys2,ys1,360);
      }
   if (y-ysr<0) ysr=y;
   zoom.startptr=GetBuffer2nd()+y*640+x+SCREEN_OFFSET;
   zoom.texture=(short *)((char *)(&pic[3+SHADE_PAL])+xofs);
   zoom.texture_line=xs;
-  zoom.xtable=(long *)&zoomtab_x;
+  zoom.xtable=(int32_t *)&zoomtab_x;
   zoom.ytable=(short *)&zoomtab_y;
   zoom.palette=(word *)&pic[3+cely*256+(secnd_shade?SHADE_STEPS*256:0)];
   zoom.ycount=ysr;
@@ -1092,7 +1092,7 @@ void draw_placed_texture(short *txtr,int celx,int cely,int posx,int posy,int pos
 /*void draw_placed_texture(short *txtr,int celx,int cely,int posx,int posy,int posz,char turn)
   {
   int x,y,xsr,ysr;
-  long zoomtab_x[640];
+  int32_t zoomtab_x[640];
   short zoomtab_y[360];
   int xs,ys,xofs,xmax;
 
@@ -1122,7 +1122,7 @@ void draw_placed_texture(short *txtr,int celx,int cely,int posx,int posy,int pos
      xofs=0;
      xmax=xsr;
      }
-  calc_x_buffer((long *)&zoomtab_x,320,last_scale,640,last_scale);
+  calc_x_buffer((int32_t *)&zoomtab_x,320,last_scale,640,last_scale);
   calc_y_buffer((short *)&zoomtab_y,320,last_scale,360);
   if (y-ysr<0) ysr=y;
   if (ysr<=0) return;
@@ -1130,7 +1130,7 @@ void draw_placed_texture(short *txtr,int celx,int cely,int posx,int posy,int pos
   else zoom.startptr=GetBuffer2nd()+y*640+x+SCREEN_OFFSET;
   zoom.texture=(short *)((char *)(&txtr[3+SHADE_PAL])+xofs);
   zoom.texture_line=xs;
-  zoom.xtable=(long *)&zoomtab_x;
+  zoom.xtable=(int32_t *)&zoomtab_x;
   zoom.ytable=(short *)&zoomtab_y;
   zoom.palette=(word *)&txtr[3+cely*256+(secnd_shade?SHADE_STEPS*256:0)];
   zoom.ycount=ysr;

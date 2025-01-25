@@ -16,8 +16,8 @@ HKL english_layout=NULL;
 #define GET_Y_LPARAM(lp)   ((int)(short)HIWORD(lp))
 
 
-static unsigned long keyqueue[MAX_KEYQUEUE];
-static unsigned long keyqueuelen=0;
+static uint32_t keyqueue[MAX_KEYQUEUE];
+static uint32_t keyqueuelen=0;
 static char wheel_mapping[2]={'Q','I'};
 static BOOL noextra;
 MS_EVENT win_mouseEvent;
@@ -143,7 +143,7 @@ void WaitMsgQueue()
   CheckMessageQueue();
   }
 
-unsigned long _bios_keybrd(int mode)
+uint32_t _bios_keybrd(int mode)
   {
 repeat:
   if (keyqueuelen)

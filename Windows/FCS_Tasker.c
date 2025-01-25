@@ -173,7 +173,7 @@ void *task_sleep(void *data)
   return data;
   }
 
-void *task_wait_event(long event_number)
+void *task_wait_event(int32_t event_number)
   {
   void *p;
   suspend_task(currentFiber,event_number);

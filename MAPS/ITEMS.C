@@ -448,8 +448,8 @@ TITEM *items_on_map()
   if (waktual->id==tool_bar) close_current();
   select_window(map_win);
   o=find_object(waktual,10);
-  o->runs[1]=workspace_items;
-  o->runs[2]=workspace_select_item;
+  o->call_draw=workspace_items;
+  o->call_event=workspace_select_item;
   set_window_modal();
   selected_item=NULL;
   while (selected_item==NULL && waktual->id==map_win) do_events();
@@ -468,8 +468,8 @@ void item_umisti_v_mape(TITEM *it)
   if (waktual->id==tool_bar) close_current();
   select_window(map_win);
   o=find_object(waktual,10);
-  o->runs[1]=workspace_items;
-  o->runs[2]=workspace_select_item;
+  o->call_draw=workspace_items;
+  o->call_event=workspace_select_item;
   set_window_modal();
   lastpos_sec=-1;
   while (waktual->id==map_win)
@@ -535,8 +535,8 @@ void ikona_click(EVENT_MSG *msg,OBJREC *o)
 
 void ikona(OBJREC *o)
   {
-  o->runs[1]=ikona_display;
-  o->runs[2]=ikona_click;
+  o->call_draw=ikona_display;
+  o->call_event=ikona_click;
   o->datasize=4;
   }
 

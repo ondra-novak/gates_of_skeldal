@@ -56,9 +56,9 @@ public:
     // returns time written in MS (used for synching up vis stuff)
   virtual int GetWrittenTime()=0;
 
-  virtual unsigned long AddRef()=0;
+  virtual uint32_t AddRef()=0;
 
-  virtual unsigned long Release()=0;
+  virtual uint32_t Release()=0;
 
 };
 

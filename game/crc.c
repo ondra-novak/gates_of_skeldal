@@ -1,12 +1,12 @@
 #include <stdio.h>
 #include <mem.h>
 
-unsigned long l;
+uint32_t l;
 
 #define ZAKLAD_CRC 0xC005
 
 char data[100000];
-long delka;
+int32_t delka;
 FILE *f;
 
 

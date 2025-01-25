@@ -25,14 +25,14 @@ void hor_line32(int x1,int y1,int x2)
   {
   word *begline;
   int i;
-  unsigned long curcolor2=curcolor | (curcolor<<16);
+  uint32_t curcolor2=curcolor | (curcolor<<16);
 
   if (y1<0 || y1>479) return;
   if (x1>x2) swap_int(x1,x2);  
   if (x1<0) x1=0;
   if (x2>639) x2=639;
   begline=screen+scr_linelen2*y1;
-  for (i=x1;i<x2;i+=2) *(unsigned long *)(begline+i)=curcolor2;
+  for (i=x1;i<x2;i+=2) *(uint32_t *)(begline+i)=curcolor2;
   if (i==x2) begline[i]=curcolor;
   }
 
@@ -52,14 +52,14 @@ void hor_line_xor(int x1,int y1,int x2)
   {
   word *begline;
   int i;
-  unsigned long curcolor2=curcolor | (curcolor<<16);
+  uint32_t curcolor2=curcolor | (curcolor<<16);
 
   if (y1<0 || y1>479) return;
   if (x1>x2) swap_int(x1,x2);  
   if (x1<0) x1=0;
   if (x2>639) x2=639;
   begline=screen+scr_linelen2*y1;
-  for (i=x1;i<x2;i+=2) *(unsigned long *)(begline+i)^=curcolor2;
+  for (i=x1;i<x2;i+=2) *(uint32_t *)(begline+i)^=curcolor2;
   if (i==x2) begline[i]^=curcolor;
   }
 

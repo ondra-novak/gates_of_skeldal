@@ -60,7 +60,7 @@ int WString::Format(wchar_t *format, ...)
 
 int WString::ScanStringV(const wchar_t *format, va_list lst) const
 {
-  unsigned long *ptr=(unsigned long *)lst;
+  uint32_t *ptr=(uint32_t *)lst;
   return swscanf(GetString(),format,ptr[0],ptr[1],ptr[2],ptr[3],ptr[4],ptr[5],ptr[6],ptr[7],ptr[8],ptr[9],
 									ptr[10],ptr[11],ptr[12],ptr[13],ptr[14],ptr[15],ptr[16],ptr[17],ptr[18],ptr[19]);
 

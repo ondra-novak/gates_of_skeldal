@@ -140,7 +140,7 @@ static void picture2_display(int x1,int y1,int x2,int y2,OBJREC *o)
 
 static void picture2(OBJREC *o)
   {
-  o->runs[1]=picture2_display;
+  o->call_draw=picture2_display;
   o->datasize=4;
   }
 

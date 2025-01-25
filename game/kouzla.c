@@ -146,7 +146,7 @@ typedef struct tkouzlo
 TKOUZLO *spell_table[MAX_SPELLS];
 short *vls_table[MAX_SPELLS];   //nove vlastnosti postav
                                    //pokud je cislo vetsi nez 0x7f00 pak dolni byte uvadi percentualni pomer
-static long _flag_map[MAX_SPELLS];      //tabulka nastavenych priznaku pro kouzlo.
+static int32_t _flag_map[MAX_SPELLS];      //tabulka nastavenych priznaku pro kouzlo.
                                //prvnich 16 bitu je pro postavu
                                //hornich 16 bitu je globalne
 
@@ -186,7 +186,7 @@ static void play_anim(va_list args) //tasked animation
   int block=va_arg(args,int);
 #define ANIM_SIZE (320*180*2)
   void *anm;
-  long *l,c;
+  int32_t *l,c;
 
   if (running_anm)
      {
@@ -552,7 +552,7 @@ char hod_na_uspech(int cil,TKOUZLO *k)
 
 void spell_end_global()
   {
-  long l=0;
+  int32_t l=0;
   int i;
   for(i=0;i<MAX_SPELLS;i++) l|=_flag_map[i];
   if (!(l & FLG_TRUESEEING)) true_seeing=0;

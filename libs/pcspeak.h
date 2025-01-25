@@ -16,7 +16,7 @@ char load_rm_proc(void);
 char purge_rm_proc(void);
 #pragma aux purge_rm_proc modify [edx eax] value [al]
 
-void pc_speak_run(long s_freq,long sim_freq);
+void pc_speak_run(int32_t s_freq,int32_t sim_freq);
 #pragma aux pc_speak_run parm[eax][edx] modify [ecx ebx]
 
 void pc_speak_stop(void);
@@ -28,10 +28,10 @@ void pc_speak_enable(void);
 void pc_speak_disable(void);
 #pragma aux pc_speak_enable modify [eax]
 
-long pc_speak_position(void);
+int32_t pc_speak_position(void);
 #pragma aux pc_speak_position modify[eax ebx] value [eax]
 
-void pc_speak_set_proc(long *c);
+void pc_speak_set_proc(int32_t *c);
 #pragma aux pc_speak_set_proc parm [edi]
 
 /* Zde jsou nejake komentare */
@@ -101,18 +101,18 @@ void pc_speak_disable;
 
  -------------------------------------------------------------------
 
-long pc_speak_position(void);
+int32_t pc_speak_position(void);
 
  Vstup: -
- Vystup: long offset do bufferu. Vraci prave preravanou pozici
- Komentar: sice vraci long, ale offset je v rozsahu <0-64Kb>. Vzhledem k
+ Vystup: int32_t offset do bufferu. Vraci prave preravanou pozici
+ Komentar: sice vraci int32_t, ale offset je v rozsahu <0-64Kb>. Vzhledem k
            casovym ztratam muze vracena pozice byt starsi uz v dobe
            predavani vysledku. Presnost zavisi na rychlosti pocitace.
 
  -------------------------------------------------------------------
 
 void pc_speak_set_proc;
- Vstup: Ukazatel na ukazatel na void (ackoliv je tam long *)
+ Vstup: Ukazatel na ukazatel na void (ackoliv je tam int32_t *)
  Vystup:-
  Komentar: Procedura modifikuje promennou kam ukazuje parametr tak aby
            obsahovala adresu na proceduru pc_speak_position.

@@ -14,7 +14,7 @@
 #include "gui.h"
 #include "basicobj.h"
 
-#define MEMTEXT "Pamˆt: "
+#define MEMTEXT "Pamï¿½t: "
 
 #define E_STATUS_LINE 60
 
@@ -51,9 +51,9 @@ CTL3D *def_border(int btype,int color)
   return &ctl;
   }
 
-void sample_init(OBJREC *o,char *title)
+void sample_init(OBJREC *o,va_list params)
   {
-  title=get_title(title);
+  char *title=va_arg(params, char *);
   o->userptr=(void *)getmem(strlen(title)+1);
   strcpy((char *)o->userptr,title);
   }
@@ -89,17 +89,17 @@ void sample_event(EVENT_MSG *msg,OBJREC *o)
 
 void sample(OBJREC *o)
   {
-  o->runs[0]=sample_init;
-  o->runs[1]=sample_draw;
-  o->runs[2]=sample_event;
-  //o->runs[3]=sample_done;
+  o->call_init=sample_init;
+  o->call_draw=sample_draw;
+  o->call_event=sample_event;
+  //o->call_done=sample_done;
   }
 
 //------------------------------------------
-void button_init(OBJREC *o,char *title)
+void button_init(OBJREC *o,va_list params)
   {
   char *v;
-  title=get_title(title);
+  char *title=va_arg(params, char *);
   o->userptr=(void *)getmem(strlen(title)+1);
   strcpy((char *)o->userptr,title);
   v=(char *)o->data;
@@ -176,19 +176,19 @@ void button_event(EVENT_MSG *msg,OBJREC *o)
 
 void button(OBJREC *o)
   {
-  o->runs[0]=button_init;
-  o->runs[1]=button_draw;
-  o->runs[2]=button_event;
-  //o->runs[3]=button_done;
+  o->call_init=button_init;
+  o->call_draw=button_draw;
+  o->call_event=button_event;
+  //o->call_done=button_done;
   o->datasize=1;
   }
 
 void button2(OBJREC *o)
   {
-  o->runs[0]=button_init;
-  o->runs[1]=button_draw2;
-  o->runs[2]=button_event;
-  //o->runs[3]=button_done;
+  o->call_init=button_init;
+  o->call_draw=button_draw2;
+  o->call_event=button_event;
+  //o->call_done=button_done;
   o->datasize=1;
   }
 
@@ -242,20 +242,6 @@ void draw_status_line(char *c)
 
 void *status_mem_info(EVENT_MSG *msg)
   {
-  char *c;
-  long l;
-  static char memtext[]=MEMTEXT;
-  MEMORYSTATUS mem;
-
-  if (msg->msg==E_INIT) return &status_mem_info;
-  c=(char *)msg->data;
-  strcpy(c,memtext);
-  c+=strlen(memtext);
-  get_mem_info(&mem);
-  l=mem.dwAvailPageFile;
-  sprintf(c,"%d KB ",l/1024);
-  c=strchr(c,'\0');
-  msg->data=(void *)c;
   return NULL;
   }
 
@@ -266,78 +252,72 @@ void *status_idle(EVENT_MSG *msg)
   return NULL;
   }
 
-void status_line(EVENT_MSG *msg,T_EVENT_ROOT **user_data)
-  {
-  T_EVENT_ROOT **p;
-  static char st_line[256],oldline[256]={"\0"};
-  EVENT_MSG tg;
-  static char recurse=1;
+static int enter_event_msg_to(EVENT_MSG *msg, void *ctx) {
+    T_EVENT_ROOT **p = (T_EVENT_ROOT **)ctx;
+    enter_event(p, msg);
+    return 0;
+}
 
-  if(msg->msg==E_INIT)
-     if (recurse)
-     {
-      T_EVENT_ROOT *p;
-      recurse=0;
-      send_message(E_ADD,E_IDLE,status_idle);
-      send_message(E_ADD,E_REDRAW,status_idle);
-      p=NULL;
-      *user_data=p;
-      draw_status_line(NULL);
-      recurse=1;
-      return;
-      }
-     else return;
-  shift_msg(msg,tg);
-       if (tg.msg==E_REDRAW)
-        {
+void status_line(EVENT_MSG *msg, T_EVENT_ROOT **user_data) {
+    T_EVENT_ROOT **p;
+    static char st_line[256], oldline[256] = { "\0" };
+    static char recurse = 1;
+
+    if (msg->msg == E_INIT)
+        if (recurse) {
+            T_EVENT_ROOT *p;
+            recurse = 0;
+            send_message(E_ADD, E_IDLE, status_idle);
+            send_message(E_ADD, E_REDRAW, status_idle);
+            p = NULL;
+            *user_data = p;
+            draw_status_line(NULL);
+            recurse = 1;
+            return;
+        } else
+            return;
+
+    msg->msg = va_arg(msg->data, int);
+    if (msg->msg == E_REDRAW) {
         draw_status_line(oldline);
         return;
+    }
+    p = user_data;
+    if (msg->msg == E_IDLE) {
+        char *c = st_line;
+        send_message_to(enter_event_msg_to, p, E_IDLE, &c);
+        if (strcmp(st_line, oldline)) {
+            draw_status_line(st_line);
+            strcpy(oldline, st_line);
         }
-  p=user_data;
-    if (tg.msg==E_IDLE)
-     {
-     EVENT_MSG msg;
-
-     msg.msg=E_IDLE;
-     msg.data=&st_line;
-     enter_event(p,&msg);
-     if (strcmp(st_line,oldline))
-        {
-        draw_status_line(st_line);
-        strcpy(oldline,st_line);
-        }
-     }
-  else
-     tree_basics(p,&tg);
-  return;
-  }
+    } else {
+        tree_basics(p, msg);
+    }
+    return;
+}
 
 void *mouse_xy(EVENT_MSG *msg)
   {
-  char *c;
+  char **c = va_arg(msg->data, char **);
 
   if (msg->msg==E_INIT) return &mouse_xy;
-  c=(char *)msg->data;
-  sprintf(c," X: %d Y: %d",ms_last_event.x,ms_last_event.y);
-  c=strchr(c,'\0');
-  msg->data=(void *)c;
+  sprintf(*c," X: %d Y: %d",ms_last_event.x,ms_last_event.y);
+  *c=strchr(*c,'\0');
   return NULL;
   }
 
 void *show_time(EVENT_MSG *msg)
   {
-  char *c;
+    char **c = va_arg(msg->data, char **);
   time_t t;
   struct tm cas;
 
   if (msg->msg==E_INIT) return &show_time;
-  c=(char *)msg->data;
   t=time(NULL);
   cas=*localtime(&t);
 
-  sprintf(c,"%02d:%02d:%02d ",cas.tm_hour,cas.tm_min,cas.tm_sec);
-  c=strchr(c,'\0');
-  msg->data=(void *)c;
+  sprintf(*c,"%02d:%02d:%02d ",cas.tm_hour,cas.tm_min,cas.tm_sec);
+  *c=strchr(*c,'\0');
   return NULL;
   }
 //------------------------------------------
@@ -380,8 +360,8 @@ void win_label_move(EVENT_MSG *msg,OBJREC *o)
   static char run=0;
   static word xref,yref;
   static WINDOW w;
-  static moved=0;
-  static drawed=0;
+  static int moved=0;
+  static int drawed=0;
 
   o;
   if (msg->msg==E_INIT) return;
@@ -454,10 +434,10 @@ return;
 
 void win_label(OBJREC *o)
   {
-  o->runs[0]=sample_init;
-  o->runs[1]=win_label_draw;
-  o->runs[2]=win_label_move;
-  //o->runs[3]=button_done;
+  o->call_init=sample_init;
+  o->call_draw=win_label_draw;
+  o->call_event=win_label_move;
+  //o->call_done=button_done;
   o->datasize=0;
   }
 
@@ -524,50 +504,53 @@ void check_box_event(EVENT_MSG *msg,OBJREC *o)
 
 void check_box(OBJREC *o)
   {
-  o->runs[0]=sample_init;
-  o->runs[1]=check_box_draw;
-  o->runs[2]=check_box_event;
+  o->call_init=sample_init;
+  o->call_draw=check_box_draw;
+  o->call_event=check_box_event;
   o->datasize=4;
   }
 
 //------------------------------------------
-void radio_butts_init(OBJREC *o,long *params)
+void radio_butts_init(OBJREC *o,va_list params)
   {
   char *c,*z;
-  long cnt=0,*q,*d;
+  int32_t cnt=0,*q;
   int i;
+  va_list d;
 
-  d=params;
-  for (i=0;i<*params;i++)
+  va_copy(d, params);
+  int rcount = va_arg(d, int);
+  for (i=0;i<rcount;i++)
      {
-     d+=1;
-     c=get_title(d);
+     c=va_arg(d, char *);
      cnt+=strlen(c);cnt++;
      }
-  q=(long *)getmem(cnt+8);
+  va_end(d);
+  q=(int32_t *)getmem(cnt+8);
   o->userptr=(void *)q;
-  *q++=1;*q++=*params;
-  d=params;
-  z=(char *)q;
-  for (i=0;i<*params;i++)
+  *q++=1;*q++=rcount;
+  va_copy(d, params);
+  va_arg(d, int);
+  for (i=0;i<rcount;i++)
      {
-     d+=1;
-     c=get_title(d);
+     c=va_arg(d, char *);
      strcpy(z,c);
      z=strchr(z,'\0');z++;
      }
+  va_end(d);
   }
+
 
 void radio_butts_draw(int x1,int y1,int x2,int y2,OBJREC *o)
   {
   int step,size,sizpul,i,cr;
-  long *params;
+  int32_t *params;
   char *texts;
   CTL3D ctl;
 
   cr=curcolor;
   highlight(&ctl,curcolor);
-  params=(long *)o->userptr;
+  params=(int32_t *)o->userptr;
   if (*params) bar(x1,y1,x2,y2);
   step=(y2-y1)/(*(params+1));
   size=(step*9)/10;
@@ -583,7 +566,7 @@ void radio_butts_draw(int x1,int y1,int x2,int y2,OBJREC *o)
      curcolor=ctl.light;
      line(x1+sizpul+1,y1,x1+size,y1+sizpul);
      line(x1+size,y1+sizpul,x1+sizpul+1,y1+size-1);
-     if (*(long *)o->data==i) curcolor=0;else curcolor=cr;
+     if (*(int32_t *)o->data==i) curcolor=0;else curcolor=cr;
      for (j=0;j<3;j++)
         {
         hor_line(x1+sizpul-j,y1+sizpul-2+j,x1+sizpul+j);
@@ -609,12 +592,12 @@ void radio_butts_event(EVENT_MSG *msg,OBJREC *o)
      ms=get_mouse(msg);
      if (ms->event_type & 0x02)
         {
-        sel=(ms->y-o->locy)/(o->ys/(*((long *)o->userptr+1)));
-        if (sel>=*((long *)o->userptr+1)) sel=*((long *)o->userptr+1)-1;
-        *(long *)o->data=sel;
-        *(long *)o->userptr=0;
+        sel=(ms->y-o->locy)/(o->ys/(*((int32_t *)o->userptr+1)));
+        if (sel>=*((int32_t *)o->userptr+1)) sel=*((int32_t *)o->userptr+1)-1;
+        *(int32_t *)o->data=sel;
+        *(int32_t *)o->userptr=0;
         redraw_object(o);
-        *(long *)o->userptr=1;
+        *(int32_t *)o->userptr=1;
         set_change();
         }
      }
@@ -624,9 +607,9 @@ void radio_butts_event(EVENT_MSG *msg,OBJREC *o)
 
 void radio_butts(OBJREC *o)
   {
-  o->runs[0]=radio_butts_init;
-  o->runs[1]=radio_butts_draw;
-  o->runs[2]=radio_butts_event;;
+  o->call_init=radio_butts_init;
+  o->call_draw=radio_butts_draw;
+  o->call_event=radio_butts_event;;
   o->datasize=4;
   }
 
@@ -670,21 +653,32 @@ void toggle_button_event(EVENT_MSG *msg,OBJREC *o)
 
 void toggle_button(OBJREC *o)
   {
-  o->runs[0]=button_init;
-  o->runs[1]=button_draw;
-  o->runs[2]=toggle_button_event;
+  o->call_init=button_init;
+  o->call_draw=button_draw;
+  o->call_event=toggle_button_event;
   o->datasize=1;
   }
 
 //------------------------------------------
 
-void input_line_init(OBJREC *o,int *len)
+typedef struct input_line_state_st {
+    int len;
+    int start;
+    int minimum;
+    int maximum;
+    char *format;
+} input_line_state;
+
+void input_line_init(OBJREC *o,va_list len)
   {
-  o->datasize=(*len)+1;
-  o->userptr=malloc(20);
-  memset(o->userptr,0,20);
-  memcpy(o->userptr,len,4);
-  memcpy((int *)o->userptr+2,len+1,12);
+  input_line_state *st = malloc(sizeof(input_line_state));
+  st->len = va_arg(len, int);;
+  st->start = 0;
+  st->minimum = va_arg(len, int);
+  st->maximum = va_arg(len, int);
+  st->format = va_arg(len, char * );
+  o->datasize=st->len;
+  o->userptr = st;
   }
 
 void input_line_draw(int x1,int y1, int x2, int y2, OBJREC *o)
@@ -700,7 +694,8 @@ void input_line_draw(int x1,int y1, int x2, int y2, OBJREC *o)
   c=(char *)o->data;
   if (!*c) return;
   len=strlen(c);
-  shift=*((int *)o->userptr+1);
+  input_line_state *st = o->userptr;
+  shift=st->start;
   if (shift>=len) shift=0;
   c+=shift;
   d[0]=*c++;x=x1+text_width(d);
@@ -714,14 +709,14 @@ void input_line_draw(int x1,int y1, int x2, int y2, OBJREC *o)
 
 void input_line_event(EVENT_MSG *msg,OBJREC *o)
   {
-   static cursor=0;
+   static int cursor=0;
    int *len,*start,slen;
    char *c;
    static char *save;
    static char clear_kontext;
 
-   len=(int *)o->userptr;
-   start=len+1;
+   input_line_state *st = o->userptr;
+   start=&st->start;
    c=(char *)o->data;
    slen=strlen(c);
    switch (msg->msg)
@@ -771,12 +766,14 @@ void input_line_event(EVENT_MSG *msg,OBJREC *o)
         break;
      case E_KEYBOARD:
         {
-        char key;
+
+            int code = va_arg(msg->data, int);
+            char key;
 
         cancel_event();
-        key=(*(int *)msg->data) & 0xff;
+        key= code & 0xff;
         if (!key)
-        switch (*(int *)msg->data >> 8)
+        switch (code >> 8)
            {
            case 'M':if (cursor<slen)  cursor++;break;
            case 'K':if (cursor>0)  cursor--;break;
@@ -813,28 +810,31 @@ void input_line_event(EVENT_MSG *msg,OBJREC *o)
   }
 
 
-
+void input_line_done(OBJREC *o) {
+    free(o->userptr);
+}
 
 
 void input_line(OBJREC *o)
   {
-  o->runs[0]=input_line_init;
-  o->runs[1]=input_line_draw;
-  o->runs[2]=input_line_event;
+  o->call_init=input_line_init;
+  o->call_draw=input_line_draw;
+  o->call_event=input_line_event;
+  o->call_done = input_line_done;
   }
 
 
 //-------------------------------------------------------------
 void label(OBJREC *o)
   {
-  o->runs[0]=sample_init;
-  o->runs[1]=sample_draw;
+  o->call_init=sample_init;
+  o->call_draw=sample_draw;
   }
 
 void mid_label(OBJREC *o)
   {
-  o->runs[0]=sample_init;
-  o->runs[1]=mid_label_draw;
+  o->call_init=sample_init;
+  o->call_draw=mid_label_draw;
   }
 //-------------------------------------------------------------
 
@@ -845,16 +845,16 @@ typedef struct scr_button
   char *title;
   }SCR_BUTTON;
 
-void scroll_button_init(OBJREC *o,int *param)
+void scroll_button_init(OBJREC *o,va_list param)
   {                           // int step, int maxvalue,char *title
   char *v;
   SCR_BUTTON *p;
 
   o->userptr=getmem(sizeof(SCR_BUTTON));
   p=(SCR_BUTTON *)o->userptr;
-  p->step=*param++;
-  p->maxvalue=*param++;
-  p->title=(char *)*param++;
+  p->step=va_arg(param, int);
+  p->maxvalue=va_arg(param, int);
+  p->title=va_arg(param, char *);
   v=(char *)o->data;
   *v=0;
   }
@@ -912,9 +912,9 @@ void scroll_button_event(EVENT_MSG *msg,OBJREC *o)
 
 void scroll_button(OBJREC *o)
   {
-  o->runs[0]=scroll_button_init;
-  o->runs[1]=scroll_button_draw;
-  o->runs[2]=scroll_button_event;
+  o->call_init=scroll_button_init;
+  o->call_draw=scroll_button_draw;
+  o->call_event=scroll_button_event;
   o->datasize=1;
   }
 
@@ -930,16 +930,16 @@ typedef struct scr_bar
   int stepsize;
   }SCR_BAR;
 
-void scroll_bar_init(OBJREC *o,int *param)
+void scroll_bar_init(OBJREC *o,va_list param)
   {
   SCR_BAR *p;
 
   o->userptr=getmem(sizeof(SCR_BAR));
   p=(SCR_BAR *)o->userptr;
-  p->minvalue=*param++;
-  p->maxvalue=*param++;
-  p->parview=*param++;
-  p->bgcolor=*param++;
+  p->minvalue=va_arg(param, int);
+  p->maxvalue=va_arg(param, int);
+  p->parview=va_arg(param, int);
+  p->bgcolor=va_arg(param, int);
   p->barsize=10;
   p->stepsize=10;
   }
@@ -1010,9 +1010,8 @@ void scroll_bar_v_event(EVENT_MSG *msg,OBJREC *o)
           break;
      case E_CONTROL:
           {
-          int *q;
+          int *q = va_arg(msg->data, int *);
 
-          q=msg->data;
           p->minvalue=*q++;
           p->maxvalue=*q++;
           p->parview=*q++;
@@ -1024,9 +1023,9 @@ void scroll_bar_v_event(EVENT_MSG *msg,OBJREC *o)
 
 void scroll_bar_v(OBJREC *o)
   {
-  o->runs[0]=scroll_bar_init;
-  o->runs[1]=scroll_bar_v_draw;
-  o->runs[2]=scroll_bar_v_event;
+  o->call_init=scroll_bar_init;
+  o->call_draw=scroll_bar_v_draw;
+  o->call_event=scroll_bar_v_event;
   o->datasize=4;
   }
 
@@ -1053,7 +1052,7 @@ void scroll_support()
   set_value(0,id,&x);
   r=o_aktual;
   o_aktual=o;
-  o->events[3]();
+  o->on_change();
   o_aktual=r;
   }
 //-------------------------------------------------------------
@@ -1130,9 +1129,9 @@ void scroll_bar_h_event(EVENT_MSG *msg,OBJREC *o)
 
  void scroll_bar_h(OBJREC *o)
   {
-  o->runs[0]=scroll_bar_init;
-  o->runs[1]=scroll_bar_h_draw;
-  o->runs[2]=scroll_bar_h_event;
+  o->call_init=scroll_bar_init;
+  o->call_draw=scroll_bar_h_draw;
+  o->call_event=scroll_bar_h_event;
   o->datasize=4;
 
   }
@@ -1214,7 +1213,7 @@ int msg_box(char *title, char icone, char *text, ... )
      sz=(winx/(temp2+1))>>1;
      if (sz<text_width(*c)) sz=text_width(*c);
    define((i),i*winx/(temp2+1)-(sz>>1),10,sz+5,20,3,button,*c);
-   property(ctl,NULL,flat_color(0),RGB555(24,24,24));on_change(terminate);
+   property(ctl,NULL,flat_color(0),RGB555(24,24,24));on_control_change(terminate_gui);
      c++;
      }
   set_window_modal();
@@ -1254,8 +1253,8 @@ void resizer_event(EVENT_MSG *msg,OBJREC *o)
   static char run=0;
   static word xref,yref;
   static WINDOW w;
-  static moved=0;
-  static drawed=0;
+  static int moved=0;
+  static int drawed=0;
 
   o;
   if (msg->msg==E_INIT) return;
@@ -1326,7 +1325,7 @@ if (msg->msg!=E_TIMER)  msg->msg=-1;
 
 void resizer(OBJREC *o)
   {
-  //o->runs[0]=resizer_init;
-  o->runs[1]=resizer_draw;
-  o->runs[2]=resizer_event;
+  //o->call_init=resizer_init;
+  o->call_draw=resizer_draw;
+  o->call_event=resizer_event;
   }

@@ -398,10 +398,10 @@ do not use :)
 
 #define IPC_GETMBURL 246
 /* (requires Winamp 2.2+)
-** char buffer[4096]; // Urls can be VERY long
+** char buffer[4096]; // Urls can be VERY int32_t
 ** SendMessage(hwnd_winamp,WM_WA_IPC,(WPARAM)buffer,IPC_GETMBURL);
 ** IPC_GETMBURL will retrieve the current Minibrowser URL into buffer.
-** buffer must be at least 4096 bytes long.
+** buffer must be at least 4096 bytes int32_t.
 */
 
 
@@ -505,7 +505,7 @@ typedef struct
 
 #define IPC_GETUNCOMPRESSINTERFACE 331
 /* returns a function pointer to uncompress().
-** int (*uncompress)(unsigned char *dest, unsigned long *destLen, const unsigned char *source, unsigned long sourceLen);
+** int (*uncompress)(unsigned char *dest, uint32_t *destLen, const unsigned char *source, uint32_t sourceLen);
 ** right out of zlib, useful for decompressing zlibbed data.
 ** if you pass the parm of 0x10100000, it will return a wa_inflate_struct * to an inflate API.
 */
@@ -515,7 +515,7 @@ typedef struct {
   int (*inflateInit_)(void *strm,const char *version, int stream_size);
   int (*inflate)(void *strm, int flush);
   int (*inflateEnd)(void *strm);
-  unsigned long (*crc32)(unsigned long crc, const unsigned  char *buf, unsigned int len);
+  uint32_t (*crc32)(uint32_t crc, const unsigned  char *buf, unsigned int len);
 } wa_inflate_struct;
 
 
@@ -778,7 +778,7 @@ class SubsItem;
 
 typedef	struct {
 	unsigned char*	baseAddr;
-	long			rowBytes;
+	int32_t			rowBytes;
 } YV12_PLANE;
 
 typedef	struct {

@@ -1,4 +1,4 @@
-__inline void *getmem(long sz) 
+__inline void *getmem(int32_t sz) 
 {
   return malloc(sz);
 }

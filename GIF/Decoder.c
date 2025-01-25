@@ -2,7 +2,7 @@
  * Copyright (C) 1987, by Steven A. Bennett
  *
  * Permission is given by the author to freely redistribute and include
- * this code in any program as long as this credit is given where due.
+ * this code in any program as int32_t as this credit is given where due.
  *
  * In accordance with the above, I want to credit Steve Wilhite who wrote
  * the code which this is heavily inspired by...

@@ -26,7 +26,7 @@
 #include <bgraph.h>
 
 FILE *dlg;
-long *odstavce=NULL;
+int32_t *odstavce=NULL;
 int pocet;
 
 int selptr=0;
@@ -61,11 +61,11 @@ int count_pargh()
 void read_pargh()
   {
   int s,i;
-  long *d;
+  int32_t *d;
   char c;
   if (odstavce!=NULL) free(odstavce);
   odstavce=NULL;
-  s=(pocet=i=count_pargh())*sizeof(long)*2;
+  s=(pocet=i=count_pargh())*sizeof(int32_t)*2;
   if (s==0) return;
   odstavce=getmem(s);
   d=odstavce;
@@ -92,9 +92,9 @@ void dlg_error(char *chyba)
   exit(1);
   }
 
-long *najdi_odstavec(int odstavec)
+int32_t *najdi_odstavec(int odstavec)
   {
-  long *d;
+  int32_t *d;
   int i;
 
 
@@ -111,7 +111,7 @@ long *najdi_odstavec(int odstavec)
 
 char jdi_na_odstavec(int odstavec)
   {
-  long *l,m;
+  int32_t *l,m;
   char c;
 
   l=najdi_odstavec(odstavec);
@@ -121,9 +121,9 @@ char jdi_na_odstavec(int odstavec)
   return c;
   }
 
-void set_flags(int n,long maskand,long maskor)
+void set_flags(int n,int32_t maskand,int32_t maskor)
   {
-  long *l;
+  int32_t *l;
   l=najdi_odstavec(n);
   l[1]&=(maskand<<24)+0xffffff;
   l[1]|=maskor<<24;
@@ -152,7 +152,7 @@ int nparam(int n,char *c)
 void proved_goto(int num)
   {
    char c;
-   long l;
+   int32_t l;
    l=ftell(dlg);
    c=jdi_na_odstavec(num);
         while (c & 1)
@@ -220,7 +220,7 @@ void proved_d(char *code,char *text)
      }
   else if (*code==4)
      {
-     long *l=najdi_odstavec(param(text));
+     int32_t *l=najdi_odstavec(param(text));
      char c,*d;
 
      c=l[1]>>24;

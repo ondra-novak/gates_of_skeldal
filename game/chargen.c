@@ -514,7 +514,7 @@ static void stop_edit_name()
   {
   shut_downing_text=1;send_message(E_KEYBOARD,13);
   task_sleep(NULL);
-  if (edit_task>0 && is_running(edit_task)) 
+  if (edit_task>0 && is_running(edit_task))
     shut_down_task(edit_task);
   shut_downing_text=0;
   }
@@ -752,7 +752,8 @@ static void enter_reaction(EVENT_MSG *msg,void **unused)
   unused;
   if (msg->msg==E_KEYBOARD)
      {
-     if (*(char *)msg->data==13 && !shut_downing_text)
+      int c = va_arg(msg->data, int);
+     if (c==13 && !shut_downing_text)
         {
         send_message(E_KEYBOARD,13);
         bott_draw(1);
@@ -766,7 +767,8 @@ static void enter_reaction(EVENT_MSG *msg,void **unused)
 static void enter_reaction2(EVENT_MSG *msg,void **unused)
   {
   unused;
-  if (msg->msg==E_KEYBOARD && *(char *)msg->data==13 && !shut_downing_text && ~b_disables & 0x3)
+  int c = va_arg(msg->data, int)
+  if (msg->msg==E_KEYBOARD && c==13 && !shut_downing_text && ~b_disables & 0x3)
      {
      send_message(E_KEYBOARD,13);
      bott_draw(1);

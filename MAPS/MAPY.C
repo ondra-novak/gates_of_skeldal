@@ -817,9 +817,9 @@ void workspace_event(EVENT_MSG *msg,OBJREC *o)
   }
 void workspace(OBJREC *o)
   {
-//o->runs[0]=workspace_init;
-  o->runs[1]=workspace_draw;
-  o->runs[2]=workspace_event;
+//o->call_init=workspace_init;
+  o->call_draw=workspace_draw;
+  o->call_event=workspace_event;
   o->datasize=4;
   }
 

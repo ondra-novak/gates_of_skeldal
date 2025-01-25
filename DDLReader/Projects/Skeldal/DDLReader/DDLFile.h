@@ -5,7 +5,7 @@
 class IDDLFileEnumerator
 {
 public:
-  virtual bool File(WString name, int group, unsigned long offset)=0;  
+  virtual bool File(WString name, int group, uint32_t offset)=0;  
 };
 
 struct DDLData
@@ -40,6 +40,6 @@ public:
 
   bool OpenDDLFile(WString filename);
   bool EnumFiles(IDDLFileEnumerator &enmClass);
-  DDLData ExtractFile(unsigned long offset);
-  unsigned long GetFileSize(unsigned long offset);
+  DDLData ExtractFile(uint32_t offset);
+  uint32_t GetFileSize(uint32_t offset);
 };

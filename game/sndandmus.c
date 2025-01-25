@@ -195,10 +195,10 @@ int calcul_volume(int chan,int x,int y,int side,int volume)
   return 0;
   }
 
-void wav_load(void **p,long *s)
+void wav_load(void **p,int32_t *s)
   {
   char *sr;
-  long *d;
+  int32_t *d;
   char *c;
   char *tg;
   void *tgr;
@@ -238,7 +238,7 @@ void wav_load(void **p,long *s)
 
      s=siz & 3;
      siz>>=2;
-     d=(long *)tg;
+     d=(int32_t *)tg;
      for(;siz--;d++) *d^=0x80808080;
      c=(char *)d;
      for(;s--;c++) *c^=0x80;
@@ -515,7 +515,7 @@ void play_sample_at_channel(int sample,int channel,int vol)
   }
 
 
-void create_sound_table(char *template,long size)
+void create_sound_table(char *template,int32_t size)
   {
   char *c,*s;
   int i=0;
@@ -533,12 +533,12 @@ void create_sound_table(char *template,long size)
 void create_sound_table_old()
   {
   char *c,*s;
-  long pocet;
+  int32_t pocet;
   int i=0;
 
   if (sound_table==NULL) sound_table=create_list(2);
   s=c=ablock(H_SOUND_DAT);
-  memcpy(&pocet,s,sizeof(long));c+=4;
+  memcpy(&pocet,s,sizeof(int32_t));c+=4;
   while (pocet--)
      {
      if (c[0]!=0) str_replace(&sound_table,i,c);

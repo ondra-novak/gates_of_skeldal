@@ -153,7 +153,7 @@ static EVENT_PROC(mob_reload)
      if (counter++==10)
         {
         TMOB *m;
-        long vl;
+        int32_t vl;
 
         static int last;
         counter=0;
@@ -344,7 +344,7 @@ static void mob_sound_event(TMOB *m,int event)
      play_sample_at_sector(m->cislo_vzoru+16*6+event+monster_block,viewsector,m->sector,0,0);
   }
 
-void load_enemies(short *data,int size,int *grptr,TMOB *template,long tsize)
+void load_enemies(short *data,int size,int *grptr,TMOB *template,int32_t tsize)
   {
   int i;
   short cisla[256];

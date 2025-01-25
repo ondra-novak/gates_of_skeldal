@@ -175,8 +175,8 @@ void ikona_click(EVENT_MSG *msg,OBJREC *o)
 
 void ikona(OBJREC *o)
   {
-  o->runs[1]=ikona_display;
-  o->runs[2]=ikona_click;
+  o->call_draw=ikona_display;
+  o->call_event=ikona_click;
   o->datasize=4;
   }
 
