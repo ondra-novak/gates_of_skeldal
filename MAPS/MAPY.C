@@ -34,37 +34,37 @@ static char nocenter=0;
 #define MODRA RGB555(0,0,31)
 
 char _actions []=
-  "<ë†dn†>\0"
-  "Otev©i dve©e\0"
-  "Zav©i dve©e\0"
-  "Otev©i nebo zav©i\0"
-  "Spusü animaci prim\0"
-  "Ukaë prim. stànu\0"
-  "Schovej prim.stànu\0"
-  "Uk/schov.pri.stànu\0"
-  "Spusü animaci sek.\0"
-  "Ukaë sek. stànu\0"
-  "Schovej sek. stànu\0"
-  "Uk/schov.sek.stànu\0"
+  "<ÔøΩÔøΩdnÔøΩ>\0"
+  "OtevÔøΩi dveÔøΩe\0"
+  "ZavÔøΩi dveÔøΩe\0"
+  "OtevÔøΩi nebo zavÔøΩi\0"
+  "SpusÔøΩ animaci prim\0"
+  "UkaÔøΩ prim. stÔøΩnu\0"
+  "Schovej prim.stÔøΩnu\0"
+  "Uk/schov.pri.stÔøΩnu\0"
+  "SpusÔøΩ animaci sek.\0"
+  "UkaÔøΩ sek. stÔøΩnu\0"
+  "Schovej sek. stÔøΩnu\0"
+  "Uk/schov.sek.stÔøΩnu\0"
   "Schovej prim.&sek.\0"
   "Zobraz text\0"
-  "Kod.z†mek (starò-Nepouë°vat!)\0"
-  "Otev©i teleport\0"
-  "Uzav©i teleport\0"
-  "Kodovò z†mek (log)\0"
+  "Kod.zÔøΩmek (starÔøΩ-NepouÔøΩÔøΩvat!)\0"
+  "OtevÔøΩi teleport\0"
+  "UzavÔøΩi teleport\0"
+  "KodovÔøΩ zÔøΩmek (log)\0"
   "Konec hry\0"
   "\\\0";
 
 char chka[]={0,1,1,1,1,1,1,1,1,1,1,1,0};
-char _steny2 []="Severn°\0Vòchodn°\0Jiën°\0Z†padn°\0\\\0";
-char _zivly []="Ohe§\0Voda\0Zemà\0Vzduch\0Mysl\0\\\0";
+char _steny2 []="SevernÔøΩ\0VÔøΩchodnÔøΩ\0JiÔøΩnÔøΩ\0ZÔøΩpadnÔøΩ\0\\\0";
+char _zivly []="OheÔøΩ\0Voda\0ZemÔøΩ\0Vzduch\0Mysl\0\\\0";
 
 char _sector_types[]=
-  "!Volnò!\0""Normaln°\0""Schody\0""LoÉka na vodà\0""L†va\0"
-  "Smàr sever\0""Smàr vòchod\0""Smàr jih\0""Smàr z†pad\0""Voda\0""Sloup\0""Dira\0""Teleport\0"
-  "Tlaá°tko(norm)\0""Tlaá°tko(zmaák)\0"
-  "FlÇtna (Sever)\0""FlÇtna (Vòchod)\0""FlÇtna (Jih)\0""FlÇtna (Z†pad)\0"
-  "Opu®tàn° mapy\0""V°r\0""Sloup&Smrt\0""Ub°ra ëivoty\0"
+  "!VolnÔøΩ!\0""NormalnÔøΩ\0""Schody\0""LoÔøΩka na vodÔøΩ\0""LÔøΩva\0"
+  "SmÔøΩr sever\0""SmÔøΩr vÔøΩchod\0""SmÔøΩr jih\0""SmÔøΩr zÔøΩpad\0""Voda\0""Sloup\0""Dira\0""Teleport\0"
+  "TlaÔøΩÔøΩtko(norm)\0""TlaÔøΩÔøΩtko(zmaÔøΩk)\0"
+  "FlÔøΩtna (Sever)\0""FlÔøΩtna (VÔøΩchod)\0""FlÔøΩtna (Jih)\0""FlÔøΩtna (ZÔøΩpad)\0"
+  "OpuÔøΩtÔøΩnÔøΩ mapy\0""VÔøΩr\0""Sloup&Smrt\0""UbÔøΩra ÔøΩivoty\0"
   "\\\0";
 
 char _type_multi_actions[]=
@@ -80,82 +80,82 @@ char _type_multi_actions[]=
   "\\\0";
 
 char _typy_zbrani[]=
-  "Meá (tàëk† ostr† rovn†)\0"
-  "Sekera (tàëk† ostr† ost.)\0"
-  "Kladivo (tup†)\0"
-  "Hñl\0"
-  "Dòka (Lehk† ostr†)\0"
-  "õ°p (st©eln†)\0"
-  "Ostatn° / Spec\0"
+  "MeÔøΩ (tÔøΩÔøΩkÔøΩ ostrÔøΩ rovnÔøΩ)\0"
+  "Sekera (tÔøΩÔøΩkÔøΩ ostrÔøΩ ost.)\0"
+  "Kladivo (tupÔøΩ)\0"
+  "HÔøΩl\0"
+  "DÔøΩka (LehkÔøΩ ostrÔøΩ)\0"
+  "ÔøΩÔøΩp (stÔøΩelnÔøΩ)\0"
+  "OstatnÔøΩ / Spec\0"
   "\\\0";
 
 char _typy_veci[]=
-  "Nespecifikov†no\0"
-  "Zbra§ tv†©° v tv†©\0"
-  "Vrhac° zbra§\0"
-  "St©eln† zbra§\0"
+  "NespecifikovÔøΩno\0"
+  "ZbraÔøΩ tvÔøΩÔøΩÔøΩ v tvÔøΩÔøΩ\0"
+  "VrhacÔøΩ zbraÔøΩ\0"
+  "StÔøΩelnÔøΩ zbraÔøΩ\0"
   "Zbroj\0"
-  "Svitek / Hñlka\0"
+  "Svitek / HÔøΩlka\0"
   "Lektvar\0"
   "Voda\0"
-  "J°dlo\0"
-  "Speci†ln°\0"
+  "JÔøΩdlo\0"
+  "SpeciÔøΩlnÔøΩ\0"
   "Runa\0"
-  "Pen°ze\0"
+  "PenÔøΩze\0"
   "Svitek s textem\0"
   "Prach\0"
-  "Ostatn°\0"
+  "OstatnÔøΩ\0"
   "\\\0";
 
 char _umisteni_veci[]=
   "Nikam\0"
   "Zavazadlo\0"
-  "Na tàlo (naho©e)\0"
-  "Na tàlo (dole)\0"
+  "Na tÔøΩlo (nahoÔøΩe)\0"
+  "Na tÔøΩlo (dole)\0"
   "Na hlavu\0"
   "Na nohy\0"
-  "Kutna (na tàlo/naho©e/dole/helma)\0"
+  "Kutna (na tÔøΩlo/nahoÔøΩe/dole/helma)\0"
   "Na krk\0"
   "Do ruky\0"
-  "Obouruá\0"
+  "ObouruÔøΩ\0"
   "Prsten\0"
-  "õ°p\0"
+  "ÔøΩÔøΩp\0"
   "\\0";
 
 char _side_flgs[]=
   "Automap\0"
-  "Neprñchoz°(hr†c)\0"
-  "Neprñchoz°(nestvñra)\0"
-  "Neprñchoz°(vàc)\0"
-  "Neprñchoz°(zvuk)\0"
+  "NeprÔøΩchozÔøΩ(hrÔøΩc)\0"
+  "NeprÔøΩchozÔøΩ(nestvÔøΩra)\0"
+  "NeprÔøΩchozÔøΩ(vÔøΩc)\0"
+  "NeprÔøΩchozÔøΩ(zvuk)\0"
   "Poplach\0"
-  "Prñchoz° akce\0"
-  "Prñchledn† stàna\0"
+  "PrÔøΩchozÔøΩ akce\0"
+  "PrÔøΩchlednÔøΩ stÔøΩna\0"
   "Prim:Animace\0"
-  "Prim:Viditeln†\0"
-  "Prim:Tam a zpàt\0"
-  "Prim:Smàr\0"
+  "Prim:ViditelnÔøΩ\0"
+  "Prim:Tam a zpÔøΩt\0"
+  "Prim:SmÔøΩr\0"
   "Sek:Animace\0"
-  "Sek:Viditeln†\0"
-  "Sek:Tam a zpàt\0"
-  "Sek:Smàr\0"
-  "Levò oblouk\0"
-  "Pravò oblouk\0"
-  "Dva druhy stàn\0"
+  "Sek:ViditelnÔøΩ\0"
+  "Sek:Tam a zpÔøΩt\0"
+  "Sek:SmÔøΩr\0"
+  "LevÔøΩ oblouk\0"
+  "PravÔøΩ oblouk\0"
+  "Dva druhy stÔøΩn\0"
   "Spec. mapovat\0"
-  "Kop°ruj p©°choz° ud†lost\0"
-  "Po®li jinou ud†lost\0"
-  "Aplikuj i z druhÇ strany\0"
-  "Autoanimace p©ep°naáñ\0"
-  "Zmàna automapingu\0"
-  "Zmàna prñchodnosti(hr†á)\0"
-  "Zmàna prñchodnosti(nestvñra)\0"
-  "Zmàna prñchodnosti(vàc)\0"
-  "Zmàna prñchodnosti(zvuk)\0"
-  "Tajn† stàna\0"
+  "KopÔøΩruj pÔøΩÔøΩchozÔøΩ udÔøΩlost\0"
+  "PoÔøΩli jinou udÔøΩlost\0"
+  "Aplikuj i z druhÔøΩ strany\0"
+  "Autoanimace pÔøΩepÔøΩnaÔøΩÔøΩ\0"
+  "ZmÔøΩna automapingu\0"
+  "ZmÔøΩna prÔøΩchodnosti(hrÔøΩÔøΩ)\0"
+  "ZmÔøΩna prÔøΩchodnosti(nestvÔøΩra)\0"
+  "ZmÔøΩna prÔøΩchodnosti(vÔøΩc)\0"
+  "ZmÔøΩna prÔøΩchodnosti(zvuk)\0"
+  "TajnÔøΩ stÔøΩna\0"
   "TRUESEE (iluze)\0"
-  "Neviditeln† na mapà\0"
-  "Potvora je ve h©e\0"
+  "NeviditelnÔøΩ na mapÔøΩ\0"
+  "Potvora je ve hÔøΩe\0"
   "Potvora je v oblasti\0"
   "\\\0";
 
@@ -918,9 +918,9 @@ void create_map_win(int xp,...)
 
      autocenter_map();
      cl[0]=0;cl[1]=0x610;
-     map_win=def_window(500,451,"Kreslen° mapy");
+     map_win=def_window(500,451,"KreslenÔøΩ mapy");
      waktual->x=7;waktual->y=2;
-     on_change(close_with_tool);
+     on_control_change(close_with_tool);
      define(10,2,20,473,408,0,workspace);
      property(def_border(1,0),NULL,NULL,WINCOLOR);
      o_end->autoresizex=1;o_end->autoresizey=1;
@@ -928,23 +928,23 @@ void create_map_win(int xp,...)
      waktual->minsizx=140;
      waktual->minsizy=90;
      define(20,3,42,17,365,1,scroll_bar_v,-100,100,(59*8)/M_ZOOM,SCROLLBARCOL);
-     property(ctl,NULL,NULL,WINCOLOR);c_default(ymap_offs);on_change(scroll_workspace);
+     property(ctl,NULL,NULL,WINCOLOR);c_default(ymap_offs);on_control_change(scroll_workspace);
      o_end->autoresizey=1;
      define(21,1,20,21,17,1,scroll_button,-2,-100,"\x1e");
-     property(NULL,icones,&cl,WINCOLOR);on_change(scroll_support);
+     property(NULL,icones,&cl,WINCOLOR);on_control_change(scroll_support);
      define(22,1,22,21,17,2,scroll_button,2,100,"\x1f");
-     property(NULL,icones,&cl,WINCOLOR);on_change(scroll_support);
+     property(NULL,icones,&cl,WINCOLOR);on_control_change(scroll_support);
      define(30,26,3,352,15,3,scroll_bar_h,-100,100,(59*8)/M_ZOOM,SCROLLBARCOL);
-     property(ctl,NULL,NULL,WINCOLOR);c_default(xmap_offs);on_change(scroll_workspace);
+     property(ctl,NULL,NULL,WINCOLOR);c_default(xmap_offs);on_control_change(scroll_workspace);
      o_end->autoresizex=1;
      define(31,96,1,21,19,2,scroll_button,2,100,"\x1c");
-     property(NULL,icones,&cl,WINCOLOR);on_change(scroll_support);
+     property(NULL,icones,&cl,WINCOLOR);on_control_change(scroll_support);
      define(32,1,1,21,19,3,scroll_button,-2,-100,"\x1d");
-     property(NULL,icones,&cl,WINCOLOR);on_change(scroll_support);
+     property(NULL,icones,&cl,WINCOLOR);on_control_change(scroll_support);
      define(40,60,1,30,19,2,button,"/");property(NULL,icones,&cl,WINCOLOR);
-     on_enter(layer_show);on_exit(layer_hide);on_change(layer_plus);
+     on_control_enter(layer_show);on_control_exit(layer_hide);on_control_change(layer_plus);
      define(50,28,1,30,19,2,button,"\\");property(NULL,icones,&cl,WINCOLOR);
-     on_enter(layer_show);on_exit(layer_hide);on_change(layer_minus);
+     on_control_enter(layer_show);on_control_exit(layer_hide);on_control_change(layer_minus);
      define(60,1,1,19,19,2,resizer);
      xpp=&xp;
      xpp++;
@@ -961,13 +961,13 @@ void create_map_win(int xp,...)
      tool_bar=def_window(90,90,"Tools");
      waktual->x=SCR_WIDTH_X-1-94;waktual->y=desktop_y_size-90-3;
      define(20,1,55,40,34,0,toggle_button,"\xC");property(NULL,icones,&icone_color,WINCOLOR);
-      on_change(tool_select);c_default(tool_sel==20);
+      on_control_change(tool_select);c_default(tool_sel==20);
      define(30,42,20,40,34,0,toggle_button,"\xD");property(NULL,icones,&icone_color,WINCOLOR);
-      on_change(tool_select);c_default(tool_sel==30);
+      on_control_change(tool_select);c_default(tool_sel==30);
      define(40,42,55,40,34,0,toggle_button,"\xE");property(NULL,icones,&icone_color,WINCOLOR);
-      on_change(tool_select);c_default(tool_sel==40);
+      on_control_change(tool_select);c_default(tool_sel==40);
      define(10,1,20,40,34,0,toggle_button,"\xB");property(NULL,icones,&icone_color,WINCOLOR);
-      on_change(tool_select);c_default(tool_sel==10);
+      on_control_change(tool_select);c_default(tool_sel==10);
      }
 if (tool_sel==10)open_draw_win();
 if (tool_sel==40)open_wiz_tool();

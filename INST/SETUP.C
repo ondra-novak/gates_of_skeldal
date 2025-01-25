@@ -169,10 +169,10 @@ static void cpy_error_proc(int event,char *name)
 
   switch(event)
      {
-     case CPERR_OPEN:hlaska="Nemohu otev©¡t soubor :";break;
-     case CPERR_READ:hlaska="Nastala chyba p©i ‡ten¡ z CD. Vyjmˆte CD, o‡istˆte jej a opˆt ho vlo‘te do mechaniky";break;
-     case CPERR_WRITE:hlaska="Nastala chyba p©i zapisu na disk. Mo‘n  u‘ je pln˜. Soubor:";break;
-     default:hlaska="Nastala nezn ma chyba. ";
+     case CPERR_OPEN:hlaska="Nemohu otevï¿½ï¿½t soubor :";break;
+     case CPERR_READ:hlaska="Nastala chyba pï¿½i ï¿½tenï¿½ z CD. Vyjmï¿½te CD, oï¿½istï¿½te jej a opï¿½t ho vloï¿½te do mechaniky";break;
+     case CPERR_WRITE:hlaska="Nastala chyba pï¿½i zapisu na disk. Moï¿½nï¿½ uï¿½ je plnï¿½. Soubor:";break;
+     default:hlaska="Nastala neznï¿½ma chyba. ";
      }
   text=alloca(strlen(hlaska)+strlen(name)+10);
   strcpy(text,hlaska);
@@ -187,7 +187,7 @@ static void cpy_error_proc(int event,char *name)
 
 static void stop_copy()
   {
-  if (msg_box("Konec instalace?",'\x2',"Hra je¨tˆ nen¡ kompletnˆ nainstalov na. Opravdu chce¨ ukon‡it instal tora?","Ano","Ne",NULL)==1)
+  if (msg_box("Konec instalace?",'\x2',"Hra jeï¿½tï¿½ nenï¿½ kompletnï¿½ nainstalovï¿½na. Opravdu chceï¿½ ukonï¿½it instalï¿½tora?","Ano","Ne",NULL)==1)
      {
      close_ini();
      shutdown();
@@ -197,7 +197,7 @@ static void stop_copy()
 
 static void stop_setup()
   {
-  if (msg_box("Konec?",'\x2',"Tato volba ukon‡¡ SETUP bez ulo‘en¡ zmˆn. Opravdu chce¨ ukon‡it program?","Ano","Ne",NULL)==1)
+  if (msg_box("Konec?",'\x2',"Tato volba ukonï¿½ï¿½ SETUP bez uloï¿½enï¿½ zmï¿½n. Opravdu chceï¿½ ukonï¿½it program?","Ano","Ne",NULL)==1)
      {
      shutdown();
      home_path(target_path);
@@ -208,10 +208,10 @@ static void stop_setup()
 
 static void display_progress(void)
   {
-  def_dialoge(312,380,310,75,"Kop¡ruj¡ se soubory...",3);
+  def_dialoge(312,380,310,75,"Kopï¿½rujï¿½ se soubory...",3);
   define(10,10,27,290,15,0,done_bar,100);
   property(bbutt,NULL,flat_color(0x1e0),WINCOLOR);
-  define(30,5,5,80,15,2,button,"P©eru¨it");on_change(stop_copy);
+  define(30,5,5,80,15,2,button,"Pï¿½eruï¿½it");on_control_change(stop_copy);
    property(def_border(1,0),&font6x9,flat_color(0),BUTTONCOLOR);
   define(20,5,10,200,12,3,input_line,2048);set_default("");
    property(NULL,&font6x9,flat_color(0),WINCOLOR);
@@ -303,9 +303,9 @@ static void open_handbook(char *file)
   if (find_window(win_handbook)!=NULL) close_window(find_window(win_handbook));
   if (handbook!=NULL) release_list(handbook);
   handbook=read_text(file);
-  win_handbook=def_dialoge(54,54,450,350,"P©¡ru‡ka",2);
+  win_handbook=def_dialoge(54,54,450,350,"Pï¿½ï¿½ruï¿½ka",2);
   def_listbox(9,5,25,420,290,handbook,0,WINCOLOR);property(def_border(0,WINCOLOR),&font6x9,NULL,WINCOLOR);
-  define(20,5,5,60,15,2,button2,"Zav©¡t");property(bbutt,&font6x9,NULL,BUTTONCOLOR);on_change(close_current);
+  define(20,5,5,60,15,2,button2,"Zavï¿½ï¿½t");property(bbutt,&font6x9,NULL,BUTTONCOLOR);on_control_change(close_current);
   redraw_window();
   }
 
@@ -341,7 +341,7 @@ static void read_dirlist()
      else
      if (dirlist[i]!=NULL && !strcmp(dirlist[i],".."))
         {
-        str_insline(&dirlist,0,"<- zpˆt");
+        str_insline(&dirlist,0,"<- zpï¿½t");
         str_replace(&dirlist,i,NULL);
         i++;
         }
@@ -390,7 +390,7 @@ static void select_dir()
   {
   int i=f_get_value(0,59);
   if (dirlist[i]==NULL) return;
-  if (!strcmp(dirlist[i],"<- zpˆt")) chdir("..");else chdir(dirlist[i]);
+  if (!strcmp(dirlist[i],"<- zpï¿½t")) chdir("..");else chdir(dirlist[i]);
   update_list();
   }
 
@@ -403,7 +403,7 @@ static get_script(char *source,char *target)
   if (i)
      {
      shutdown();
-     if (i==1) puts("Nemohu na‡¡st INSTALL.INF");
+     if (i==1) puts("Nemohu naï¿½ï¿½st INSTALL.INF");
      if (i==2) puts("Chyba kompilace scriptu INSTALL.INF");
      abort();
      }
@@ -435,20 +435,20 @@ static load_window()
   read_dirlist();
   read_disk_list();
   def_dialoge(200,100,340,300,PRG_HEADER,3);
-  define(-1,5,20,1,1,0,label,"Jm‚no slo‘ky");
+  define(-1,5,20,1,1,0,label,"Jmï¿½no sloï¿½ky");
   define(10,5,35,330,10,0,input_line,2048);property(def_border(5,WINCOLOR),&font6x9,NULL,0x7fff);
   set_full_target_path(0);
   for(i=0;i<str_count(disklist);i++) if (target_path[0]==disklist[i][2]) break;
   default_font=&font6x9;
-  define(150,70,5,60,20,2,button,"Ok");on_change(terminate);property(bbutt,&font6x9,NULL,BUTTONCOLOR);
-  define(160,5,5,60,20,2,button,"Storno");on_change(terminate);property(bbutt,&font6x9,NULL,BUTTONCOLOR);
+  define(150,70,5,60,20,2,button,"Ok");on_control_change(terminate_gui);property(bbutt,&font6x9,NULL,BUTTONCOLOR);
+  define(160,5,5,60,20,2,button,"Storno");on_control_change(terminate_gui);property(bbutt,&font6x9,NULL,BUTTONCOLOR);
   default_font=vga_font;
-  def_listbox(59,70,60,100,200,dirlist,0,0x03ff);c_default(0);on_change(select_dir);
-  def_listbox(69,5,60,40,200,disklist,0,0x03ff);on_change(change_disk);
+  def_listbox(59,70,60,100,200,dirlist,0,0x03ff);c_default(0);on_control_change(select_dir);
+  def_listbox(69,5,60,40,200,disklist,0,0x03ff);on_control_change(change_disk);
   c_default(i);
   default_font=&font6x9;
   define(-1,215,135,110,80,0,win_label,"");property(def_border(5,0x631f),NULL,NULL,0x631f);
-  define(-1,220,140,1,1,0,label,"Voln‚ na HD:");
+  define(-1,220,140,1,1,0,label,"Volnï¿½ na HD:");
   define(100,240,150,80,10,0,view_line,20);set_default("");property(NULL,&font6x9,NULL,0x631f);
   default_font=vga_font;
   redraw_window();
@@ -469,13 +469,13 @@ static void autodetect()
 
   default_font=&font6x9;
   def_dialoge(12,12,324,140,"Autodetekce",2);
-  define(-1,5,22,1,1,0,label,"Grafick  karta:");
+  define(-1,5,22,1,1,0,label,"Grafickï¿½ karta:");
   define(-1,5,34,1,1,0,label,"Typ SVGA:");
-  define(-1,5,46,1,1,0,label,"Rozli¨en¡:");
-  define(-1,5,62,1,1,0,label,"Zvukov  karta:");
+  define(-1,5,46,1,1,0,label,"Rozliï¿½enï¿½:");
+  define(-1,5,62,1,1,0,label,"Zvukovï¿½ karta:");
   define(-1,5,74,1,1,0,label,"Parametry:");
   define(-1,5,90,1,1,0,label,"CD-ROM:");
-  define(-1,5,110,1,1,0,label,"My¨:");
+  define(-1,5,110,1,1,0,label,"Myï¿½:");
   define(10,5,22,120,10,1,view_line,256);set_default("");
   define(20,5,34,160,10,1,view_line,256);set_default("");
   define(30,5,46,150,10,1,view_line,256);set_default("");
@@ -488,8 +488,8 @@ static void autodetect()
   do_events();
   if (getsvgainfo(&si))
      {
-     set_value(0,10,"<nen¡>");
-     set_value(0,20,"<nen¡>");
+     set_value(0,10,"<nenï¿½>");
+     set_value(0,20,"<nenï¿½>");
      }
   else
      {
@@ -521,7 +521,7 @@ static EVENT_PROC(esc_mode2)
         zobraz_mysku();
         redraw_desktop();
         goto_control(0);
-        terminate();
+        terminate_gui();
         }
      }
   }
@@ -531,9 +531,9 @@ static char test_mode()
   char i,j,c;
 
   if (msg_box("Test grafiky",'\x1',
-        "Instal tor nyn¡ vyzkou¨¡ zvolen˜ grafick˜ re‘im. "
-        "Pokud obrazovka z–stane ‡ern , nebo zobraz¡ nesmysly, stisknˆte "
-        "ESC a instal tor obnov¡ p–vodn¡ re‘im.","Start","Zru¨it",NULL)==2) return 0;
+        "Instalï¿½tor nynï¿½ vyzkouï¿½ï¿½ zvolenï¿½ grafickï¿½ reï¿½im. "
+        "Pokud obrazovka zï¿½stane ï¿½ernï¿½, nebo zobrazï¿½ nesmysly, stisknï¿½te "
+        "ESC a instalï¿½tor obnovï¿½ pï¿½vodnï¿½ reï¿½im.","Start","Zruï¿½it",NULL)==2) return 0;
   send_message(E_ADD,E_KEYBOARD,esc_mode2);
   donegr();
   i=initgr_spec(f_get_value(0,9));
@@ -542,7 +542,7 @@ static char test_mode()
      zobraz_mysku();
      redraw_desktop();
      }
-  if (!i && (j=msg_box("Test grafiky",'\x2',"Vidi¨ prost©ed¡ instal toru spr vnˆ?","Ano","Ne",NULL))==1)
+  if (!i && (j=msg_box("Test grafiky",'\x2',"Vidiï¿½ prostï¿½edï¿½ instalï¿½toru sprï¿½vnï¿½?","Ano","Ne",NULL))==1)
      {
      vmode=f_get_value(0,9);
      if (vmode==0) initgr_low();
@@ -583,7 +583,7 @@ static void select_vga()
   def_dialoge(20,300,156,156,"Kvalita grafiky",2);
   define(9,0,20,156,80,0,listbox,video_ls,0x03ff,0);c_default(vmode);
     property(NULL,vga_font,NULL,WINCOLOR);
-  define(20,38,5,80,20,3,button,"Zmˆnit teƒ");on_change(test_mode);
+  define(20,38,5,80,20,3,button,"Zmï¿½nit teï¿½");on_control_change(test_mode);
     property(bbutt,NULL,NULL,BUTTONCOLOR);
   redraw_window();
   }
@@ -611,19 +611,19 @@ static void select_mode_win()
   {
   def_dialoge(224,270,192,156,"Instalovat",2);
   default_font=&font6x9;
-  define(10,30,40,132,30,0,button,"Automaticky");property(bbutt,NULL,NULL,BUTTONCOLOR);on_change(terminate);
-  define(30,30,80,132,30,0,button,"Podle p© n¡");property(bbutt,NULL,NULL,BUTTONCOLOR);on_change(terminate);
-  define(40,50,15,92,20,3,button,"Konec");property(bbutt,NULL,NULL,BUTTONCOLOR);on_change(stop_copy);
+  define(10,30,40,132,30,0,button,"Automaticky");property(bbutt,NULL,NULL,BUTTONCOLOR);on_control_change(terminate_gui);
+  define(30,30,80,132,30,0,button,"Podle pï¿½ï¿½nï¿½");property(bbutt,NULL,NULL,BUTTONCOLOR);on_control_change(terminate_gui);
+  define(40,50,15,92,20,3,button,"Konec");property(bbutt,NULL,NULL,BUTTONCOLOR);on_control_change(stop_copy);
   redraw_window();
   }
 
 static void select_mode_win_setup()
   {
-  def_dialoge(224,270,192,156,"Mo‘nosti:",2);
+  def_dialoge(224,270,192,156,"Moï¿½nosti:",2);
   default_font=&font6x9;
-  define(10,30,40,132,30,0,button,"Nastaven¡");property(bbutt,NULL,NULL,BUTTONCOLOR);on_change(terminate);
-  define(30,30,80,132,30,0,button,"Odinstalov n¡");property(bbutt,NULL,NULL,BUTTONCOLOR);on_change(terminate);
-  define(40,50,15,92,20,3,button,"Konec");property(bbutt,NULL,NULL,BUTTONCOLOR);on_change(stop_setup);
+  define(10,30,40,132,30,0,button,"Nastavenï¿½");property(bbutt,NULL,NULL,BUTTONCOLOR);on_control_change(terminate_gui);
+  define(30,30,80,132,30,0,button,"Odinstalovï¿½nï¿½");property(bbutt,NULL,NULL,BUTTONCOLOR);on_control_change(terminate_gui);
+  define(40,50,15,92,20,3,button,"Konec");property(bbutt,NULL,NULL,BUTTONCOLOR);on_control_change(stop_setup);
   redraw_window();
   }
 
@@ -657,7 +657,7 @@ static void device_select2()
      char c;
      def_dialoge(270,240,100,100,device_name(i),3);
      define(10,10,25,60,40,0,radio_butts,3,"LPT 1","LPT 2","PC Speaker");c_default(0);
-     define(20,10,5,80,20,2,button,"Ok");property(bbutt,&font6x9,NULL,BUTTONCOLOR);on_change(terminate);
+     define(20,10,5,80,20,2,button,"Ok");property(bbutt,&font6x9,NULL,BUTTONCOLOR);on_control_change(terminate_gui);
      redraw_window();
      escape();
      c=f_get_value(0,10);
@@ -674,7 +674,7 @@ static void device_select2()
 static void select_sound();
 static void detect_sound()
   {
-  if (msg_box("Rozpozn n¡ zvukov‚ karty",'\x2',"Opravdu chce¨ nechat rozpoznat zvukovou kartu? Na nˆkter˜ch po‡¡ta‡¡ch m–‘e automatick‚ rozpozn v n¡ zp–sobit zatuhnut¡ po‡¡ta‡e.","Ano","Ne",NULL)==2) return;
+  if (msg_box("Rozpoznï¿½nï¿½ zvukovï¿½ karty",'\x2',"Opravdu chceï¿½ nechat rozpoznat zvukovou kartu? Na nï¿½kterï¿½ch poï¿½ï¿½taï¿½ï¿½ch mï¿½ï¿½e automatickï¿½ rozpoznï¿½vï¿½nï¿½ zpï¿½sobit zatuhnutï¿½ poï¿½ï¿½taï¿½e.","Ano","Ne",NULL)==2) return;
   if (mixer_running) stop_mixing();
   mixer_running=0;
   set_enable(0,70,mixer_running);
@@ -695,15 +695,15 @@ static char sound_scan()
   if (sound_info.device!=DEV_NOSOUND)
      {
      if (sound_info.device==DEV_DAC)
-        if (msg_box("Varov n¡!",'\x1',"Vybran‚ zvukov‚ za©¡zen¡ pou‘¡v  nestandardn¡ p©¡stupy a vyu‘¡v  "
-        "nˆkter˜ch skryt˜ch trik– syst‚mu. Na nˆkter˜ch po‡¡ta‡¡ch nemus¡ pracovat spr vnˆ. "
-        "Toto za©¡zen¡ nedok ‘e pracovat pod WINDOWS95 nebo jin˜m OS v˜jma DOSu. "
-        "Pro zrychlen¡ pr ce odinstalujte ze syst‚mu jak˜koliv EMM manager (EMM386, QEMM, apod.) "
-        "Chcete pokra‡ovat?","Ano","Ne",NULL)==2) return 1;
+        if (msg_box("Varovï¿½nï¿½!",'\x1',"Vybranï¿½ zvukovï¿½ zaï¿½ï¿½zenï¿½ pouï¿½ï¿½vï¿½ nestandardnï¿½ pï¿½ï¿½stupy a vyuï¿½ï¿½vï¿½ "
+        "nï¿½kterï¿½ch skrytï¿½ch trikï¿½ systï¿½mu. Na nï¿½kterï¿½ch poï¿½ï¿½taï¿½ï¿½ch nemusï¿½ pracovat sprï¿½vnï¿½. "
+        "Toto zaï¿½ï¿½zenï¿½ nedokï¿½ï¿½e pracovat pod WINDOWS95 nebo jinï¿½m OS vï¿½jma DOSu. "
+        "Pro zrychlenï¿½ prï¿½ce odinstalujte ze systï¿½mu jakï¿½koliv EMM manager (EMM386, QEMM, apod.) "
+        "Chcete pokraï¿½ovat?","Ano","Ne",NULL)==2) return 1;
      get_value(sound_win,20,buffer);
      if (sscanf(buffer,"%x",&sound_info.port)!=1)
         {
-        msg_box("Pozor!",'\x1',"Mus¡¨ vyplnit spr vnˆ Port","Ok",NULL);
+        msg_box("Pozor!",'\x1',"Musï¿½ï¿½ vyplnit sprï¿½vnï¿½ Port","Ok",NULL);
         return 1;
         }
      }
@@ -746,22 +746,22 @@ void select_sound()
   default_font=&font6x9;
   for(i=0;i<8;i++)  str_add(&ls,device_name(i));
   str_replace(&ls,0,"<bez zvuku>");
-  sound_win=def_dialoge(200,300,300,156,"Zvukov  karta",2);
-  define(9,2,20,170,85,0,listbox,ls,0x03ff,0);c_default(sound_info.device);on_change(device_select2);
+  sound_win=def_dialoge(200,300,300,156,"Zvukovï¿½ karta",2);
+  define(9,2,20,170,85,0,listbox,ls,0x03ff,0);c_default(sound_info.device);on_control_change(device_select2);
     property(def_border(0,0x4210),vga_font,NULL,WINCOLOR);
   define(-1,180,20,1,1,0,label,"Port:");
   define(20,10,20,30,12,1,input_line,3);property(def_border(0,0x4210),vga_font,NULL,WINCOLOR);
   set_default(itoa(sound_info.port,buff,16));
   define(-1,180,40,1,1,0,label,"DMA:");
   i=sound_info.dma;i-=(i>2)+(i>4);
-  define(30,40,40,30,30,1,radio_butts,3,"0","1","3");c_default(i);on_change(change_dma);
-  define(35,10,40,30,30,1,radio_butts,3,"5","6","7");c_default(i-3);on_change(change_dma);
+  define(30,40,40,30,30,1,radio_butts,3,"0","1","3");c_default(i);on_control_change(change_dma);
+  define(35,10,40,30,30,1,radio_butts,3,"5","6","7");c_default(i-3);on_control_change(change_dma);
   define(-1,180,80,1,1,0,label,"IRQ:");
   i=sound_info.irq;i-=2*(i>1)+(i>4)+(i>6);
   define(40,40,80,30,40,1,radio_butts,4,"2","3","5","7");c_default(i);
-  define(50,10,5,80,20,2,button,"Test");property(bbutt,&font6x9,NULL,BUTTONCOLOR);on_change(test_sound);
-  define(60,100,5,80,20,2,button,"Rozpoznat");property(bbutt,&font6x9,NULL,BUTTONCOLOR);on_change(detect_sound);
-  define(70,190,5,80,20,2,button,"Stop");property(bbutt,&font6x9,NULL,BUTTONCOLOR);on_change(stop_sound);
+  define(50,10,5,80,20,2,button,"Test");property(bbutt,&font6x9,NULL,BUTTONCOLOR);on_control_change(test_sound);
+  define(60,100,5,80,20,2,button,"Rozpoznat");property(bbutt,&font6x9,NULL,BUTTONCOLOR);on_control_change(detect_sound);
+  define(70,190,5,80,20,2,button,"Stop");property(bbutt,&font6x9,NULL,BUTTONCOLOR);on_control_change(stop_sound);
   redraw_window();
   set_enable(0,70,mixer_running);
   device_select();
@@ -773,7 +773,7 @@ static void back_start()
   stop_sound();
   sound_scan();
   while (waktual!=NULL) close_current();
-  terminate();
+  terminate_gui();
   }
 
 static void control_window(void *forward,void *back,void *help);
@@ -823,7 +823,7 @@ void static show_space(char device)
   if (device>='A' && device<='Z')
      {
      if (device!=lastdevice) lastvalue=get_disk_free(device-'@')/1024;
-     sprintf(buff,"Na disku %c: je voln˜ch %d Kb",device,lastvalue);
+     sprintf(buff,"Na disku %c: je volnï¿½ch %d Kb",device,lastvalue);
      lastdevice=device;
      set_value(0,80,buff);
      }
@@ -932,7 +932,7 @@ static void start_install()
   strupr(target_path);
   if (validate_path(target_path)==0)
      {
-     msg_box("Cesta je ¨patnˆ",'\x1',"Cesta s c¡lov˜m adres ©em je chybnˆ zad na. Nepou‘¡vejte dlouh‚ n zvy z WINDOWS 95!","OK",NULL);
+     msg_box("Cesta je ï¿½patnï¿½",'\x1',"Cesta s cï¿½lovï¿½m adresï¿½ï¿½em je chybnï¿½ zadï¿½na. Nepouï¿½ï¿½vejte dlouhï¿½ nï¿½zvy z WINDOWS 95!","OK",NULL);
      return;
      }
   get_script(_SOURCE_,target_path);
@@ -946,21 +946,21 @@ static void start_install()
   diskfree=get_disk_free(target_path[0]-'@');
   if (maxcopy>diskfree)
      {
-     if (msg_box("Nedostatek m¡sta!",'\x1',"Instal tor vypo‡¡tal, ‘e BS zaberou v¡ce m¡sta ne‘ m te na sv‚m disku. "
-                "Pokud v¨ak pou‘¡vate komprima‡n¡ program jako je t©eba DRVSPACE, pak mohou b˜t £daje o "
-                "voln‚m m¡stu nep©esne. I p©es to, ‘e nen¡ voln‚ m¡sto chcete pokra‡ovat?","Ano","Ne",NULL)==2) return;
+     if (msg_box("Nedostatek mï¿½sta!",'\x1',"Instalï¿½tor vypoï¿½ï¿½tal, ï¿½e BS zaberou vï¿½ce mï¿½sta neï¿½ mï¿½te na svï¿½m disku. "
+                "Pokud vï¿½ak pouï¿½ï¿½vate komprimaï¿½nï¿½ program jako je tï¿½eba DRVSPACE, pak mohou bï¿½t ï¿½daje o "
+                "volnï¿½m mï¿½stu nepï¿½esne. I pï¿½es to, ï¿½e nenï¿½ volnï¿½ mï¿½sto chcete pokraï¿½ovat?","Ano","Ne",NULL)==2) return;
      }
   else if (maxcopy+1024*1024>diskfree)
      {
-     if (msg_box("M lo m¡sta",'\x2',"Po nainstalov n¡ by mˆlo zb˜t alespo¤ 1MB pro bˆh. Sou‡asn˜ prostor"
-                 "umo‘¤uje hru nainstalovat, av¨ak hru nebude mo‘n‚ spustit. Pokra‡ovat?","Ano","Ne",NULL)==2) return;
+     if (msg_box("Mï¿½lo mï¿½sta",'\x2',"Po nainstalovï¿½nï¿½ by mï¿½lo zbï¿½t alespoï¿½ 1MB pro bï¿½h. Souï¿½asnï¿½ prostor"
+                 "umoï¿½ï¿½uje hru nainstalovat, avï¿½ak hru nebude moï¿½nï¿½ spustit. Pokraï¿½ovat?","Ano","Ne",NULL)==2) return;
      }
   maxcopy=maxcopy<<1;
   while (waktual!=NULL) close_current();
   cascade_mkdir(target_path);
   if (create_ini(target_path,SKELDAL_INI))
      {
-     msg_box(PRG_HEADER,'\x1',"Nemohu vytvo©it konfigura‡n¡ soubor. Zkontroluj spravnost z pisu cesty","Ok",NULL);
+     msg_box(PRG_HEADER,'\x1',"Nemohu vytvoï¿½it konfiguraï¿½nï¿½ soubor. Zkontroluj spravnost zï¿½pisu cesty","Ok",NULL);
      clean_up();
      return;
      }
@@ -981,7 +981,7 @@ static void start_install()
   if (error) shutdown(),exit(1);
   close_current();
   do_events();
-  if (!autostart) msg_box("Hotovo",' ',"Hra 'Br ny Skeldalu' je £spˆ¨nˆ nainstalov na. Spu¨tˆn¡ proveƒte z p©¡kazov‚ © dky naps n¡m 'SKELDAL'","Konec",NULL);
+  if (!autostart) msg_box("Hotovo",' ',"Hra 'Brï¿½ny Skeldalu' je ï¿½spï¿½ï¿½nï¿½ nainstalovï¿½na. Spuï¿½tï¿½nï¿½ proveï¿½te z pï¿½ï¿½kazovï¿½ ï¿½ï¿½dky napsï¿½nï¿½m 'SKELDAL'","Konec",NULL);
   purge_file_list();
   shutdown();
   home_path(target_path);
@@ -1028,26 +1028,26 @@ static void rozsah_window()
   exit_wait=0;
   default_font=&font6x9;
   def_dialoge(146,160,348,264,"Rozsah instalace",2);
-  define(10,10,30,70,30,0,button,"Minim ln¡");property(bbutt,&font6x9,NULL,BUTTONCOLOR);on_change(start_install);
-  define(-1,90,30,1,1,0,label,"Instaluje jen nejd–le‘itˆj¨¡ soubory na HD");
-  define(-1,90,40,1,1,0,label,"V¨e ostatn¡ se pak na‡¡t  p©¡mo z CD");
+  define(10,10,30,70,30,0,button,"Minimï¿½lnï¿½");property(bbutt,&font6x9,NULL,BUTTONCOLOR);on_control_change(start_install);
+  define(-1,90,30,1,1,0,label,"Instaluje jen nejdï¿½leï¿½itï¿½jï¿½ï¿½ soubory na HD");
+  define(-1,90,40,1,1,0,label,"Vï¿½e ostatnï¿½ se pak naï¿½ï¿½tï¿½ pï¿½ï¿½mo z CD");
   sprintf(buff,text,install_sizes[0]/1024);
   define(-1,90,50,1,1,0,label,buff);
-  define(20,10,80,70,30,0,button,"St©edn¡");property(bbutt,&font6x9,NULL,BUTTONCOLOR);on_change(start_install);
-  define(-1,90,80,1,1,0,label,"Instaluje v¨echny datov‚ soubory na HD");
-  define(-1,90,90,1,1,0,label,"Hudba a video se ‡tou p©¡mo z CD");
+  define(20,10,80,70,30,0,button,"Stï¿½ednï¿½");property(bbutt,&font6x9,NULL,BUTTONCOLOR);on_control_change(start_install);
+  define(-1,90,80,1,1,0,label,"Instaluje vï¿½echny datovï¿½ soubory na HD");
+  define(-1,90,90,1,1,0,label,"Hudba a video se ï¿½tou pï¿½ï¿½mo z CD");
   sprintf(buff,text,install_sizes[1]/1024);
   define(-1,90,100,1,1,0,label,buff);
-  define(30,10,130,70,30,0,button,"Maxim ln¡");property(bbutt,&font6x9,NULL,BUTTONCOLOR);on_change(start_install);
-  define(-1,90,130,1,1,0,label,"Instaluje v¨e na v ¨ HD v‡etnˆ hudby");
-  define(-1,90,140,1,1,0,label,"a videa. Z CD se nena‡¡t  v–bec nic.");
+  define(30,10,130,70,30,0,button,"Maximï¿½lnï¿½");property(bbutt,&font6x9,NULL,BUTTONCOLOR);on_control_change(start_install);
+  define(-1,90,130,1,1,0,label,"Instaluje vï¿½e na vï¿½ï¿½ HD vï¿½etnï¿½ hudby");
+  define(-1,90,140,1,1,0,label,"a videa. Z CD se nenaï¿½ï¿½tï¿½ vï¿½bec nic.");
   sprintf(buff,text,install_sizes[2]/1024);
   define(-1,90,150,1,1,0,label,buff);
-  define(40,10,180,70,20,0,button,"Slo‘ka");property(bbutt,&font6x9,NULL,BUTTONCOLOR);on_change(open_load_window);
+  define(40,10,180,70,20,0,button,"Sloï¿½ka");property(bbutt,&font6x9,NULL,BUTTONCOLOR);on_control_change(open_load_window);
   define(60,90,185,250,11,0,input_line,2048);property(def_border(1,0x4210),&font6x9,NULL,0x7fff);
      set_default(target_path);
      on_event(show_space_event);on_exit(show_space_exit);
-  define(70,40,220,200,10,0,check_box,"Po nainstalov n¡ hru automaticky spustit.");c_default(1);
+  define(70,40,220,200,10,0,check_box,"Po nainstalovï¿½nï¿½ hru automaticky spustit.");c_default(1);
   define(80,10,10,250,11,2,view_line,100);set_default("");
   show_space(target_path[0]);
   }
@@ -1055,17 +1055,17 @@ static void rozsah_window()
 static void automatic_window()
   {
   char buff[100];
-  char *text="Hra zabere zhruba %d KB m¡sta";
+  char *text="Hra zabere zhruba %d KB mï¿½sta";
 
   exit_wait=0;
   default_font=&font6x9;
   def_dialoge(110,200,420,80,"Instalovat kam?",2);
-  define(40,10,33,70,15,0,button,"Naj¡t");property(bbutt,&font6x9,NULL,BUTTONCOLOR);on_change(open_load_window);
+  define(40,10,33,70,15,0,button,"Najï¿½t");property(bbutt,&font6x9,NULL,BUTTONCOLOR);on_control_change(open_load_window);
   define(60,90,35,310,11,0,input_line,2048);property(def_border(1,0x4210),&font6x9,NULL,0x7fff);
      set_default(target_path);
      on_event(show_space_event);on_exit(show_space_exit);
-  define(10,10,10,70,20,2,button,"Start");property(bbutt,&font6x9,NULL,BUTTONCOLOR);on_change(start_install);
-  define(20,90,10,70,20,2,button,"<< Zpˆt");property(bbutt,&font6x9,NULL,BUTTONCOLOR);on_change(back_start);
+  define(10,10,10,70,20,2,button,"Start");property(bbutt,&font6x9,NULL,BUTTONCOLOR);on_control_change(start_install);
+  define(20,90,10,70,20,2,button,"<< Zpï¿½t");property(bbutt,&font6x9,NULL,BUTTONCOLOR);on_control_change(back_start);
   sprintf(buff,text,install_sizes[0]/1024);
   define(90,180,20,200,10,2,view_line,100);set_default(buff);
   define(80,180,10,200,10,2,view_line,100);set_default("");
@@ -1085,12 +1085,12 @@ static void control_next1()
 
 static void control_window(void *forward,void *back,void *help)
   {
-  def_dialoge(524,300,96,156,"Mo‘nosti",2);
-  define(10,8,30,80,20,0,button,"Dal¨¡ >>");property(bbutt,&font6x9,NULL,BUTTONCOLOR);on_change(forward);
-  define(20,8,60,80,20,0,button,"<< Zpˆt");property(bbutt,&font6x9,NULL,BUTTONCOLOR);on_change(back);
-  define(30,8,90,80,20,0,button,"? Pomoc");property(bbutt,&font6x9,NULL,BUTTONCOLOR);on_change(help);
+  def_dialoge(524,300,96,156,"Moï¿½nosti",2);
+  define(10,8,30,80,20,0,button,"Dalï¿½ï¿½ >>");property(bbutt,&font6x9,NULL,BUTTONCOLOR);on_control_change(forward);
+  define(20,8,60,80,20,0,button,"<< Zpï¿½t");property(bbutt,&font6x9,NULL,BUTTONCOLOR);on_control_change(back);
+  define(30,8,90,80,20,0,button,"? Pomoc");property(bbutt,&font6x9,NULL,BUTTONCOLOR);on_control_change(help);
   define(40,8,10,80,20,3,button,"Konec");property(bbutt,&font6x9,NULL,BUTTONCOLOR);
-   if (setup_mode) on_change(stop_setup);else on_change(stop_copy);
+   if (setup_mode) on_control_change(stop_setup);else on_control_change(stop_copy);
   set_enable(0,10,forward!=NULL);
   set_enable(0,20,back!=NULL);
   set_enable(0,30,help!=NULL);
@@ -1164,7 +1164,7 @@ static void save_ini()
   char err=1;
 
   if (sound_scan()) return;
-  d=msg_box("Potvrzen¡?",'\x2',"Chce¨ zapsat zmˆny do konfigura‡n¡ho souboru hry?","Ano","Ne","Zru¨it",NULL);
+  d=msg_box("Potvrzenï¿½?",'\x2',"Chceï¿½ zapsat zmï¿½ny do konfiguraï¿½nï¿½ho souboru hry?","Ano","Ne","Zruï¿½it",NULL);
   if (d==3) return;
   if (d==1)
      {
@@ -1193,12 +1193,12 @@ static void deinstall()
   char ig;
   int x,y;
   def_dialoge(200,200,250,156,"Odinstalovat?",2);
-  define(-1,10,30,200,100,0,label,"Tato volba odstran¡ hru z va¨eho disku.");
-  define(-1,10,40,200,100,0,label,"Pot‚ ji‘ nebude mo‘ne hru spustit");
-  define(-1,10,50,200,100,0,label,"do nov‚ho nainstalov n¡ z CD.");
-  define(10,30,80,150,10,0,check_box,"Zachovat ulo‘en‚ pozice");c_default(1);
-  define(20,10,10,80,30,3,button,"Ano");property(bbutt,&font6x9,NULL,BUTTONCOLOR);on_change(terminate);
-  define(30,10,10,80,30,2,button,"Proboha NE");property(bbutt,&font6x9,NULL,BUTTONCOLOR);on_change(terminate);
+  define(-1,10,30,200,100,0,label,"Tato volba odstranï¿½ hru z vaï¿½eho disku.");
+  define(-1,10,40,200,100,0,label,"Potï¿½ jiï¿½ nebude moï¿½ne hru spustit");
+  define(-1,10,50,200,100,0,label,"do novï¿½ho nainstalovï¿½nï¿½ z CD.");
+  define(10,30,80,150,10,0,check_box,"Zachovat uloï¿½enï¿½ pozice");c_default(1);
+  define(20,10,10,80,30,3,button,"Ano");property(bbutt,&font6x9,NULL,BUTTONCOLOR);on_control_change(terminate_gui);
+  define(30,10,10,80,30,2,button,"Proboha NE");property(bbutt,&font6x9,NULL,BUTTONCOLOR);on_control_change(terminate_gui);
   redraw_window();
   escape();
   if (o_aktual->id==30)
@@ -1266,12 +1266,12 @@ void warning()
   _outtext("(C)1998 Napoleon gameS - Setup version 1.0 written by Ondrej Novak\n"
        "Instalacni program ke hre Brany Skeldalu\n\nUpozorneni:\n");
   _settextcolor(15);
-  _outtext("Ú"); REPEAT(i,78) _outtext("Ä");_outtext("¿");
+  _outtext("ï¿½"); REPEAT(i,78) _outtext("ï¿½");_outtext("ï¿½");
   REPEAT(j,5)
      {
-     _outtext("³"); REPEAT(i,78)_outtext(" ");_outtext("³");
+     _outtext("ï¿½"); REPEAT(i,78)_outtext(" ");_outtext("ï¿½");
      }
-  _outtext("À"); REPEAT(i,78) _outtext("Ä");_outtext("Ù");
+  _outtext("ï¿½"); REPEAT(i,78) _outtext("ï¿½");_outtext("ï¿½");
   _settextcolor(13);
   _settextwindow(6,2,20,79);
   _outtext("Stiskem jakekoliv  klavesy spustite instalacni program. Pokud  potom obrazovka"
@@ -1296,9 +1296,9 @@ static void ask_video()
   ask_video_win=def_dialoge(242,100,156,156,"Vyber grafiku",3);
   define(9,0,20,156,80,0,listbox,video_ls,0x03ff,0);c_default(vmode);
     property(NULL,vga_font,NULL,WINCOLOR);
-  define(20,5,5,60,20,2,button,"Konec");on_change(terminate);
+  define(20,5,5,60,20,2,button,"Konec");on_control_change(terminate_gui);
     property(bbutt,NULL,NULL,BUTTONCOLOR);
-  define(20,70,5,60,20,2,button,"OK");on_change(test_mode_xxx);
+  define(20,70,5,60,20,2,button,"OK");on_control_change(test_mode_xxx);
     property(bbutt,NULL,NULL,BUTTONCOLOR);
   redraw_window();
   }
@@ -1316,7 +1316,7 @@ static EVENT_PROC(esc_mode)
         rescue_mode=1;
         redraw_desktop();
         vmode=0;
-        terminate();
+        terminate_gui();
         }
      }
   }
@@ -1327,10 +1327,10 @@ static void about_window()
   char r=!rescue_mode;
   if (r) send_message(E_ADD,E_KEYBOARD,esc_mode);
   def_dialoge(200,100,240,144,PRG_HEADER,2);
-  define(-1,10,30,220,10,0,mid_label,"V¡tej u instal toru hry:");
-  define(-1,10,42,220,10,0,mid_label,"Br ny Skeldalu");
-  define(-1,10,80,220,10,0,mid_label,"Instala‡n¡ program napsal:");
-  define(-1,10,92,220,10,0,mid_label,"Ond©ej Nov k");
+  define(-1,10,30,220,10,0,mid_label,"Vï¿½tej u instalï¿½toru hry:");
+  define(-1,10,42,220,10,0,mid_label,"Brï¿½ny Skeldalu");
+  define(-1,10,80,220,10,0,mid_label,"Instalaï¿½nï¿½ program napsal:");
+  define(-1,10,92,220,10,0,mid_label,"Ondï¿½ej Novï¿½k");
   define(-1,10,110,220,10,0,mid_label,"(C)1998 Napoleon gameS");
   redraw_window();
   escape();

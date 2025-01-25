@@ -63,7 +63,7 @@ static void f10exit()
   do
      {
      c=*(int*)task_wait_event(E_KEYBOARD);
-     if ((c & 0xff)==0 && (c>>8)=='D') terminate();
+     if ((c & 0xff)==0 && (c>>8)=='D') terminate_gui();
      if ((c & 0xff)==0 && (c>>8)=='C')
         {
         done_mysky();
@@ -122,7 +122,7 @@ long def_window(word xs,word ys,char *name)
   if (xs>=70)
      {
   define(1,1,1,19,16,1,button,"\x0f");
-     property(NULL,icones,&icone_color,WINCOLOR);on_change(close_current);
+     property(NULL,icones,&icone_color,WINCOLOR);on_control_change(close_current);
      }
   return q;
   }
@@ -149,10 +149,10 @@ int def_dialoge(word x,word y,word xs, word ys, char *name,char modal)
 
 static void display_progress(void)
   {
-  def_dialoge(10,300,620,80,"Na‡¡t m informace o filmu...",1);
+  def_dialoge(10,300,620,80,"Naï¿½ï¿½tï¿½m informace o filmu...",1);
   define(10,10,20,600,30,0,done_bar,100);
   property(def_border(3,WINCOLOR),NULL,flat_color(0x2e0),WINCOLOR);
-  define(30,5,5,80,20,2,button,"Konec");on_change(terminate);
+  define(30,5,5,80,20,2,button,"Konec");on_control_change(terminate_gui);
    property(def_border(1,0),vga_font,flat_color(0),BUTTONCOLOR);
   c_default(0);
   redraw_window();
@@ -222,11 +222,11 @@ void init_desktop(void)
   define(5,1,1,14,14,1,color_box);c_default(LABELCOLOR);
   define(10,2,20,320,180,0,pic_viewer);c_default(0);
   define(20,26,4,271,17,3,scroll_bar_h,0,total_frames-1,total_frames/16,0x0200);
-  property(def_border(3,WINCOLOR),NULL,NULL,WINCOLOR);c_default(0);on_change(change_frame_pos);
+  property(def_border(3,WINCOLOR),NULL,NULL,WINCOLOR);c_default(0);on_control_change(change_frame_pos);
   define(21,2,4,21,19,2,scroll_button,1,100,"\x1c");
-  property(NULL,icones,&cl,WINCOLOR);on_change(scroll_support);
+  property(NULL,icones,&cl,WINCOLOR);on_control_change(scroll_support);
   define(22,2,4,21,19,3,scroll_button,-1,-100,"\x1d");
-  property(NULL,icones,&cl,WINCOLOR);on_change(scroll_support);
+  property(NULL,icones,&cl,WINCOLOR);on_control_change(scroll_support);
   redraw_desktop();
   show_frame(0);
   }
@@ -246,9 +246,9 @@ static void init_editor()
   switch(examine_mgif_file(show_progress))
      {
      case EX_NOT_FOUND:chyba="MGIF soubor nenalezen!";break;
-     case EX_NO_SOUND:chyba="Film nem  zvukovou stopu. Sestav jej se zvukem.";break;
-     case EX_READ_ERROR:chyba="Chyba p©i ‡ten¡. Film je mo‘n  po¨kozen";break;
-     case EX_SOUND_ERROR:chyba="Nekonzistentn¡ zvukov  stopa!";break;
+     case EX_NO_SOUND:chyba="Film nemï¿½ zvukovou stopu. Sestav jej se zvukem.";break;
+     case EX_READ_ERROR:chyba="Chyba pï¿½i ï¿½tenï¿½. Film je moï¿½nï¿½ poï¿½kozen";break;
+     case EX_SOUND_ERROR:chyba="Nekonzistentnï¿½ zvukovï¿½ stopa!";break;
      default:chyba=NULL;
      }
   if (chyba!=NULL)
@@ -406,9 +406,9 @@ void open_program_window(int track)
   cl1[0]=0x8000;cl1[1]=0xf;
   memcpy(cl2,flat_color(0),sizeof(cl2));
   win_program=def_dialoge(10,250,620,220,smp_prg[track].sample_name,0);
-  define(10,10,20,500,70,0,track_view,&smp_prg[track].levy);on_change(change_frame_clk1);
+  define(10,10,20,500,70,0,track_view,&smp_prg[track].levy);on_control_change(change_frame_clk1);
    property(def_border(5,WINCOLOR),NULL,NULL,WINCOLOR);c_default(frame);
-  define(20,10,120,500,70,0,track_view,&smp_prg[track].pravy);on_change(change_frame_clk1);
+  define(20,10,120,500,70,0,track_view,&smp_prg[track].pravy);on_control_change(change_frame_clk1);
    property(def_border(5,WINCOLOR),NULL,NULL,WINCOLOR);c_default(frame);
   define(30,10,95,500,20,0,starts_view,smp_prg+track);
    property(def_border(5,WINCOLOR),NULL,NULL,WINCOLOR);c_default(frame);
@@ -416,27 +416,27 @@ void open_program_window(int track)
      {
      int y=i;
      define(40+i,85,20+y,20,35,1,scroll_button,-1,0,"\x1e");
-       property(NULL,icones,&cl1,WINCOLOR);on_change(change_vpoint);on_event(step_clear);
+       property(NULL,icones,&cl1,WINCOLOR);on_control_change(change_vpoint);on_event(step_clear);
      define(50+i,85,56+y,20,35,1,scroll_button,1,255,"\x1f");
-       property(NULL,icones,&cl1,WINCOLOR);on_change(change_vpoint);on_event(step_clear);
-     define(60+i,10,20+y,20,70,1,button,"X");on_change(change_vpoint);
+       property(NULL,icones,&cl1,WINCOLOR);on_control_change(change_vpoint);on_event(step_clear);
+     define(60+i,10,20+y,20,70,1,button,"X");on_control_change(change_vpoint);
        property(NULL,vga_font,cl2,WINCOLOR);
-     define(70+i,32,20+y,50,20,1,button,"+ÄÄÄ+");on_change(change_vpoint);
+     define(70+i,32,20+y,50,20,1,button,"+ï¿½ï¿½ï¿½+");on_control_change(change_vpoint);
        property(NULL,vga_font,cl2,WINCOLOR);
      define(80+i,32,45+y,50,20,1,scroll_button,-1,0,"+--+");
-       property(NULL,vga_font,&cl2,WINCOLOR);on_change(change_vpoint);on_event(step_clear);
+       property(NULL,vga_font,&cl2,WINCOLOR);on_control_change(change_vpoint);on_event(step_clear);
      define(90+i,32,70+y,50,20,1,scroll_button,1,255,"+--+");
-       property(NULL,vga_font,&cl2,WINCOLOR);on_change(change_vpoint);on_event(step_clear);
+       property(NULL,vga_font,&cl2,WINCOLOR);on_control_change(change_vpoint);on_event(step_clear);
      }
    define(200,10,95,95,20,1,button,"(re)Start");property(NULL,vga_font,&cl2,WINCOLOR);
-   on_change(toggle_restart);
+   on_control_change(toggle_restart);
    cl=def_border(1,0);
-   define(210,10,5,80,20,3,button,"Max");property(cl,vga_font,&cl2,BUTTONCOLOR);on_change(max_min_mid_align);
-   define(220,100,5,80,20,3,button,"Min");property(cl,vga_font,&cl2,BUTTONCOLOR);on_change(max_min_mid_align);
-   define(230,190,5,80,20,3,button,"St©ed");property(cl,vga_font,&cl2,BUTTONCOLOR);on_change(max_min_mid_align);
-   define(240,280,5,80,20,3,button,"Jako doln¡");property(cl,vga_font,&cl2,BUTTONCOLOR);on_change(max_min_mid_align);
-   define(250,370,5,80,20,3,button,"Jako horn¡");property(cl,vga_font,&cl2,BUTTONCOLOR);on_change(max_min_mid_align);
-   define(260,10,10,80,10,2,check_box,"Vypnut");on_change(mute_channel);c_default(smp_prg[cur_track].muted);
+   define(210,10,5,80,20,3,button,"Max");property(cl,vga_font,&cl2,BUTTONCOLOR);on_control_change(max_min_mid_align);
+   define(220,100,5,80,20,3,button,"Min");property(cl,vga_font,&cl2,BUTTONCOLOR);on_control_change(max_min_mid_align);
+   define(230,190,5,80,20,3,button,"Stï¿½ed");property(cl,vga_font,&cl2,BUTTONCOLOR);on_control_change(max_min_mid_align);
+   define(240,280,5,80,20,3,button,"Jako dolnï¿½");property(cl,vga_font,&cl2,BUTTONCOLOR);on_control_change(max_min_mid_align);
+   define(250,370,5,80,20,3,button,"Jako hornï¿½");property(cl,vga_font,&cl2,BUTTONCOLOR);on_control_change(max_min_mid_align);
+   define(260,10,10,80,10,2,check_box,"Vypnut");on_control_change(mute_channel);c_default(smp_prg[cur_track].muted);
    redraw_window();
    mute_channel();
  }
@@ -505,22 +505,22 @@ void new_edit_sample(int track)
   memcpy(&b1,def_border(1,0),sizeof(CTL3D));
   memcpy(&b2,def_border(5,WINCOLOR),sizeof(CTL3D));
   memcpy(&b3,def_border(6,WINCOLOR),sizeof(CTL3D));
-  def_dialoge(20,140,600,200,"Vlo‘ nov˜ zvuk",1);
+  def_dialoge(20,140,600,200,"Vloï¿½ novï¿½ zvuk",1);
   dir=create_list(2);str_add(&dir,"<wait>");
-  define(9,10,20,120,166,0,listbox,dir,0x7fff,0);on_change(dopln_jmeno_samplu);
+  define(9,10,20,120,166,0,listbox,dir,0x7fff,0);on_control_change(dopln_jmeno_samplu);
   property(&b3,NULL,NULL,WINCOLOR);c_default(0);
   define(10,137,40,19,127,0,scroll_bar_v,0,10,1,0x0200);
   property(&b2,NULL,NULL,WINCOLOR);
   define(11,136,20,21,17,0,scroll_button,-1,0,"\x1e");
-  property(NULL,icones,NULL,WINCOLOR);on_change(scroll_support);
+  property(NULL,icones,NULL,WINCOLOR);on_control_change(scroll_support);
   define(12,136,170,21,17,0,scroll_button,1,10,"\x1f");
-  property(NULL,icones,NULL,WINCOLOR);on_change(scroll_support);
-  define(20,170,20,420,12,0,input_line,255);set_default(last_path);on_exit(change_dir);
+  property(NULL,icones,NULL,WINCOLOR);on_control_change(scroll_support);
+  define(20,170,20,420,12,0,input_line,255);set_default(last_path);on_control_exit(change_dir);
   property(&b3,vga_font,NULL,WINCOLOR);
-  define(-1,170,35,1,1,0,label,"Cesta a jm‚no zvuku");
-  define(-1,170,65,1,1,0,label,"Jm‚no stopy (voliteln‚)");
-  define(-1,170,95,1,1,0,label,"Za‡ tek opakov n¡ (-1 vyp)");
-  define(-1,170,125,1,1,0,label,"Konec opakov n¡");
+  define(-1,170,35,1,1,0,label,"Cesta a jmï¿½no zvuku");
+  define(-1,170,65,1,1,0,label,"Jmï¿½no stopy (volitelnï¿½)");
+  define(-1,170,95,1,1,0,label,"Zaï¿½ï¿½tek opakovï¿½nï¿½ (-1 vyp)");
+  define(-1,170,125,1,1,0,label,"Konec opakovï¿½nï¿½");
   c=(smp_prg[track].sample_name);if (c==NULL) c=empty;
   define(30,170,50,420,12,0,input_line,255);set_default(c);
   property(&b3,vga_font,NULL,WINCOLOR);
@@ -531,8 +531,8 @@ void new_edit_sample(int track)
   property(&b3,vga_font,NULL,WINCOLOR);
   define(60,290,140,100,12,0,input_line,199);set_default(itoa(smp_prg[track].loop_end,num,10));
   property(&b3,vga_font,NULL,WINCOLOR);
-  define(100,10,10,80,20,2,button,"Storno");property(&b1,vga_font,NULL,BUTTONCOLOR);on_change(terminate);
-  define(110,10,35,80,20,2,button,"Ok");property(&b1,vga_font,NULL,BUTTONCOLOR);on_change(terminate);
+  define(100,10,10,80,20,2,button,"Storno");property(&b1,vga_font,NULL,BUTTONCOLOR);on_control_change(terminate_gui);
+  define(110,10,35,80,20,2,button,"Ok");property(&b1,vga_font,NULL,BUTTONCOLOR);on_control_change(terminate_gui);
   define(120,10,70,38,20,2,button,"");property(&b1,vga_font,NULL,BUTTONCOLOR);
   define(130,52,70,38,20,2,button,"");property(&b1,vga_font,NULL,BUTTONCOLOR);
   redraw_window();
@@ -620,7 +620,7 @@ static void delete_sample()
   int i;
   i=f_get_value(0,9);
   if (i>=samples_total || i<0) return;
-  if (msg_box("Ot zka?",'\x2',"Odstranit zvuk?","Ano","Ne",NULL)==2) return;
+  if (msg_box("Otï¿½zka?",'\x2',"Odstranit zvuk?","Ano","Ne",NULL)==2) return;
   open_program_window(-1);
   remove_sample(i);
   update_sample_list();
@@ -654,7 +654,7 @@ static void duplic_sample()
 static void prehrat_cele()
   {
   show_frame(-1);
-  def_dialoge(2,42,635,378,"P©ehr t cel‚",1);
+  def_dialoge(2,42,635,378,"Pï¿½ehrï¿½t celï¿½",1);
   redraw_window();
   curcolor=0;
   start_mixing();
@@ -680,9 +680,9 @@ static void prehrat_preview()
   x=o->locx+320+4;
   y=o->locy+180+4;
   if (x>500) x=2;if (y>400) y=2;
-  def_dialoge(x,y,100,80,"N hled",1);
+  def_dialoge(x,y,100,80,"Nï¿½hled",1);
   define(10,10,25,80,30,0,button,"STOP");
-   property(def_border(1,0),vga_font,NULL,BUTTONCOLOR);on_change(stop_preview_clk);
+   property(def_border(1,0),vga_font,NULL,BUTTONCOLOR);on_control_change(stop_preview_clk);
   redraw_window();
   preview_block(f_get_value(win_preview,20),o->locx,o->locy);
   close_current();
@@ -695,8 +695,8 @@ static void make()
   def_dialoge(10,300,620,80,"Sestavuji...",1);
   define(10,10,20,600,30,0,done_bar,100);c_default(0);
   property(def_border(3,WINCOLOR),NULL,flat_color(0x2e0),WINCOLOR);
-  define(20,5,5,480,12,3,input_line,100);set_default("Ukl d m projekt....");
-  define(30,5,5,80,20,2,button,"Stop");on_change(terminate);
+  define(20,5,5,480,12,3,input_line,100);set_default("Uklï¿½dï¿½m projekt....");
+  define(30,5,5,80,20,2,button,"Stop");on_control_change(terminate_gui);
    property(def_border(1,0),vga_font,NULL,BUTTONCOLOR);
   redraw_window();
   save_project(prj_name);
@@ -708,7 +708,7 @@ static void build()
   {
   int i;
 
-  if (msg_box(PRG_HEADER,'\x2',"Chce¨ spustit REBUILD filmu? Tato funkce sestav¡ CELOU zvukovou stopu, co‘ m–‘e zabrat dost ‡asu","Ano","Ne",NULL)==2) return;
+  if (msg_box(PRG_HEADER,'\x2',"Chceï¿½ spustit REBUILD filmu? Tato funkce sestavï¿½ CELOU zvukovou stopu, coï¿½ mï¿½ï¿½e zabrat dost ï¿½asu","Ano","Ne",NULL)==2) return;
   for(i=0;i<total_frames;i++)
      mgf_frames[i].changed=1;
   make();
@@ -717,12 +717,12 @@ static void build()
 static void exit_prog()
   {
   int i;
-  i=msg_box("Exit",'\x2',"Ulo‘it projekt p©ed ukon‡en¡m programu?","Ano","Ne","Storno",NULL);
+  i=msg_box("Exit",'\x2',"Uloï¿½it projekt pï¿½ed ukonï¿½enï¿½m programu?","Ano","Ne","Storno",NULL);
   switch (i)
      {
      case 3:return;
      case 1:save_project(prj_name);
-     case 2:terminate();
+     case 2:terminate_gui();
      }
   }
 
@@ -742,13 +742,13 @@ static void info()
      {
      "Film:",
      "Project:",
-     "Celkem sn¡mk–:",
-     "Pr zdn˜ch sn¡mk–:",
-     "Vyu‘it  pamˆŸ(KB):",
-     "Sestavovac¡ pamˆŸ(KB):",
+     "Celkem snï¿½mkï¿½:",
+     "Prï¿½zdnï¿½ch snï¿½mkï¿½:",
+     "Vyuï¿½itï¿½ pamï¿½ï¿½(KB):",
+     "Sestavovacï¿½ pamï¿½ï¿½(KB):",
      "Stop:",
-     "Sestaveno sn¡mk–:",
-     "Cas sestaven¡:",
+     "Sestaveno snï¿½mkï¿½:",
+     "Cas sestavenï¿½:",
      };
   char str[200];char *c;
   int i;
@@ -775,12 +775,12 @@ static void info()
                                        "1/4",
                                        "1/8",
                                        "1/16");c_default(amplifikace);
-  define(100,5,5,60,20,2,button,"Ok");on_change(terminate);
+  define(100,5,5,60,20,2,button,"Ok");on_control_change(terminate_gui);
   redraw_window();
   escape();
   if (amplifikace!=f_get_value(0,10))
      {
-     msg_box(PRG_HEADER,'\x1',"Aby tato zmˆna mˆla spr vn˜ efekt, mus¡¨ prov‚st BUILD!","Ok",NULL);
+     msg_box(PRG_HEADER,'\x1',"Aby tato zmï¿½na mï¿½la sprï¿½vnï¿½ efekt, musï¿½ï¿½ provï¿½st BUILD!","Ok",NULL);
      amplifikace=f_get_value(0,10);
      }
   close_current();
@@ -796,8 +796,8 @@ char how_frames(char *prompt,int *value)
   define(10,5,20,1,1,0,label,prompt);
   define(20,10,35,60,12,1,input_line,10);set_default(itoa(*value,buffer,10));
    property(def_border(5,WINCOLOR),NULL,NULL,0x7fff);
-  define(30,5,5,80,20,2,button,"Ok");property(&b1,vga_font,NULL,BUTTONCOLOR);on_change(terminate);
-  define(40,90,5,80,20,2,button,"Zru¨it");property(&b1,vga_font,NULL,BUTTONCOLOR);on_change(terminate);
+  define(30,5,5,80,20,2,button,"Ok");property(&b1,vga_font,NULL,BUTTONCOLOR);on_control_change(terminate_gui);
+  define(40,90,5,80,20,2,button,"Zruï¿½it");property(&b1,vga_font,NULL,BUTTONCOLOR);on_control_change(terminate_gui);
   redraw_window();
   chyba:
   escape();
@@ -806,7 +806,7 @@ char how_frames(char *prompt,int *value)
      get_value(0,20,buffer);
      if (sscanf(buffer,"%d",value)!=1)
         {
-        msg_box(PRG_HEADER,'\x1',"To mus¡ b˜t ‡¡slo!","Ok",NULL);
+        msg_box(PRG_HEADER,'\x1',"To musï¿½ bï¿½t ï¿½ï¿½slo!","Ok",NULL);
         goto chyba;
         }
      close_current();
@@ -823,7 +823,7 @@ static void ginsert()
 
   frame=f_get_value(win_preview,20);
   v=get_inserted_frames(frame);
-  if (how_frames("Kolik bylo vlo‘eno?",&v)==0) return;
+  if (how_frames("Kolik bylo vloï¿½eno?",&v)==0) return;
   insert_global(frame,v);
   redraw_desktop();
   }
@@ -835,7 +835,7 @@ static void gdelete()
 
   frame=f_get_value(win_preview,20);
   v=get_deleted_frames();
-  if (how_frames("Kolik bylo vymaz no?",&v)==0) return;
+  if (how_frames("Kolik bylo vymazï¿½no?",&v)==0) return;
   delete_global(frame,v);
   redraw_desktop();
   }
@@ -854,26 +854,26 @@ void control_window()
   memcpy(f_default,flat_color(0x0000),sizeof(charcolors));
   win_control=def_dialoge(350,10,280,228,PRG_HEADER,0);
   build_sample_list(&smp_list);
-  define(9,10,20,100,196,0,listbox,smp_list,0x7fff,0);on_change(select_sample);
+  define(9,10,20,100,196,0,listbox,smp_list,0x7fff,0);on_control_change(select_sample);
   property(&b3,NULL,NULL,WINCOLOR);c_default(-1);
   define(10,117,40,19,157,0,scroll_bar_v,0,10,1,0x0200);
   property(&b2,NULL,NULL,WINCOLOR);
   define(11,116,20,21,17,0,scroll_button,-1,0,"\x1e");
-  property(NULL,icones,NULL,WINCOLOR);on_change(scroll_support);
+  property(NULL,icones,NULL,WINCOLOR);on_control_change(scroll_support);
   define(12,116,200,21,17,0,scroll_button,1,10,"\x1f");
-  property(NULL,icones,NULL,WINCOLOR);on_change(scroll_support);
-  define(20,140,20,65,20,0,button,"Nov˜");property(&b1,vga_font,NULL,BUTTONCOLOR);on_change(new_sample);
-  define(30,210,20,65,20,0,button,"Odstra¤");property(&b1,vga_font,NULL,BUTTONCOLOR);on_change(delete_sample);
-  define(40,140,45,65,20,0,button,"Oprav");property(&b1,vga_font,NULL,BUTTONCOLOR);on_change(edit_sample);
-  define(50,210,45,65,20,0,button,"Duplikuj");property(&b1,vga_font,NULL,BUTTONCOLOR);on_change(duplic_sample);
-  define(60,140,120,65,20,0,button,"P©ehr t");property(&b1,vga_font,NULL,BUTTONCOLOR);on_change(prehrat_cele);
-  define(70,210,120,65,20,0,button,"N hled");property(&b1,vga_font,NULL,BUTTONCOLOR);on_change(prehrat_preview);
-  define(80,140,145,65,20,0,button,"Make");property(&b1,vga_font,NULL,BUTTONCOLOR);on_change(make);
-  define(90,210,145,65,20,0,button,"Build");property(&b1,vga_font,NULL,BUTTONCOLOR);on_change(build);
-  define(100,210,10,65,20,3,button,"Exit");property(&b1,vga_font,NULL,BUTTONCOLOR);on_change(exit_prog);
-  define(110,140,10,65,20,3,button,"Info");property(&b1,vga_font,NULL,BUTTONCOLOR);on_change(info);
-  define(120,140,170,65,20,0,button,"GInsert");property(&b1,vga_font,NULL,BUTTONCOLOR);on_change(ginsert);
-  define(130,210,170,65,20,0,button,"GDelete");property(&b1,vga_font,NULL,BUTTONCOLOR);on_change(gdelete);
+  property(NULL,icones,NULL,WINCOLOR);on_control_change(scroll_support);
+  define(20,140,20,65,20,0,button,"Novï¿½");property(&b1,vga_font,NULL,BUTTONCOLOR);on_control_change(new_sample);
+  define(30,210,20,65,20,0,button,"Odstraï¿½");property(&b1,vga_font,NULL,BUTTONCOLOR);on_control_change(delete_sample);
+  define(40,140,45,65,20,0,button,"Oprav");property(&b1,vga_font,NULL,BUTTONCOLOR);on_control_change(edit_sample);
+  define(50,210,45,65,20,0,button,"Duplikuj");property(&b1,vga_font,NULL,BUTTONCOLOR);on_control_change(duplic_sample);
+  define(60,140,120,65,20,0,button,"Pï¿½ehrï¿½t");property(&b1,vga_font,NULL,BUTTONCOLOR);on_control_change(prehrat_cele);
+  define(70,210,120,65,20,0,button,"Nï¿½hled");property(&b1,vga_font,NULL,BUTTONCOLOR);on_control_change(prehrat_preview);
+  define(80,140,145,65,20,0,button,"Make");property(&b1,vga_font,NULL,BUTTONCOLOR);on_control_change(make);
+  define(90,210,145,65,20,0,button,"Build");property(&b1,vga_font,NULL,BUTTONCOLOR);on_control_change(build);
+  define(100,210,10,65,20,3,button,"Exit");property(&b1,vga_font,NULL,BUTTONCOLOR);on_control_change(exit_prog);
+  define(110,140,10,65,20,3,button,"Info");property(&b1,vga_font,NULL,BUTTONCOLOR);on_control_change(info);
+  define(120,140,170,65,20,0,button,"GInsert");property(&b1,vga_font,NULL,BUTTONCOLOR);on_control_change(ginsert);
+  define(130,210,170,65,20,0,button,"GDelete");property(&b1,vga_font,NULL,BUTTONCOLOR);on_control_change(gdelete);
   p=samples_total!=0;
   set_enable(0,30,p);set_enable(0,40,p);set_enable(0,50,p);
   redraw_window();
@@ -884,7 +884,7 @@ void main(int argc,char **argv)
 
   if (argc!=2)
      {
-     puts("MGF SoundTrack Editor ... (C) 1998 Ond©ej Nov k\n");
+     puts("MGF SoundTrack Editor ... (C) 1998 Ondï¿½ej Novï¿½k\n");
      puts("Usage: MGIFEDIT <film.mgf>");
      exit(1);
      }
@@ -893,8 +893,8 @@ void main(int argc,char **argv)
   prj_name=get_project_name(mgif_filename);
   switch (load_project(prj_name))
      {
-     case -1:msg_box(PRG_HEADER,'\x1',"Chyba form tu v projektu!","Zav©¡t",NULL);shutdown();exit(1);
-     case -2:msg_box(PRG_HEADER,'\x1',"Neo‡ek van˜ eof souboru!","Zav©¡t",NULL);shutdown();exit(1);
+     case -1:msg_box(PRG_HEADER,'\x1',"Chyba formï¿½tu v projektu!","Zavï¿½ï¿½t",NULL);shutdown();exit(1);
+     case -2:msg_box(PRG_HEADER,'\x1',"Neoï¿½ekï¿½vanï¿½ eof souboru!","Zavï¿½ï¿½t",NULL);shutdown();exit(1);
      }
   init_editor();
   warn_size_mistmach();

@@ -163,7 +163,7 @@ void strlist_event(EVENT_MSG *msg,OBJREC *o)
            i++;
            }
         *d=i;
-        terminate();
+        terminate_gui();
         }
      }
   if (msg->msg==E_CONTROL)
@@ -232,16 +232,16 @@ int string_list(char *c,int akt)
   def_window(WLISTX,WLISTY,"Vyber");
   waktual->x=x1;
   waktual->y=y1;
-  on_change(terminate);
+  on_control_change(terminate_gui);
   set_window_modal();
   define(19,5,20,WLISTX-30,WLISTY-20,0,listbox,c,RGB555(31,31,31),0);c_default(akt);
-  on_change(terminate);
+  on_control_change(terminate_gui);
   define(20,3,42,17,WLISTY-64,1,scroll_bar_v,0,1,18,SCROLLBARCOL); 
   property(ctl,NULL,NULL,WINCOLOR);c_default(0);
   define(21,1,20,21,17,1,scroll_button,-1,0,"\x1e");
-  property(NULL,icones,&cl,WINCOLOR);on_change(scroll_support);
+  property(NULL,icones,&cl,WINCOLOR);on_control_change(scroll_support);
   define(22,1,1,21,17,2,scroll_button,1,1,"\x1f");
-  property(NULL,icones,&cl,WINCOLOR);on_change(scroll_support);
+  property(NULL,icones,&cl,WINCOLOR);on_control_change(scroll_support);
   redraw_window();
   send_message(E_GUI,19,E_CONTROL,2);
   redraw_window();

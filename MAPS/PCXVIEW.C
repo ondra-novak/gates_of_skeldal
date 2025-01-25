@@ -239,7 +239,7 @@ static void clear_switchs()
   }
 
 
-#define ZMENIT "Zmˆnit grafiku"
+#define ZMENIT "Zmï¿½nit grafiku"
 static void zmenit()
   {
   int i,c,f;
@@ -255,7 +255,7 @@ static void zmenit()
   c=f_get_value(0,140);
   if (c==0)
     {
-    msg_box(ZMENIT,1,"Mus¡¨ vybrat nˆjakou grafiku. Klepni tam, jak je naps no <nic>",MSB_OK);
+    msg_box(ZMENIT,1,"Musï¿½ï¿½ vybrat nï¿½jakou grafiku. Klepni tam, jak je napsï¿½no <nic>",MSB_OK);
     return;
     }
   load_side_script(script_name);
@@ -263,13 +263,13 @@ static void zmenit()
   i=change_side(f_get_value(0,130),c-1,get_bit_fields(0,160,3),f-1,name);
   if (i<-1)
     {
-    msg_box(ZMENIT,1,"Program odm¡tl (z nˆjak˜ch d–vod–) akci prov‚st. Zkontrolujte v¨echny £daje",MSB_OK);
+    msg_box(ZMENIT,1,"Program odmï¿½tl (z nï¿½jakï¿½ch dï¿½vodï¿½) akci provï¿½st. Zkontrolujte vï¿½echny ï¿½daje",MSB_OK);
     discharge_side_script();
     return;
     }
   if (i==-1)
     {
-    msg_box(ZMENIT,1,"Nepovolen  kombinace pol¡ \"Hlavn¡\", \"Lev \" a \"Prav \"",MSB_OK);
+    msg_box(ZMENIT,1,"Nepovolenï¿½ kombinace polï¿½ \"Hlavnï¿½\", \"Levï¿½\" a \"Pravï¿½\"",MSB_OK);
     discharge_side_script();
     return;
     }
@@ -291,14 +291,14 @@ static void vymazat()
 
   if (pos==0)
     {
-    msg_box(VYMAZAT,1,"Mus¡¨ vybrat nˆjakou grafiku. Klepni tam, jak je naps no <nic>",MSB_OK);
+    msg_box(VYMAZAT,1,"Musï¿½ï¿½ vybrat nï¿½jakou grafiku. Klepni tam, jak je napsï¿½no <nic>",MSB_OK);
     return;
     }
-  if (msg_box(VYMAZAT,1,"Vymazat grafiku v‡etnˆ p©¡padn˜ch animac¡?",MSB_ANONE)==2) return;
+  if (msg_box(VYMAZAT,1,"Vymazat grafiku vï¿½etnï¿½ pï¿½ï¿½padnï¿½ch animacï¿½?",MSB_ANONE)==2) return;
   load_side_script(script_name);
   if (delete_side(f_get_value(0,130),pos-1))
     {
-    msg_box(VYMAZAT,1,"Program odm¡tl vymazat grafiky ze scriptu, nastala nˆjak  chyba.",MSB_OK);
+    msg_box(VYMAZAT,1,"Program odmï¿½tl vymazat grafiky ze scriptu, nastala nï¿½jakï¿½ chyba.",MSB_OK);
     discharge_side_script();
     return;
     }
@@ -306,18 +306,18 @@ static void vymazat()
   refresh_scrs();
   }
 
-#define ZALOZIT "Zalo‘it grafiku"
+#define ZALOZIT "Zaloï¿½it grafiku"
 static void add_graphics()
   {
   char name[200];
   int c,d;
 
   get_value(0,100,name);
-  if (name[0]==0) {msg_box(ZALOZIT,1,"Mus¡¨ vepsat nˆjak‚ jm‚no!",MSB_OK);return;}
+  if (name[0]==0) {msg_box(ZALOZIT,1,"Musï¿½ï¿½ vepsat nï¿½jakï¿½ jmï¿½no!",MSB_OK);return;}
   load_side_script(script_name);
   if ((c=add_side(f_get_value(0,130),name,vals(110)))==-1)
     {
-    msg_box(ZALOZIT,1,"Nelze zalo‘it novou grafiku! P©¡li‘ mnoho grafik, nebo nastala jin  chyba.",MSB_OK);
+    msg_box(ZALOZIT,1,"Nelze zaloï¿½it novou grafiku! Pï¿½ï¿½liï¿½ mnoho grafik, nebo nastala jinï¿½ chyba.",MSB_OK);
     discharge_side_script();
     }
   else save_side_script(script_name);
@@ -350,12 +350,12 @@ static void nahled()
   list=f_get_value(0,130);pos=f_get_value(0,140)-1+vals(150)-1;
   if (pos<0)
     {
-    msg_box("N hled",1,"Nen¡ co zobrazit!",MSB_OK);
+    msg_box("Nï¿½hled",1,"Nenï¿½ co zobrazit!",MSB_OK);
     return;
     }
   load_side_script(script_name);
   tady:
-  def_dialoge(2,2,630,440,"N hled grafiky");
+  def_dialoge(2,2,630,440,"Nï¿½hled grafiky");
   switch (list)
     {
     case 0: p1=def_nahled(10,5,25,get_side_name(list,pos,1));
@@ -372,9 +372,9 @@ static void nahled()
             swap=1;
             break;
     }
-  define(-1,5,5,80,20,2,button,"Ok");on_change(terminate);
-  define(110,100,5,80,20,2,button,">>");on_change(terminate);
-  define(120,190,5,80,20,2,button,"<<");on_change(terminate);
+  define(-1,5,5,80,20,2,button,"Ok");on_control_change(terminate_gui);
+  define(110,100,5,80,20,2,button,">>");on_control_change(terminate_gui);
+  define(120,190,5,80,20,2,button,"<<");on_control_change(terminate_gui);
   redraw_window();
   p4=get_side_name(list,pos,0);
   if (p4!=NULL) set_enable(0,120,p4[0]=='*' && pos>0);
@@ -404,51 +404,51 @@ void pcxviewer()
      memcpy(&b1,def_border(1,0),sizeof(CTL3D));
      memcpy(&b2,def_border(5,WINCOLOR),sizeof(CTL3D));
      memcpy(&b3,def_border(6,WINCOLOR),sizeof(CTL3D));
-     pcxview_win=def_window(635,440,"Prohl¡‘e‡ obrazk– PCX");
+     pcxview_win=def_window(635,440,"Prohlï¿½ï¿½eï¿½ obrazkï¿½ PCX");
      default_font=vga_font;
      memcpy(f_default,flat_color(0x0000),sizeof(charcolors));
-     on_change(close_pcx_window);
+     on_control_change(close_pcx_window);
 
-     define(9,10,20,110,376,0,listbox,ls,0x7fff,0);on_change(read_pcx);
+     define(9,10,20,110,376,0,listbox,ls,0x7fff,0);on_control_change(read_pcx);
      property(&b3,NULL,NULL,WINCOLOR);c_default(0);
      define(10,126,40,21,337,0,scroll_bar_v,0,10,1,0x0200);
      property(&b2,NULL,NULL,WINCOLOR);
      define(11,126,20,21,17,0,scroll_button,-1,0,"\x1e");
-     property(&b1,icones,NULL,WINCOLOR);on_change(scroll_support);
+     property(&b1,icones,NULL,WINCOLOR);on_control_change(scroll_support);
      define(12,126,380,21,17,0,scroll_button,1,10,"\x1f");
-     property(&b1,icones,NULL,WINCOLOR);on_change(scroll_support);
+     property(&b1,icones,NULL,WINCOLOR);on_control_change(scroll_support);
      define(-1,175,20,1,1,0,label,"Cesta:");
      define(20,175,32,320,12,0,input_line,240);set_default(basic_path);
-     property(&b3,NULL,NULL,WINCOLOR);on_exit(get_directory);
+     property(&b3,NULL,NULL,WINCOLOR);on_control_exit(get_directory);
      define(30,175,50,2,2,0,picture2);c_default(0);
-     define(40,10,10,80,10,3,check_box,"Oto‡it");c_default(swap);on_change(change_swap);
-     define(45,10,25,160,10,3,check_box,"Grafika Skeldalu");c_default(0);on_change(get_directory);
+     define(40,10,10,80,10,3,check_box,"Otoï¿½it");c_default(swap);on_control_change(change_swap);
+     define(45,10,25,160,10,3,check_box,"Grafika Skeldalu");c_default(0);on_control_change(get_directory);
      define(-1,5,80,110,75,1,label,"");property(&b2,NULL,NULL,WINCOLOR);
-     define(-1,10,80,100,70,1,label,"Nov  grafika");
+     define(-1,10,80,100,70,1,label,"Novï¿½ grafika");
      define(100,10,100,100,10,1,input_line,50);set_default("");property(&b3,NULL,NULL,WINCOLOR);
-     define(-1,10,115,100,12,1,label,"Sn¡mk–");
+     define(-1,10,115,100,12,1,label,"Snï¿½mkï¿½");
      define(110,10,115,30,10,1,input_line,20,1,15,"%2d");set_default(strs(1));property(&b3,NULL,NULL,WINCOLOR);
-          on_exit(test_int);
-     define(120,10,130,60,20,1,button,"Zalo‘it");property(&b1,NULL,NULL,WINCOLOR);
-          on_change(add_graphics);
-     define(130,10,160,110,50,1,radio_butts,4,"Stˆna","Podlaha","Strop","Oblouk");c_default(0);on_change(refresh_scrs);
+          on_control_exit(test_int);
+     define(120,10,130,60,20,1,button,"Zaloï¿½it");property(&b1,NULL,NULL,WINCOLOR);
+          on_control_change(add_graphics);
+     define(130,10,160,110,50,1,radio_butts,4,"Stï¿½na","Podlaha","Strop","Oblouk");c_default(0);on_control_change(refresh_scrs);
 
      define(-1,5,230,110,110,1,label,"");property(&b2,NULL,NULL,WINCOLOR);
      define(-1,10,230,100,10,1,label,"Vyber grafiku:");
      define(140,10,255,100,10,1,str_line,side_names);on_enter(string_list_sup);c_default(0);property(&b2,NULL,NULL,WINCOLOR);
-     define(-1,10,270,100,12,1,label,"Sn¡mek");
+     define(-1,10,270,100,12,1,label,"Snï¿½mek");
      define(150,10,270,30,12,1,input_line,20,1,15,"%2d");set_default(strs(1));property(&b3,NULL,NULL,WINCOLOR);
-          on_exit(test_int);
-     define(160,10,300,100,10,1,check_box,"Hlavn¡");c_default(0);on_change(clear_switchs);
-     define(170,10,312,100,10,1,check_box,"Lev ");c_default(0);on_change(clear_switchs);
-     define(180,10,324,100,10,1,check_box,"Prav ");c_default(0);on_change(clear_switchs);
-     define(190,20,345,80,20,1,button,"P©i©adit");property(&b1,NULL,NULL,WINCOLOR);on_change(zmenit);
-     define(200,20,370,80,20,1,button,"Vymazat");property(&b1,NULL,NULL,WINCOLOR);on_change(vymazat);
-     define(200,20,395,80,20,1,button,"N hled");property(&b1,NULL,NULL,WINCOLOR);on_change(nahled);
+          on_control_exit(test_int);
+     define(160,10,300,100,10,1,check_box,"Hlavnï¿½");c_default(0);on_control_change(clear_switchs);
+     define(170,10,312,100,10,1,check_box,"Levï¿½");c_default(0);on_control_change(clear_switchs);
+     define(180,10,324,100,10,1,check_box,"Pravï¿½");c_default(0);on_control_change(clear_switchs);
+     define(190,20,345,80,20,1,button,"Pï¿½iï¿½adit");property(&b1,NULL,NULL,WINCOLOR);on_control_change(zmenit);
+     define(200,20,370,80,20,1,button,"Vymazat");property(&b1,NULL,NULL,WINCOLOR);on_control_change(vymazat);
+     define(200,20,395,80,20,1,button,"Nï¿½hled");property(&b1,NULL,NULL,WINCOLOR);on_control_change(nahled);
      define(-1,130,20,1,400,1,label,"");property(def_border(4,WINCOLOR),NULL,NULL,WINCOLOR);
-     define(-1,100,30,1,1,1,label,"Tv–rce");
-     define(-1,100,45,1,1,1,label,"grafick˜ch");
-     define(-1,100,60,1,1,1,label,"script–");
+     define(-1,100,30,1,1,1,label,"Tvï¿½rce");
+     define(-1,100,45,1,1,1,label,"grafickï¿½ch");
+     define(-1,100,60,1,1,1,label,"scriptï¿½");
      }
   else
      {

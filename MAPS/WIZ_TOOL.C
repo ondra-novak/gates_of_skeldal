@@ -92,7 +92,7 @@ void build_door(void)
   lclip=vals(210);
   if (anim1!=anim2 && (anim1==0 || anim2==0))
      {
-     msg_box("Nelze!",'\x1',"Po‡et animac¡ m–‘e b˜t buŸ u obou jedna, nebo se ‘ dn  nesm¡ jedn‚ rovnat","Ok",NULL);
+     msg_box("Nelze!",'\x1',"Poï¿½et animacï¿½ mï¿½ï¿½e bï¿½t buï¿½ u obou jedna, nebo se ï¿½ï¿½dnï¿½ nesmï¿½ jednï¿½ rovnat","Ok",NULL);
      return;
      }
   dir=f_get_value(0,70);
@@ -107,7 +107,7 @@ void build_door(void)
      TSTENA *sd1,*sd2;
      if (!mapa.sectordef[sector1].step_next[dir])
         {
-        msg_box("T¡mto smˆrem nelze vytvo©it dve©e",'\x1',"Ve v mi zvolenem smˆru nen¡ vytvo©en ‘ dn˜ sektor. Nelze t¡mto smˆrem vytvo©it dve©e","Ok",NULL);
+        msg_box("Tï¿½mto smï¿½rem nelze vytvoï¿½it dveï¿½e",'\x1',"Ve vï¿½mi zvolenem smï¿½ru nenï¿½ vytvoï¿½en ï¿½ï¿½dnï¿½ sektor. Nelze tï¿½mto smï¿½rem vytvoï¿½it dveï¿½e","Ok",NULL);
         return;
         }
      sector2=mapa.sectordef[sector1].step_next[dir];
@@ -158,7 +158,7 @@ void build_door(void)
      w=mapa.sectordef[sector1].step_next;
      if (!w[0] && !w[1] && !w[2] && !w[3])
         {
-        msg_box("Nejsou ‘ dn‚ v˜chody:",'\x1',"Zde nelze vytvo©it tento druh stˆny","Ok",NULL);
+        msg_box("Nejsou ï¿½ï¿½dnï¿½ vï¿½chody:",'\x1',"Zde nelze vytvoï¿½it tento druh stï¿½ny","Ok",NULL);
         return;
         }
         d=65535;
@@ -190,7 +190,7 @@ void build_door(void)
         sd->sector_tag=sector1;
         }
      }
-  terminate();
+  terminate_gui();
   }
 
 void create_door(void)
@@ -199,7 +199,7 @@ void create_door(void)
   CTL3D b1,b2,b3;
   if (count_of_sel()!=1)
      {
-     msg_box("Door Wizard:",'\x1',"Mus¡¨ ozna‡it pouze jeden sektor!","Ok",NULL);
+     msg_box("Door Wizard:",'\x1',"Musï¿½ï¿½ oznaï¿½it pouze jeden sektor!","Ok",NULL);
      return;
      }
   for (i=0;i<maplen;i++) if (minfo[i].flags & 1) break;
@@ -209,47 +209,47 @@ void create_door(void)
   default_font=vga_font;
   memcpy(f_default,flat_color(0x0000),sizeof(charcolors));
   def_dialoge(100,50,400,300,"Door Wizard");
-  define(CANCEL_BUTT,10,5,80,20,2,button,"Zru¨it");property(&b1,NULL,NULL,WINCOLOR);
-    on_change(terminate);
+  define(CANCEL_BUTT,10,5,80,20,2,button,"Zruï¿½it");property(&b1,NULL,NULL,WINCOLOR);
+    on_control_change(terminate_gui);
   define(OK_BUTT,190,5,80,20,2,button,"Ok");property(&b1,NULL,NULL,WINCOLOR);
-    on_change(build_door);
-  define(10,5,20,192,35,0,label,"Animace 1:   Po‡et okenek:");property(&b3,NULL,NULL,WINCOLOR);
+    on_control_change(build_door);
+  define(10,5,20,192,35,0,label,"Animace 1:   Poï¿½et okenek:");property(&b3,NULL,NULL,WINCOLOR);
   define(20,10,35,90,12,0,str_line,side_names);property(&b2,NULL,NULL,WINCOLOR);c_default(0);
     on_enter(string_list_sup);
   define(30,120,35,50,12,0,input_line,10,1,16,"%6d");property(&b2,NULL,NULL,WINCOLOR);
    set_default(strs(1));on_exit(test_int);
-  define(40,5,60,192,35,0,label,"Animace 2:   Po‡et okenek:");property(&b3,NULL,NULL,WINCOLOR);
+  define(40,5,60,192,35,0,label,"Animace 2:   Poï¿½et okenek:");property(&b3,NULL,NULL,WINCOLOR);
   define(50,10,75,90,12,0,str_line,side_names);property(&b2,NULL,NULL,WINCOLOR);c_default(0);
     on_enter(string_list_sup);
   define(60,120,75,50,12,0,input_line,10,1,16,"%6d");property(&b2,NULL,NULL,WINCOLOR);
    set_default(strs(1));on_exit(test_int);
-  define(-1,220,20,100,10,0,label,"Vytvo©it dve©e na:");
+  define(-1,220,20,100,10,0,label,"Vytvoï¿½it dveï¿½e na:");
   define(70,220,35,100,60,0,radio_butts,5,
                              "Severu",
-                             "V˜chodu",
+                             "Vï¿½chodu",
                              "Jihu",
-                             "Z padu",
-                             "Jako otev¡rac¡ sektor");c_default(0);
+                             "Zï¿½padu",
+                             "Jako otevï¿½racï¿½ sektor");c_default(0);
   define(-1,5,100,390,160,0,label,"Detaily:");property(&b3,NULL,NULL,WINCOLOR);
   define(-1,200,110,0,140,0,label,""); property(&b2,NULL,NULL,WINCOLOR);
-  define(-1,10,112,180,12,1,label,"Funkce dve©¡:");
-  define(80,10,124,160,40,1,radio_butts,3,"Lze jenom otev©¡t",
-                                          "Lze jenom zav©¡t",
-                                          "Lze otev©¡t i zav©¡t");c_default(2);
-  define(90,10,170,170,12,1,check_box,"D lkov‚ ovl d n¡");c_default(0);on_change(remote_acces);
-  define(-1,10,112,190,12,0,label,"Kdy‘ jsou dve©e zav©en‚");
-  define(140,15,124,160,10,0,check_box,"Nepr–choz¡ hr ‡em");c_default(1);
-  define(110,15,136,160,10,0,check_box,"Nepr–choz¡ nest–rou");c_default(1);
-  define(120,15,148,160,10,0,check_box,"Nelze prohodit vˆc");c_default(1);
-  define(130,15,160,160,10,0,check_box,"Zvukotˆsn‚");c_default(1);
-  define(100,15,172,160,10,0,check_box,"Nepr–hledn‚");c_default(1);
-  define(-1,10,190,190,12,0,label,"Kdy‘ jsou dve©e otev©en‚");
-  define(190,15,202,160,10,0,check_box,"Nepr–choz¡ hr ‡em");c_default(0);
-  define(160,15,214,160,10,0,check_box,"Nepr–choz¡ nest–rou");c_default(0);
-  define(170,15,226,160,10,0,check_box,"Nelze prohodit vˆc");c_default(0);
-  define(180,15,238,160,10,0,check_box,"Zvukotˆsn‚");c_default(0);
-  define(150,15,250,160,10,0,check_box,"Nepr–hledn‚");c_default(0);
-  define(200,10,190,160,12,1,check_box,"Otev©¡t po startu");c_default(0);on_change(remote_acces);
+  define(-1,10,112,180,12,1,label,"Funkce dveï¿½ï¿½:");
+  define(80,10,124,160,40,1,radio_butts,3,"Lze jenom otevï¿½ï¿½t",
+                                          "Lze jenom zavï¿½ï¿½t",
+                                          "Lze otevï¿½ï¿½t i zavï¿½ï¿½t");c_default(2);
+  define(90,10,170,170,12,1,check_box,"Dï¿½lkovï¿½ ovlï¿½dï¿½nï¿½");c_default(0);on_control_change(remote_acces);
+  define(-1,10,112,190,12,0,label,"Kdyï¿½ jsou dveï¿½e zavï¿½enï¿½");
+  define(140,15,124,160,10,0,check_box,"Neprï¿½chozï¿½ hrï¿½ï¿½em");c_default(1);
+  define(110,15,136,160,10,0,check_box,"Neprï¿½chozï¿½ nestï¿½rou");c_default(1);
+  define(120,15,148,160,10,0,check_box,"Nelze prohodit vï¿½c");c_default(1);
+  define(130,15,160,160,10,0,check_box,"Zvukotï¿½snï¿½");c_default(1);
+  define(100,15,172,160,10,0,check_box,"Neprï¿½hlednï¿½");c_default(1);
+  define(-1,10,190,190,12,0,label,"Kdyï¿½ jsou dveï¿½e otevï¿½enï¿½");
+  define(190,15,202,160,10,0,check_box,"Neprï¿½chozï¿½ hrï¿½ï¿½em");c_default(0);
+  define(160,15,214,160,10,0,check_box,"Neprï¿½chozï¿½ nestï¿½rou");c_default(0);
+  define(170,15,226,160,10,0,check_box,"Nelze prohodit vï¿½c");c_default(0);
+  define(180,15,238,160,10,0,check_box,"Zvukotï¿½snï¿½");c_default(0);
+  define(150,15,250,160,10,0,check_box,"Neprï¿½hlednï¿½");c_default(0);
+  define(200,10,190,160,12,1,check_box,"Otevï¿½ï¿½t po startu");c_default(0);on_control_change(remote_acces);
   define(-1,10,210,160,12,1,label,"Lclip:");property(&b3,NULL,NULL,WINCOLOR);
   define(210,10,210,50,12,1,input_line,10,1,75,"%6d");property(&b2,NULL,NULL,WINCOLOR);
    set_default(strs(1));on_exit(test_int);
@@ -274,8 +274,8 @@ void crt_oblouky()
   define(10,5,32,130,12,0,str_line,oblouky);property(&b2,NULL,NULL,WINCOLOR);c_default(0);
   on_enter(string_list_sup);
   define(20,5,45,100,10,0,check_box,"V rozich pouze");c_default(v_rozich);
-  define(30,5,5,60,20,3,button,"Ok");on_change(terminate);
-  define(40,5,5,60,20,2,button,"Zru¨it");on_change(terminate);
+  define(30,5,5,60,20,3,button,"Ok");on_control_change(terminate_gui);
+  define(40,5,5,60,20,2,button,"Zruï¿½it");on_control_change(terminate_gui);
   redraw_window();
   escape();
   if (o_aktual->id==30)
@@ -320,11 +320,11 @@ void crt_oblouky()
 
 static void local_monsters_warning()
   {
-  char *c="Lok ln¡ nestv–ry";
+  char *c="Lokï¿½lnï¿½ nestvï¿½ry";
   if (f_get_value(0,96))
-     msg_box(c,'\x1',"Zapnut¡m t‚to volby zajist¡te, ‘e seznam nestv–r se bude ukl dat do souboru mapy, nikoliv do ENEMIES.DAT. Parametry nestv–r budou platit pouze pro tuto mapu","Ok",NULL);
+     msg_box(c,'\x1',"Zapnutï¿½m tï¿½to volby zajistï¿½te, ï¿½e seznam nestvï¿½r se bude uklï¿½dat do souboru mapy, nikoliv do ENEMIES.DAT. Parametry nestvï¿½r budou platit pouze pro tuto mapu","Ok",NULL);
   else
-     msg_box(c,'\x1',"Vypnut¡m t‚to volby m–‘ete o nˆkter‚ nestv–ry p©ij¡t!","Ok",NULL);
+     msg_box(c,'\x1',"Vypnutï¿½m tï¿½to volby mï¿½ï¿½ete o nï¿½kterï¿½ nestvï¿½ry pï¿½ijï¿½t!","Ok",NULL);
   }
 
 static void zabezpecit()
@@ -332,7 +332,7 @@ static void zabezpecit()
   int i,j;
   char text[50],verify[50];
 
-  j=msg_box("Zabezpe‡en¡",2,"Zabezbe‡it lze mapu, nebo v¨echny datov‚ soubory. Kter‚ heslo chce‡ zmˆnit?","Mapu","Data","Zpˆt",NULL);
+  j=msg_box("Zabezpeï¿½enï¿½",2,"Zabezbeï¿½it lze mapu, nebo vï¿½echny datovï¿½ soubory. Kterï¿½ heslo chceï¿½ zmï¿½nit?","Mapu","Data","Zpï¿½t",NULL);
   if (j==3) return;
   if (j==2) if (check_data_password()==0) return;
             else strcpy(text,set_data_password(NULL));
@@ -346,7 +346,7 @@ static void zabezpecit()
           {
           if (j==1) set_password(text);else set_data_password(text);
           }
-       else msg_box("Nejsou schodn ",1,"Kontrola nesouhlasila. Heslo nebylo zmˆnˆno!","Ok",NULL);
+       else msg_box("Nejsou schodnï¿½",1,"Kontrola nesouhlasila. Heslo nebylo zmï¿½nï¿½no!","Ok",NULL);
       }
   }
 
@@ -360,17 +360,17 @@ void preference()
   memcpy(&b3,def_border(6,WINCOLOR),sizeof(CTL3D));
   default_font=vga_font;
   memcpy(f_default,flat_color(0x0000),sizeof(charcolors));
-  def_dialoge(100,50,350,290,"Globaln¡ volby mapy");
-  define(-1,10,25,150,12,0,label,"Pozad¡ sever:");
-  define(-1,10,45,150,12,0,label,"Pozad¡ v˜chod:");
-  define(-1,10,65,150,12,0,label,"Pozad¡ jih:");
-  define(-1,10,85,150,12,0,label,"Pozad¡ zapad:");
-  define(-1,10,105,150,12,0,label,"Barva ‡erven :");
+  def_dialoge(100,50,350,290,"Globalnï¿½ volby mapy");
+  define(-1,10,25,150,12,0,label,"Pozadï¿½ sever:");
+  define(-1,10,45,150,12,0,label,"Pozadï¿½ vï¿½chod:");
+  define(-1,10,65,150,12,0,label,"Pozadï¿½ jih:");
+  define(-1,10,85,150,12,0,label,"Pozadï¿½ zapad:");
+  define(-1,10,105,150,12,0,label,"Barva ï¿½ervenï¿½:");
   define(-1,10,125,150,12,0,label,"Barva zelena:");
   define(-1,10,145,150,12,0,label,"Barva modra:");
   define(-1,10,165,150,12,0,label,"Start:");
-  define(-1,10,185,150,12,0,label,"Start smˆr:");
-  define(-1,10,25,150,12,3,label,"Jm‚no urovnˆ:");
+  define(-1,10,185,150,12,0,label,"Start smï¿½r:");
+  define(-1,10,25,150,12,3,label,"Jmï¿½no urovnï¿½:");
   for(i=0;i<4;i++)
      {
      define(10+10*i,150,25+20*i,100,15,0,input_line,12);set_default(mglob.back_fnames[i]);
@@ -386,20 +386,20 @@ void preference()
      property(&b3,NULL,NULL,WINCOLOR);on_exit(test_int);
   define(90,150,185,100,60,0,radio_butts,4,
                              "Sever",
-                             "V˜chod",
+                             "Vï¿½chod",
                              "Jih",
-                             "Z pad");c_default(mglob.direction);
+                             "Zï¿½pad");c_default(mglob.direction);
   define(95,210,105,100,60,0,radio_butts,5,
-                             "Normaln¡",
-                             "Sopka (‘ r)",
-                             "Ledov‚ j.(mr z)",
+                             "Normalnï¿½",
+                             "Sopka (ï¿½ï¿½r)",
+                             "Ledovï¿½ j.(mrï¿½z)",
                              "Pod vodou",
-                             "Mˆsto");c_default(mglob.map_effector);
-  define(96,210,165,100,10,0,check_box,"Lok ln¡ nestv–ry");c_default(mglob.local_monsters);on_change(local_monsters_warning);
-  define(97,210,180,100,10,0,check_box,"Autom.st¡nuj p&s");c_default(mglob.map_autofadefc);
-  define(CANCEL_BUTT,10,10,80,20,2,button,"Zru¨it");on_change(terminate);
-  define(OK_BUTT,10,35,80,20,2,button,"Ok");on_change(terminate);
-  define(110,10,60,100,20,2,button,"Zabezpe‡en¡>>");on_change(zabezpecit);
+                             "Mï¿½sto");c_default(mglob.map_effector);
+  define(96,210,165,100,10,0,check_box,"Lokï¿½lnï¿½ nestvï¿½ry");c_default(mglob.local_monsters);on_control_change(local_monsters_warning);
+  define(97,210,180,100,10,0,check_box,"Autom.stï¿½nuj p&s");c_default(mglob.map_autofadefc);
+  define(CANCEL_BUTT,10,10,80,20,2,button,"Zruï¿½it");on_control_change(terminate_gui);
+  define(OK_BUTT,10,35,80,20,2,button,"Ok");on_control_change(terminate_gui);
+  define(110,10,60,100,20,2,button,"Zabezpeï¿½enï¿½>>");on_control_change(zabezpecit);
   define(100,10,10,200,11,3,input_line,29);set_default(mglob.mapname);
   property(&b3,NULL,NULL,WINCOLOR);
   redraw_window();
@@ -523,16 +523,16 @@ void open_blok_window()
 
   def_dialoge(400,100,200,200,"Bloky");
   define(50,10,20,100,10,0,check_box,"Na Okraji");c_default(0);
-  define(60,10,32,100,10,0,check_box,"Vnˆ");c_default(0);
+  define(60,10,32,100,10,0,check_box,"Vnï¿½");c_default(0);
   define(10,10,44,100,10,0,check_box,"Na severu");c_default(1);
-  define(20,10,56,100,10,0,check_box,"Na v˜chodˆ");c_default(1);
+  define(20,10,56,100,10,0,check_box,"Na vï¿½chodï¿½");c_default(1);
   define(30,10,68,100,10,0,check_box,"Na jihu");c_default(1);
-  define(40,10,80,100,10,0,check_box,"Na z padˆ");c_default(1);
+  define(40,10,80,100,10,0,check_box,"Na zï¿½padï¿½");c_default(1);
   define(-1,10,100,1,1,0,label,"Zap Vyp");
-  define(100,40,112,150,10,0,check_box,"Pr–hlednost");c_default(0);
-  define(110,40,124,150,10,0,check_box,"Dva druhy stˆn");c_default(0);
-  define(120,40,136,150,10,0,check_box,"Tajn‚ stˆny");c_default(0);
-  define(130,40,148,150,10,0,check_box,"Prim. viditeln ");c_default(0);
+  define(100,40,112,150,10,0,check_box,"Prï¿½hlednost");c_default(0);
+  define(110,40,124,150,10,0,check_box,"Dva druhy stï¿½n");c_default(0);
+  define(120,40,136,150,10,0,check_box,"Tajnï¿½ stï¿½ny");c_default(0);
+  define(130,40,148,150,10,0,check_box,"Prim. viditelnï¿½");c_default(0);
   define(140,40,160,150,10,0,check_box,"Prim. animace");c_default(0);
   define(200,40,172,30,30,0,radio_butts,3,"-","\x4","\x6");property(NULL,icones,NULL,WINCOLOR);c_default(0);
   define(101,25,112,10,10,0,check_box,"");c_default(0);
@@ -541,7 +541,7 @@ void open_blok_window()
   define(131,25,148,10,10,0,check_box,"");c_default(0);
   define(141,25,160,10,10,0,check_box,"");c_default(0);
   define(151,25,172,10,10,0,check_box,"");c_default(0);
-  define(OK_BUTT,5,5,80,20,2,button,"Ok");on_change(terminate);
+  define(OK_BUTT,5,5,80,20,2,button,"Ok");on_control_change(terminate_gui);
   redraw_window();
   escape();
   on_flags=off_flags=depth=where=0;
@@ -598,9 +598,9 @@ static void build_stairs()
               mapa.sidedef[target][dir2].flags&=~0x3;
               txtp1=sect;txtp2=target;
               }
-           else error="Nelze vytvo©it schody na tento c¡lovy sektor";
-        else error="Nelze vytvo©it schody t¡mto smˆrem. V˜chod u‘ existuje";
-     else error="P©¡m‚ spojen¡ lze tvo©it jen \"Na sektor\"";
+           else error="Nelze vytvoï¿½it schody na tento cï¿½lovy sektor";
+        else error="Nelze vytvoï¿½it schody tï¿½mto smï¿½rem. Vï¿½chod uï¿½ existuje";
+     else error="Pï¿½ï¿½mï¿½ spojenï¿½ lze tvoï¿½it jen \"Na sektor\"";
   else if (type!=2)
      if ((txtp1=mapa.sectordef[sect].step_next[dir2]))
         {
@@ -619,7 +619,7 @@ static void build_stairs()
               {
               txtp2=target;
               if (!(txtp2=mapa.sectordef[target].step_next[dir1]))
-                 if ((txtp2=add_sector(x+smery[dir1][0],y+smery[dir1][1],tlayer,0))<1) error="Nen¡ m¡sto pro sektor!";
+                 if ((txtp2=add_sector(x+smery[dir1][0],y+smery[dir1][1],tlayer,0))<1) error="Nenï¿½ mï¿½sto pro sektor!";
                  else wire_sector(txtp2);
               wire_sector(target);
               mapa.sectordef[sect].sector_tag=txtp2;
@@ -627,11 +627,11 @@ static void build_stairs()
               mapa.sectordef[target].sector_tag=txtp1;
               mapa.sectordef[target].sector_type=2;
               }
-           else error="Nen¡ m¡sto pro sektor!";
+           else error="Nenï¿½ mï¿½sto pro sektor!";
            }
-        else error="V c¡lov‚m pat©e nen¡ m¡sto pro sektor";
+        else error="V cï¿½lovï¿½m patï¿½e nenï¿½ mï¿½sto pro sektor";
         }
-     else error="Z toho sektoru nelze t¡mto smˆrem vytvo©it schody";
+     else error="Z toho sektoru nelze tï¿½mto smï¿½rem vytvoï¿½it schody";
   else
      if ((txtp1=mapa.sectordef[sect].step_next[dir2]))
         if ((txtp2=mapa.sectordef[target].step_next[dir1]))
@@ -641,8 +641,8 @@ static void build_stairs()
            mapa.sectordef[target].sector_tag=txtp1;
            mapa.sectordef[target].sector_type=2;
            }
-        else error="Cilov˜ sektor m  chybnˆ orientovan‚ v˜chody";
-     else error="Nelze vytvo©it schody po‘adovan˜m smˆrem";
+        else error="Cilovï¿½ sektor mï¿½ chybnï¿½ orientovanï¿½ vï¿½chody";
+     else error="Nelze vytvoï¿½it schody poï¿½adovanï¿½m smï¿½rem";
   if (error!=NULL)
      {
      msg_box("Stairs Wizard:",'\x1',error,"Ok",NULL);
@@ -669,7 +669,7 @@ static void build_stairs()
   mapa.sidedef[txtp2][dir2].flags&=~SD_DOUBLE_SIDE;
   if (anim1) mapa.sidedef[txtp1][dir1].flags|=0x100;
   if (anim2) mapa.sidedef[txtp2][dir2].flags|=0x100;
-  terminate();
+  terminate_gui();
   }
 
 static void schody(void)
@@ -678,7 +678,7 @@ static void schody(void)
   CTL3D b1,b2,b3;
   if (count_of_sel()!=1)
      {
-     msg_box("Stairs Wizard:",'\x1',"Mus¡¨ ozna‡it pouze jeden sektor!","Ok",NULL);
+     msg_box("Stairs Wizard:",'\x1',"Musï¿½ï¿½ oznaï¿½it pouze jeden sektor!","Ok",NULL);
      return;
      }
   for (i=0;i<maplen;i++) if (minfo[i].flags & 1) break;
@@ -688,36 +688,36 @@ static void schody(void)
   default_font=vga_font;
   memcpy(f_default,flat_color(0x0000),sizeof(charcolors));
   def_dialoge(100,50,400,300,"Stairs Wizard");
-  define(CANCEL_BUTT,10,5,80,20,2,button,"Zru¨it");property(&b1,NULL,NULL,WINCOLOR);
-    on_change(terminate);
+  define(CANCEL_BUTT,10,5,80,20,2,button,"Zruï¿½it");property(&b1,NULL,NULL,WINCOLOR);
+    on_control_change(terminate_gui);
   define(OK_BUTT,190,5,80,20,2,button,"Ok");property(&b1,NULL,NULL,WINCOLOR);
-    on_change(build_stairs);
-  define(10,5,20,192,35,0,label,"Tady:     Po‡et okenek:");property(&b3,NULL,NULL,WINCOLOR);
+    on_control_change(build_stairs);
+  define(10,5,20,192,35,0,label,"Tady:     Poï¿½et okenek:");property(&b3,NULL,NULL,WINCOLOR);
   define(20,10,35,90,12,0,str_line,side_names);property(&b2,NULL,NULL,WINCOLOR);c_default(0);
     on_enter(string_list_sup);
   define(30,120,35,50,12,0,input_line,10,1,16,"%6d");property(&b2,NULL,NULL,WINCOLOR);
    set_default(strs(1));on_exit(test_int);
-  define(40,5,60,192,35,0,label,"Tam:      Po‡et okenek:");property(&b3,NULL,NULL,WINCOLOR);
+  define(40,5,60,192,35,0,label,"Tam:      Poï¿½et okenek:");property(&b3,NULL,NULL,WINCOLOR);
   define(50,10,75,90,12,0,str_line,side_names);property(&b2,NULL,NULL,WINCOLOR);c_default(0);
     on_enter(string_list_sup);
   define(60,120,75,50,12,0,input_line,10,1,16,"%6d");property(&b2,NULL,NULL,WINCOLOR);
    set_default(strs(1));on_exit(test_int);
-  define(-1,220,20,100,10,0,label,"Vytvo©it schody na:");
+  define(-1,220,20,100,10,0,label,"Vytvoï¿½it schody na:");
   define(70,220,35,100,60,0,radio_butts,4,
                              "Severu",
-                             "V˜chodu",
+                             "Vï¿½chodu",
                              "Jihu",
-                             "Z padu");c_default(0);
+                             "Zï¿½padu");c_default(0);
   define(-1,5,100,390,160,0,label,"Detaily:");property(&b3,NULL,NULL,WINCOLOR);
   define(-1,200,110,0,140,0,label,""); property(&b2,NULL,NULL,WINCOLOR);
   define(-1,10,112,180,12,1,label,"Schody povedou:");
   define(80,10,124,160,40,1,radio_butts,3,"Nahoru",
                                           "Dolu",
                                           "Na sektor");c_default(2);
-  define(-1,10,112,180,12,0,label,"€¡slo sektoru:");
+  define(-1,10,112,180,12,0,label,"ï¿½ï¿½slo sektoru:");
   define(90,130,112,50,12,0,input_line,10,1,maplen,"%6d");property(&b2,NULL,NULL,WINCOLOR);
    set_default(strs(1));on_exit(test_int);
-  define(100,10,130,180,10,0,check_box,"P©¡m‚ spojen¡");c_default(0);
+  define(100,10,130,180,10,0,check_box,"Pï¿½ï¿½mï¿½ spojenï¿½");c_default(0);
   define(300,0,0,0,0,0,value_store,4);c_default(i);
   redraw_window();
   escape();
@@ -741,19 +741,19 @@ static void vyber(void)
   default_font=vga_font;
   memcpy(f_default,flat_color(0x0000),sizeof(charcolors));
   def_dialoge(100,50,300,200,"Vyber podle kriterii");
-  define(CANCEL_BUTT,10,5,80,20,2,button,"Zru¨it");property(&b1,NULL,NULL,WINCOLOR);
-    on_change(terminate);
+  define(CANCEL_BUTT,10,5,80,20,2,button,"Zruï¿½it");property(&b1,NULL,NULL,WINCOLOR);
+    on_control_change(terminate_gui);
   define(OK_BUTT,100,5,80,20,2,button,"Ok");property(&b1,NULL,NULL,WINCOLOR);
-    on_change(terminate);
-  define(-1,10,20,60,10,0,label,"Vyber stˆnu kterou chce¨ ozna‡it:");
-  define(400,10,40,100,10,0,check_box,"Severn¡");c_default(0);
-  define(410,10,55,100,10,0,check_box,"V˜chodn¡");c_default(0);
-  define(420,10,70,100,10,0,check_box,"Ji‘n¡");c_default(0);
-  define(430,10,85,100,10,0,check_box,"Z padn¡");c_default(0);
-  define(440,10,100,200,10,0,check_box,"Podle prim rn¡ stˆny");c_default(0);
+    on_control_change(terminate_gui);
+  define(-1,10,20,60,10,0,label,"Vyber stï¿½nu kterou chceï¿½ oznaï¿½it:");
+  define(400,10,40,100,10,0,check_box,"Severnï¿½");c_default(0);
+  define(410,10,55,100,10,0,check_box,"Vï¿½chodnï¿½");c_default(0);
+  define(420,10,70,100,10,0,check_box,"Jiï¿½nï¿½");c_default(0);
+  define(430,10,85,100,10,0,check_box,"Zï¿½padnï¿½");c_default(0);
+  define(440,10,100,200,10,0,check_box,"Podle primï¿½rnï¿½ stï¿½ny");c_default(0);
   define(20,10,115,200,12,0,str_line,side_names);property(&b2,NULL,NULL,WINCOLOR);c_default(0);
     on_enter(string_list_sup);
-  define(450,10,130,200,10,0,check_box,"Podle sekund rn¡ stˆny");c_default(0);
+  define(450,10,130,200,10,0,check_box,"Podle sekundï¿½rnï¿½ stï¿½ny");c_default(0);
   define(30,10,145,200,12,0,str_line,side_names);property(&b2,NULL,NULL,WINCOLOR);c_default(0);
     on_enter(string_list_sup);
   redraw_window();
@@ -785,8 +785,8 @@ static void vyber(void)
 
   /*
   int s;
-  int i=msg_box("V˜bˆr",2,"Zvol jeden ze ‡ty© filtr– vybˆru nebo akci zru¨ klepnut¡m na Zru¨it",
-     "Sever","V˜chod","Jih","Z pad","Zru¨it",NULL);
+  int i=msg_box("Vï¿½bï¿½r",2,"Zvol jeden ze ï¿½tyï¿½ filtrï¿½ vybï¿½ru nebo akci zruï¿½ klepnutï¿½m na Zruï¿½it",
+     "Sever","Vï¿½chod","Jih","Zï¿½pad","Zruï¿½it",NULL);
   if (i==5) return;
   i--;
   for(s=1;s<maplen;s++)
@@ -807,15 +807,15 @@ void open_wiz_tool(void)
   memcpy(&f_sel,flat_color(RGB555(0,0,23)),sizeof(charcolors));
   wiz_tool_numb=def_window(120,200,"Map Wizard");
   waktual->y=2;waktual->x=SCR_WIDTH_X-120-3;
-  on_change(close_wiz_tool);
-  define(10,10,25,100,19,0,button2,"Dve©e");on_change(create_door);
-  define(10,10,45,100,19,0,button2,"Oblouky");on_change(crt_oblouky);
-  define(10,10,65,100,19,0,button2,"Schody");on_change(schody);
-  define(10,10,85,100,19,0,button2,"Globalnˆ");on_change(preference);
-  define(10,10,105,100,19,0,button2,"Bloky");on_change(open_blok_window);
-  define(10,10,125,100,19,0,button2,"Multiakce");on_change(open_multiaction_window);
-  define(10,10,145,100,19,0,button2,"P©edvolba");on_change(predvolba);
-  define(10,10,165,100,19,0,button2,"V˜bˆr");on_change(vyber);
+  on_control_change(close_wiz_tool);
+  define(10,10,25,100,19,0,button2,"Dveï¿½e");on_control_change(create_door);
+  define(10,10,45,100,19,0,button2,"Oblouky");on_control_change(crt_oblouky);
+  define(10,10,65,100,19,0,button2,"Schody");on_control_change(schody);
+  define(10,10,85,100,19,0,button2,"Globalnï¿½");on_control_change(preference);
+  define(10,10,105,100,19,0,button2,"Bloky");on_control_change(open_blok_window);
+  define(10,10,125,100,19,0,button2,"Multiakce");on_control_change(open_multiaction_window);
+  define(10,10,145,100,19,0,button2,"Pï¿½edvolba");on_control_change(predvolba);
+  define(10,10,165,100,19,0,button2,"Vï¿½bï¿½r");on_control_change(vyber);
   }
   else
   {
@@ -1064,7 +1064,7 @@ opakuj:
   l=read_directory(pathname,DIR_BREIF,_A_NORMAL);
   if (l==NULL && default_ext)
      {
-     msg_box("Browser",'\x1',"Funkce read_directory() vratila chybu. Adres © je pr zdn˜ nebo je nedostatek pamˆti","Ok",NULL);
+     msg_box("Browser",'\x1',"Funkce read_directory() vratila chybu. Adresï¿½ï¿½ je prï¿½zdnï¿½ nebo je nedostatek pamï¿½ti","Ok",NULL);
      return;
      }
   default_font=vga_font;
@@ -1105,24 +1105,24 @@ opakuj:
 
 void add_ma_flags(int start,int x,int y,TMULTI_ACTION *p)
   {
-  define(-1,x,y,1,1,0,label,"Podm¡nky");
+  define(-1,x,y,1,1,0,label,"Podmï¿½nky");
   define(start+0,x+25,y+15,140,10,0,check_box,"Cancel program");c_default(p->general.cancel);
-  define(start+1,x+25,y+27,140,10,0,check_box,"Jedenkr t");c_default(p->general.once);
-  define(start+2,x+25,y+39,140,10,0,check_box,"—spˆ¨n˜ pr–chod");c_default(p->general.ps);
-  define(start+3,x+25,y+51,140,10,0,check_box,"Ne£spˆ¨n˜ pr–chod");c_default(p->general.pf);
-  define(start+4,x+25,y+63,140,10,0,check_box,"—spˆ¨n˜ dotyk");c_default(p->general.ts);
-  define(start+5,x+25,y+75,140,10,0,check_box,"Ne£spˆ¨n˜ dotyk");c_default(p->general.tf);
-  define(start+6,x+25,y+87,140,10,0,check_box,"Informace o z mku");c_default(p->general.li);
-  define(start+7,x+25,y+99,140,10,0,check_box,"P©ed odchodem");c_default(p->general.ul);
-  define(start+8,x+25,y+111,140,10,0,check_box,"P©i p©¡chodu akce");c_default(p->general.ia);
-  define(start+9,x+25,y+123,140,10,0,check_box,"P©i startu levelu");c_default(p->general.sp);
-  define(start+10,x+25,y+135,140,10,0,check_box,"P©i uzav©en¡ dve©¡");c_default(p->general.as);
-  define(start+11,x+25,y+147,140,10,0,check_box,"Ka‘de anim.pol¡‡ko");c_default(p->general.am);
-  define(start+12,x+25,y+159,140,10,0,check_box,"Ka‘de druh‚ a.p.");c_default(p->general.a2);
-  define(start+13,x+25,y+171,140,10,0,check_box,"P©i proveden¡ akce");c_default(p->general.pa);
-  define(start+14,x+25,y+183,140,10,0,check_box,"—spˆ¨n‚ SpecProc");c_default(p->general.us);
-  define(start+15,x+25,y+195,140,10,0,check_box,"P©i otev©en¡ dve©¡");c_default(p->general.od);
-  define(start+16,x+25,y+207,140,10,0,check_box,"Ud lost v˜klenku");c_default(p->general.vy);
+  define(start+1,x+25,y+27,140,10,0,check_box,"Jedenkrï¿½t");c_default(p->general.once);
+  define(start+2,x+25,y+39,140,10,0,check_box,"ï¿½spï¿½ï¿½nï¿½ prï¿½chod");c_default(p->general.ps);
+  define(start+3,x+25,y+51,140,10,0,check_box,"Neï¿½spï¿½ï¿½nï¿½ prï¿½chod");c_default(p->general.pf);
+  define(start+4,x+25,y+63,140,10,0,check_box,"ï¿½spï¿½ï¿½nï¿½ dotyk");c_default(p->general.ts);
+  define(start+5,x+25,y+75,140,10,0,check_box,"Neï¿½spï¿½ï¿½nï¿½ dotyk");c_default(p->general.tf);
+  define(start+6,x+25,y+87,140,10,0,check_box,"Informace o zï¿½mku");c_default(p->general.li);
+  define(start+7,x+25,y+99,140,10,0,check_box,"Pï¿½ed odchodem");c_default(p->general.ul);
+  define(start+8,x+25,y+111,140,10,0,check_box,"Pï¿½i pï¿½ï¿½chodu akce");c_default(p->general.ia);
+  define(start+9,x+25,y+123,140,10,0,check_box,"Pï¿½i startu levelu");c_default(p->general.sp);
+  define(start+10,x+25,y+135,140,10,0,check_box,"Pï¿½i uzavï¿½enï¿½ dveï¿½ï¿½");c_default(p->general.as);
+  define(start+11,x+25,y+147,140,10,0,check_box,"Kaï¿½de anim.polï¿½ï¿½ko");c_default(p->general.am);
+  define(start+12,x+25,y+159,140,10,0,check_box,"Kaï¿½de druhï¿½ a.p.");c_default(p->general.a2);
+  define(start+13,x+25,y+171,140,10,0,check_box,"Pï¿½i provedenï¿½ akce");c_default(p->general.pa);
+  define(start+14,x+25,y+183,140,10,0,check_box,"ï¿½spï¿½ï¿½nï¿½ SpecProc");c_default(p->general.us);
+  define(start+15,x+25,y+195,140,10,0,check_box,"Pï¿½i otevï¿½enï¿½ dveï¿½ï¿½");c_default(p->general.od);
+  define(start+16,x+25,y+207,140,10,0,check_box,"Udï¿½lost vï¿½klenku");c_default(p->general.vy);
   }
 
 void read_ma_flags(int start,TMULTI_ACTION *p)
@@ -1201,9 +1201,9 @@ void tma_sound_update()
         sprintf(c,"%6d",0);set_value(0,60,c);
         c_set_value(0,100,fmt.freq!=fmt.bps);
         }
-     else msg_box("Nespr vn˜ WAV",'\x1',"Do hry lze vlo‘it jen WAV ve formatu PCM mono!","Ok",NULL);
+     else msg_box("Nesprï¿½vnï¿½ WAV",'\x1',"Do hry lze vloï¿½it jen WAV ve formatu PCM mono!","Ok",NULL);
      }
-  else msg_box("Chybn˜ soubor WAV",'\x1',"Tento soubor neobsahuje platn˜ format pro WAV","Ok",NULL);
+  else msg_box("Chybnï¿½ soubor WAV",'\x1',"Tento soubor neobsahuje platnï¿½ format pro WAV","Ok",NULL);
   free(riff);
   }
 
@@ -1260,12 +1260,12 @@ void play_wav(va_list args)
               ofs=z[2];
               if (endloop>samplesize)
                  {
-                 msg_box("Pozor",'\x1',"Konec opakov n¡ le‘¡ za koncem souboru!","Ok",NULL);
+                 msg_box("Pozor",'\x1',"Konec opakovï¿½nï¿½ leï¿½ï¿½ za koncem souboru!","Ok",NULL);
                  endloop=samplesize;
                  }
               if (startloop>endloop)
                  {
-                 msg_box("Pozor",'\x1',"Za‡ tek opakov n¡ le‘¡ ZA jeho koncem!","Ok",NULL);
+                 msg_box("Pozor",'\x1',"Zaï¿½ï¿½tek opakovï¿½nï¿½ leï¿½ï¿½ ZA jeho koncem!","Ok",NULL);
                  startloop=endloop;
                  }
               }
@@ -1375,19 +1375,19 @@ void tma_sound(TMULTI_ACTION *q)
   memcpy(&b3,def_border(6,WINCOLOR),sizeof(CTL3D));
   default_font=vga_font;
   memcpy(f_default,flat_color(0x0000),sizeof(charcolors));
-  def_dialoge(100,50,350,390,"Editor zvukov˜ch efekt–");
+  def_dialoge(100,50,350,390,"Editor zvukovï¿½ch efektï¿½");
   concat(c,sample_path,"*.wav");
   list=read_directory(c,DIR_BREIF,_A_NORMAL);
   read_ddl_list_wav(&list);
   define(9,10,20,200,126,0,listbox,list,RGB555(31,31,31),0);
-  property(&b3,NULL,NULL,WINCOLOR);c_default(0);on_change(tma_sound_preview);
+  property(&b3,NULL,NULL,WINCOLOR);c_default(0);on_control_change(tma_sound_preview);
   define(10,217,40,19,87,0,scroll_bar_v,0,10,1,SCROLLBARCOL);
   property(&b2,NULL,NULL,WINCOLOR);
   define(11,216,20,21,17,0,scroll_button,-1,0,"\x1e");
-  property(NULL,icones,NULL,WINCOLOR);on_change(scroll_support);
+  property(NULL,icones,NULL,WINCOLOR);on_control_change(scroll_support);
   define(12,216,130,21,17,0,scroll_button,1,10,"\x1f");
-  property(NULL,icones,NULL,WINCOLOR);on_change(scroll_support);
-  define(-1,10,160,100,11,0,label,"Jm‚no:");
+  property(NULL,icones,NULL,WINCOLOR);on_control_change(scroll_support);
+  define(-1,10,160,100,11,0,label,"Jmï¿½no:");
   define(-1,10,175,100,11,0,label,"freq[Hz]:");
   define(-1,10,190,100,11,0,label,"StartLoop:");
   define(-1,10,205,100,11,0,label,"EndLoop:");
@@ -1409,21 +1409,21 @@ void tma_sound(TMULTI_ACTION *q)
   define(80,90,250,70,11,0,input_line,7,0,100,"%6d");on_exit(test_int);
   property(&b2,NULL,NULL,WINCOLOR);set_default(strs(q->sound.soundid));
   define(100,20,265,100,11,0,check_box,"16Bit");c_default(q->sound.bit16 & 1);
-  define(110,20,277,100,11,0,check_box,"Zaka‘ p©i otev¡r n¡");c_default((q->sound.bit16 & 2)>>1);
-  define(120,20,290,100,11,0,check_box,"Zaka‘ p©i zav¡r n¡");c_default((q->sound.bit16 & 4)>>2);
-  define(130,20,302,100,11,0,check_box,"N hodn‚ stereo");c_default((q->sound.bit16 & 8)>>3);
+  define(110,20,277,100,11,0,check_box,"Zakaï¿½ pï¿½i otevï¿½rï¿½nï¿½");c_default((q->sound.bit16 & 2)>>1);
+  define(120,20,290,100,11,0,check_box,"Zakaï¿½ pï¿½i zavï¿½rï¿½nï¿½");c_default((q->sound.bit16 & 4)>>2);
+  define(130,20,302,100,11,0,check_box,"Nï¿½hodnï¿½ stereo");c_default((q->sound.bit16 & 8)>>3);
   define(290,5,80,100,11,1,check_box,"Preview");c_default(preview);
-  define(295,5,92,100,11,1,check_box,"AutoUpdate");c_default(autoupdate);on_change(tma_sound_autoupdate);
+  define(295,5,92,100,11,1,check_box,"AutoUpdate");c_default(autoupdate);on_control_change(tma_sound_autoupdate);
   define(300,5,20,100,20,1,button,"Ok");property(&b1,NULL,NULL,WINCOLOR);
-   on_change(terminate);
+   on_control_change(terminate_gui);
   define(310,5,45,100,20,1,button,"Zrusit");property(&b1,NULL,NULL,WINCOLOR);
-   on_change(terminate);
+   on_control_change(terminate_gui);
   define(320,5,160,100,20,1,button,"<< Update");property(&b1,NULL,NULL,WINCOLOR);
-   on_change(tma_sound_update);
+   on_control_change(tma_sound_update);
   define(330,5,135,45,20,1,button,"");property(&b1,NULL,NULL,WINCOLOR);
-   on_change(tma_sound_test);
+   on_control_change(tma_sound_test);
   define(340,60,135,45,20,1,button,"");property(&b1,NULL,NULL,WINCOLOR);
-   on_change(tma_sound_stop);
+   on_control_change(tma_sound_stop);
   add_ma_flags(400,165,175,q);
   redraw_desktop();
   set_enable(0,320,!autoupdate);
@@ -1613,7 +1613,7 @@ void tma_fireball(TMULTI_ACTION *p)
      p->fireball.speed=speed;
      new=1;
      }
-  define(-1,5,20,1,1,0,label,"Vyst©elen  vˆc:");
+  define(-1,5,20,1,1,0,label,"Vystï¿½elenï¿½ vï¿½c:");
   define(-1,5,35,1,1,0,label,"Xpoz <-63,63>:");
   define(-1,5,50,1,1,0,label,"Ypoz <0,499>:");
   define(-1,5,65,1,1,0,label,"Zpoz <0,319>:");
@@ -1631,8 +1631,8 @@ void tma_fireball(TMULTI_ACTION *p)
   define(50,150,80,60,12,0,input_line,3,0,319,"%3d");property(b1,NULL,NULL,WINCOLOR);
   set_default(strs(p->fireball.speed));on_exit(test_int);
   b1=def_border(1,0);
-  define(60,10,10,80,20,2,button,"Zru¨it");property(b1,NULL,NULL,WINCOLOR);on_change(terminate);
-  define(70,10,35,80,20,2,button,"Ok");property(b1,NULL,NULL,WINCOLOR);on_change(terminate);
+  define(60,10,10,80,20,2,button,"Zruï¿½it");property(b1,NULL,NULL,WINCOLOR);on_control_change(terminate_gui);
+  define(70,10,35,80,20,2,button,"Ok");property(b1,NULL,NULL,WINCOLOR);on_control_change(terminate_gui);
   redraw_window();
   escape();
   if (o_aktual->id==70)
@@ -1665,25 +1665,25 @@ void tma_send(TMULTI_ACTION *q)
   b1=def_border(5,WINCOLOR);
   define(10,80,20,60,12,0,input_line,5,0,maplen,"%5d");on_exit(test_int);
   property(b1,NULL,NULL,WINCOLOR);set_default(strs(q->send_a.sector));
-  define(-1,5,37,1,1,0,label,"Stˆna:");
+  define(-1,5,37,1,1,0,label,"Stï¿½na:");
   define(20,80,35,100,12,0,str_line,steny2);on_enter(string_list_sup);
   property(b1,NULL,NULL,WINCOLOR);c_default(q->send_a.side);
   define(-1,5,52,1,1,0,label,"Akce:");
   define(30,80,50,150,12,0,str_line,actions);on_enter(string_list_sup);
   property(b1,NULL,NULL,WINCOLOR);c_default(q->send_a.s_action);
-  define(-1,5,67,1,1,0,label,"Zpo‘dˆn¡:");
+  define(-1,5,67,1,1,0,label,"Zpoï¿½dï¿½nï¿½:");
   define(40,80,65,60,12,0,input_line,5,0,255,"%5d");on_exit(test_int);
   property(b1,NULL,NULL,WINCOLOR);set_default(strs(q->send_a.delay));
-  define(110,10,90,200,10,0,check_box,"Zmˆna automapingu");
-  define(120,10,102,200,10,0,check_box,"Zmˆna pr–chodnosti(hr ‡)");
-  define(130,10,114,200,10,0,check_box,"Zmˆna pr–chodnosti(nestv–ra)");
-  define(140,10,126,200,10,0,check_box,"Zmˆna pr–chodnosti(vˆc)");
-  define(150,10,138,200,10,0,check_box,"Zmˆna pr–chodnosti(zvuk)");
+  define(110,10,90,200,10,0,check_box,"Zmï¿½na automapingu");
+  define(120,10,102,200,10,0,check_box,"Zmï¿½na prï¿½chodnosti(hrï¿½ï¿½)");
+  define(130,10,114,200,10,0,check_box,"Zmï¿½na prï¿½chodnosti(nestvï¿½ra)");
+  define(140,10,126,200,10,0,check_box,"Zmï¿½na prï¿½chodnosti(vï¿½c)");
+  define(150,10,138,200,10,0,check_box,"Zmï¿½na prï¿½chodnosti(zvuk)");
   add_ma_flags(200,220,20,q);
   fill_bit_fields(0,110,q->send_a.change_bits,5);
   b1=def_border(1,0);
-  define(OK_BUTT,5,30,80,20,2,button,"Ok");on_change(terminate);property(b1,NULL,flat_color(0x1f),WINCOLOR);
-  define(CANCEL_BUTT,5,5,80,20,2,button,"Zru¨it");on_change(terminate);property(b1,NULL,flat_color(RGB555(15,0,0)),WINCOLOR);
+  define(OK_BUTT,5,30,80,20,2,button,"Ok");on_control_change(terminate_gui);property(b1,NULL,flat_color(0x1f),WINCOLOR);
+  define(CANCEL_BUTT,5,5,80,20,2,button,"Zruï¿½it");on_control_change(terminate_gui);property(b1,NULL,flat_color(RGB555(15,0,0)),WINCOLOR);
   redraw_window();
   escape();
   if (o_aktual->id==OK_BUTT)
@@ -1707,15 +1707,15 @@ void tma_loadlev(TMULTI_ACTION *q)
   define(-1,5,22,1,1,0,label,"Sektor:");
   define(20,80,20,60,12,0,input_line,5,0,32767,"%5d");on_exit(test_int);
   property(b1,NULL,NULL,WINCOLOR);set_default(strs(q->loadlev.start_pos));
-  define(-1,5,37,1,1,0,label,"Smˆr:");
+  define(-1,5,37,1,1,0,label,"Smï¿½r:");
   define(30,80,35,100,12,0,str_line,steny2);on_enter(string_list_sup);
   property(b1,NULL,NULL,WINCOLOR);c_default(q->loadlev.dir);
-  define(-1,5,52,1,1,0,label,"Jm‚no:");
+  define(-1,5,52,1,1,0,label,"Jmï¿½no:");
   define(10,80,50,100,12,0,input_line,12);property(b1,NULL,NULL,WINCOLOR);set_default(q->loadlev.name);
   add_ma_flags(200,220,20,q);
   b1=def_border(1,0);
-  define(OK_BUTT,5,30,80,20,2,button,"Ok");on_change(terminate);property(b1,NULL,flat_color(0x1f),WINCOLOR);
-  define(CANCEL_BUTT,5,5,80,20,2,button,"Zru¨it");on_change(terminate);property(b1,NULL,flat_color(RGB555(15,0,0)),WINCOLOR);
+  define(OK_BUTT,5,30,80,20,2,button,"Ok");on_control_change(terminate_gui);property(b1,NULL,flat_color(0x1f),WINCOLOR);
+  define(CANCEL_BUTT,5,5,80,20,2,button,"Zruï¿½it");on_control_change(terminate_gui);property(b1,NULL,flat_color(RGB555(15,0,0)),WINCOLOR);
   redraw_window();
   escape();
   if (o_aktual->id==OK_BUTT)
@@ -1734,13 +1734,13 @@ void tma_play_anim(TMULTI_ACTION *q)
 
   def_dialoge(220,60,410,300,"Macro: Play animation");
   b1=def_border(5,WINCOLOR);
-  define(-1,5,20,1,1,0,label,"Jm‚no:");
+  define(-1,5,20,1,1,0,label,"Jmï¿½no:");
   define(10,80,22,100,12,0,input_line,12);property(b1,NULL,NULL,WINCOLOR);set_default(q->loadlev.name);
   define(20,20,40,100,10,0,check_box,"cls");c_default(q->loadlev.dir);
   add_ma_flags(200,220,20,q);
   b1=def_border(1,0);
-  define(OK_BUTT,5,30,80,20,2,button,"Ok");on_change(terminate);property(b1,NULL,flat_color(0x1f),WINCOLOR);
-  define(CANCEL_BUTT,5,5,80,20,2,button,"Zru¨it");on_change(terminate);property(b1,NULL,flat_color(RGB555(15,0,0)),WINCOLOR);
+  define(OK_BUTT,5,30,80,20,2,button,"Ok");on_control_change(terminate_gui);property(b1,NULL,flat_color(0x1f),WINCOLOR);
+  define(CANCEL_BUTT,5,5,80,20,2,button,"Zruï¿½it");on_control_change(terminate_gui);property(b1,NULL,flat_color(RGB555(15,0,0)),WINCOLOR);
   redraw_window();
   escape();
   if (o_aktual->id==OK_BUTT)
@@ -1761,13 +1761,13 @@ void tma_write_book(TMULTI_ACTION *q)
   b1=def_border(5,WINCOLOR);
   define(-1,5,20,1,1,0,label,"Kniha:");
   define(10,80,35,100,12,0,input_line,12);property(b1,NULL,NULL,WINCOLOR);set_default(q->loadlev.name);
-  define(-1,5,50,1,1,0,label,"€¡slo odstavce:");
+  define(-1,5,50,1,1,0,label,"ï¿½ï¿½slo odstavce:");
   define(20,80,65,65,12,0,input_line,5,0,32767,"%5d");on_exit(test_int);
   property(b1,NULL,NULL,WINCOLOR);set_default(strs(q->loadlev.start_pos));
   add_ma_flags(200,220,20,q);
   b1=def_border(1,0);
-  define(OK_BUTT,5,30,80,20,2,button,"Ok");on_change(terminate);property(b1,NULL,flat_color(0x1f),WINCOLOR);
-  define(CANCEL_BUTT,5,5,80,20,2,button,"Zru¨it");on_change(terminate);property(b1,NULL,flat_color(RGB555(15,0,0)),WINCOLOR);
+  define(OK_BUTT,5,30,80,20,2,button,"Ok");on_control_change(terminate_gui);property(b1,NULL,flat_color(0x1f),WINCOLOR);
+  define(CANCEL_BUTT,5,5,80,20,2,button,"Zruï¿½it");on_control_change(terminate_gui);property(b1,NULL,flat_color(RGB555(15,0,0)),WINCOLOR);
   redraw_window();
   escape();
   if (o_aktual->id==OK_BUTT)
@@ -1794,8 +1794,8 @@ void tma_swapsectors(TMULTI_ACTION *q)
   property(b1,NULL,NULL,WINCOLOR);set_default(strs(q->swaps.sector2));
   add_ma_flags(200,220,20,q);
   b1=def_border(1,0);
-  define(OK_BUTT,5,30,80,20,2,button,"Ok");on_change(terminate);property(b1,NULL,flat_color(0x1f),WINCOLOR);
-  define(CANCEL_BUTT,5,5,80,20,2,button,"Zru¨it");on_change(terminate);property(b1,NULL,flat_color(RGB555(15,0,0)),WINCOLOR);
+  define(OK_BUTT,5,30,80,20,2,button,"Ok");on_control_change(terminate_gui);property(b1,NULL,flat_color(0x1f),WINCOLOR);
+  define(CANCEL_BUTT,5,5,80,20,2,button,"Zruï¿½it");on_control_change(terminate_gui);property(b1,NULL,flat_color(RGB555(15,0,0)),WINCOLOR);
   redraw_window();
   escape();
   if (o_aktual->id==OK_BUTT)
@@ -1813,13 +1813,13 @@ void tma_experience(TMULTI_ACTION *q)
 
   def_dialoge(220,60,410,300,"Macro: Send Experience");
   b1=def_border(5,WINCOLOR);
-  define(-1,5,22,1,1,0,label,"Zku¨enost:");
+  define(-1,5,22,1,1,0,label,"Zkuï¿½enost:");
   define(20,100,20,60,12,0,input_line,5,0,32767,"%5d");on_exit(test_int);
   property(b1,NULL,NULL,WINCOLOR);set_default(strs(q->twop.parm1));
   add_ma_flags(200,220,20,q);
   b1=def_border(1,0);
-  define(OK_BUTT,5,30,80,20,2,button,"Ok");on_change(terminate);property(b1,NULL,flat_color(0x1f),WINCOLOR);
-  define(CANCEL_BUTT,5,5,80,20,2,button,"Zru¨it");on_change(terminate);property(b1,NULL,flat_color(RGB555(15,0,0)),WINCOLOR);
+  define(OK_BUTT,5,30,80,20,2,button,"Ok");on_control_change(terminate_gui);property(b1,NULL,flat_color(0x1f),WINCOLOR);
+  define(CANCEL_BUTT,5,5,80,20,2,button,"Zruï¿½it");on_control_change(terminate_gui);property(b1,NULL,flat_color(RGB555(15,0,0)),WINCOLOR);
   redraw_window();
   escape();
   if (o_aktual->id==OK_BUTT)
@@ -1841,13 +1841,13 @@ void tma_cancel_action(TMULTI_ACTION *q)
   define(-1,5,22,1,1,0,label,"Sektor:");
   define(20,80,20,60,12,0,input_line,5,0,32767,"%5d");on_exit(test_int);
   property(b1,NULL,NULL,WINCOLOR);set_default(strs(q->cactn.sector));
-  define(-1,5,37,1,1,0,label,"Smˆr:");
+  define(-1,5,37,1,1,0,label,"Smï¿½r:");
   define(30,80,35,100,12,0,str_line,steny2);on_enter(string_list_sup);
   property(b1,NULL,NULL,WINCOLOR);c_default(q->cactn.dir);
   add_ma_flags(200,220,20,q);
   b1=def_border(1,0);
-  define(OK_BUTT,5,30,80,20,2,button,"Ok");on_change(terminate);property(b1,NULL,flat_color(0x1f),WINCOLOR);
-  define(CANCEL_BUTT,5,5,80,20,2,button,"Zru¨it");on_change(terminate);property(b1,NULL,flat_color(RGB555(15,0,0)),WINCOLOR);
+  define(OK_BUTT,5,30,80,20,2,button,"Ok");on_control_change(terminate_gui);property(b1,NULL,flat_color(0x1f),WINCOLOR);
+  define(CANCEL_BUTT,5,5,80,20,2,button,"Zruï¿½it");on_control_change(terminate_gui);property(b1,NULL,flat_color(RGB555(15,0,0)),WINCOLOR);
   redraw_window();
   escape();
   if (o_aktual->id==OK_BUTT)
@@ -1868,21 +1868,21 @@ void tma_sharema(TMULTI_ACTION *q)
   define(-1,5,22,1,1,0,label,"Sektor:");
   define(20,80,20,60,12,0,input_line,5,0,32767,"%5d");on_exit(test_int);
   property(b1,NULL,NULL,WINCOLOR);set_default(strs(q->twop.parm1));
-  define(-1,5,37,1,1,0,label,"Smˆr:");
+  define(-1,5,37,1,1,0,label,"Smï¿½r:");
   define(30,80,35,100,12,0,str_line,steny2);on_enter(string_list_sup);
   property(b1,NULL,NULL,WINCOLOR);c_default(q->twop.parm2);
   add_ma_flags(200,220,20,q);
   b1=def_border(1,0);
-  define(OK_BUTT,5,30,80,20,2,button,"Ok");on_change(terminate);property(b1,NULL,flat_color(0x1f),WINCOLOR);
-  define(CANCEL_BUTT,5,5,80,20,2,button,"Zru¨it");on_change(terminate);property(b1,NULL,flat_color(RGB555(15,0,0)),WINCOLOR);
-  define(-1,5,100,10,10,0,label,"Spust¡ MA program na jin‚m");
-  define(-1,5,110,10,10,0,label,"m¡stˆ, tak jako by byl");
-  define(-1,5,120,10,10,0,label,"definov n zde.");
-  define(-1,5,140,10,10,0,label,"Vyu‘it¡:");
-  define(-1,5,150,10,10,0,label,"Sd¡len¡ jednoho program");
-  define(-1,5,160,10,10,0,label,"Zmˆna v m¡stˆ sd¡leni se pak");
-  define(-1,5,170,10,10,0,label,"projev¡ na v¨ech m¡stech, kter‚");
-  define(-1,5,180,10,10,0,label,"program sd¡lej¡.");
+  define(OK_BUTT,5,30,80,20,2,button,"Ok");on_control_change(terminate_gui);property(b1,NULL,flat_color(0x1f),WINCOLOR);
+  define(CANCEL_BUTT,5,5,80,20,2,button,"Zruï¿½it");on_control_change(terminate_gui);property(b1,NULL,flat_color(RGB555(15,0,0)),WINCOLOR);
+  define(-1,5,100,10,10,0,label,"Spustï¿½ MA program na jinï¿½m");
+  define(-1,5,110,10,10,0,label,"mï¿½stï¿½, tak jako by byl");
+  define(-1,5,120,10,10,0,label,"definovï¿½n zde.");
+  define(-1,5,140,10,10,0,label,"Vyuï¿½itï¿½:");
+  define(-1,5,150,10,10,0,label,"Sdï¿½lenï¿½ jednoho program");
+  define(-1,5,160,10,10,0,label,"Zmï¿½na v mï¿½stï¿½ sdï¿½leni se pak");
+  define(-1,5,170,10,10,0,label,"projevï¿½ na vï¿½ech mï¿½stech, kterï¿½");
+  define(-1,5,180,10,10,0,label,"program sdï¿½lejï¿½.");
   redraw_window();
   escape();
   if (o_aktual->id==OK_BUTT)
@@ -1904,14 +1904,14 @@ void tma_teleport_group(TMULTI_ACTION *q)
   define(-1,5,22,1,1,0,label,"Sektor:");
   define(20,80,20,60,12,0,input_line,5,0,32767,"%5d");on_exit(test_int);
   property(b1,NULL,NULL,WINCOLOR);set_default(strs(q->twop.parm1));
-  define(-1,5,37,1,1,0,label,"Smˆr:");
+  define(-1,5,37,1,1,0,label,"Smï¿½r:");
   define(30,80,35,100,12,0,str_line,steny2);on_enter(string_list_sup);
   property(b1,NULL,NULL,WINCOLOR);c_default(q->twop.parm2 & 3);
   define(40,80,59,100,10,0,check_box,"Povol efekt");c_default(q->twop.parm2>>7);
   add_ma_flags(200,220,20,q);
   b1=def_border(1,0);
-  define(OK_BUTT,5,30,80,20,2,button,"Ok");on_change(terminate);property(b1,NULL,flat_color(0x1f),WINCOLOR);
-  define(CANCEL_BUTT,5,5,80,20,2,button,"Zru¨it");on_change(terminate);property(b1,NULL,flat_color(RGB555(15,0,0)),WINCOLOR);
+  define(OK_BUTT,5,30,80,20,2,button,"Ok");on_control_change(terminate_gui);property(b1,NULL,flat_color(0x1f),WINCOLOR);
+  define(CANCEL_BUTT,5,5,80,20,2,button,"Zruï¿½it");on_control_change(terminate_gui);property(b1,NULL,flat_color(RGB555(15,0,0)),WINCOLOR);
   redraw_window();
   escape();
   if (o_aktual->id==OK_BUTT)
@@ -1930,16 +1930,16 @@ void tma_lock(TMULTI_ACTION *q)
 
   def_dialoge(220,60,410,300,"Macro: Lock");
   b1=def_border(5,WINCOLOR);
-  define(-1,5,22,1,1,0,label,"€¡slo kl¡‡e:");
+  define(-1,5,22,1,1,0,label,"ï¿½ï¿½slo klï¿½ï¿½e:");
   define(10,120,20,60,12,0,input_line,5,0,32767,"%5d");on_exit(test_int);
   property(b1,NULL,NULL,WINCOLOR);set_default(strs(q->lock.key_id));
-  define(-1,5,37,1,1,0,label,"Urove¤:");
+  define(-1,5,37,1,1,0,label,"Uroveï¿½:");
   define(20,120,35,60,12,0,input_line,5,-1,32767,"%5d");on_exit(test_int);
   property(b1,NULL,NULL,WINCOLOR);set_default(strs(q->lock.thieflevel));
   add_ma_flags(200,220,20,q);
   b1=def_border(1,0);
-  define(OK_BUTT,5,30,80,20,2,button,"Ok");on_change(terminate);property(b1,NULL,flat_color(0x1f),WINCOLOR);
-  define(CANCEL_BUTT,5,5,80,20,2,button,"Zru¨it");on_change(terminate);property(b1,NULL,flat_color(RGB555(15,0,0)),WINCOLOR);
+  define(OK_BUTT,5,30,80,20,2,button,"Ok");on_control_change(terminate_gui);property(b1,NULL,flat_color(0x1f),WINCOLOR);
+  define(CANCEL_BUTT,5,5,80,20,2,button,"Zruï¿½it");on_control_change(terminate_gui);property(b1,NULL,flat_color(RGB555(15,0,0)),WINCOLOR);
   redraw_window();
   escape();
   if (o_aktual->id==OK_BUTT)
@@ -1957,7 +1957,7 @@ void tma_specproc(TMULTI_ACTION *q)
 
   def_dialoge(220,60,410,300,"Macro: Call Specproc");
   b1=def_border(5,WINCOLOR);
-  define(-1,5,22,1,1,0,label,"Jm‚no spec:");
+  define(-1,5,22,1,1,0,label,"Jmï¿½no spec:");
   define(10,120,20,95,12,0,str_line,wall_procs);on_enter(string_list_sup);
   property(b1,NULL,NULL,WINCOLOR);c_default(q->lock.key_id);
   define(-1,5,37,1,1,0,label,"Parametr:");
@@ -1965,8 +1965,8 @@ void tma_specproc(TMULTI_ACTION *q)
   property(b1,NULL,NULL,WINCOLOR);set_default(strs(q->lock.thieflevel));
   add_ma_flags(200,220,20,q);
   b1=def_border(1,0);
-  define(OK_BUTT,5,30,80,20,2,button,"Ok");on_change(terminate);property(b1,NULL,flat_color(0x1f),WINCOLOR);
-  define(CANCEL_BUTT,5,5,80,20,2,button,"Zru¨it");on_change(terminate);property(b1,NULL,flat_color(RGB555(15,0,0)),WINCOLOR);
+  define(OK_BUTT,5,30,80,20,2,button,"Ok");on_control_change(terminate_gui);property(b1,NULL,flat_color(0x1f),WINCOLOR);
+  define(CANCEL_BUTT,5,5,80,20,2,button,"Zruï¿½it");on_control_change(terminate_gui);property(b1,NULL,flat_color(RGB555(15,0,0)),WINCOLOR);
   redraw_window();
   escape();
   if (o_aktual->id==OK_BUTT)
@@ -1984,18 +1984,18 @@ void tma_ifjump(TMULTI_ACTION *q,int linenum,TSTR_LIST ls)
 
   def_dialoge(220,60,410,300,"Macro: If Jump");
   b1=def_border(5,WINCOLOR);
-  define(-1,5,22,1,1,0,label,"Podm¡nka:");
+  define(-1,5,22,1,1,0,label,"Podmï¿½nka:");
   define(10,10,35,200,12,0,str_line,ls);on_enter(string_list_sup);
   property(b1,NULL,NULL,WINCOLOR);c_default(abs(q->twop.parm1)-1);
-  define(-1,5,52,1,1,0,label,"€¡slo © dku:");
+  define(-1,5,52,1,1,0,label,"ï¿½ï¿½slo ï¿½ï¿½dku:");
   define(20,120,50,60,12,0,input_line,5,0,32767,"%5d");on_exit(test_int);
   property(b1,NULL,NULL,WINCOLOR);set_default(strs(q->twop.parm2+linenum));
-  define(30,5,75,100,30,0,radio_butts,2,"Skok kdy‘ podm¡nka plat¡","Skok kdy‘ podm¡nka neplat¡");
+  define(30,5,75,100,30,0,radio_butts,2,"Skok kdyï¿½ podmï¿½nka platï¿½","Skok kdyï¿½ podmï¿½nka neplatï¿½");
   c_default(q->twop.parm1<0);
   add_ma_flags(200,220,20,q);
   b1=def_border(1,0);
-  define(OK_BUTT,5,30,80,20,2,button,"Ok");on_change(terminate);property(b1,NULL,flat_color(0x1f),WINCOLOR);
-  define(CANCEL_BUTT,5,5,80,20,2,button,"Zru¨it");on_change(terminate);property(b1,NULL,flat_color(RGB555(15,0,0)),WINCOLOR);
+  define(OK_BUTT,5,30,80,20,2,button,"Ok");on_control_change(terminate_gui);property(b1,NULL,flat_color(0x1f),WINCOLOR);
+  define(CANCEL_BUTT,5,5,80,20,2,button,"Zruï¿½it");on_control_change(terminate_gui);property(b1,NULL,flat_color(RGB555(15,0,0)),WINCOLOR);
   redraw_window();
   escape();
   if (o_aktual->id==OK_BUTT)
@@ -2014,16 +2014,16 @@ void tma_randjmp(TMULTI_ACTION *q,int linenum)
 
   def_dialoge(220,60,410,300,"Macro: If Jump");
   b1=def_border(5,WINCOLOR);
-  define(-1,5,22,1,1,0,label,"Pravdˆpodobnost: [%]");
+  define(-1,5,22,1,1,0,label,"Pravdï¿½podobnost: [%]");
   define(10,120,35,60,12,0,input_line,5,0,100,"%5d");on_exit(test_int);
   property(b1,NULL,NULL,WINCOLOR);set_default(strs(q->twop.parm1));
-  define(-1,5,52,1,1,0,label,"€¡slo © dku:");
+  define(-1,5,52,1,1,0,label,"ï¿½ï¿½slo ï¿½ï¿½dku:");
   define(20,120,50,60,12,0,input_line,5,0,32767,"%5d");on_exit(test_int);
   property(b1,NULL,NULL,WINCOLOR);set_default(strs(q->twop.parm2+linenum));
   add_ma_flags(200,220,20,q);
   b1=def_border(1,0);
-  define(OK_BUTT,5,30,80,20,2,button,"Ok");on_change(terminate);property(b1,NULL,flat_color(0x1f),WINCOLOR);
-  define(CANCEL_BUTT,5,5,80,20,2,button,"Zru¨it");on_change(terminate);property(b1,NULL,flat_color(RGB555(15,0,0)),WINCOLOR);
+  define(OK_BUTT,5,30,80,20,2,button,"Ok");on_control_change(terminate_gui);property(b1,NULL,flat_color(0x1f),WINCOLOR);
+  define(CANCEL_BUTT,5,5,80,20,2,button,"Zruï¿½it");on_control_change(terminate_gui);property(b1,NULL,flat_color(RGB555(15,0,0)),WINCOLOR);
   redraw_window();
   escape();
   if (o_aktual->id==OK_BUTT)
@@ -2043,18 +2043,18 @@ void tma_ifflagjump(TMULTI_ACTION *q,int linenum)
   if (q->twop.parm1==0) q->twop.parm1=1;
   def_dialoge(220,60,410,300,"Macro: If flag Jump");
   b1=def_border(5,WINCOLOR);
-  define(-1,5,22,1,1,0,label,"€¡slo vlajky:");
+  define(-1,5,22,1,1,0,label,"ï¿½ï¿½slo vlajky:");
   define(10,120,20,60,12,0,input_line,5,0,255,"%5d");on_exit(test_int);
   property(b1,NULL,NULL,WINCOLOR);set_default(strs(abs(q->twop.parm1)-1));
-  define(-1,5,52,1,1,0,label,"€¡slo © dku:");
+  define(-1,5,52,1,1,0,label,"ï¿½ï¿½slo ï¿½ï¿½dku:");
   define(20,120,50,60,12,0,input_line,5,0,32767,"%5d");on_exit(test_int);
   property(b1,NULL,NULL,WINCOLOR);set_default(strs(q->twop.parm2+linenum));
-  define(30,5,75,100,30,0,radio_butts,2,"Skok kdy‘ vlajka nastavena","Skok kdy‘ vlajka vynulov na");
+  define(30,5,75,100,30,0,radio_butts,2,"Skok kdyï¿½ vlajka nastavena","Skok kdyï¿½ vlajka vynulovï¿½na");
   c_default(q->twop.parm1<0);
   add_ma_flags(200,220,20,q);
   b1=def_border(1,0);
-  define(OK_BUTT,5,30,80,20,2,button,"Ok");on_change(terminate);property(b1,NULL,flat_color(0x1f),WINCOLOR);
-  define(CANCEL_BUTT,5,5,80,20,2,button,"Zru¨it");on_change(terminate);property(b1,NULL,flat_color(RGB555(15,0,0)),WINCOLOR);
+  define(OK_BUTT,5,30,80,20,2,button,"Ok");on_control_change(terminate_gui);property(b1,NULL,flat_color(0x1f),WINCOLOR);
+  define(CANCEL_BUTT,5,5,80,20,2,button,"Zruï¿½it");on_control_change(terminate_gui);property(b1,NULL,flat_color(RGB555(15,0,0)),WINCOLOR);
   redraw_window();
   escape();
   if (o_aktual->id==OK_BUTT)
@@ -2073,15 +2073,15 @@ void tma_setflag(TMULTI_ACTION *q)
 
   def_dialoge(220,60,410,300,"Macro: Change Flag");
   b1=def_border(5,WINCOLOR);
-  define(-1,5,22,1,1,0,label,"€¡slo vlajky:");
+  define(-1,5,22,1,1,0,label,"ï¿½ï¿½slo vlajky:");
   define(10,120,20,60,12,0,input_line,5,0,32767,"%5d");on_exit(test_int);
   property(b1,NULL,NULL,WINCOLOR);set_default(strs(q->twop.parm1));
   define(-1,5,37,1,1,0,label,"Akce:");
   define(20,60,37,80,40,0,radio_butts,3,"Nulovat","Nastavit","Negovat");c_default(q->twop.parm2);
   add_ma_flags(200,220,20,q);
   b1=def_border(1,0);
-  define(OK_BUTT,5,30,80,20,2,button,"Ok");on_change(terminate);property(b1,NULL,flat_color(0x1f),WINCOLOR);
-  define(CANCEL_BUTT,5,5,80,20,2,button,"Zru¨it");on_change(terminate);property(b1,NULL,flat_color(RGB555(15,0,0)),WINCOLOR);
+  define(OK_BUTT,5,30,80,20,2,button,"Ok");on_control_change(terminate_gui);property(b1,NULL,flat_color(0x1f),WINCOLOR);
+  define(CANCEL_BUTT,5,5,80,20,2,button,"Zruï¿½it");on_control_change(terminate_gui);property(b1,NULL,flat_color(RGB555(15,0,0)),WINCOLOR);
   redraw_window();
   escape();
   if (o_aktual->id==OK_BUTT)
@@ -2106,13 +2106,13 @@ void tma_wound(TMULTI_ACTION *q)
   define(-1,5,37,1,1,0,label,"Max:");
   define(20,120,35,60,12,0,input_line,5,0,32767,"%5d");on_exit(test_int);
   property(b1,NULL,NULL,WINCOLOR);set_default(strs(q->wound.major));
-  define(30,120,50,100,10,0,check_box,"Ohroz¡ skupinu");c_default(q->wound.pflags & 1);
-  define(40,120,70,60,80,0,radio_butts,7,"P©¡m‚ zranˆn¡","Hod na obranu","Ohe¤","Voda","Zemˆ","Vzduch","Mysl");
+  define(30,120,50,100,10,0,check_box,"Ohrozï¿½ skupinu");c_default(q->wound.pflags & 1);
+  define(40,120,70,60,80,0,radio_butts,7,"Pï¿½ï¿½mï¿½ zranï¿½nï¿½","Hod na obranu","Oheï¿½","Voda","Zemï¿½","Vzduch","Mysl");
   c_default(q->wound.pflags>>1);
   add_ma_flags(200,220,20,q);
   b1=def_border(1,0);
-  define(OK_BUTT,5,30,80,20,2,button,"Ok");on_change(terminate);property(b1,NULL,flat_color(0x1f),WINCOLOR);
-  define(CANCEL_BUTT,5,5,80,20,2,button,"Zru¨it");on_change(terminate);property(b1,NULL,flat_color(RGB555(15,0,0)),WINCOLOR);
+  define(OK_BUTT,5,30,80,20,2,button,"Ok");on_control_change(terminate_gui);property(b1,NULL,flat_color(0x1f),WINCOLOR);
+  define(CANCEL_BUTT,5,5,80,20,2,button,"Zruï¿½it");on_control_change(terminate_gui);property(b1,NULL,flat_color(RGB555(15,0,0)),WINCOLOR);
   redraw_window();
   escape();
   if (o_aktual->id==OK_BUTT)
@@ -2139,8 +2139,8 @@ void tma_cmoney(TMULTI_ACTION *q)
   property(b1,NULL,NULL,WINCOLOR);set_default(strs(q->twop.parm2));
   add_ma_flags(200,220,20,q);
   b1=def_border(1,0);
-  define(OK_BUTT,5,30,80,20,2,button,"Ok");on_change(terminate);property(b1,NULL,flat_color(0x1f),WINCOLOR);
-  define(CANCEL_BUTT,5,5,80,20,2,button,"Zru¨it");on_change(terminate);property(b1,NULL,flat_color(RGB555(15,0,0)),WINCOLOR);
+  define(OK_BUTT,5,30,80,20,2,button,"Ok");on_control_change(terminate_gui);property(b1,NULL,flat_color(0x1f),WINCOLOR);
+  define(CANCEL_BUTT,5,5,80,20,2,button,"Zruï¿½it");on_control_change(terminate_gui);property(b1,NULL,flat_color(RGB555(15,0,0)),WINCOLOR);
   redraw_window();
   tady:
   escape();
@@ -2148,7 +2148,7 @@ void tma_cmoney(TMULTI_ACTION *q)
      {
      int a=vals(10),b=vals(20);
      if (a>b)
-        { msg_box("Create Money",1,"Min mus¡ b˜t men¨¡ ne‘ Max","OK",NULL);goto tady;}
+        { msg_box("Create Money",1,"Min musï¿½ bï¿½t menï¿½ï¿½ neï¿½ Max","OK",NULL);goto tady;}
      q->twop.parm1=a;
      q->twop.parm2=b;
      read_ma_flags(200,q);
@@ -2170,8 +2170,8 @@ static void tma_gomonster(TMULTI_ACTION *q)
   property(b1,NULL,NULL,WINCOLOR);set_default(strs(q->twop.parm2));
   add_ma_flags(200,220,20,q);
   b1=def_border(1,0);
-  define(OK_BUTT,5,30,80,20,2,button,"Ok");on_change(terminate);property(b1,NULL,flat_color(0x1f),WINCOLOR);
-  define(CANCEL_BUTT,5,5,80,20,2,button,"Zru¨it");on_change(terminate);property(b1,NULL,flat_color(RGB555(15,0,0)),WINCOLOR);
+  define(OK_BUTT,5,30,80,20,2,button,"Ok");on_control_change(terminate_gui);property(b1,NULL,flat_color(0x1f),WINCOLOR);
+  define(CANCEL_BUTT,5,5,80,20,2,button,"Zruï¿½it");on_control_change(terminate_gui);property(b1,NULL,flat_color(RGB555(15,0,0)),WINCOLOR);
   redraw_window();
   tady:
   escape();
@@ -2201,14 +2201,14 @@ void tma_clock(TMULTI_ACTION *q)
   define(-1,5,37,1,1,0,label,"String:");
   define(20,80,35,100,12,0,input_line,8);strncpy(s,q->clock.string,8);s[8]=0;set_default(s);
   property(b1,NULL,NULL,WINCOLOR);
-  define(-1,5,52,1,1,0,label,"€¡slo:");
+  define(-1,5,52,1,1,0,label,"ï¿½ï¿½slo:");
   define(30,80,50,30,12,0,input_line,8,0,15," %02d");set_default(strs(q->clock.codenum));
   on_exit(test_int);
   property(b1,NULL,NULL,WINCOLOR);
   add_ma_flags(200,220,20,q);
   b1=def_border(1,0);
-  define(OK_BUTT,5,30,80,20,2,button,"Ok");on_change(terminate);property(b1,NULL,flat_color(0x1f),WINCOLOR);
-  define(CANCEL_BUTT,5,5,80,20,2,button,"Zru¨it");on_change(terminate);property(b1,NULL,flat_color(RGB555(15,0,0)),WINCOLOR);
+  define(OK_BUTT,5,30,80,20,2,button,"Ok");on_control_change(terminate_gui);property(b1,NULL,flat_color(0x1f),WINCOLOR);
+  define(CANCEL_BUTT,5,5,80,20,2,button,"Zruï¿½it");on_control_change(terminate_gui);property(b1,NULL,flat_color(RGB555(15,0,0)),WINCOLOR);
   redraw_window();
   escape();
   if (o_aktual->id==OK_BUTT)
@@ -2236,8 +2236,8 @@ void tma_text(TMULTI_ACTION *q,char *filename)
   if (id=load_string_list(&ls,filename))
      {
      char s[300];
-     if (id<0) sprintf(s,"Soubour %s chyb¡ nebo je po¨kozen. Nelze editovat texty",filename);
-     else sprintf(s,"Chyba v souboru %s na © dce %d",filename,id);
+     if (id<0) sprintf(s,"Soubour %s chybï¿½ nebo je poï¿½kozen. Nelze editovat texty",filename);
+     else sprintf(s,"Chyba v souboru %s na ï¿½ï¿½dce %d",filename,id);
      msg_box("Chyba!",'\x1',s,"Ok",NULL);
      return;
      }
@@ -2247,7 +2247,7 @@ void tma_text(TMULTI_ACTION *q,char *filename)
        (q->text.textindex)++;
   if (q->text.textindex>=lcount)
      {
-     msg_box("Ozn men¡",'\x1',"’ dn‚ texty nejsou k dispozici","Ok",NULL);
+     msg_box("Oznï¿½menï¿½",'\x1',"ï¿½ï¿½dnï¿½ texty nejsou k dispozici","Ok",NULL);
      return;
      }
   b1=def_border(5,WINCOLOR);
@@ -2259,8 +2259,8 @@ void tma_text(TMULTI_ACTION *q,char *filename)
     property(b1,NULL,flat_color(0x1f),WINCOLOR);
   add_ma_flags(20,5,35,q);
   b1=def_border(1,0);
-  define(OK_BUTT,5,5,60,20,3,button,"Ok");property(b1,NULL,NULL,WINCOLOR);on_change(terminate);
-  define(CANCEL_BUTT,5,5,60,20,2,button,"Zru¨it");property(b1,NULL,NULL,WINCOLOR);on_change(terminate);
+  define(OK_BUTT,5,5,60,20,3,button,"Ok");property(b1,NULL,NULL,WINCOLOR);on_control_change(terminate_gui);
+  define(CANCEL_BUTT,5,5,60,20,2,button,"Zruï¿½it");property(b1,NULL,NULL,WINCOLOR);on_control_change(terminate_gui);
   redraw_window();
   escape();
   id=o_aktual->id;
@@ -2293,8 +2293,8 @@ void tma_dialog(TMULTI_ACTION *q)
     property(b1,NULL,flat_color(0x1f),WINCOLOR);
   add_ma_flags(20,5,35,q);
   b1=def_border(1,0);
-  define(OK_BUTT,5,5,60,20,3,button,"Ok");property(b1,NULL,NULL,WINCOLOR);on_change(terminate);
-  define(CANCEL_BUTT,5,5,60,20,2,button,"Zru¨it");property(b1,NULL,NULL,WINCOLOR);on_change(terminate);
+  define(OK_BUTT,5,5,60,20,3,button,"Ok");property(b1,NULL,NULL,WINCOLOR);on_control_change(terminate_gui);
+  define(CANCEL_BUTT,5,5,60,20,2,button,"Zruï¿½it");property(b1,NULL,NULL,WINCOLOR);on_control_change(terminate_gui);
   redraw_window();
   escape();
   id=o_aktual->id;
@@ -2327,8 +2327,8 @@ void tma_shop(TMULTI_ACTION *q)
     property(b1,NULL,flat_color(0x1f),WINCOLOR);
   add_ma_flags(20,5,35,q);
   b1=def_border(1,0);
-  define(OK_BUTT,5,5,60,20,3,button,"Ok");property(b1,NULL,NULL,WINCOLOR);on_change(terminate);
-  define(CANCEL_BUTT,5,5,60,20,2,button,"Zru¨it");property(b1,NULL,NULL,WINCOLOR);on_change(terminate);
+  define(OK_BUTT,5,5,60,20,3,button,"Ok");property(b1,NULL,NULL,WINCOLOR);on_control_change(terminate_gui);
+  define(CANCEL_BUTT,5,5,60,20,2,button,"Zruï¿½it");property(b1,NULL,NULL,WINCOLOR);on_control_change(terminate_gui);
   redraw_window();
   escape();
   release_list(ls);
@@ -2359,15 +2359,15 @@ void tma_create_dropi(TMULTI_ACTION *q,char *name)
   if (it>=lcount) it=0;
   b1=def_border(5,WINCOLOR);
   def_dialoge(420,120,250,290,name);
-  define(-1,5,20,1,1,0,label,"Vˆc:");
+  define(-1,5,20,1,1,0,label,"Vï¿½c:");
   define(10,5,19,170,12,1,str_line,ls);
     c_default(it);
     on_enter(string_list_sup);
     property(b1,NULL,flat_color(0x1f),WINCOLOR);
   add_ma_flags(20,5,35,q);
   b1=def_border(1,0);
-  define(OK_BUTT,5,5,60,20,3,button,"Ok");property(b1,NULL,NULL,WINCOLOR);on_change(terminate);
-  define(CANCEL_BUTT,5,5,60,20,2,button,"Zru¨it");property(b1,NULL,NULL,WINCOLOR);on_change(terminate);
+  define(OK_BUTT,5,5,60,20,3,button,"Ok");property(b1,NULL,NULL,WINCOLOR);on_control_change(terminate_gui);
+  define(CANCEL_BUTT,5,5,60,20,2,button,"Zruï¿½it");property(b1,NULL,NULL,WINCOLOR);on_control_change(terminate_gui);
   redraw_window();
   escape();
   id=o_aktual->id;
@@ -2393,8 +2393,8 @@ void tma_gen(TMULTI_ACTION *q,char *name)
   def_dialoge(420,120,250,290,name);
   add_ma_flags(20,5,35,q);
   b1=def_border(1,0);
-  define(OK_BUTT,5,5,60,20,3,button,"Ok");property(b1,NULL,NULL,WINCOLOR);on_change(terminate);
-  define(CANCEL_BUTT,5,5,60,20,2,button,"Zru¨it");property(b1,NULL,NULL,WINCOLOR);on_change(terminate);
+  define(OK_BUTT,5,5,60,20,3,button,"Ok");property(b1,NULL,NULL,WINCOLOR);on_control_change(terminate_gui);
+  define(CANCEL_BUTT,5,5,60,20,2,button,"Zruï¿½it");property(b1,NULL,NULL,WINCOLOR);on_control_change(terminate_gui);
   redraw_window();
   escape();
   id=o_aktual->id;
@@ -2424,18 +2424,18 @@ void tma_unique(TMULTI_ACTION *q,char edit)
   if (!edit)
      {
      int i;
-     tma_create_dropi(q,"Zvol p©edlohu");
+     tma_create_dropi(q,"Zvol pï¿½edlohu");
      i=q->dropi.item;
      memcpy(&q->uniq.item,item_list+i,sizeof(q->uniq.item));
      }
   def_dialoge(420,120,250,290,"Create Unique");
   b1=def_border(1,0);
   define(10,10,19,230,15,1,button,"Oprav vlastnosti predmetu");
-    on_change(tma_unique_edit);
+    on_control_change(tma_unique_edit);
     property(b1,NULL,flat_color(0x1f),WINCOLOR);
   define(20,0,0,0,0,0,value_store,4);c_default((int)&q->uniq.item);
   add_ma_flags(30,5,40,q);
-  define(OK_BUTT,5,5,60,20,3,button,"Zav©¡t");property(b1,NULL,NULL,WINCOLOR);on_change(terminate);
+  define(OK_BUTT,5,5,60,20,3,button,"Zavï¿½ï¿½t");property(b1,NULL,NULL,WINCOLOR);on_control_change(terminate_gui);
   redraw_window();
   if (edit)escape();else tma_unique_edit();
   read_ma_flags(30,q);
@@ -2517,17 +2517,17 @@ void tma_globe(TMULTI_ACTION *q)
   define(10,80,50,60,12,0,input_line,10,0,maplen,"%5d");on_exit(test_int);
   property(b1,NULL,NULL,WINCOLOR);set_default(strs(q->globe.sector));
   define(-1,5,37,1,1,0,label,"Pri vzniku udalosti poslat akci na:");
-  define(-1,5,67,1,1,0,label,"Stˆna:");
+  define(-1,5,67,1,1,0,label,"Stï¿½na:");
   define(20,80,65,100,12,0,str_line,steny2);on_enter(string_list_sup);
   property(b1,NULL,NULL,WINCOLOR);c_default(q->globe.side);
-  define(-1,5,80,100,10,0,label,"Pøi volbe sektor 0 severni");
+  define(-1,5,80,100,10,0,label,"Pï¿½i volbe sektor 0 severni");
   define(-1,5,90,100,10,0,label,"se akce neposila");
   define(30,20,110,100,10,0,check_box,"Zakaz puvodni chovani");c_default(q->globe.cancel);
   add_ma_flags(200,200,50,q);
   fill_bit_fields(0,110,q->send_a.change_bits,5);
   b1=def_border(1,0);
-  define(OK_BUTT,5,30,80,20,2,button,"Ok");on_change(terminate);property(b1,NULL,flat_color(0x1f),WINCOLOR);
-  define(CANCEL_BUTT,5,5,80,20,2,button,"Zru¨it");on_change(terminate);property(b1,NULL,flat_color(RGB555(15,0,0)),WINCOLOR);
+  define(OK_BUTT,5,30,80,20,2,button,"Ok");on_control_change(terminate_gui);property(b1,NULL,flat_color(0x1f),WINCOLOR);
+  define(CANCEL_BUTT,5,5,80,20,2,button,"Zruï¿½it");on_control_change(terminate_gui);property(b1,NULL,flat_color(RGB555(15,0,0)),WINCOLOR);
   redraw_window();
   escape();
   if (o_aktual->id==OK_BUTT)
@@ -2554,18 +2554,18 @@ void tma_sectnumjmp(TMULTI_ACTION *q,int linenum)
   define(-1,5,52,1,1,0,label,"Sektor:");
   define(10,80,50,60,12,0,input_line,6,0,maplen,"%5d");on_exit(test_int);
   property(b1,NULL,NULL,WINCOLOR);set_default(strs(q->ifsec.sector));
-  define(-1,5,67,1,1,0,label,"Stˆna:");
+  define(-1,5,67,1,1,0,label,"Stï¿½na:");
   define(20,80,65,100,12,0,str_line,steny2);on_enter(string_list_sup);
   property(b1,NULL,NULL,WINCOLOR);c_default(q->ifsec.side);
-  define(-1,5,82,1,1,0,label,"€¡slo © dku:");
+  define(-1,5,82,1,1,0,label,"ï¿½ï¿½slo ï¿½ï¿½dku:");
   define(30,120,80,60,12,0,input_line,5,0,32767,"%5d");on_exit(test_int);
   property(b1,NULL,NULL,WINCOLOR);set_default(strs(q->ifsec.line+linenum));
-  define(40,5,120,120,30,0,radio_butts,2,"Skok kdy‘ podm¡nka plat¡","Skok kdy‘ podm¡nka neplat¡");
+  define(40,5,120,120,30,0,radio_butts,2,"Skok kdyï¿½ podmï¿½nka platï¿½","Skok kdyï¿½ podmï¿½nka neplatï¿½");
   c_default(q->ifsec.invert);
   add_ma_flags(200,220,20,q);
   b1=def_border(1,0);
-  define(OK_BUTT,5,30,80,20,2,button,"Ok");on_change(terminate);property(b1,NULL,flat_color(0x1f),WINCOLOR);
-  define(CANCEL_BUTT,5,5,80,20,2,button,"Zru¨it");on_change(terminate);property(b1,NULL,flat_color(RGB555(15,0,0)),WINCOLOR);
+  define(OK_BUTT,5,30,80,20,2,button,"Ok");on_control_change(terminate_gui);property(b1,NULL,flat_color(0x1f),WINCOLOR);
+  define(CANCEL_BUTT,5,5,80,20,2,button,"Zruï¿½it");on_control_change(terminate_gui);property(b1,NULL,flat_color(RGB555(15,0,0)),WINCOLOR);
   redraw_window();
   escape();
   if (o_aktual->id==OK_BUTT)
@@ -2666,23 +2666,23 @@ void create_multiaction_dialoge()
   for(i=0;i<id;i++) if (c==ls[i]) break;
   side=f_get_value(0,20);
   before=f_get_value(0,29);
-  sprintf(s,"Vytvo© akci %d",before);
+  sprintf(s,"Vytvoï¿½ akci %d",before);
   def_dialoge(250,200,350,290,s);
   b1=def_border(5,WINCOLOR);
-  define(-1,5,20,1,1,0,label,"P©¡kaz:");
-  define(9,10,40,120,206,0,listbox,ls,RGB555(31,31,31),0);on_change(create_multiaction_invalid);
+  define(-1,5,20,1,1,0,label,"Pï¿½ï¿½kaz:");
+  define(9,10,40,120,206,0,listbox,ls,RGB555(31,31,31),0);on_control_change(create_multiaction_invalid);
   property(b1,NULL,NULL,WINCOLOR);c_default(-1);
   define(10,136,60,21,167,0,scroll_bar_v,0,10,1,SCROLLBARCOL);
   property(b1,NULL,NULL,WINCOLOR);
   define(11,136,40,21,17,0,scroll_button,-1,0,"\x1e");
-  property(b1,icones,NULL,WINCOLOR);on_change(scroll_support);
+  property(b1,icones,NULL,WINCOLOR);on_control_change(scroll_support);
   define(12,136,230,21,17,0,scroll_button,1,10,"\x1f");
-  property(b1,icones,NULL,WINCOLOR);on_change(scroll_support);
+  property(b1,icones,NULL,WINCOLOR);on_control_change(scroll_support);
   //define(10,5,19,130,12,1,str_line,act_types);c_default(act_default);on_enter(string_list_sup);
   add_ma_flags(20,136,20,&x);
   b1=def_border(1,0);
-  define(OK_BUTT,5,5,60,20,3,button,"Vyvo©it");property(b1,NULL,NULL,WINCOLOR);on_change(terminate);
-  define(CANCEL_BUTT,5,5,60,20,2,button,"Zru¨it");property(b1,NULL,NULL,WINCOLOR);on_change(terminate);
+  define(OK_BUTT,5,5,60,20,3,button,"Vyvoï¿½it");property(b1,NULL,NULL,WINCOLOR);on_control_change(terminate_gui);
+  define(CANCEL_BUTT,5,5,60,20,2,button,"Zruï¿½it");property(b1,NULL,NULL,WINCOLOR);on_control_change(terminate_gui);
   c_set_value(0,9,i);
   send_message(E_GUI,9,E_CONTROL,2);
   redraw_window();
@@ -2715,7 +2715,7 @@ void delete_multiaction_ask()
   sect=vals(10);
   side=f_get_value(0,20);
   num=f_get_value(0,29);
-  if (msg_box("Potvrdit",'\x2',"Chce¨ tento p©¡kaz skute‡nˆ zru¨it?","Ano","Ne",NULL)==2) return;
+  if (msg_box("Potvrdit",'\x2',"Chceï¿½ tento pï¿½ï¿½kaz skuteï¿½nï¿½ zruï¿½it?","Ano","Ne",NULL)==2) return;
   delete_multiaction(sect,side,num);
   if (num>0) c_set_value(0,29,num-1);
   create_multiaction_list(&mul_list,sect,side);
@@ -2743,26 +2743,26 @@ static void copy_and_paste()
   int sect=vals(10);
   int side=f_get_value(0,20);
 
-  def_dialoge(400,100,200,320,"Pr ce s pamˆt¡");
+  def_dialoge(400,100,200,320,"Prï¿½ce s pamï¿½tï¿½");
   b1=def_border(5,WINCOLOR);
-  define(10,10,20,180,20,0,button,"Kop¡rovat do pamˆti");property(b1,NULL,NULL,WINCOLOR);on_change(terminate);
-  define(400,10,70,100,10,0,check_box,"Severn¡");c_default(side==0);
-  define(410,10,85,100,10,0,check_box,"V˜chodn¡");c_default(side==1);
-  define(420,10,100,100,10,0,check_box,"Ji‘n¡");c_default(side==2);
-  define(430,10,115,100,10,0,check_box,"Z padn¡");c_default(side==3);
-  define(440,10,130,180,10,0,check_box,"Tam kde je prim. stˆna");c_default(0);
+  define(10,10,20,180,20,0,button,"Kopï¿½rovat do pamï¿½ti");property(b1,NULL,NULL,WINCOLOR);on_control_change(terminate_gui);
+  define(400,10,70,100,10,0,check_box,"Severnï¿½");c_default(side==0);
+  define(410,10,85,100,10,0,check_box,"Vï¿½chodnï¿½");c_default(side==1);
+  define(420,10,100,100,10,0,check_box,"Jiï¿½nï¿½");c_default(side==2);
+  define(430,10,115,100,10,0,check_box,"Zï¿½padnï¿½");c_default(side==3);
+  define(440,10,130,180,10,0,check_box,"Tam kde je prim. stï¿½na");c_default(0);
   define(445,10,150,180,12,0,str_line,side_names);property(b1,NULL,NULL,WINCOLOR);c_default(0);
     on_enter(string_list_sup);
-  define(450,10,170,180,10,0,check_box,"Tam kde je sec. stˆna");c_default(0);
+  define(450,10,170,180,10,0,check_box,"Tam kde je sec. stï¿½na");c_default(0);
   define(455,10,190,180,12,0,str_line,side_names);property(b1,NULL,NULL,WINCOLOR);c_default(0);
     on_enter(string_list_sup);
-  define(-1,10,210,180,12,0,label,"Jak vlo‘it?");
+  define(-1,10,210,180,12,0,label,"Jak vloï¿½it?");
   define(460,10,225,180,30,0,radio_butts,3,
-                             "P©epsat v¨e",
-                             "P©epsat pou‘it‚ ud l.",
-                             "P‘idat na konec");c_default(1);
-  define(20,10,260,180,20,0,button,"Vlo‘it");property(b1,NULL,NULL,WINCOLOR);on_change(terminate);
-  define(30,10,285,180,20,0,button,"Zru¨it");property(b1,NULL,NULL,WINCOLOR);on_change(terminate);
+                             "Pï¿½epsat vï¿½e",
+                             "Pï¿½epsat pouï¿½itï¿½ udï¿½l.",
+                             "Pï¿½idat na konec");c_default(1);
+  define(20,10,260,180,20,0,button,"Vloï¿½it");property(b1,NULL,NULL,WINCOLOR);on_control_change(terminate_gui);
+  define(30,10,285,180,20,0,button,"Zruï¿½it");property(b1,NULL,NULL,WINCOLOR);on_control_change(terminate_gui);
   redraw_window();
   escape();
   id=o_aktual->id;
@@ -2884,13 +2884,13 @@ void open_multiaction_window()
      waktual->minsizx=120;
      waktual->minsizy=150;
      define(-1,5,20,1,1,0,label,"Sektor");
-     define(-1,5,32,1,1,0,label,"Stˆna");
+     define(-1,5,32,1,1,0,label,"Stï¿½na");
      define(-1,5,44,1,1,0,label,"Program:");
      define(-1,3,1,10,10,2,resizer);
      define(10,5,20,60,10,1,input_line,5,0,maplen-1,"%5d");set_default(strs(i));on_exit(test_int);
       property(NULL,NULL,flat_color(0x1f),WINCOLOR);
      define(20,5,32,60,10,1,str_line,steny2);c_default(0);on_enter(string_list_sup);
-      property(NULL,NULL,flat_color(0x1f),WINCOLOR);on_change(mult_change_dir);
+      property(NULL,NULL,flat_color(0x1f),WINCOLOR);on_control_change(mult_change_dir);
      create_multiaction_list(&mul_list,i,0);
      define(29,5,55,95,180,0,listbox,mul_list,RGB555(31,31,0),0);c_default(0);
         o_end->autoresizex=1;
@@ -2899,14 +2899,14 @@ void open_multiaction_window()
         property(NULL,NULL,NULL,WINCOLOR);
         o_end->autoresizey=1;
      define(31,3,50,15,15,1,scroll_button,-1,0,"\x1e");
-        property(NULL,icones,NULL,WINCOLOR);on_change(scroll_support);
+        property(NULL,icones,NULL,WINCOLOR);on_control_change(scroll_support);
      define(32,3,60,15,15,2,scroll_button,1,10,"\x1f");
-        property(NULL,icones,NULL,WINCOLOR);on_change(scroll_support);
-     define(40,5,5,50,20,3,button,"Vyma‘");property(b1,NULL,NULL,WINCOLOR);on_change(delete_multiaction_ask);
-     define(50,60,5,50,20,3,button,"Edit");property(b1,NULL,NULL,WINCOLOR);on_change(edit_multiaction);
-     define(60,5,30,50,20,3,button,"Vlo‘");property(b1,NULL,NULL,WINCOLOR);on_change(create_multiaction_dialoge);
-     define(70,60,30,50,20,3,button,"Pamˆt");property(b1,NULL,NULL,WINCOLOR);on_change(copy_and_paste);
-     //define(70,60,30,50,20,3,button,"Po©ad¡");property(b1,NULL,NULL,WINCOLOR);
+        property(NULL,icones,NULL,WINCOLOR);on_control_change(scroll_support);
+     define(40,5,5,50,20,3,button,"Vymaï¿½");property(b1,NULL,NULL,WINCOLOR);on_control_change(delete_multiaction_ask);
+     define(50,60,5,50,20,3,button,"Edit");property(b1,NULL,NULL,WINCOLOR);on_control_change(edit_multiaction);
+     define(60,5,30,50,20,3,button,"Vloï¿½");property(b1,NULL,NULL,WINCOLOR);on_control_change(create_multiaction_dialoge);
+     define(70,60,30,50,20,3,button,"Pamï¿½t");property(b1,NULL,NULL,WINCOLOR);on_control_change(copy_and_paste);
+     //define(70,60,30,50,20,3,button,"Poï¿½adï¿½");property(b1,NULL,NULL,WINCOLOR);
      redraw_window();
      }
   select_window(wiz_tool_numb);close_current();

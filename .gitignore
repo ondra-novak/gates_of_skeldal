@@ -5,3 +5,7 @@
 _UpgradeReport_Files
 /Bin
 /Debug
+/build
+/.cproject
+/.project
+/.settings

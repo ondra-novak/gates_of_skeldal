@@ -212,7 +212,7 @@ static void display_progress(void)
   def_dialoge(312,380,310,75,"Copying some files...",3);
   define(10,10,27,290,15,0,done_bar,100);
   property(bbutt,NULL,flat_color(0x1e0),WINCOLOR);c_default(0);
-  define(30,5,5,80,15,2,button,"Stop");on_change(stop_copy);
+  define(30,5,5,80,15,2,button,"Stop");on_control_change(stop_copy);
    property(def_border(1,0),&font6x9,flat_color(0),BUTTONCOLOR);
   define(20,5,10,200,12,3,input_line,2048);set_default("");
    property(NULL,&font6x9,flat_color(0),WINCOLOR);
@@ -306,7 +306,7 @@ static void open_handbook(char *file)
   handbook=read_text(file);
   win_handbook=def_dialoge(54,54,450,350,"Handbook",2);
   def_listbox(9,5,25,420,290,handbook,0,WINCOLOR);property(def_border(0,WINCOLOR),&font6x9,NULL,WINCOLOR);
-  define(20,5,5,60,15,2,button2,"Close");property(bbutt,&font6x9,NULL,BUTTONCOLOR);on_change(close_current);
+  define(20,5,5,60,15,2,button2,"Close");property(bbutt,&font6x9,NULL,BUTTONCOLOR);on_control_change(close_current);
   redraw_window();
   }
 
@@ -441,11 +441,11 @@ static load_window()
   set_full_target_path(0);
   for(i=0;i<str_count(disklist);i++) if (target_path[0]==disklist[i][2]) break;
   default_font=&font6x9;
-  define(150,70,5,60,20,2,button,"Ok");on_change(terminate);property(bbutt,&font6x9,NULL,BUTTONCOLOR);
-  define(160,5,5,60,20,2,button,"Cancel");on_change(terminate);property(bbutt,&font6x9,NULL,BUTTONCOLOR);
+  define(150,70,5,60,20,2,button,"Ok");on_control_change(terminate_gui);property(bbutt,&font6x9,NULL,BUTTONCOLOR);
+  define(160,5,5,60,20,2,button,"Cancel");on_control_change(terminate_gui);property(bbutt,&font6x9,NULL,BUTTONCOLOR);
   default_font=vga_font;
-  def_listbox(59,70,60,100,200,dirlist,0,0x03ff);c_default(0);on_change(select_dir);
-  def_listbox(69,5,60,40,200,disklist,0,0x03ff);on_change(change_disk);
+  def_listbox(59,70,60,100,200,dirlist,0,0x03ff);c_default(0);on_control_change(select_dir);
+  def_listbox(69,5,60,40,200,disklist,0,0x03ff);on_control_change(change_disk);
   c_default(i);
   default_font=&font6x9;
   define(-1,215,135,110,80,0,win_label,"");property(def_border(5,0x631f),NULL,NULL,0x631f);
@@ -527,7 +527,7 @@ static EVENT_PROC(esc_mode2)
         zobraz_mysku();
         redraw_desktop();
         goto_control(0);
-        terminate();
+        terminate_gui();
         }
      }
   }
@@ -606,9 +606,9 @@ static void select_vga()
   def_dialoge(20,300,156,156,"Graphics modes",2);
   define(9,0,20,156,80,0,listbox,video_ls,0x03ff,0);c_default(vmode);
     property(NULL,vga_font,NULL,WINCOLOR);
-  define(20,38,20,80,20,3,button,"Change now");on_change(test_mode);
+  define(20,38,20,80,20,3,button,"Change now");on_control_change(test_mode);
    property(bbutt,NULL,NULL,BUTTONCOLOR);
-  define(30,10,5,80,10,3,check_box,"Subtitles in intro.");c_default(subtitles);on_change(toggle_subtitles);
+  define(30,10,5,80,10,3,check_box,"Subtitles in intro.");c_default(subtitles);on_control_change(toggle_subtitles);
   redraw_window();
   }
 
@@ -635,9 +635,9 @@ static void select_mode_win()
   {
   def_dialoge(224,270,192,156,"Install",2);
   default_font=&font6x9;
-  define(10,30,40,132,30,0,button,"Automatic");property(bbutt,NULL,NULL,BUTTONCOLOR);on_change(terminate);
-  define(30,30,80,132,30,0,button,"Custom");property(bbutt,NULL,NULL,BUTTONCOLOR);on_change(terminate);
-  define(40,50,15,92,20,3,button,"Quit");property(bbutt,NULL,NULL,BUTTONCOLOR);on_change(stop_copy);
+  define(10,30,40,132,30,0,button,"Automatic");property(bbutt,NULL,NULL,BUTTONCOLOR);on_control_change(terminate_gui);
+  define(30,30,80,132,30,0,button,"Custom");property(bbutt,NULL,NULL,BUTTONCOLOR);on_control_change(terminate_gui);
+  define(40,50,15,92,20,3,button,"Quit");property(bbutt,NULL,NULL,BUTTONCOLOR);on_control_change(stop_copy);
   redraw_window();
   }
 
@@ -645,9 +645,9 @@ static void select_mode_win_setup()
   {
   def_dialoge(224,270,192,156,"Menu",2);
   default_font=&font6x9;
-  define(10,30,40,132,30,0,button,"Change settings");property(bbutt,NULL,NULL,BUTTONCOLOR);on_change(terminate);
-  define(30,30,80,132,30,0,button,"Uninstall");property(bbutt,NULL,NULL,BUTTONCOLOR);on_change(terminate);
-  define(40,50,15,92,20,3,button,"Quit");property(bbutt,NULL,NULL,BUTTONCOLOR);on_change(stop_setup);
+  define(10,30,40,132,30,0,button,"Change settings");property(bbutt,NULL,NULL,BUTTONCOLOR);on_control_change(terminate_gui);
+  define(30,30,80,132,30,0,button,"Uninstall");property(bbutt,NULL,NULL,BUTTONCOLOR);on_control_change(terminate_gui);
+  define(40,50,15,92,20,3,button,"Quit");property(bbutt,NULL,NULL,BUTTONCOLOR);on_control_change(stop_setup);
   redraw_window();
   }
 
@@ -681,7 +681,7 @@ static void device_select2()
      char c;
      def_dialoge(270,240,100,100,device_name(i),3);
      define(10,10,25,60,40,0,radio_butts,3,"LPT 1","LPT 2","PC Speaker");c_default(0);
-     define(20,10,5,80,20,2,button,"Ok");property(bbutt,&font6x9,NULL,BUTTONCOLOR);on_change(terminate);
+     define(20,10,5,80,20,2,button,"Ok");property(bbutt,&font6x9,NULL,BUTTONCOLOR);on_control_change(terminate_gui);
      redraw_window();
      escape();
      c=f_get_value(0,10);
@@ -773,21 +773,21 @@ void select_sound()
   for(i=0;i<8;i++)  str_add(&ls,device_name(i));
   str_replace(&ls,0,"<nosound>");
   sound_win=def_dialoge(200,300,300,156,"Sound devices",2);
-  define(9,2,20,170,85,0,listbox,ls,0x03ff,0);c_default(sound_info.device);on_change(device_select2);
+  define(9,2,20,170,85,0,listbox,ls,0x03ff,0);c_default(sound_info.device);on_control_change(device_select2);
     property(def_border(0,0x4210),vga_font,NULL,WINCOLOR);
   define(-1,180,20,1,1,0,label,"Port:");
   define(20,10,20,30,12,1,input_line,3);property(def_border(0,0x4210),vga_font,NULL,WINCOLOR);
   set_default(itoa(sound_info.port,buff,16));
   define(-1,180,40,1,1,0,label,"DMA:");
   i=sound_info.dma;i-=(i>2)+(i>4);
-  define(30,40,40,30,30,1,radio_butts,3,"0","1","3");c_default(i);on_change(change_dma);
-  define(35,10,40,30,30,1,radio_butts,3,"5","6","7");c_default(i-3);on_change(change_dma);
+  define(30,40,40,30,30,1,radio_butts,3,"0","1","3");c_default(i);on_control_change(change_dma);
+  define(35,10,40,30,30,1,radio_butts,3,"5","6","7");c_default(i-3);on_control_change(change_dma);
   define(-1,180,80,1,1,0,label,"IRQ:");
   i=sound_info.irq;i-=2*(i>1)+(i>4)+(i>6);
   define(40,40,80,30,40,1,radio_butts,4,"2","3","5","7");c_default(i);
-  define(50,10,5,80,20,2,button,"Test");property(bbutt,&font6x9,NULL,BUTTONCOLOR);on_change(test_sound);
-  define(60,100,5,80,20,2,button,"Autodetect");property(bbutt,&font6x9,NULL,BUTTONCOLOR);on_change(detect_sound);
-  define(70,190,5,80,20,2,button,"Stop");property(bbutt,&font6x9,NULL,BUTTONCOLOR);on_change(stop_sound);
+  define(50,10,5,80,20,2,button,"Test");property(bbutt,&font6x9,NULL,BUTTONCOLOR);on_control_change(test_sound);
+  define(60,100,5,80,20,2,button,"Autodetect");property(bbutt,&font6x9,NULL,BUTTONCOLOR);on_control_change(detect_sound);
+  define(70,190,5,80,20,2,button,"Stop");property(bbutt,&font6x9,NULL,BUTTONCOLOR);on_control_change(stop_sound);
   redraw_window();
   set_enable(0,70,mixer_running);
   device_select();
@@ -799,7 +799,7 @@ static void back_start()
   stop_sound();
   sound_scan();
   while (waktual!=NULL) close_current();
-  terminate();
+  terminate_gui();
   }
 
 static void control_window(void *forward,void *back,void *help);
@@ -1056,22 +1056,22 @@ static void rozsah_window()
   exit_wait=0;
   default_font=&font6x9;
   def_dialoge(146,160,348,264,"Installation ragne:",2);
-  define(10,10,30,70,30,0,button,"Minimum");property(bbutt,&font6x9,NULL,BUTTONCOLOR);on_change(start_install);
+  define(10,10,30,70,30,0,button,"Minimum");property(bbutt,&font6x9,NULL,BUTTONCOLOR);on_control_change(start_install);
   define(-1,90,30,1,1,0,label,"It will copy all important files");
   define(-1,90,40,1,1,0,label,"Data are loaded from CD");
   sprintf(buff,text,install_sizes[0]/1024);
   define(-1,90,50,1,1,0,label,buff);
-  define(20,10,80,70,30,0,button,"Normal");property(bbutt,&font6x9,NULL,BUTTONCOLOR);on_change(start_install);
+  define(20,10,80,70,30,0,button,"Normal");property(bbutt,&font6x9,NULL,BUTTONCOLOR);on_control_change(start_install);
   define(-1,90,80,1,1,0,label,"It will copy all important files and data");
   define(-1,90,90,1,1,0,label,"Music and video are loaded from CD");
   sprintf(buff,text,install_sizes[1]/1024);
   define(-1,90,100,1,1,0,label,buff);
-  define(30,10,130,70,30,0,button,"Full");property(bbutt,&font6x9,NULL,BUTTONCOLOR);on_change(start_install);
+  define(30,10,130,70,30,0,button,"Full");property(bbutt,&font6x9,NULL,BUTTONCOLOR);on_control_change(start_install);
   define(-1,90,130,1,1,0,label,"It will copy all files.");
   define(-1,90,140,1,1,0,label,"You will not need CD anymore.");
   sprintf(buff,text,install_sizes[2]/1024);
   define(-1,90,150,1,1,0,label,buff);
-  define(40,10,180,70,20,0,button,"Browse");property(bbutt,&font6x9,NULL,BUTTONCOLOR);on_change(open_load_window);
+  define(40,10,180,70,20,0,button,"Browse");property(bbutt,&font6x9,NULL,BUTTONCOLOR);on_control_change(open_load_window);
   define(60,90,185,250,11,0,input_line,2048);property(def_border(1,0x4210),&font6x9,NULL,0x7fff);
      set_default(target_path);
      on_event(show_space_event);on_exit(show_space_exit);
@@ -1089,12 +1089,12 @@ static void automatic_window()
   exit_wait=0;
   default_font=&font6x9;
   def_dialoge(110,200,420,80,"Target directory:",2);
-  define(40,10,33,70,15,0,button,"Browse");property(bbutt,&font6x9,NULL,BUTTONCOLOR);on_change(open_load_window);
+  define(40,10,33,70,15,0,button,"Browse");property(bbutt,&font6x9,NULL,BUTTONCOLOR);on_control_change(open_load_window);
   define(60,90,35,310,11,0,input_line,2048);property(def_border(1,0x4210),&font6x9,NULL,0x7fff);
      set_default(target_path);
      on_event(show_space_event);on_exit(show_space_exit);
-  define(10,10,10,70,20,2,button,"Start");property(bbutt,&font6x9,NULL,BUTTONCOLOR);on_change(start_install);
-  define(20,90,10,70,20,2,button,"<< Back");property(bbutt,&font6x9,NULL,BUTTONCOLOR);on_change(back_start);
+  define(10,10,10,70,20,2,button,"Start");property(bbutt,&font6x9,NULL,BUTTONCOLOR);on_control_change(start_install);
+  define(20,90,10,70,20,2,button,"<< Back");property(bbutt,&font6x9,NULL,BUTTONCOLOR);on_control_change(back_start);
   sprintf(buff,text,install_sizes[0]/1024);
   define(90,180,20,200,10,2,view_line,100);set_default(buff);
   define(80,180,10,200,10,2,view_line,100);set_default("");
@@ -1115,11 +1115,11 @@ static void control_next1()
 static void control_window(void *forward,void *back,void *help)
   {
   def_dialoge(524,300,96,156,"Options",2);
-  define(10,8,30,80,20,0,button,"Next >>");property(bbutt,&font6x9,NULL,BUTTONCOLOR);on_change(forward);
-  define(20,8,60,80,20,0,button,"<< Back");property(bbutt,&font6x9,NULL,BUTTONCOLOR);on_change(back);
-  define(30,8,90,80,20,0,button,"? Help");property(bbutt,&font6x9,NULL,BUTTONCOLOR);on_change(help);
+  define(10,8,30,80,20,0,button,"Next >>");property(bbutt,&font6x9,NULL,BUTTONCOLOR);on_control_change(forward);
+  define(20,8,60,80,20,0,button,"<< Back");property(bbutt,&font6x9,NULL,BUTTONCOLOR);on_control_change(back);
+  define(30,8,90,80,20,0,button,"? Help");property(bbutt,&font6x9,NULL,BUTTONCOLOR);on_control_change(help);
   define(40,8,10,80,20,3,button,"Quit");property(bbutt,&font6x9,NULL,BUTTONCOLOR);
-   if (setup_mode) on_change(stop_setup);else on_change(stop_copy);
+   if (setup_mode) on_control_change(stop_setup);else on_control_change(stop_copy);
   set_enable(0,10,forward!=NULL);
   set_enable(0,20,back!=NULL);
   set_enable(0,30,help!=NULL);
@@ -1227,8 +1227,8 @@ static void deinstall()
   define(-1,10,40,200,100,0,label,"After it, you won't be able to play");
   define(-1,10,50,200,100,0,label,"the game until you install it again.");
   define(10,30,80,150,10,0,check_box,"Don't erase saved positions");c_default(1);
-  define(20,10,10,80,30,3,button,"Yes, do it!");property(bbutt,&font6x9,NULL,BUTTONCOLOR);on_change(terminate);
-  define(30,10,10,80,30,2,button,"No, newer!");property(bbutt,&font6x9,NULL,BUTTONCOLOR);on_change(terminate);
+  define(20,10,10,80,30,3,button,"Yes, do it!");property(bbutt,&font6x9,NULL,BUTTONCOLOR);on_control_change(terminate_gui);
+  define(30,10,10,80,30,2,button,"No, newer!");property(bbutt,&font6x9,NULL,BUTTONCOLOR);on_control_change(terminate_gui);
   redraw_window();
   escape();
   if (o_aktual->id==30)
@@ -1296,12 +1296,12 @@ void warning()
   _outtext("(C)1998 Napoleon gameS - Setup version 1.0 written by Ondrej Novak\n"
        "\n\nNote:\n");
   _settextcolor(15);
-  _outtext("Ú"); REPEAT(i,78) _outtext("Ä");_outtext("¿");
+  _outtext("ï¿½"); REPEAT(i,78) _outtext("ï¿½");_outtext("ï¿½");
   REPEAT(j,5)
      {
-     _outtext("³"); REPEAT(i,78)_outtext(" ");_outtext("³");
+     _outtext("ï¿½"); REPEAT(i,78)_outtext(" ");_outtext("ï¿½");
      }
-  _outtext("À"); REPEAT(i,78) _outtext("Ä");_outtext("Ù");
+  _outtext("ï¿½"); REPEAT(i,78) _outtext("ï¿½");_outtext("ï¿½");
   _settextcolor(13);
   _settextwindow(6,2,20,79);
   _outtext(
@@ -1327,9 +1327,9 @@ static void ask_video()
   ask_video_win=def_dialoge(242,100,156,156,"Select resolution",3);
   define(9,0,20,156,80,0,listbox,video_ls,0x03ff,0);c_default(vmode);
     property(NULL,vga_font,NULL,WINCOLOR);
-  define(20,5,5,60,20,2,button,"Quit");on_change(terminate);
+  define(20,5,5,60,20,2,button,"Quit");on_control_change(terminate_gui);
     property(bbutt,NULL,NULL,BUTTONCOLOR);
-  define(20,70,5,60,20,2,button,"Ok");on_change(test_mode_xxx);
+  define(20,70,5,60,20,2,button,"Ok");on_control_change(test_mode_xxx);
     property(bbutt,NULL,NULL,BUTTONCOLOR);
   redraw_window();
   }
@@ -1347,7 +1347,7 @@ static EVENT_PROC(esc_mode)
         rescue_mode=1;
         redraw_desktop();
         vmode=0;
-        terminate();
+        terminate_gui();
         }
      }
   }
@@ -1361,7 +1361,7 @@ static void about_window()
   define(-1,10,30,240,10,0,mid_label,"Welcome in Install:");
   define(-1,10,42,240,10,0,mid_label,"The Gates of Skeldal ");
   define(-1,10,80,240,10,0,mid_label,"Install written by:");
-  define(-1,10,92,240,10,0,mid_label,"Ond©ej Nov k");
+  define(-1,10,92,240,10,0,mid_label,"Ondï¿½ej Novï¿½k");
   define(-1,10,110,240,10,0,mid_label,"(C)1998 Napoleon gameS");
   redraw_window();
   escape();

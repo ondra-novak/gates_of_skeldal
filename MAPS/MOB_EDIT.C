@@ -236,7 +236,7 @@ void create_enemy_list()
         str_add(&enemy_list,s);
         }
      else;
-   str_add(&enemy_list," -1 <nov† potvora>");
+   str_add(&enemy_list," -1 <novÔøΩ potvora>");
   }
 
 
@@ -266,14 +266,14 @@ void new_mob()
   }
 
 static char nvlast[][16]=
-  {"S°la","UM(%kouzlen°)","Pohyblivost","Obratnost","Max zranàn°",
-  "","","Obrana(doln°)","Obrana(Horn°)","ótok(Doln°)",
-  "ótok(Horn°)","Ohe§","Voda","Zemà","Vzduch","Mysl","íivoty Regen",
-  "","","Magick† s°la(D)", "Magick† s°la(H)","","óáinnek z†sahu","*"};
+  {"SÔøΩla","UM(%kouzlenÔøΩ)","Pohyblivost","Obratnost","Max zranÔøΩnÔøΩ",
+  "","","Obrana(dolnÔøΩ)","Obrana(HornÔøΩ)","ÔøΩtok(DolnÔøΩ)",
+  "ÔøΩtok(HornÔøΩ)","OheÔøΩ","Voda","ZemÔøΩ","Vzduch","Mysl","ÔøΩivoty Regen",
+  "","","MagickÔøΩ sÔøΩla(D)", "MagickÔøΩ sÔøΩla(H)","","ÔøΩÔøΩinnek zÔøΩsahu","*"};
 
 
 char smery_anim[][7]=
-  {"Vp©ed","Vlevo","Vzad","Vpravo","ótok","Z†sah"};
+  {"VpÔøΩed","Vlevo","Vzad","Vpravo","ÔøΩtok","ZÔøΩsah"};
 char smery_znaky[]="FLBRCH";
 
 char sekvence[]="0123456789ABCDEF";
@@ -314,8 +314,8 @@ char load_sequence(char *mobname,int otoceni)
      char text[256];
 
      if (load_ddl_seq(st,otoceni)) return 0;
-     sprintf(text,"Nemohu nalezt soubor %s  jenë ma obsahovat sekvence animac° pro tuto potvoru...",s);
-     msg_box("Upozornàn°!",'\x1',text,"Beru na vàdom°",NULL);
+     sprintf(text,"Nemohu nalezt soubor %s  jenÔøΩ ma obsahovat sekvence animacÔøΩ pro tuto potvoru...",s);
+     msg_box("UpozornÔøΩnÔøΩ!",'\x1',text,"Beru na vÔøΩdomÔøΩ",NULL);
      return 1;
      }
   while(otoceni--)
@@ -331,8 +331,8 @@ char load_sequence(char *mobname,int otoceni)
      {
      char text[256];
 
-     sprintf(text,"Soubor %s obsahuje chybnÇ £daje",s);
-     msg_box("Upozornàn°!",'\x1',text,"Beru na vàdom°",NULL);
+     sprintf(text,"Soubor %s obsahuje chybnÔøΩ ÔøΩdaje",s);
+     msg_box("UpozornÔøΩnÔøΩ!",'\x1',text,"Beru na vÔøΩdomÔøΩ",NULL);
      return 1;
      }
   return 0;
@@ -504,13 +504,13 @@ void mob_turn()
 void mob_ask_delete()
   {
 
-  if (msg_box("Dotaz?",'\x2',"Opravdu chce® potovoru vymazat ze seznamñ vzorñ? Ujisti se, ëe tuto potvoru nepouë°v†® v ë†dnÇ jinÇ mapà","Ano","Ne",NULL)==1)
-     terminate();
+  if (msg_box("Dotaz?",'\x2',"Opravdu chceÔøΩ potovoru vymazat ze seznamÔøΩ vzorÔøΩ? Ujisti se, ÔøΩe tuto potvoru nepouÔøΩÔøΩvÔøΩÔøΩ v ÔøΩÔøΩdnÔøΩ jinÔøΩ mapÔøΩ","Ano","Ne",NULL)==1)
+     terminate_gui();
   o_aktual=find_object(waktual,260);
   }
 
 char *sound_ev[]=
-  {"P©i chñzi","ótok","Z†sah","Reserved"};
+  {"PÔøΩi chÔøΩzi","ÔøΩtok","ZÔøΩsah","Reserved"};
 
 void mob_test_sound()
   {
@@ -555,15 +555,15 @@ void mob_inv()
   memcpy(&b1,def_border(1,0),sizeof(CTL3D));
   default_font=vga_font;
   memcpy(f_default,flat_color(0x0000),sizeof(charcolors));
-  def_dialoge(100,50,400,390,"Invent†© potvory");
+  def_dialoge(100,50,400,390,"InventÔøΩÔøΩ potvory");
   str_insline(&ls_sorts,0,"<nic>");
   for(i=0;i<MOBS_INV;i++)
      {
      define(i+10,10,20+i*15,250,10,0,str_line,ls_sorts);on_enter(string_list_sup);
      c_default(moblist[m].inv[i]);
      }
-  define(300,5,20,80,20,1,button,"Ok");property(&b1,NULL,NULL,WINCOLOR);on_change(terminate);
-  define(310,5,45,80,20,1,button,"Zru®it");property(&b1,NULL,NULL,WINCOLOR);on_change(terminate);
+  define(300,5,20,80,20,1,button,"Ok");property(&b1,NULL,NULL,WINCOLOR);on_control_change(terminate_gui);
+  define(310,5,45,80,20,1,button,"ZruÔøΩit");property(&b1,NULL,NULL,WINCOLOR);on_control_change(terminate_gui);
   redraw_desktop();
   escape();
   if (o_aktual->id==300)
@@ -576,20 +576,20 @@ static char *aff_list[]=
   {
   "INVIS",
   "OKO ZA OKO",
-  "NASTAV TVèû",
+  "NASTAV TVÔøΩÔøΩ",
   "ENERGY DRAIN",
   "MANA SHIELD (*)",
   "SANCTUARY SHIELD (1/2 zasahu)",
   "HIGH SANCTUARY (omezit zasah)",
   "BLIND (slepota)",
   "REGENERACE (*)",
-  "OCHRANA PûED ZIMOU (*)",
-  "OCHRANA PûED íèREM (*)",
+  "OCHRANA PÔøΩED ZIMOU (*)",
+  "OCHRANA PÔøΩED ÔøΩÔøΩREM (*)",
   "KNOCK BACK",
   "< volno >",
   "< volno >",
   "< volno >",
-  "Vyhrazeno pro dÇmona"
+  "Vyhrazeno pro dÔøΩmona"
   };
 
 void spell_affections()
@@ -607,14 +607,14 @@ void spell_affections()
      {
      define(i+10,10,20+i*12,250,10,0,check_box,aff_list[i]);c_default((m & (1<<i))!=0);
      }
-  define(-1,10,230,1,1,0,label,"(*) - u nestvur neimplementov†no");
-  define(-1,10,242,1,1,0,label,"Sanctuary bere potvo©e jen 1/2 ëivotñ ze z†sahu");
-  define(-1,10,254,1,1,0,label,"High Sanc. o©ez†v† z†sah na max 18 ëivotñ");
-  define(-1,10,266,1,1,0,label,"Energy drain p©id† 1/2 toho co ubere postav†m");
+  define(-1,10,230,1,1,0,label,"(*) - u nestvur neimplementovÔøΩno");
+  define(-1,10,242,1,1,0,label,"Sanctuary bere potvoÔøΩe jen 1/2 ÔøΩivotÔøΩ ze zÔøΩsahu");
+  define(-1,10,254,1,1,0,label,"High Sanc. oÔøΩezÔøΩvÔøΩ zÔøΩsah na max 18 ÔøΩivotÔøΩ");
+  define(-1,10,266,1,1,0,label,"Energy drain pÔøΩidÔøΩ 1/2 toho co ubere postavÔøΩm");
   define(-1,10,278,1,1,0,label,"BLIND - potvora je slepa (senceless)");
-  define(-1,10,290,1,1,0,label,"REGENERACE - KaëdÇ kolo +HPREG ëivotñ");
-  define(300,5,20,80,20,1,button,"Ok");property(&b1,NULL,NULL,WINCOLOR);on_change(terminate);
-  define(310,5,45,80,20,1,button,"Zru®it");property(&b1,NULL,NULL,WINCOLOR);on_change(terminate);
+  define(-1,10,290,1,1,0,label,"REGENERACE - KaÔøΩdÔøΩ kolo +HPREG ÔøΩivotÔøΩ");
+  define(300,5,20,80,20,1,button,"Ok");property(&b1,NULL,NULL,WINCOLOR);on_control_change(terminate_gui);
+  define(310,5,45,80,20,1,button,"ZruÔøΩit");property(&b1,NULL,NULL,WINCOLOR);on_control_change(terminate_gui);
   redraw_desktop();
   escape();
   if (o_aktual->id==300)
@@ -643,13 +643,13 @@ void mob_sound_call(int mob)
   list=read_directory(c,DIR_BREIF,_A_NORMAL);
   read_ddl_list_wav(&list);
   define(9,10,20,200,126,0,listbox,list,RGB555(31,31,31),0);
-  property(&b3,NULL,NULL,WINCOLOR);c_default(0);on_change(mob_test_sound);
+  property(&b3,NULL,NULL,WINCOLOR);c_default(0);on_control_change(mob_test_sound);
   define(10,217,40,19,87,0,scroll_bar_v,0,10,1,SCROLLBARCOL);
   property(&b2,NULL,NULL,WINCOLOR);
   define(11,216,20,21,17,0,scroll_button,-1,0,"\x1e");
-  property(NULL,icones,NULL,WINCOLOR);on_change(scroll_support);
+  property(NULL,icones,NULL,WINCOLOR);on_control_change(scroll_support);
   define(12,216,130,21,17,0,scroll_button,1,10,"\x1f");
-  property(NULL,icones,NULL,WINCOLOR);on_change(scroll_support);
+  property(NULL,icones,NULL,WINCOLOR);on_control_change(scroll_support);
   for(j=0;j<MOB_SOUNDS-1;j++)
      {
      int z,y;
@@ -661,11 +661,11 @@ void mob_sound_call(int mob)
         if (z && enemy_sound!=NULL && (z<=str_count(enemy_sound)))
            set_default(enemy_sound[z-1]);else set_default("");
      define(j+40,245,y,20,12,0,button,"<");
-        property(&b1,NULL,NULL,WINCOLOR);on_change(mob_sound_copy);
+        property(&b1,NULL,NULL,WINCOLOR);on_control_change(mob_sound_copy);
      }
   define(90,5,30,100,10,2,check_box,"Loop (WALK!)");c_default((moblist[i].vlajky & 0x40)!=0);
-  define(100,5,5,80,20,2,button,"Ok");on_change(terminate); property(&b1,NULL,NULL,WINCOLOR);
-  define(110,90,5,80,20,2,button,"Zru®it");on_change(terminate); property(&b1,NULL,NULL,WINCOLOR);
+  define(100,5,5,80,20,2,button,"Ok");on_control_change(terminate_gui); property(&b1,NULL,NULL,WINCOLOR);
+  define(110,90,5,80,20,2,button,"ZruÔøΩit");on_control_change(terminate_gui); property(&b1,NULL,NULL,WINCOLOR);
   redraw_window();
   escape();
   if (o_aktual->id==100)
@@ -708,17 +708,17 @@ static void open_dialog_edit_box()
   memcpy(&b3,def_border(6,WINCOLOR),sizeof(CTL3D));
   default_font=vga_font;
   memcpy(f_default,flat_color(0x0000),sizeof(charcolors));
-  def_dialoge(100,250,250,180,"P©i©aÉ dialog");
+  def_dialoge(100,250,250,180,"PÔøΩiÔøΩaÔøΩ dialog");
   define(9,10,20,200,126,0,listbox,dlg_names,RGB555(31,31,31),0);
   property(&b3,NULL,NULL,WINCOLOR);c_default(pgf2name(j));
   define(10,217,40,19,87,0,scroll_bar_v,0,10,1,SCROLLBARCOL);
   property(&b2,NULL,NULL,WINCOLOR);
   define(11,216,20,21,17,0,scroll_button,-1,0,"\x1e");
-  property(NULL,icones,NULL,WINCOLOR);on_change(scroll_support);
+  property(NULL,icones,NULL,WINCOLOR);on_control_change(scroll_support);
   define(12,216,130,21,17,0,scroll_button,1,10,"\x1f");
-  property(NULL,icones,NULL,WINCOLOR);on_change(scroll_support);
-  define(100,5,5,80,20,2,button,"Ok");on_change(terminate); property(&b1,NULL,NULL,WINCOLOR);
-  define(110,90,5,80,20,2,button,"Zru®it");on_change(terminate); property(&b1,NULL,NULL,WINCOLOR);
+  property(NULL,icones,NULL,WINCOLOR);on_control_change(scroll_support);
+  define(100,5,5,80,20,2,button,"Ok");on_control_change(terminate_gui); property(&b1,NULL,NULL,WINCOLOR);
+  define(110,90,5,80,20,2,button,"ZruÔøΩit");on_control_change(terminate_gui); property(&b1,NULL,NULL,WINCOLOR);
   redraw_window();
   escape();
   if (o_aktual->id==100)
@@ -753,7 +753,7 @@ void edit_mob(int i)
   define(200,310,35,290,1,0,pcx_view);set_default("_");
   define(205,310,35,290,370,0,symetry);c_default(moblist[i].adjusting[0]);
   define(207,5,20,120,20,1,input_line,20);set_default("");
-  define(-1,190,20,100,12,0,label,"JmÇno potvory");
+  define(-1,190,20,100,12,0,label,"JmÔøΩno potvory");
   define(10,300,20,200,12,0,input_line,31);set_default(moblist[i].name);property(def_border(2,WINCOLOR),NULL,NULL,WINCOLOR);
   z=0;b1=def_border(5,WINCOLOR);
   for(y=20;y<380;)
@@ -761,7 +761,7 @@ void edit_mob(int i)
      if (nvlast[z][0])
 	{
      	define(-1,5,y,140,12,0,label,nvlast[z]);
-     	define(z+20,120,y,60,12,0,input_line,8,-32767,32767,"%6d");set_default(strs(moblist[i].vlastnosti[z]));on_exit(test_int);
+     	define(z+20,120,y,60,12,0,input_line,8,-32767,32767,"%6d");set_default(strs(moblist[i].vlastnosti[z]));on_control_exit(test_int);
      	property(b1,NULL,NULL,WINCOLOR);
 	y+=15;
 	}
@@ -769,69 +769,69 @@ void edit_mob(int i)
      if (nvlast[z][0]=='*') break;
      }
   y+=15;
-  define(-1,5,y,140,12,0,label,"íivel:");
+  define(-1,5,y,140,12,0,label,"ÔøΩivel:");
   define(102,120,y,60,12,0,str_line,zivly);c_default(moblist[i].vlastnosti[VLS_MGZIVEL]);on_enter(string_list_sup);property(b1,NULL,NULL,WINCOLOR);y+=15;
-  define(-1,5,y,140,12,0,label,"JmÇno grafiky");
-  define(100,120,y,60,12,0,input_line,6);set_default(moblist[i].mobs_name);property(b1,NULL,NULL,WINCOLOR);on_exit(check_mobs_name);y+=15;
+  define(-1,5,y,140,12,0,label,"JmÔøΩno grafiky");
+  define(100,120,y,60,12,0,input_line,6);set_default(moblist[i].mobs_name);property(b1,NULL,NULL,WINCOLOR);on_control_exit(check_mobs_name);y+=15;
   define(-1,5,y,140,12,0,label,"Rychlost");
-  define(101,130,y,30,12,0,input_line,3,0,128,"%3d");set_default(strs(moblist[i].speed));on_exit(test_int);property(b1,NULL,NULL,WINCOLOR);y+=15;
-  define(-1,5,y,140,12,0,label,"õance £tàku");
-  define(103,130,y,30,12,0,input_line,3,0,255,"%3d");set_default(strs(moblist[i].flee_num));on_exit(test_int);property(b1,NULL,NULL,WINCOLOR);y+=15;
+  define(101,130,y,30,12,0,input_line,3,0,128,"%3d");set_default(strs(moblist[i].speed));on_control_exit(test_int);property(b1,NULL,NULL,WINCOLOR);y+=15;
+  define(-1,5,y,140,12,0,label,"ÔøΩance ÔøΩtÔøΩku");
+  define(103,130,y,30,12,0,input_line,3,0,255,"%3d");set_default(strs(moblist[i].flee_num));on_control_exit(test_int);property(b1,NULL,NULL,WINCOLOR);y+=15;
   define(-1,5,y,140,12,0,label,"Kouzlo");
-  define(104,130,y,30,12,0,input_line,3,0,255,"%3d");set_default(strs(moblist[i].casting));on_exit(test_int);property(b1,NULL,NULL,WINCOLOR);y+=15;
+  define(104,130,y,30,12,0,input_line,3,0,255,"%3d");set_default(strs(moblist[i].casting));on_control_exit(test_int);property(b1,NULL,NULL,WINCOLOR);y+=15;
   define(-1,5,y,140,12,0,label,"Specproc");
   define(105,120,y,60,12,0,str_line,mob_procs);c_default(moblist[i].specproc);on_enter(string_list_sup);property(b1,NULL,NULL,WINCOLOR);y+=15;
-  y=260;define(-1,220,248,140,12,0,label,"Poáet anim.");
+  y=260;define(-1,220,248,140,12,0,label,"PoÔøΩet anim.");
   for(z=0;z<6;z++)
      {
      define(-1,190,y,50,12,0,label,smery_anim[z]);
-     define(z+120,260,y,20,12,0,input_line,2,!z*2,15,"%2d");set_default(strs(moblist[i].anim_counts[z]));on_exit(test_int);
+     define(z+120,260,y,20,12,0,input_line,2,!z*2,15,"%2d");set_default(strs(moblist[i].anim_counts[z]));on_control_exit(test_int);
      property(b1,NULL,NULL,WINCOLOR);
      y+=15;
      }
-  define(127,285,320,20,12,0,input_line,2,1,15,"%2d");set_default(strs(moblist[i].hit_pos));on_exit(test_int);
+  define(127,285,320,20,12,0,input_line,2,1,15,"%2d");set_default(strs(moblist[i].hit_pos));on_control_exit(test_int);
      property(b1,NULL,NULL,WINCOLOR);
-  define(430,190,350,50,10,0,check_box,"Chod°");
-  define(440,190,362,50,10,0,check_box,"ótoá°");
-  define(450,190,374,50,10,0,check_box,"Sly®°");
-  define(460,250,350,100,10,0,check_box,"Jeden na pol°áku");
-  define(470,250,362,60,10,0,check_box,"Str†ëce");
+  define(430,190,350,50,10,0,check_box,"ChodÔøΩ");
+  define(440,190,362,50,10,0,check_box,"ÔøΩtoÔøΩÔøΩ");
+  define(450,190,374,50,10,0,check_box,"SlyÔøΩÔøΩ");
+  define(460,250,350,100,10,0,check_box,"Jeden na polÔøΩÔøΩku");
+  define(470,250,362,60,10,0,check_box,"StrÔøΩÔøΩce");
   define(480,250,374,40,10,0,check_box,"Sebere");
-  define(490,250,386,40,10,0,check_box,"Sb°r†");
-  define(500,190,386,50,10,0,check_box,"St©°l°");
-  define(510,20,438,50,10,0,check_box,"Dialog.");c_default(moblist[i].dialog>=0);on_change(open_dialog_edit_box);
+  define(490,250,386,40,10,0,check_box,"SbÔøΩrÔøΩ");
+  define(500,190,386,50,10,0,check_box,"StÔøΩÔøΩlÔøΩ");
+  define(510,20,438,50,10,0,check_box,"Dialog.");c_default(moblist[i].dialog>=0);on_control_change(open_dialog_edit_box);
   define(-1,190,50,50,12,0,label,"Dohled");
   define(-1,190,65,50,12,0,label,"Dosah");
   define(-1,190,80,50,12,0,label,"Expy:");
   define(-1,190,95,50,12,0,label,"Bonus:");
-  define(-1,190,110,50,12,0,label,"Pen°ze:");
-  define(160,260,50,30,12,0,input_line,3,0,255,"%3d");set_default(strs(moblist[i].dohled));on_exit(test_int);property(b1,NULL,NULL,WINCOLOR);
-  define(170,260,65,30,12,0,input_line,3,0,255,"%3d");set_default(strs(moblist[i].dosah));on_exit(test_int);property(b1,NULL,NULL,WINCOLOR);
-  define(175,250,80,55,12,0,input_line,6,0,999999,"%6d");set_default(strs(moblist[i].experience));on_exit(test_int);property(b1,NULL,NULL,WINCOLOR);
-  define(176,250,95,55,12,0,input_line,6,0,65535,"%6d");set_default(strs(moblist[i].bonus));on_exit(test_int);property(b1,NULL,NULL,WINCOLOR);
-  define(177,255,110,50,12,0,input_line,6,0,65535,"%5d");set_default(strs(moblist[i].money));on_exit(test_int);property(b1,NULL,NULL,WINCOLOR);
+  define(-1,190,110,50,12,0,label,"PenÔøΩze:");
+  define(160,260,50,30,12,0,input_line,3,0,255,"%3d");set_default(strs(moblist[i].dohled));on_control_exit(test_int);property(b1,NULL,NULL,WINCOLOR);
+  define(170,260,65,30,12,0,input_line,3,0,255,"%3d");set_default(strs(moblist[i].dosah));on_control_exit(test_int);property(b1,NULL,NULL,WINCOLOR);
+  define(175,250,80,55,12,0,input_line,6,0,999999,"%6d");set_default(strs(moblist[i].experience));on_control_exit(test_int);property(b1,NULL,NULL,WINCOLOR);
+  define(176,250,95,55,12,0,input_line,6,0,65535,"%6d");set_default(strs(moblist[i].bonus));on_control_exit(test_int);property(b1,NULL,NULL,WINCOLOR);
+  define(177,255,110,50,12,0,input_line,6,0,65535,"%5d");set_default(strs(moblist[i].money));on_control_exit(test_int);property(b1,NULL,NULL,WINCOLOR);
   define(180,0,0,0,0,0,value_store,4);c_default(0);//cislo_animace
   define(185,0,0,0,0,0,value_store,4);c_default(0);//cislo_pozice
   define(190,0,0,0,0,0,value_store,4);c_default(i);//cislo_i
   b1=def_border(1,0);
-  define(210,190,144,80,20,0,button,"Dal®° >>");property(b1,NULL,NULL,WINCOLOR);on_change(mob_next);
-  define(220,190,166,80,20,0,button,"Otoáit");property(b1,NULL,NULL,WINCOLOR);on_change(mob_turn);
-  define(230,190,188,80,20,0,button,"Test");property(b1,NULL,NULL,WINCOLOR);on_change(play_mob);
-  define(240,84,2,80,20,2,button,"Zru®it");property(b1,NULL,NULL,WINCOLOR);on_change(terminate);
-  define(250,2,2,80,20,2,button,"Ok");property(b1,NULL,NULL,WINCOLOR);on_change(terminate);
-  define(260,166,2,80,20,2,button,"Vymazat");property(b1,NULL,NULL,WINCOLOR);on_change(mob_ask_delete);
-  define(270,2,24,80,20,2,button,"Zvuky");property(b1,NULL,NULL,WINCOLOR);on_change(mob_sound);
-  define(280,84,24,80,20,2,button,"Invent†©");property(b1,NULL,NULL,WINCOLOR);on_change(mob_inv);
-  define(290,166,24,80,20,2,button,"Aff");property(b1,NULL,NULL,WINCOLOR);on_change(spell_affections);
+  define(210,190,144,80,20,0,button,"DalÔøΩÔøΩ >>");property(b1,NULL,NULL,WINCOLOR);on_control_change(mob_next);
+  define(220,190,166,80,20,0,button,"OtoÔøΩit");property(b1,NULL,NULL,WINCOLOR);on_control_change(mob_turn);
+  define(230,190,188,80,20,0,button,"Test");property(b1,NULL,NULL,WINCOLOR);on_control_change(play_mob);
+  define(240,84,2,80,20,2,button,"ZruÔøΩit");property(b1,NULL,NULL,WINCOLOR);on_control_change(terminate_gui);
+  define(250,2,2,80,20,2,button,"Ok");property(b1,NULL,NULL,WINCOLOR);on_control_change(terminate_gui);
+  define(260,166,2,80,20,2,button,"Vymazat");property(b1,NULL,NULL,WINCOLOR);on_control_change(mob_ask_delete);
+  define(270,2,24,80,20,2,button,"Zvuky");property(b1,NULL,NULL,WINCOLOR);on_control_change(mob_sound);
+  define(280,84,24,80,20,2,button,"InventÔøΩÔøΩ");property(b1,NULL,NULL,WINCOLOR);on_control_change(mob_inv);
+  define(290,166,24,80,20,2,button,"Aff");property(b1,NULL,NULL,WINCOLOR);on_control_change(spell_affections);
   define(-1,190,220,1,1,0,label,"Pals:");
-  define(520,230,220,30,12,0,input_line,3,-127,127,"%3d");set_default(strs(moblist[i].paletts_count));on_exit(test_int);property(b1,NULL,NULL,WINCOLOR);
+  define(520,230,220,30,12,0,input_line,3,-127,127,"%3d");set_default(strs(moblist[i].paletts_count));on_control_exit(test_int);property(b1,NULL,NULL,WINCOLOR);
   for(y=0;y<6*16;y++) {define(300+y,0,0,0,0,0,value_store,4);c_default(moblist[i].adjusting[y]);}
   define(630,0,0,0,0,0,value_store,1);c_default(0);//IN_BATTLE;
-  define(640,190,400,50,10,0,check_box,"Prñchoz°");
-  define(650,190,412,50,10,0,check_box,"C°t°");
+  define(640,190,400,50,10,0,check_box,"PrÔøΩchozÔøΩ");
+  define(650,190,412,50,10,0,check_box,"CÔøΩtÔøΩ");
   define(660,190,424,100,10,0,check_box,"Astral (wind)");
   define(670,300,400,100,10,0,check_box,"Reload mob");
-  define(680,300,412,100,10,0,check_box,"Kouzl°");
+  define(680,300,412,100,10,0,check_box,"KouzlÔøΩ");
   define(700,0,0,0,0,0,value_store,4);c_default(moblist[i].vlastnosti[VLS_KOUZLA]);
   movesize_win(waktual,0,0,DxGetResX(),DxGetResY());
   check_mobs_name();
@@ -865,7 +865,7 @@ void edit_mob(int i)
      for(z=0;z<6*16;z++) p->adjusting[z]=f_get_value(0,300+z);
      if (p->name[0]=='\0')
         {
-        msg_box("Doporuáen°",' ',"Bylo by dobrÇ potvoru nazvat, kvuli snadnÇ manipulaci","Ok",NULL);
+        msg_box("DoporuÔøΩenÔøΩ",' ',"Bylo by dobrÔøΩ potvoru nazvat, kvuli snadnÔøΩ manipulaci","Ok",NULL);
         strcpy(p->name,p->mobs_name);
         }
      p->lives=p->vlastnosti[VLS_MAXHIT];
@@ -889,7 +889,7 @@ void edit_mob(int i)
         {
         redraw=1;
         jdi_na_sektor(j);
-        if (msg_box("Potvora je v mapà. Vymazat?",'\0x2',"Chce® vymazat tuto potvoru a v®echny dal®°?","Ano","Ne",NULL)==2) return;
+        if (msg_box("Potvora je v mapÔøΩ. Vymazat?",'\0x2',"ChceÔøΩ vymazat tuto potvoru a vÔøΩechny dalÔøΩÔøΩ?","Ano","Ne",NULL)==2) return;
         break;
         }
      for(j=0;j<maplen;j++) if ((mob_map[j] & 0x3fff)==i) mob_map[j]=-1;
@@ -957,13 +957,13 @@ void enemy_window()
         property(b1,NULL,NULL,WINCOLOR);
         o_end->autoresizey=1;
      define(31,3,20,19,15,1,scroll_button,-1,0,"\x1e");
-        property(NULL,icones,NULL,WINCOLOR);on_change(scroll_support);
+        property(NULL,icones,NULL,WINCOLOR);on_control_change(scroll_support);
      define(32,3,68,19,15,2,scroll_button,1,10,"\x1f");
-        property(NULL,icones,NULL,WINCOLOR);on_change(scroll_support);
-     define(40,5,5,60,20,3,button,"Vymazat");property(b1,NULL,NULL,WINCOLOR);on_change(vymazat_moba);
-     define(50,5,30,60,20,3,button,"Um°stit");property(b1,NULL,NULL,WINCOLOR);on_change(umistit_moba);
-     define(60,70,5,60,20,3,button,"Novou");property(b1,NULL,NULL,WINCOLOR);on_change(new_mob);
-     define(70,70,30,60,20,3,button,"Opravit");property(b1,NULL,NULL,WINCOLOR);on_change(edit_mob_event);
+        property(NULL,icones,NULL,WINCOLOR);on_control_change(scroll_support);
+     define(40,5,5,60,20,3,button,"Vymazat");property(b1,NULL,NULL,WINCOLOR);on_control_change(vymazat_moba);
+     define(50,5,30,60,20,3,button,"UmÔøΩstit");property(b1,NULL,NULL,WINCOLOR);on_control_change(umistit_moba);
+     define(60,70,5,60,20,3,button,"Novou");property(b1,NULL,NULL,WINCOLOR);on_control_change(new_mob);
+     define(70,70,30,60,20,3,button,"Opravit");property(b1,NULL,NULL,WINCOLOR);on_control_change(edit_mob_event);
      movesize_win(waktual,SCR_WIDTH_X,0,170,SCR_WIDTH_Y-20);
      redraw_window();
      }
@@ -1051,7 +1051,7 @@ void *save_mob_map(long *size)
   for(i=0,c=0;i<maplen;i++)
      if (mob_map[i]!=-1) c++;
   if (!c) return NULL;
-  if (c>255) msg_box("Omezen°",'\x1',"Nelze m°t v jednÇ mapà v°c potvor neë 255. MAPEDIT nàkterÇ nenahraje.","Ok",NULL);
+  if (c>255) msg_box("OmezenÔøΩ",'\x1',"Nelze mÔøΩt v jednÔøΩ mapÔøΩ vÔøΩc potvor neÔøΩ 255. MAPEDIT nÔøΩkterÔøΩ nenahraje.","Ok",NULL);
   p=data=getmem(*size=c*4);
   for(i=0;i<maplen;i++)
      if (mob_map[i]!=-1)
@@ -1094,8 +1094,8 @@ static void check_correct_sounds()
      if (err)
         {
         char text[200];
-        sprintf(text,"Nestvñra \"%s\" m† ®patnou referenci zvuku! Poloëka bude vynulov†na!",moblist[i].name);
-        if (msg_box("Chybn† reference",'\x1',text,"Pokraáovat","Opravit",NULL)==2) mob_sound_call(i);
+        sprintf(text,"NestvÔøΩra \"%s\" mÔøΩ ÔøΩpatnou referenci zvuku! PoloÔøΩka bude vynulovÔøΩna!",moblist[i].name);
+        if (msg_box("ChybnÔøΩ reference",'\x1',text,"PokraÔøΩovat","Opravit",NULL)==2) mob_sound_call(i);
         }
      }
   }
@@ -1136,7 +1136,7 @@ void load_sound_dat(void *p,long siz)
      c=strchr(c,0);
      if (c==NULL)
         {
-        msg_box("Load Error",'\x1',"Chyba nastala p©i naá°t†n° souboru SOUND.DAT: Nekonzistetn° £daje. NàkterÇ zvuky nebudou p©i©azeny!","Ok",NULL);
+        msg_box("Load Error",'\x1',"Chyba nastala pÔøΩi naÔøΩÔøΩtÔøΩnÔøΩ souboru SOUND.DAT: NekonzistetnÔøΩ ÔøΩdaje. NÔøΩkterÔøΩ zvuky nebudou pÔøΩiÔøΩazeny!","Ok",NULL);
         break;
         }
      c++;

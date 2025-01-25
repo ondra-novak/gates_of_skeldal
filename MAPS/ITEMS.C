@@ -184,14 +184,14 @@ void generate_item_tree(TITEM *start,TSTR_LIST *list, char first)
         char *d;
 
         d=strchr(tree,'\0')-3;
-        strcpy(d,"ÀÄ ");
+        strcpy(d,"ï¿½ï¿½ ");
         }
      else
         {
         char *d;
 
         d=strchr(tree,'\0')-3;
-        strcpy(d,"ÃÄ ");
+        strcpy(d,"ï¿½ï¿½ ");
         }
      if (start->jmeno[0]=='~')
          sprintf(c,"%08X %s%s",(int)start,tree,start->popis);
@@ -213,7 +213,7 @@ void generate_item_tree(TITEM *start,TSTR_LIST *list, char first)
            char *d;
 
            d=strchr(tree,'\0')-3;
-           strcpy(d,"³\xdb ");
+           strcpy(d,"ï¿½\xdb ");
            }
         generate_item_tree(start->inside,list,0);
         }
@@ -550,15 +550,15 @@ int select_ikon_lib(int last)
   for (i=0;i<30;i++)
      {
      define(i+10,x,y,45,55,0,ikona);c_default(last+i);
-     property(def_border(5,WINCOLOR),NULL,NULL,WINCOLOR);on_change(terminate);
+     property(def_border(5,WINCOLOR),NULL,NULL,WINCOLOR);on_control_change(terminate_gui);
      x+=48;if (x+48>490) {y+=58;x=5;}
      }
   define(300,10,10,80,20,3,button,"<<");
-  property(def_border(1,0),NULL,NULL,WINCOLOR);on_change(terminate);
+  property(def_border(1,0),NULL,NULL,WINCOLOR);on_control_change(terminate_gui);
   define(310,10,10,80,20,2,button,">>");
-  property(def_border(1,0),NULL,NULL,WINCOLOR);on_change(terminate);
-  define(320,175-40,10,80,20,3,button,"Zru¨it");
-  property(def_border(1,0),NULL,NULL,WINCOLOR);on_change(terminate);
+  property(def_border(1,0),NULL,NULL,WINCOLOR);on_control_change(terminate_gui);
+  define(320,175-40,10,80,20,3,button,"Zruï¿½it");
+  property(def_border(1,0),NULL,NULL,WINCOLOR);on_control_change(terminate_gui);
   redraw_window();
   do
      {
@@ -587,10 +587,10 @@ void change_item_ikone()
   }
 
 char nvlast[][16]=
-  {"cS¡la","Schopnost magie","Pohyblivost","Obratnost","Max zranˆn¡",
-  "Kondice","Max mana","Obrana(doln¡)","Obrana(Horn¡)","—tok(Doln¡)",
-  "—tok(Horn¡)","Ohe¤","Voda","Zemˆ","Vzduch","Mysl","Magick  s¡la(D)",
-  "Magick  s¡la(H)","\0"};
+  {"cSï¿½la","Schopnost magie","Pohyblivost","Obratnost","Max zranï¿½nï¿½",
+  "Kondice","Max mana","Obrana(dolnï¿½)","Obrana(Hornï¿½)","ï¿½tok(Dolnï¿½)",
+  "ï¿½tok(Hornï¿½)","Oheï¿½","Voda","Zemï¿½","Vzduch","Mysl","Magickï¿½ sï¿½la(D)",
+  "Magickï¿½ sï¿½la(H)","\0"};
 
 void ukaz_vlastnosti(int pocet,int x,int y,int id,short *it)
   {
@@ -633,13 +633,13 @@ void oprav_vlastnosti(TITEM *it)
   define(190,5,272,100,10,0,check_box,"Na nohy");
   define(200,105,200,100,10,0,check_box,"Na chodidla");
   define(210,105,212,100,10,0,check_box,"Na ramena");
-  define(220,105,224,100,10,0,check_box,"Na z da");
-  define(300,10,10,80,20,2,button,"Zru¨it");on_change(terminate);
+  define(220,105,224,100,10,0,check_box,"Na zï¿½da");
+  define(300,10,10,80,20,2,button,"Zruï¿½it");on_control_change(terminate_gui);
    property(def_border(1,0),NULL,NULL,WINCOLOR);
-  define(310,10,40,80,20,2,button,"Ok");on_change(terminate);
+  define(310,10,40,80,20,2,button,"Ok");on_control_change(terminate_gui);
    property(def_border(1,0),NULL,NULL,WINCOLOR);
-  define(-1,225,206,70,10,0,label,"Magick˜ £tok");
-  define(250,225,218,70,70,0,radio_butts,5,"Ohe¤","Voda","Zemˆ","Vzduch","Mysl");
+  define(-1,225,206,70,10,0,label,"Magickï¿½ ï¿½tok");
+  define(250,225,218,70,70,0,radio_butts,5,"Oheï¿½","Voda","Zemï¿½","Vzduch","Mysl");
   c_default(it->zmeny[VLS_MGZIVEL]);
   fill_bit_fields(0,130,it->place_map,11);
   redraw_window();
@@ -679,7 +679,7 @@ void save_edited_item()
   it->magie=vals(110);
   it->silaspell=vals(120);
   it->ikona=f_get_value(0,130);
-  terminate();
+  terminate_gui();
   }
 
 TITEM *select_item(TITEM *it);
@@ -695,17 +695,17 @@ void e_item_insert_inside()
   it=isolate_item(it);
   if (insert_inside(it,is)==NULL)
      {
-     msg_box("Chyba integrity:",'\x1',"Nelze vlo‘it tento p©edmˆt do zvolen‚ho "
-              "Patrnˆ se pokou¨¡¨ vlo‘it tut‚‘ vˆc samu do sebe. Nebo vˆc nen¡ "
-              "izolov na, nebo ji nelze izolovat. Je mo‘n‚ ‘e se sna‘¡¨ vlo‘it "
-              "vˆc do vˆci, kter  je uvnit© t‚to vˆci, nebo v uvnit© vˆci, kter  "
-              "je uvnit© vˆci, do kter‚ chce¨ vˆc um¡stit atd. Mohlo by dojit k "
-              "zacyklen¡ a to nelze dopustit. Program bude vˆc izolovat, jeliko‘ "
-              "ji‘ nelze rekonstruovat p–vodn¡ stav","Budu si pamatovat",NULL);
+     msg_box("Chyba integrity:",'\x1',"Nelze vloï¿½it tento pï¿½edmï¿½t do zvolenï¿½ho "
+              "Patrnï¿½ se pokouï¿½ï¿½ï¿½ vloï¿½it tutï¿½ï¿½ vï¿½c samu do sebe. Nebo vï¿½c nenï¿½ "
+              "izolovï¿½na, nebo ji nelze izolovat. Je moï¿½nï¿½ ï¿½e se snaï¿½ï¿½ï¿½ vloï¿½it "
+              "vï¿½c do vï¿½ci, kterï¿½ je uvnitï¿½ tï¿½to vï¿½ci, nebo v uvnitï¿½ vï¿½ci, kterï¿½ "
+              "je uvnitï¿½ vï¿½ci, do kterï¿½ chceï¿½ vï¿½c umï¿½stit atd. Mohlo by dojit k "
+              "zacyklenï¿½ a to nelze dopustit. Program bude vï¿½c izolovat, jelikoï¿½ "
+              "jiï¿½ nelze rekonstruovat pï¿½vodnï¿½ stav","Budu si pamatovat",NULL);
      insert_isolated(it);
      return;
      }
-  terminate();
+  terminate_gui();
   }
 
 void e_item_insert_map()
@@ -721,23 +721,23 @@ void item_edit(TITEM *it)
   CTL3D *c;
 
   c=def_border(5,WINCOLOR);
-  def_dialoge(120,80,410,300,"Oprava £daj– o p©edmˆtu");
+  def_dialoge(120,80,410,300,"Oprava ï¿½dajï¿½ o pï¿½edmï¿½tu");
   curfont=vga_font;
   default_font=curfont;
-  define(-1,5,20,50,10,0,label,"Jm‚no (31 znak–)");
+  define(-1,5,20,50,10,0,label,"Jmï¿½no (31 znakï¿½)");
   define(15,10,35,288,12,0,input_line,31);set_default(it->jmeno);
    property(def_border(2,WINCOLOR),NULL,flat_color(RGB555(15,0,0)),WINCOLOR);
-  define(-1,5,50,50,10,0,label,"Popis (63 znak–)");
+  define(-1,5,50,50,10,0,label,"Popis (63 znakï¿½)");
   define(20,10,65,380,12,0,input_line,63);set_default(it->popis);
    property(def_border(2,WINCOLOR),NULL,flat_color(0xF),WINCOLOR);
   define(5,0,0,0,0,0,value_store,4);set_default(&it);
   define(30,10,30,80,20,1,button,"Vlastnosti");
-   property(def_border(1,0),NULL,NULL,WINCOLOR);on_change(otevri_vlastnosti);
+   property(def_border(1,0),NULL,NULL,WINCOLOR);on_control_change(otevri_vlastnosti);
   define(-1,5,80,100,10,0,label,"Hmotnost");
   define(-1,5,95,100,10,0,label,"Nosnost");
-  define(-1,5,110,100,10,0,label,"ID Kl¡‡e");
+  define(-1,5,110,100,10,0,label,"ID Klï¿½ï¿½e");
   define(-1,5,125,100,10,0,label,"?Hodnota");
-  define(-1,5,140,100,10,0,label,"€.Ud losti");
+  define(-1,5,140,100,10,0,label,"ï¿½.Udï¿½losti");
   define(-1,5,155,100,10,0,label,"Druh");
   def_border(5,WINCOLOR);
   define(40,105,80,60,12,0,input_line,7,-32767,+32767,"%6d");
@@ -752,18 +752,18 @@ void item_edit(TITEM *it)
    property(c,NULL,NULL,WINCOLOR);on_exit(test_int);set_default(strs(it->use_event));
   define(90,80,155,120,108,0,radio_butts,10,
       "Nespecif.",
-      "Brnˆn¡",
-      "Ru‡n¡ zbra¤",
+      "Brnï¿½nï¿½",
+      "Ruï¿½nï¿½ zbraï¿½",
       "Svitek/Hulka",
-      "St©eln  zbr.",
-      "Vrhac¡",
-      "Lektvar/Mˆch",
-      "J¡dlo",
+      "Stï¿½elnï¿½ zbr.",
+      "Vrhacï¿½",
+      "Lektvar/Mï¿½ch",
+      "Jï¿½dlo",
       "Batoh/Truhla",
-      "Specialn¡");c_default(it->druh);
+      "Specialnï¿½");c_default(it->druh);
   define(-1,105,80,100,10,1,label,"Kouzlo:");
   define(-1,105,95,100,10,1,label,"Mana celk:");
-  define(-1,105,110,100,10,1,label,"S¡la kouzla");
+  define(-1,105,110,100,10,1,label,"Sï¿½la kouzla");
   define(100,55,80,60,12,1,input_line,7,-32767,32767,"%6d");on_exit(test_int);
    property(c,NULL,NULL,WINCOLOR);set_default(strs(it->spell));
   define(110,55,95,60,12,1,input_line,7,-32767,32767,"%6d");on_exit(test_int);
@@ -771,11 +771,11 @@ void item_edit(TITEM *it)
   define(120,55,110,60,12,1,input_line,7,-32767,32767,"%6d");on_exit(test_int);
    property(c,NULL,NULL,WINCOLOR);set_default(strs(it->silaspell));
   define(130,10,180,45,55,0,ikona);c_default(it->ikona);
-   property(c,NULL,NULL,WINCOLOR);on_change(change_item_ikone);
-  define(300,10,10,80,20,3,button,"Ulo‘");property(def_border(1,0),NULL,NULL,RGB(0,24,0));on_change(save_edited_item);
-  define(310,100,10,80,20,3,button,"Vlo‘it do");property(def_border(1,0),NULL,NULL,WINCOLOR);on_change(e_item_insert_inside);
-  define(320,100,10,80,20,2,button,"Um¡stit");property(def_border(1,0),NULL,NULL,WINCOLOR);on_change(e_item_insert_map);
-  define(330,10,10,80,20,2,button,"Zru¨it");property(def_border(1,0),NULL,flat_color(RGB555(31,31,31)),RGB555(16,0,0);on_change(terminate);
+   property(c,NULL,NULL,WINCOLOR);on_control_change(change_item_ikone);
+  define(300,10,10,80,20,3,button,"Uloï¿½");property(def_border(1,0),NULL,NULL,RGB(0,24,0));on_control_change(save_edited_item);
+  define(310,100,10,80,20,3,button,"Vloï¿½it do");property(def_border(1,0),NULL,NULL,WINCOLOR);on_control_change(e_item_insert_inside);
+  define(320,100,10,80,20,2,button,"Umï¿½stit");property(def_border(1,0),NULL,NULL,WINCOLOR);on_control_change(e_item_insert_map);
+  define(330,10,10,80,20,2,button,"Zruï¿½it");property(def_border(1,0),NULL,flat_color(RGB555(31,31,31)),RGB555(16,0,0);on_control_change(terminate_gui);
   redraw_window();
   escape();
   close_current();
@@ -794,7 +794,7 @@ void select_item_edit()
   sscanf(ls[i],"%X",&it);
   if ((unsigned short)it->druh>=256)
      {
-     msg_box("Nelze!",'\x1',"Nelze upravovat tento druh vˆci","Beru na vˆdom¡",NULL);
+     msg_box("Nelze!",'\x1',"Nelze upravovat tento druh vï¿½ci","Beru na vï¿½domï¿½",NULL);
      return;
      }
   item_edit(it);
@@ -815,12 +815,12 @@ void select_item_klon()
   sscanf(ls[i],"%X",&it);
   if ((unsigned short)it->druh>=256)
      {
-     msg_box("Nelze!",'\x1',"Nelze klonovat tento druh vˆci","Beru na vˆdom¡",NULL);
+     msg_box("Nelze!",'\x1',"Nelze klonovat tento druh vï¿½ci","Beru na vï¿½domï¿½",NULL);
      return;
      }
   if (it->inside!=NULL)
      {
-     i=msg_box("Klonovat",'\x2',"Klonovat i vˆci uvnit©?","Ano","Ne",NULL);
+     i=msg_box("Klonovat",'\x2',"Klonovat i vï¿½ci uvnitï¿½?","Ano","Ne",NULL);
      }
   it=clone_item(it,i==1);
   generate_item_tree(item_tree,&ls,1);
@@ -875,10 +875,10 @@ void select_item_delete()
   sscanf(ls[i],"%X",&it);
   if (item_tree==it && it->next==NULL)
      {
-     msg_box("Nelze!",'\x1',"Jeden p©edmˆt mus¡ z–stat","Ok",NULL);
+     msg_box("Nelze!",'\x1',"Jeden pï¿½edmï¿½t musï¿½ zï¿½stat","Ok",NULL);
      return;
      }
-  if (msg_box("P©edmˆty",'\x2',"Vymazat vybranou vˆc","Souhlas","Ne",NULL)==2) return;
+  if (msg_box("Pï¿½edmï¿½ty",'\x2',"Vymazat vybranou vï¿½c","Souhlas","Ne",NULL)==2) return;
   isolate_item(it);
   delete_item(it);
   check_for_empty_loc();
@@ -945,7 +945,7 @@ TITEM *select_item(TITEM *it)
      if (q==it) break;
      }
   if (i==ls) i=0;
-  def_dialoge(120,80,410,300,"P©edmˆty");
+  def_dialoge(120,80,410,300,"Pï¿½edmï¿½ty");
   default_font=vga_font;
   memcpy(&b2,def_border(5,WINCOLOR),sizeof(CTL3D));
   define(9,5,20,380,210,0,listbox,il,RGB555(31,31,31),9);
@@ -953,23 +953,23 @@ TITEM *select_item(TITEM *it)
   define(10,1,40,19,171,1,scroll_bar_v,0,10,1,SCROLLBARCOL);
   property(&b2,NULL,NULL,WINCOLOR);c_default(0);c_default(i);
   define(11,1,20,21,17,1,scroll_button,-1,0,"\x1e");
-  property(NULL,icones,NULL,WINCOLOR);on_change(scroll_support);
+  property(NULL,icones,NULL,WINCOLOR);on_control_change(scroll_support);
   define(12,1,213,21,17,1,scroll_button,1,10,"\x1f");
-  property(NULL,icones,NULL,WINCOLOR);on_change(scroll_support);
+  property(NULL,icones,NULL,WINCOLOR);on_control_change(scroll_support);
   define(5,0,0,0,0,0,value_store,4);set_default(&it);
-  define(20,5,5,80,15,3,button,"Upravit");on_change(select_item_edit);
+  define(20,5,5,80,15,3,button,"Upravit");on_control_change(select_item_edit);
    property(def_border(1,0),NULL,NULL,WINCOLOR);
-  define(30,5,25,80,15,3,button,"Klonovat");on_change(select_item_klon);
+  define(30,5,25,80,15,3,button,"Klonovat");on_control_change(select_item_klon);
    property(def_border(1,0),NULL,NULL,WINCOLOR);
-  define(40,5,45,80,15,3,button,"Vymazat");on_change(select_item_delete);
+  define(40,5,45,80,15,3,button,"Vymazat");on_control_change(select_item_delete);
    property(def_border(1,0),NULL,NULL,WINCOLOR);
-  define(50,5,5,80,15,2,button,"Zru¨it");on_change(terminate);
+  define(50,5,5,80,15,2,button,"Zruï¿½it");on_control_change(terminate_gui);
    property(def_border(1,0),NULL,NULL,WINCOLOR);
-  define(60,5,25,80,15,2,button,"Vyber");on_change(terminate);
+  define(60,5,25,80,15,2,button,"Vyber");on_control_change(terminate_gui);
    property(def_border(1,0),NULL,NULL,WINCOLOR);
-  define(70,90,5,80,15,3,button,"Izoluj");on_change(select_item_isolate);
+  define(70,90,5,80,15,3,button,"Izoluj");on_control_change(select_item_isolate);
    property(def_border(1,0),NULL,NULL,WINCOLOR);
-  define(80,90,25,80,15,3,button,"Mapa");on_change(items_on_map_show);
+  define(80,90,25,80,15,3,button,"Mapa");on_control_change(items_on_map_show);
    property(def_border(1,0),NULL,NULL,WINCOLOR);
   redraw_window();
   escape();

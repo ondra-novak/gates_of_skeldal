@@ -189,10 +189,10 @@ char edit_side_save(int target,int smer)
    int selmode;
 
      apl=get_bit_fields(0,400,4);
-     if (apl==0) return msg_box("Editor stˆn",2,"Nen¡ za¨krtnut  ‘ dn  strana. Pokra‡ovat?","Ano","Ne",NULL)==1;
+     if (apl==0) return msg_box("Editor stï¿½n",2,"Nenï¿½ zaï¿½krtnutï¿½ ï¿½ï¿½dnï¿½ strana. Pokraï¿½ovat?","Ano","Ne",NULL)==1;
      if (smer!=-1)
      if (count_of_sel()>1)
-      selmode=msg_box("Editor stˆn",'\x2',"Je ozna‡eno v¡ce sektor–. Chce¨ upravit pouze ...","Aktu ln¡","V¨echny","Zmˆny","Zpˆt",NULL);
+      selmode=msg_box("Editor stï¿½n",'\x2',"Je oznaï¿½eno vï¿½ce sektorï¿½. Chceï¿½ upravit pouze ...","Aktuï¿½lnï¿½","Vï¿½echny","Zmï¿½ny","Zpï¿½t",NULL);
       else selmode=(apl!=1 && apl!=2 && apl!=4 && apl!=8 && target!=0)?3:1;
      else
       smer=0,apl=0xf,selmode=1;
@@ -267,7 +267,7 @@ void *edit_side_predvolba_0(EVENT_MSG *msg)
   if (msg->msg==E_INIT) return &edit_side_predvolba_0;
   if (msg->msg==E_DONE) return NULL;
   c=(char *)msg->data;
-  strcpy(c,"Vlastnosti nastaveny jako p©edvolba...");
+  strcpy(c,"Vlastnosti nastaveny jako pï¿½edvolba...");
   c=strchr(c,'\0');
   msg->data=(void *)c;
   msg->msg=-1;
@@ -303,11 +303,11 @@ void action_flags()
 
   flags=f_get_value(0,350);
   memcpy(&b1,def_border(1,0),sizeof(CTL3D));
-  def_dialoge(300,220,300,210,"V¡ce vlajek");
-  define(CANCEL_BUTT,11,5,80,20,2,button,"Zru¨it");property(&b1,NULL,NULL,WINCOLOR);
-  on_change(terminate);
+  def_dialoge(300,220,300,210,"Vï¿½ce vlajek");
+  define(CANCEL_BUTT,11,5,80,20,2,button,"Zruï¿½it");property(&b1,NULL,NULL,WINCOLOR);
+  on_control_change(terminate_gui);
   define(OK_BUTT,100,5,80,20,2,button,"Ok");property(&b1,NULL,NULL,WINCOLOR);
-  on_change(terminate);
+  on_control_change(terminate_gui);
   define(10,10,20,250,10,0,check_box,side_flgs[24]);
   define(20,10,32,250,10,0,check_box,side_flgs[25]);
   define(30,10,44,250,10,0,check_box,side_flgs[26]);
@@ -363,7 +363,7 @@ static void edit_vyklenek_start()
      id=find_free_vyklenek();
      if (id==-1)
         {
-        msg_box("Omezeni!",'\x1',"V mapˆ je pou‘ito ji‘ mnoho v˜klenk– ve zdi. Maxim ln¡ po‡et je 256","Ok",NULL);
+        msg_box("Omezeni!",'\x1',"V mapï¿½ je pouï¿½ito jiï¿½ mnoho vï¿½klenkï¿½ ve zdi. Maximï¿½lnï¿½ poï¿½et je 256","Ok",NULL);
         return;
         }
      v=vyklenky+id;
@@ -391,46 +391,46 @@ void edit_side(int source,int smer)
   memcpy(&b3,def_border(6,WINCOLOR),sizeof(CTL3D));
   default_font=vga_font;
   memcpy(f_default,flat_color(0x0000),sizeof(charcolors));
-  sprintf(s,"Vlastnosti stˆn, sektor %d stˆna %d",source,smer);
+  sprintf(s,"Vlastnosti stï¿½n, sektor %d stï¿½na %d",source,smer);
   def_window(400,324,s);
   waktual->x=125;
   waktual->y=60;
   waktual->modal=1;
-  define(CANCEL_BUTT,10,5,80,20,2,button,"Zru¨it");property(&b1,NULL,NULL,WINCOLOR);
-    on_change(close_current);
+  define(CANCEL_BUTT,10,5,80,20,2,button,"Zruï¿½it");property(&b1,NULL,NULL,WINCOLOR);
+    on_control_change(close_current);
   define(OK_BUTT,190,5,80,20,2,button,"Ok");property(&b1,NULL,NULL,WINCOLOR);
-    on_change(edit_side_ok);
-  define(3400,100,5,80,20,2,button,"P©edvolba");property(&b1,NULL,NULL,WINCOLOR);
-    on_change(edit_side_predvolba_1);on_exit(edit_side_predvolba_2);
-  define(10,5,20,300,35,0,label,"Prim rn¡:       Sekundarn¡:       Oblouk:");property(&b3,NULL,NULL,WINCOLOR);
+    on_control_change(edit_side_ok);
+  define(3400,100,5,80,20,2,button,"Pï¿½edvolba");property(&b1,NULL,NULL,WINCOLOR);
+    on_control_change(edit_side_predvolba_1);on_control_exit(edit_side_predvolba_2);
+  define(10,5,20,300,35,0,label,"Primï¿½rnï¿½:       Sekundarnï¿½:       Oblouk:");property(&b3,NULL,NULL,WINCOLOR);
   define(20,10,35,90,12,0,str_line,side_names);property(&b2,NULL,NULL,WINCOLOR);c_default(p->prim);
-    on_enter(string_list_sup);
+    on_control_enter(string_list_sup);
   define(30,110,35,90,12,0,str_line,side_names);property(&b2,NULL,NULL,WINCOLOR);c_default(p->sec);
-    on_enter(string_list_sup);
+    on_control_enter(string_list_sup);
   define(40,210,35,90,12,0,str_line,oblouky);property(&b2,NULL,NULL,WINCOLOR);c_default(p->oblouk & 0x0f);
-    on_enter(string_list_sup);
-  define(-1,5,60,250,12,0,label,"Animace primarn¡:");
-  define(-1,5,75,250,12,0,label,"Animace sekundarn¡:");
-  define(-1,5,90,250,12,0,label,"X pozice sek. stˆny:");
-  define(-1,5,105,250,12,0,label,"Y pozice sek. stˆny:");
-  define(-1,5,120,250,12,0,label,"C¡lov˜ sektor ud losti:");
-  define(-1,5,135,250,12,0,label,"C¡lov  stˆna ud losti:");
+    on_control_enter(string_list_sup);
+  define(-1,5,60,250,12,0,label,"Animace primarnï¿½:");
+  define(-1,5,75,250,12,0,label,"Animace sekundarnï¿½:");
+  define(-1,5,90,250,12,0,label,"X pozice sek. stï¿½ny:");
+  define(-1,5,105,250,12,0,label,"Y pozice sek. stï¿½ny:");
+  define(-1,5,120,250,12,0,label,"Cï¿½lovï¿½ sektor udï¿½losti:");
+  define(-1,5,135,250,12,0,label,"Cï¿½lovï¿½ stï¿½na udï¿½losti:");
   define(-1,5,150,250,12,0,label,"Popis akce:");
-  define(-1,260,60,100,12,0,label,"Aplikuj na stˆnu:");
+  define(-1,260,60,100,12,0,label,"Aplikuj na stï¿½nu:");
   define(50,200,60,50,10,0,input_line,10,1,16,"%6d");property(&b2,NULL,NULL,WINCOLOR);
-   set_default(strs((p->prim_anim & 0xf)+1));on_exit(test_int);
+   set_default(strs((p->prim_anim & 0xf)+1));on_control_exit(test_int);
   define(60,200,75,50,10,0,input_line,10,1,16,"%6d");property(&b2,NULL,NULL,WINCOLOR);
-   set_default(strs((p->sec_anim & 0xf)+1));on_exit(test_int);
+   set_default(strs((p->sec_anim & 0xf)+1));on_control_exit(test_int);
   define(70,200,90,50,10,0,input_line,10,0,499,"%6d");property(&b2,NULL,NULL,WINCOLOR);
-   set_default(strs(p->xsec<<1));on_exit(test_int);
+   set_default(strs(p->xsec<<1));on_control_exit(test_int);
   define(80,200,105,50,10,0,input_line,10,0,511,"%6d");property(&b2,NULL,NULL,WINCOLOR);
-   set_default(strs(p->ysec<<1));on_exit(test_int);
+   set_default(strs(p->ysec<<1));on_control_exit(test_int);
   define(90,200,120,50,10,0,input_line,10,0,65535,"%6d");property(&b2,NULL,NULL,WINCOLOR);
-   set_default(strs(p->sector_tag));on_exit(test_int);
+   set_default(strs(p->sector_tag));on_control_exit(test_int);
   define(100,200,135,50,10,0,str_line,steny2);property(&b2,NULL,NULL,WINCOLOR);
-   c_default(p->side_tag & 0x3);on_enter(string_list_sup);
+   c_default(p->side_tag & 0x3);on_control_enter(string_list_sup);
   define(110,100,150,150,10,0,str_line,actions);property(&b2,NULL,NULL,WINCOLOR);
-   on_enter(string_list_sup); c_default(p->action);
+   on_control_enter(string_list_sup); c_default(p->action);
   define(120,10,175,150,10,0,check_box,side_flgs[0]);
   define(130,10,187,150,10,0,check_box,side_flgs[1]);
   define(140,10,199,150,10,0,check_box,side_flgs[2]);
@@ -451,23 +451,23 @@ void edit_side(int source,int smer)
   define(290,10,283,75,10,0,check_box,side_flgs[17]);
   define(300,190,271,150,10,0,check_box,side_flgs[18]);
   define(310,10,295,75,11,0,check_box,side_flgs[19]);
-  define(400,290,80,100,10,0,check_box,"Severn¡");
-  define(410,290,95,100,10,0,check_box,"V˜chodn¡");
-  define(420,290,110,100,10,0,check_box,"Ji‘n¡");
-  define(430,290,125,100,10,0,check_box,"Z padn¡");
-  define(340,290,150,100,15,0,button2,"V¡ce >>");on_change(action_flags);
+  define(400,290,80,100,10,0,check_box,"Severnï¿½");
+  define(410,290,95,100,10,0,check_box,"Vï¿½chodnï¿½");
+  define(420,290,110,100,10,0,check_box,"Jiï¿½nï¿½");
+  define(430,290,125,100,10,0,check_box,"Zï¿½padnï¿½");
+  define(340,290,150,100,15,0,button2,"Vï¿½ce >>");on_control_change(action_flags);
   define(350,290,150,100,15,0,value_store,4);c_default(p->flags & 0xfff00000);
   define(360,290,150,100,15,0,value_store,4);c_default(source);
   define(370,290,150,100,15,0,value_store,4);c_default(smer);
   define(-1,5,20,60,10,1,label,"Lclip:");
   define(440,30,35,30,12,1,input_line,3,0,255,"%3d");
    property(&b2,NULL,NULL,WINCOLOR);
-  set_default(strs(p->lclip));on_exit(test_int);
+  set_default(strs(p->lclip));on_control_exit(test_int);
   define(450,10,220,30,30,1,radio_butts,3,"-","\x4","\x6");c_default((p->oblouk>>5) & 0x3);
    property(NULL,icones,NULL,WINCOLOR);
-  define(460,10,175,80,12,1,button,"V˜klenek");on_change(edit_vyklenek_start);
-  define(470,190,283,150,10,0,check_box,"Lze polo‘it za");c_default(p->oblouk>>7);
-  define(480,10,307,75,10,0,check_box,"P©edsunout s.");c_default(p->side_tag>>7);
+  define(460,10,175,80,12,1,button,"Vï¿½klenek");on_control_change(edit_vyklenek_start);
+  define(470,190,283,150,10,0,check_box,"Lze poloï¿½it za");c_default(p->oblouk>>7);
+  define(480,10,307,75,10,0,check_box,"Pï¿½edsunout s.");c_default(p->side_tag>>7);
   fill_bit_fields(0,120,p->flags,20); if (source)
   fill_bit_fields(0,400,1<<smer,4); else fill_bit_fields(0,400,0xf,4);
   set_enable(0,3400,source!=0);
@@ -501,15 +501,15 @@ void edit_sector(int source)
   property(NULL,NULL,NULL,WINCOLOR);
   o_end->autoresizey=1;
   define(11,1,20,21,17,1,scroll_button,-1,0,"\x1e");
-  property(NULL,icones,NULL,WINCOLOR);on_change(scroll_support);
+  property(NULL,icones,NULL,WINCOLOR);on_control_change(scroll_support);
   define(12,1,22,21,17,2,scroll_button,1,10,"\x1f");
-  property(NULL,icones,NULL,WINCOLOR);on_change(scroll_support);
+  property(NULL,icones,NULL,WINCOLOR);on_control_change(scroll_support);
   define(20,1,1,10,10,2,resizer);
 /*  define(OK_BUTT,100,5,80,20,2,button,"Ok");property(&b1,NULL,NULL,WINCOLOR);
     on_change(terminate);
-  define(CANCEL_BUTT,10,5,80,20,2,button,"Zru¨it");property(&b1,NULL,NULL,WINCOLOR);
+  define(CANCEL_BUTT,10,5,80,20,2,button,"Zruï¿½it");property(&b1,NULL,NULL,WINCOLOR);
     on_change(terminate);
-  define(-1,5,20,100,12,0,label,"P©ipojen¡:");
+  define(-1,5,20,100,12,0,label,"Pï¿½ipojenï¿½:");
   define(10,10,35,50,12,0,input_line,20,0,MAPSIZE-1,"%6d");property(&b2,NULL,NULL,WINCOLOR);
     set_default(strs(p->step_next[0]));on_exit(test_int);
   define(20,10,50,50,12,0,input_line,20,0,MAPSIZE-1,"%6d");property(&b2,NULL,NULL,WINCOLOR);
@@ -519,9 +519,9 @@ void edit_sector(int source)
   define(40,10,80,50,12,0,input_line,20,0,MAPSIZE-1,"%6d");property(&b2,NULL,NULL,WINCOLOR);
     set_default(strs(p->step_next[3]));on_exit(test_int);
   define(50,70,35,80,12,0,button,"Sever");property(&b1,NULL,NULL,WINCOLOR);on_change(edit_side_sup);
-  define(60,70,50,80,12,0,button,"V˜chod");property(&b1,NULL,NULL,WINCOLOR);on_change(edit_side_sup);
+  define(60,70,50,80,12,0,button,"Vï¿½chod");property(&b1,NULL,NULL,WINCOLOR);on_change(edit_side_sup);
   define(70,70,65,80,12,0,button,"Jih");property(&b1,NULL,NULL,WINCOLOR);on_change(edit_side_sup);
-  define(80,70,80,80,12,0,button,"Z pad");property(&b1,NULL,NULL,WINCOLOR);on_change(edit_side_sup);
+  define(80,70,80,80,12,0,button,"Zï¿½pad");property(&b1,NULL,NULL,WINCOLOR);on_change(edit_side_sup);
   temp_source=source;
   */redraw_window();
   escape();
@@ -679,47 +679,47 @@ void sector_details_call(int sect_num)
   define(-1,30,30,100,12,0,label,"Strop:");
   define(-1,30,50,100,12,0,label,"Podlaha:");
   define(-1,30,70,100,12,0,label,"Sektor:");
-  define(-1,30,90,100,12,0,label,"C¡l akce:");
-  define(-1,30,110,100,12,0,label,"Stˆna akce:");
+  define(-1,30,90,100,12,0,label,"Cï¿½l akce:");
+  define(-1,30,110,100,12,0,label,"Stï¿½na akce:");
   define(-1,30,130,100,12,0,label,"Popis akce:");
   define(10,30,28,100,13,1,str_line,ceils);property(&b2,NULL,NULL,WINCOLOR);
-     c_default(p->ceil); on_enter(string_list_sup);
+     c_default(p->ceil); on_control_enter(string_list_sup);
   define(20,30,48,100,13,1,str_line,floors);property(&b2,NULL,NULL,WINCOLOR);
-     c_default(p->floor); on_enter(string_list_sup);
+     c_default(p->floor); on_control_enter(string_list_sup);
   define(30,30,68,100,13,1,str_line,sector_types);property(&b2,NULL,NULL,WINCOLOR);
-     c_default(p->sector_type); on_enter(string_list_sup);
+     c_default(p->sector_type); on_control_enter(string_list_sup);
   define(40,30,88,50,13,1,input_line,10,0,MAPSIZE,"%6d");property(&b2,NULL,NULL,WINCOLOR);
-     set_default(strs(p->sector_tag));on_exit(test_int);
+     set_default(strs(p->sector_tag));on_control_exit(test_int);
   define(50,30,108,100,13,1,str_line,steny2);property(&b2,NULL,NULL,WINCOLOR);
-     c_default(p->side_tag & 3); on_enter(string_list_sup);
+     c_default(p->side_tag & 3); on_control_enter(string_list_sup);
   define(60,30,128,150,13,1,str_line,actions);property(&b2,NULL,NULL,WINCOLOR);
-     c_default(p->action); on_enter(string_list_sup);
+     c_default(p->action); on_control_enter(string_list_sup);
   define(70,5,150,214,80,0,radio_butts,7,
-       "(1) Norm ln¡ podlaha",
+       "(1) Normï¿½lnï¿½ podlaha",
        "(2) Dva druhy podlah",
-       "(3) Dva smˆry",
-       "(4) Dva smˆry a druhy",
-       "(5) €ty©i smˆry",
-       "(6) €ty©i smˆry a dva druhy",
-       "(7) ›achovnice");c_default(p->flags & 0x7);
+       "(3) Dva smï¿½ry",
+       "(4) Dva smï¿½ry a druhy",
+       "(5) ï¿½tyï¿½i smï¿½ry",
+       "(6) ï¿½tyï¿½i smï¿½ry a dva druhy",
+       "(7) ï¿½achovnice");c_default(p->flags & 0x7);
   define(80,5,150,214,80,1,radio_butts,7,
-       "(1) Norm ln¡ strop",
+       "(1) Normï¿½lnï¿½ strop",
        "(2) Dva druhy strop",
-       "(3) Dva smˆry",
-       "(4) Dva smˆry a druhy",
-       "(5) €ty©i smˆry",
-       "(6) €ty©i smˆry a dva druhy",
-       "(7) ›achovnice");c_default(p->flags >> 4 & 0x7);
+       "(3) Dva smï¿½ry",
+       "(4) Dva smï¿½ry a druhy",
+       "(5) ï¿½tyï¿½i smï¿½ry",
+       "(6) ï¿½tyï¿½i smï¿½ry a dva druhy",
+       "(7) ï¿½achovnice");c_default(p->flags >> 4 & 0x7);
   define(90,5,240,214,10,0,check_box,"(?)Animace podlahy");c_default((p->flags & 0x8)!=0);
   define(95,5,240,214,10,1,check_box,"(?)Animace stropu");c_default((p->flags & 0x80)!=0);
   define(65,5,252,214,10,0,check_box,"Sekundarni shading");c_default((minfo[sect_num].flags & 0x100)>>8);
-  define(75,5,258,214,40,1,radio_butts,4,"*default*","›ipka","Schody","Bez symbolu");c_default((minfo[sect_num].flags & 0x600)>>9);
+  define(75,5,258,214,40,1,radio_butts,4,"*default*","ï¿½ipka","Schody","Bez symbolu");c_default((minfo[sect_num].flags & 0x600)>>9);
   define(83,5,264,214,10,0,check_box,"!Automap (kouzlem)");c_default((minfo[sect_num].flags & 0x800)>>11);
   define(85,5,276,214,10,0,check_box,"!Summon");c_default((minfo[sect_num].flags & 0x1000)>>12);
-  define(87,5,288,214,10,0,check_box,"Neprojde hledan¡m cesty");c_default((minfo[sect_num].flags & 0x2000)>>13);
-  define(100,10,10,80,20,3,button,"Ok");property(&b1,NULL,NULL,WINCOLOR);on_change(terminate);
-  define(110,10,10,80,20,2,button,"Zru¨it");property(&b1,NULL,NULL,WINCOLOR);on_change(terminate);
-  define(120,100,10,80,20,2,button,"P©edvolba");property(&b1,NULL,NULL,WINCOLOR);on_change(terminate);
+  define(87,5,288,214,10,0,check_box,"Neprojde hledanï¿½m cesty");c_default((minfo[sect_num].flags & 0x2000)>>13);
+  define(100,10,10,80,20,3,button,"Ok");property(&b1,NULL,NULL,WINCOLOR);on_control_change(terminate_gui);
+  define(110,10,10,80,20,2,button,"Zruï¿½it");property(&b1,NULL,NULL,WINCOLOR);on_control_change(terminate_gui);
+  define(120,100,10,80,20,2,button,"Pï¿½edvolba");property(&b1,NULL,NULL,WINCOLOR);on_control_change(terminate_gui);
   set_enable(0,120,sect_num!=0);
   redraw_window();
   do
@@ -735,8 +735,8 @@ void sector_details_call(int sect_num)
            }
         else
            {
-           if (count_of_sel()<2 || (i=msg_box("Co teƒ?",'\x2',"M m vlastnosti aplikovat na jeden sektor nebo na vybranou oblast?",
-                                "Na sektor","Na oblast","Zru¨it",NULL))==1)
+           if (count_of_sel()<2 || (i=msg_box("Co teï¿½?",'\x2',"Mï¿½m vlastnosti aplikovat na jeden sektor nebo na vybranou oblast?",
+                                "Na sektor","Na oblast","Zruï¿½it",NULL))==1)
                                 {
                                 start=sect_num;
                                 end=sect_num;
@@ -797,7 +797,7 @@ void get_error(char *err)
   p=(short *)0xb8000;
   if (p[0]==0xff)
      {
-     strcpy(err,"Neo‡ek van‚ zhroucen¡.");
+     strcpy(err,"Neoï¿½ekï¿½vanï¿½ zhroucenï¿½.");
      return;
      }
   mezera=1;spc=1;
@@ -883,48 +883,48 @@ void open_sector_win(void)
      memcpy(&f_sel,flat_color(0x0017),sizeof(charcolors));
      sektor_win=def_window(120,325,"Vlastnosti");
      waktual->y=2;waktual->x=SCR_WIDTH_X-120-3;
-     on_change(close_sector_win);
-     define(100,4,19,59,14,0,button2,"Sever:");on_change(run_edit_side);
-     define(110,4,49,59,14,0,button2,"V˜chod:");on_change(run_edit_side);
-     define(120,4,79,59,14,0,button2,"Jih:");on_change(run_edit_side);
-     define(130,4,109,59,14,0,button2,"Z pad:");on_change(run_edit_side);
+     on_control_change(close_sector_win);
+     define(100,4,19,59,14,0,button2,"Sever:");on_control_change(run_edit_side);
+     define(110,4,49,59,14,0,button2,"Vï¿½chod:");on_control_change(run_edit_side);
+     define(120,4,79,59,14,0,button2,"Jih:");on_control_change(run_edit_side);
+     define(130,4,109,59,14,0,button2,"Zï¿½pad:");on_control_change(run_edit_side);
      define(-1,5,140,59,10,0,label,"Strop:");
      define(-1,5,170,59,10,0,label,"Podlaha:");
      define(-1,5,200,59,10,0,label,"Typ sektoru:");
      define(10,65,20,50,12,0,input_line,20,0,MAPSIZE-1,"%5d");property(&b2,NULL,&f_sel,WINCOLOR);
-     set_default("0");on_exit(test_int);on_event(chozeni);
+     set_default("0");on_control_exit(test_int);on_event(chozeni);
      define(20,65,50,50,12,0,input_line,20,0,MAPSIZE-1,"%5d");property(&b2,NULL,&f_sel,WINCOLOR);
-     set_default("0");on_exit(test_int);on_event(chozeni);
+     set_default("0");on_control_exit(test_int);on_event(chozeni);
      define(30,65,80,50,12,0,input_line,20,0,MAPSIZE-1,"%5d");property(&b2,NULL,&f_sel,WINCOLOR);
-     set_default("0");on_exit(test_int);on_event(chozeni);
+     set_default("0");on_control_exit(test_int);on_event(chozeni);
      define(40,65,110,50,12,0,input_line,20,0,MAPSIZE-1,"%5d");property(&b2,NULL,&f_sel,WINCOLOR);
-     set_default("0");on_exit(test_int);on_event(chozeni);
+     set_default("0");on_control_exit(test_int);on_event(chozeni);
      define(50,5,35,95,12,0,str_line,side_names);property(&b2,NULL,&f_sel,WINCOLOR);
-     c_default(0); on_enter(string_list_sup);on_change(set_change_map);
+     c_default(0); on_control_enter(string_list_sup);on_control_change(set_change_map);
      define(60,5,65,95,12,0,str_line,side_names);property(&b2,NULL,&f_sel,WINCOLOR);
-     c_default(0); on_enter(string_list_sup);on_change(set_change_map);
+     c_default(0); on_control_enter(string_list_sup);on_control_change(set_change_map);
      define(70,5,95,95,12,0,str_line,side_names);property(&b2,NULL,&f_sel,WINCOLOR);
-     c_default(0); on_enter(string_list_sup);on_change(set_change_map);
+     c_default(0); on_control_enter(string_list_sup);on_control_change(set_change_map);
      define(80,5,125,95,12,0,str_line,side_names);property(&b2,NULL,&f_sel,WINCOLOR);
-     c_default(0); on_enter(string_list_sup);on_change(set_change_map);
+     c_default(0); on_control_enter(string_list_sup);on_control_change(set_change_map);
      define(140,103,35,12,12,0,check_box,"");o_end->runs[2]=o_end->events[3];
      define(150,103,65,12,12,0,check_box,"");o_end->runs[2]=o_end->events[3];
      define(160,103,95,12,12,0,check_box,"");o_end->runs[2]=o_end->events[3];
      define(170,103,125,12,12,0,check_box,"");o_end->runs[2]=o_end->events[3];
      define(200,5,155,110,12,0,str_line,ceils);property(&b2,NULL,&f_sel,WINCOLOR);
-     c_default(0); on_enter(string_list_sup);on_change(set_change_map);
+     c_default(0); on_control_enter(string_list_sup);on_control_change(set_change_map);
      define(210,5,185,110,12,0,str_line,floors);property(&b2,NULL,&f_sel,WINCOLOR);
-     c_default(0); on_enter(string_list_sup);on_change(set_change_map);
+     c_default(0); on_control_enter(string_list_sup);on_control_change(set_change_map);
      define(220,5,215,110,12,0,str_line,sector_types);property(&b2,NULL,&f_sel,WINCOLOR);
-     c_default(0); on_enter(string_list_sup);on_change(set_change_map);
+     c_default(0); on_control_enter(string_list_sup);on_control_change(set_change_map);
      define(-1,1,30,60,10,3,label,"Sektor:");
-     define(OK_BUTT,60,67,55,17,3,button2,"Aplikuj");on_change(Apply);
-     define(300,4,67,55,17,3,button2,"Detaily");on_change(sector_details);
+     define(OK_BUTT,60,67,55,17,3,button2,"Aplikuj");on_control_change(Apply);
+     define(300,4,67,55,17,3,button2,"Detaily");on_control_change(sector_details);
      define(5,60,30,55,12,3,input_line,20,0,MAPSIZE-1,"%5d");property(&b2,NULL,NULL,WINCOLOR);
-     set_default("?");on_change(chozeni2);
-     define(310,4,3,112,20,3,button,"Testovat mapu");on_change(testmap);
-     define(320,4,47,55,17,2,button2,"Zoom+");on_change(zoomin);
-     define(330,4,47,55,17,3,button2,"Zoom-");on_change(zoomout);
+     set_default("?");on_control_change(chozeni2);
+     define(310,4,3,112,20,3,button,"Testovat mapu");on_control_change(testmap);
+     define(320,4,47,55,17,2,button2,"Zoom+");on_control_change(zoomin);
+     define(330,4,47,55,17,3,button2,"Zoom-");on_control_change(zoomout);
      send_message(E_ADD,E_KEYBOARD,chozeni2);
      waktual->popup=1;
      }
@@ -992,20 +992,20 @@ void open_draw_win(void)
      memcpy(&f_sel,flat_color(0x0017),sizeof(charcolors));
      draw_win=def_window(120,165,"Vlajky");
      waktual->y=2;waktual->x=SCR_WIDTH_X-120-3;
-     define(10,5,30,100,10,0,check_box,"Rozdˆlit");c_default(1);
-      on_change(draw_win_1);
-     define(20,5,45,100,10,0,check_box,"!Hra‡");c_default(0);
-      on_change(draw_win_2);
-     define(30,5,60,100,10,0,check_box,"!Nestv–ra");c_default(0);
-      on_change(draw_win_2);
-     define(40,5,75,100,10,0,check_box,"!Vˆc");c_default(0);
-      on_change(draw_win_2);
+     define(10,5,30,100,10,0,check_box,"Rozdï¿½lit");c_default(1);
+      on_control_change(draw_win_1);
+     define(20,5,45,100,10,0,check_box,"!Hraï¿½");c_default(0);
+      on_control_change(draw_win_2);
+     define(30,5,60,100,10,0,check_box,"!Nestvï¿½ra");c_default(0);
+      on_control_change(draw_win_2);
+     define(40,5,75,100,10,0,check_box,"!Vï¿½c");c_default(0);
+      on_control_change(draw_win_2);
      define(50,5,90,100,10,0,check_box,"!Zvuk");c_default(0);
-      on_change(draw_win_2);
+      on_control_change(draw_win_2);
      define(60,5,105,100,10,0,check_box,"PrimVis");c_default(0);
-      on_change(draw_win_2);
-     define(70,5,18,110,17,3,button2,"Zoom in");on_change(zoomin);
-     define(80,5,1,110,17,3,button2,"Zoom out");on_change(zoomout);
+      on_control_change(draw_win_2);
+     define(70,5,18,110,17,3,button2,"Zoom in");on_control_change(zoomin);
+     define(80,5,1,110,17,3,button2,"Zoom out");on_control_change(zoomout);
      waktual->popup=1;
 
      }
@@ -1039,7 +1039,7 @@ static void veci_ve_vyklenku(TSTR_LIST *ls,short *list)
   for(i=0;list[i]!=0;i++)
      {
      int it=list[i]-1;
-     if (it>=max_items) str_add(ls,"<P©edmˆt neexistuje>");else str_add(ls,item_list[it].jmeno);
+     if (it>=max_items) str_add(ls,"<Pï¿½edmï¿½t neexistuje>");else str_add(ls,item_list[it].jmeno);
      }
   }
 
@@ -1116,40 +1116,40 @@ void edit_vyklenek(int idnum)
   memcpy(&old,v,sizeof(TVYKLENEK));
   veci_ve_vyklenku(&vyklist,&v->items);
   create_isort_list(&ls_sorts,-1);
-  def_dialoge(70,100,500,200,"Oprava v˜klenk–");
+  def_dialoge(70,100,500,200,"Oprava vï¿½klenkï¿½");
   define(9,10,20,200,126,0,listbox,ls_sorts,RGB555(31,31,31),0);
   property(&b3,NULL,NULL,WINCOLOR);c_default(0);
   define(10,216,40,21,87,0,scroll_bar_v,0,10,1,SCROLLBARCOL);
   property(&b2,NULL,NULL,WINCOLOR);
   define(11,216,20,21,17,0,scroll_button,-1,0,"\x1e");
-  property(&b1,icones,NULL,WINCOLOR);on_change(scroll_support);
+  property(&b1,icones,NULL,WINCOLOR);on_control_change(scroll_support);
   define(12,216,130,21,17,0,scroll_button,1,10,"\x1f");
-  property(&b1,icones,NULL,WINCOLOR);on_change(scroll_support);
+  property(&b1,icones,NULL,WINCOLOR);on_control_change(scroll_support);
   define(20,0,0,0,0,0,value_store,4);c_default(idnum);
   define(29,10,20,200,120,1,listbox,vyklist,RGB555(31,31,31),0);
   property(&b3,NULL,NULL,WINCOLOR);c_default(0);
-  define(40,242,40,40,15,0,button,">>");on_change(add_to_vyk);
-  define(50,242,60,40,15,0,button,"<<");on_change(remove_from_vyk);
+  define(40,242,40,40,15,0,button,">>");on_control_change(add_to_vyk);
+  define(50,242,60,40,15,0,button,"<<");on_control_change(remove_from_vyk);
   define(80,30,150,120,12,1,str_line,typy_veci);c_default(0);
-  property(&b2,NULL,NULL,WINCOLOR);on_enter(string_list_sup);on_change(change_grep);
+  property(&b2,NULL,NULL,WINCOLOR);on_control_enter(string_list_sup);on_control_change(change_grep);
   define(-1,150,150,50,10,1,label,"Filtr:");
-  define(90,10,150,10,10,1,check_box,"");c_default(0);on_change(change_grep);
+  define(90,10,150,10,10,1,check_box,"");c_default(0);on_control_change(change_grep);
   define(-1,10,30,1,10,3,label,"Xpos  Ypos  Xsiz  Ysiz  Sector  Pos");
   define(100,8,12,40,12,3,input_line,10,0,500,"%4d");set_default(strs(v->xpos));
-  property(&b2,NULL,NULL,WINCOLOR);on_exit(test_int);
+  property(&b2,NULL,NULL,WINCOLOR);on_control_exit(test_int);
   define(110,53,12,40,12,3,input_line,10,0,500,"%4d");set_default(strs(v->ypos));
-  property(&b2,NULL,NULL,WINCOLOR);on_exit(test_int);
+  property(&b2,NULL,NULL,WINCOLOR);on_control_exit(test_int);
   define(120,98,12,40,12,3,input_line,10,0,500,"%4d");set_default(strs(v->xs));
-  property(&b2,NULL,NULL,WINCOLOR);on_exit(test_int);
+  property(&b2,NULL,NULL,WINCOLOR);on_control_exit(test_int);
   define(130,143,12,40,12,3,input_line,10,0,500,"%4d");set_default(strs(v->ys));
-  property(&b2,NULL,NULL,WINCOLOR);on_exit(test_int);
+  property(&b2,NULL,NULL,WINCOLOR);on_control_exit(test_int);
   define(140,188,12,40,12,3,input_line,10,0,maplen,"%4d");set_default(strs(v->sector));
-  property(&b2,NULL,NULL,WINCOLOR);on_exit(test_int);
+  property(&b2,NULL,NULL,WINCOLOR);on_control_exit(test_int);
   define(150,233,12,40,12,3,input_line,10,0,3,"%4d");set_default(strs(v->dir));
-  property(&b2,NULL,NULL,WINCOLOR);on_exit(test_int);
-  define(200,5,5,60,20,2,button,"Ok");on_change(terminate);property(&b1,NULL,NULL,WINCOLOR);
-  define(210,70,5,60,20,2,button,"Zru¨it");on_change(terminate);property(&b1,NULL,NULL,WINCOLOR);
-  define(220,135,5,60,20,2,button,"Vymazat");on_change(terminate);property(&b1,NULL,NULL,WINCOLOR);
+  property(&b2,NULL,NULL,WINCOLOR);on_control_exit(test_int);
+  define(200,5,5,60,20,2,button,"Ok");on_control_change(terminate_gui);property(&b1,NULL,NULL,WINCOLOR);
+  define(210,70,5,60,20,2,button,"Zruï¿½it");on_control_change(terminate_gui);property(&b1,NULL,NULL,WINCOLOR);
+  define(220,135,5,60,20,2,button,"Vymazat");on_control_change(terminate_gui);property(&b1,NULL,NULL,WINCOLOR);
   redraw_window();
   opp:
   escape();
@@ -1163,7 +1163,7 @@ void edit_vyklenek(int idnum)
      v->dir=vals(150);
      }
   else if (o_aktual->id==220)
-     if (msg_box("Mapedit",'\x2',"Chce¨ opravdu v˜klenek zbourat?","Ano","Ne",NULL)==1)
+     if (msg_box("Mapedit",'\x2',"Chceï¿½ opravdu vï¿½klenek zbourat?","Ano","Ne",NULL)==1)
      {
      v->sector=0;
      }

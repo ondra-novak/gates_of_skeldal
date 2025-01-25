@@ -156,7 +156,7 @@ long def_window(word xs,word ys,char *name)
   if (xs>=70)
      {
   define(1,1,1,19,16,1,button,"\x0f");
-     property(NULL,icones,&icone_color,WINCOLOR);on_change(close_current);
+     property(NULL,icones,&icone_color,WINCOLOR);on_control_change(close_current);
      }
   return q;
   }
@@ -201,9 +201,9 @@ void def_listbox(int id,word x,word y,word xs,word ys,TSTR_LIST ls,int ofs,int c
   define(id+1,x+xs+4,y+18,15,ys-35,0,scroll_bar_v,0,10,1,0x0200);
   property(&b2,NULL,NULL,WINCOLOR);
   define(id+2,x+xs+4,y,14,14,0,scroll_button,-1,0,"\x4");
-  property(&b1,icones,black,WINCOLOR);on_change(scroll_support);
+  property(&b1,icones,black,WINCOLOR);on_control_change(scroll_support);
   define(id+3,x+xs+4,y+ys-14,14,14,0,scroll_button,1,10,"\6");
-  property(&b1,icones,black,WINCOLOR);on_change(scroll_support);
+  property(&b1,icones,black,WINCOLOR);on_control_change(scroll_support);
   define(id,x,y,xs,ys,0,listbox,ls,color,ofs);
   property(&b2,NULL,NULL,WINCOLOR);
   }

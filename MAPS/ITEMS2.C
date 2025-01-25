@@ -190,15 +190,15 @@ int select_ikon_lib(int last)
   for (i=0;i<30;i++)
      {
      define(i+10,x,y,45,55,0,ikona);c_default(last+i);
-     property(def_border(5,WINCOLOR),NULL,NULL,0);on_change(terminate);
+     property(def_border(5,WINCOLOR),NULL,NULL,0);on_control_change(terminate_gui);
      x+=48;if (x+48>490) {y+=58;x=5;}
      }
   define(300,10,10,80,20,3,button,"<<");
-  property(def_border(1,0),NULL,NULL,WINCOLOR);on_change(terminate);
+  property(def_border(1,0),NULL,NULL,WINCOLOR);on_control_change(terminate_gui);
   define(310,10,10,80,20,2,button,">>");
-  property(def_border(1,0),NULL,NULL,WINCOLOR);on_change(terminate);
-  define(320,175-40,10,80,20,3,button,"Zru¨it");
-  property(def_border(1,0),NULL,NULL,WINCOLOR);on_change(terminate);
+  property(def_border(1,0),NULL,NULL,WINCOLOR);on_control_change(terminate_gui);
+  define(320,175-40,10,80,20,3,button,"Zruï¿½it");
+  property(def_border(1,0),NULL,NULL,WINCOLOR);on_control_change(terminate_gui);
   redraw_window();
   do
      {
@@ -227,10 +227,10 @@ void change_item_ikone()
   }
 
 char nvlast[][16]=
-  {"S¡la","Schopnost magie","Pohyblivost","Obratnost","Max zranˆn¡",
-  "Kondice","Max mana","Obrana(doln¡)","Obrana(Horn¡)","—tok(Doln¡)",
-  "—tok(Horn¡)","Ohe¤","Voda","Zemˆ","Vzduch","Mysl","’ivoty Regen",
-  "Mana Regen","Kondice Regen","Magick  s¡la(D)", "Magick  s¡la(H)","","—‡innek z sahu","*"};
+  {"Sï¿½la","Schopnost magie","Pohyblivost","Obratnost","Max zranï¿½nï¿½",
+  "Kondice","Max mana","Obrana(dolnï¿½)","Obrana(Hornï¿½)","ï¿½tok(Dolnï¿½)",
+  "ï¿½tok(Hornï¿½)","Oheï¿½","Voda","Zemï¿½","Vzduch","Mysl","ï¿½ivoty Regen",
+  "Mana Regen","Kondice Regen","Magickï¿½ sï¿½la(D)", "Magickï¿½ sï¿½la(H)","","ï¿½ï¿½innek zï¿½sahu","*"};
 
 void ukaz_vlastnosti(int pocet,int x,int y,int id,short *it)
   {
@@ -277,13 +277,13 @@ void oprav_vlastnosti(TITEM *it)
   define(190,5,272,100,10,0,check_box,"Na nohy");
   define(200,105,200,100,10,0,check_box,"Na chodidla");
   define(210,105,212,100,10,0,check_box,"Na ramena");
-  define(220,105,224,100,10,0,check_box,"Na z da");  */
-  define(300,10,10,80,20,2,button,"Zru¨it");on_change(terminate);
+  define(220,105,224,100,10,0,check_box,"Na zï¿½da");  */
+  define(300,10,10,80,20,2,button,"Zruï¿½it");on_control_change(terminate_gui);
    property(def_border(1,0),NULL,NULL,WINCOLOR);
-  define(310,10,40,80,20,2,button,"Ok");on_change(terminate);
+  define(310,10,40,80,20,2,button,"Ok");on_control_change(terminate_gui);
    property(def_border(1,0),NULL,NULL,WINCOLOR);
-  define(-1,225,216,70,10,0,label,"Magick˜ £tok");
-  define(250,225,228,70,70,0,radio_butts,5,"Ohe¤","Voda","Zemˆ","Vzduch","Mysl");
+  define(-1,225,216,70,10,0,label,"Magickï¿½ ï¿½tok");
+  define(250,225,228,70,70,0,radio_butts,5,"Oheï¿½","Voda","Zemï¿½","Vzduch","Mysl");
   c_default(it->zmeny[VLS_MGZIVEL]);
 //  fill_bit_fields(0,130,it->place_map,11);
   redraw_window();
@@ -311,7 +311,7 @@ void item_special(TITEM *it)
   int i,y;
   CTL3D *c;
 
-  def_dialoge(140,100,410,320,"Special - obr zky v letu");
+  def_dialoge(140,100,410,320,"Special - obrï¿½zky v letu");
   y=20;c=def_border(5,WINCOLOR);
   for(i=0;i<16;i++)
      {
@@ -321,10 +321,10 @@ void item_special(TITEM *it)
      }
   define(-1,5,20,1,1,0,label,"Zezadu");
   define(-1,5,85,1,1,0,label,"Ze strany");
-  define(-1,5,150,1,1,0,label,"Zep©edu");
-  define(-1,5,215,1,1,0,label,"V˜buch");
-  define(300,10,10,80,20,2,button,"Zru¨it");on_change(terminate);
-  define(310,100,10,80,20,2,button,"Ok");on_change(terminate);
+  define(-1,5,150,1,1,0,label,"Zepï¿½edu");
+  define(-1,5,215,1,1,0,label,"Vï¿½buch");
+  define(300,10,10,80,20,2,button,"Zruï¿½it");on_control_change(terminate_gui);
+  define(310,100,10,80,20,2,button,"Ok");on_control_change(terminate_gui);
   redraw_window();
   escape();
   if (o_aktual->id==310)
@@ -394,14 +394,14 @@ void items_adjusting()
   yy2=350-y2-vec[1];
   if (yy1<0 || yy2<0)
      {
-     msg_box("Chyba!",'\x1',"Nelze zobrazit, proto‘e n hled je z‡ sti mimo obrazovku!","Ok",NULL);
+     msg_box("Chyba!",'\x1',"Nelze zobrazit, protoï¿½e nï¿½hled je zï¿½ï¿½sti mimo obrazovku!","Ok",NULL);
      return;
      }
   preview_win=def_window(300,400,"View");
   define(10,150-malexs/2,350-maleys,malexs,maleys,0,pcx_view);set_default(ITEM_MALE);
   define(20,150+x1-vec[0]/2,yy1,1,1,0,pcx_view);set_default(filename);
   define(30,150+x2-vec[0]/2,yy2,1,1,0,pcx_view);set_default(filename);
-  define(40,5,5,80,20,2,button,"Ok");on_change(close_current);
+  define(40,5,5,80,20,2,button,"Ok");on_control_change(close_current);
   movesize_win(waktual,0,0,300,400);
   redraw_window();
   free(vec);
@@ -440,18 +440,18 @@ void item_sound_call(TITEM *it)
   memcpy(&b3,def_border(6,WINCOLOR),sizeof(CTL3D));
   default_font=vga_font;
   memcpy(f_default,flat_color(0x0000),sizeof(charcolors));
-  def_dialoge(100,50,300,250,"Zvuk p©i dopadu (destrukci)");
+  def_dialoge(100,50,300,250,"Zvuk pï¿½i dopadu (destrukci)");
   concat(c,sample_path,"*.wav");
   list=read_directory(c,DIR_BREIF,_A_NORMAL);
    read_ddl_list_wav(&list);
   define(9,10,20,200,126,0,listbox,list,0x7fff,0);
-  property(&b3,NULL,NULL,WINCOLOR);c_default(0);on_change(mob_test_sound);
+  property(&b3,NULL,NULL,WINCOLOR);c_default(0);on_control_change(mob_test_sound);
   define(10,217,40,19,87,0,scroll_bar_v,0,10,1,SCROLLBARCOL);
   property(&b2,NULL,NULL,WINCOLOR);
   define(11,216,20,21,17,0,scroll_button,-1,0,"\x1e");
-  property(NULL,icones,NULL,WINCOLOR);on_change(scroll_support);
+  property(NULL,icones,NULL,WINCOLOR);on_control_change(scroll_support);
   define(12,216,130,21,17,0,scroll_button,1,10,"\x1f");
-  property(NULL,icones,NULL,WINCOLOR);on_change(scroll_support);
+  property(NULL,icones,NULL,WINCOLOR);on_control_change(scroll_support);
      {
      int z,y;
      char *s;
@@ -462,10 +462,10 @@ void item_sound_call(TITEM *it)
      define(20,120,y,120,12,0,input_line,13);property(&b2,NULL,NULL,WINCOLOR);
      set_default(s);
      define(40,245,y,20,12,0,button,"<");
-        property(&b1,NULL,NULL,WINCOLOR);on_change(mob_sound_copy);
+        property(&b1,NULL,NULL,WINCOLOR);on_control_change(mob_sound_copy);
      }
-  define(100,5,5,80,20,2,button,"Ok");on_change(terminate); property(&b1,NULL,NULL,WINCOLOR);
-  define(110,90,5,80,20,2,button,"Zru¨it");on_change(terminate); property(&b1,NULL,NULL,WINCOLOR);
+  define(100,5,5,80,20,2,button,"Ok");on_control_change(terminate_gui); property(&b1,NULL,NULL,WINCOLOR);
+  define(110,90,5,80,20,2,button,"Zruï¿½it");on_control_change(terminate_gui); property(&b1,NULL,NULL,WINCOLOR);
   redraw_window();
   escape();
   if (o_aktual->id==100)
@@ -523,7 +523,7 @@ void save_edited_item()
   it->shiftup=0xff;
   w=find_window(preview_win);
   if (w!=NULL) close_window(w);
-  terminate();
+  terminate_gui();
   }
 
 
@@ -593,23 +593,23 @@ void item_edit(TITEM *it)
 
   if (anm>=str_count(weapons)) anm=0;
   c=def_border(5,WINCOLOR);
-  def_dialoge(220,80,410,350,"Oprava £daj– o p©edmˆtu");
+  def_dialoge(220,80,410,350,"Oprava ï¿½dajï¿½ o pï¿½edmï¿½tu");
   curfont=vga_font;
   default_font=curfont;
-  define(-1,5,20,50,10,0,label,"Jm‚no (31 znak–)");
+  define(-1,5,20,50,10,0,label,"Jmï¿½no (31 znakï¿½)");
   define(15,10,35,288,12,0,input_line,31);set_default(it->jmeno);
    property(def_border(2,WINCOLOR),NULL,flat_color(RGB555(16,0,0)),WINCOLOR);
-  define(-1,5,50,50,10,0,label,"Popis (31 znak–)");
+  define(-1,5,50,50,10,0,label,"Popis (31 znakï¿½)");
   define(20,10,65,380,12,0,input_line,31);set_default(it->popis);
    property(def_border(2,WINCOLOR),NULL,flat_color(0xF),WINCOLOR);
   define(5,0,0,0,0,0,value_store,4);set_default(&it);
   define(30,10,30,80,20,1,button,"Vlastnosti");
-   property(def_border(1,0),NULL,NULL,WINCOLOR);on_change(otevri_vlastnosti);
+   property(def_border(1,0),NULL,NULL,WINCOLOR);on_control_change(otevri_vlastnosti);
   define(-1,5,80,100,10,0,label,"Hmotnost");
   define(-1,5,95,100,10,0,label,"Nosnost");
-  define(-1,5,110,100,10,0,label,"ID Kl¡‡e");
+  define(-1,5,110,100,10,0,label,"ID Klï¿½ï¿½e");
   define(-1,5,125,100,10,0,label,"?Hodnota");
-  define(-1,5,140,100,10,0,label,"€.Ud losti");
+  define(-1,5,140,100,10,0,label,"ï¿½.Udï¿½losti");
   define(-1,5,155,100,10,0,label,"Druh");
   def_border(5,WINCOLOR);
   define(40,105,80,60,12,0,input_line,7,-32767,+32767,"%6d");
@@ -626,7 +626,7 @@ void item_edit(TITEM *it)
      on_enter(string_list_sup);c_default(it->druh);
   define(-1,105,80,100,10,1,label,"Kouzlo:");
   define(-1,105,95,100,10,1,label,"Mana celk:");
-  define(-1,105,110,100,10,1,label,"Cena vˆci");
+  define(-1,105,110,100,10,1,label,"Cena vï¿½ci");
   define(-1,105,125,100,10,1,label,"Poloha1(XY)");
   define(-1,105,140,100,10,1,label,"Poloha2(XY)");
   define(100,55,80,50,12,1,input_line,7,-32767,32767,"%6d");on_exit(test_int);
@@ -643,29 +643,29 @@ void item_edit(TITEM *it)
    property(c,NULL,NULL,WINCOLOR);set_default(strs(it->polohy[1][0]));on_event(adjust_enter);
   define(170,5,140,45,12,1,input_line,7,-32767,32767,"%5d");on_exit(test_int);
    property(c,NULL,NULL,WINCOLOR);set_default(strs(it->polohy[1][1]));on_event(adjust_enter);
-  define(175,5,155,60,20,1,button,"Zobraz");on_change(items_adjusting);
+  define(175,5,155,60,20,1,button,"Zobraz");on_control_change(items_adjusting);
   define(180,80,175,220,12,0,str_line,umisteni_veci);property(c,NULL,NULL,WINCOLOR);
       on_enter(string_list_sup);c_default(it->umisteni);
   define(200,80,190,220,12,0,str_line,typy_zbrani);property(c,NULL,NULL,WINCOLOR);
       on_enter(string_list_sup);c_default(it->typ_zbrane);
-  define(210,80,205,220,10,0,check_box,"P©i dopadu se zni‡¡");
-  define(220,80,217,220,10,0,check_box,"Existuje dokud je pou‘¡v n");
+  define(210,80,205,220,10,0,check_box,"Pï¿½i dopadu se zniï¿½ï¿½");
+  define(220,80,217,220,10,0,check_box,"Existuje dokud je pouï¿½ï¿½vï¿½n");
   define(130,10,180,45,55,0,ikona);c_default(it->ikona);
-   property(c,NULL,NULL,0);on_change(change_item_ikone);
-  define(-1,150,25,120,12,2,label,"Obr zkov˜ script");
+   property(c,NULL,NULL,0);on_control_change(change_item_ikone);
+  define(-1,150,25,120,12,2,label,"Obrï¿½zkovï¿½ script");
   define(190,150,10,120,12,2,str_line,vzhled_veci);property(c,NULL,NULL,WINCOLOR);
      c_default(it->vzhled); on_enter(string_list_sup);
-  define(-1,150,60,120,12,2,label,"Animace zbranˆ");
+  define(-1,150,60,120,12,2,label,"Animace zbranï¿½");
   define(400,150,45,120,12,2,str_line,weapons);property(c,NULL,NULL,WINCOLOR);
-     c_default(anm); on_enter(string_list_sup);on_change(update_hitpos);
+     c_default(anm); on_enter(string_list_sup);on_control_change(update_hitpos);
   define(-1,10,45,1,12,3,label,"Hit Pos:");
   define(410,90,45,40,12,3,input_line,7,0,255,"%4d");on_exit(test_int);
    property(c,NULL,NULL,WINCOLOR);set_default(strs(it->hitpos));
-  define(300,10,35,80,20,2,button,"Ulo‘");property(def_border(1,0),NULL,NULL,RGB555(0,20,0));on_change(save_edited_item);
-  define(320,10,70,80,20,2,button,"Zvuk");property(def_border(1,0),NULL,NULL,WINCOLOR);on_change(item_sound);
-  define(330,10,10,80,20,2,button,"Zru¨it");property(def_border(1,0),NULL,flat_color(RGB555(31,31,31)),RGB555(20,0,0));on_change(terminate);
-  define(310,10,10,80,20,3,button,"Special");property(def_border(1,0),NULL,NULL,WINCOLOR);on_change(otevri_special);
-  define(340,10,95,80,20,2,button,"Aff");property(def_border(1,0),NULL,NULL,WINCOLOR);on_change(spell_affections);
+  define(300,10,35,80,20,2,button,"Uloï¿½");property(def_border(1,0),NULL,NULL,RGB555(0,20,0));on_control_change(save_edited_item);
+  define(320,10,70,80,20,2,button,"Zvuk");property(def_border(1,0),NULL,NULL,WINCOLOR);on_control_change(item_sound);
+  define(330,10,10,80,20,2,button,"Zruï¿½it");property(def_border(1,0),NULL,flat_color(RGB555(31,31,31)),RGB555(20,0,0));on_control_change(terminate_gui);
+  define(310,10,10,80,20,3,button,"Special");property(def_border(1,0),NULL,NULL,WINCOLOR);on_control_change(otevri_special);
+  define(340,10,95,80,20,2,button,"Aff");property(def_border(1,0),NULL,NULL,WINCOLOR);on_control_change(spell_affections);
   define(700,0,0,0,0,0,value_store,4);c_default(it->zmeny[VLS_KOUZLA]);
   redraw_window();
   fill_bit_fields(0,210,it->flags,2);
@@ -695,7 +695,7 @@ void create_ibuffer_list()
      else sprintf(c,"%3d %s",i,q->jmeno);
      if (str_replace(&ls_buffer,i,c)==NULL) return;
      }
-  if (i==0) str_replace(&ls_buffer,0," -1 <‘adn‚ p©edmˆty>");
+  if (i==0) str_replace(&ls_buffer,0," -1 <ï¿½adnï¿½ pï¿½edmï¿½ty>");
   str_delfreelines(&ls_buffer);
   }
 
@@ -716,7 +716,7 @@ void create_isort_list(TSTR_LIST *ls_sorts,int filter)
         cc=1;
         }
      }
-  if (!cc) str_replace(ls_sorts,0," -1 <‘adn‚ vzory>");
+  if (!cc) str_replace(ls_sorts,0," -1 <ï¿½adnï¿½ vzory>");
   str_delfreelines(ls_sorts);
   }
 
@@ -732,7 +732,7 @@ void save_items()
      f=fopen(ITEMS_DAT,"wb");
      if (f==NULL)
         {
-        msg_box("Chyba",'\x1',"Nemohu ulo‘it vzory p©edmˆt–","Panika",NULL);
+        msg_box("Chyba",'\x1',"Nemohu uloï¿½it vzory pï¿½edmï¿½tï¿½","Panika",NULL);
         return;
         }
      save_section(f,item_list,SV_ITLIST,sizeof(TITEM)*max_items);
@@ -817,7 +817,7 @@ void clone_item()
   j=aloc_free_item();
   if (j==-1)
      {
-     msg_box("Nelze!",'\0x1',"MAPEDIT je omezen na po‡et v¨ech mo‘n˜ch vzor– ve h©e","Ok",NULL);
+     msg_box("Nelze!",'\0x1',"MAPEDIT je omezen na poï¿½et vï¿½ech moï¿½nï¿½ch vzorï¿½ ve hï¿½e","Ok",NULL);
      return;
      }
   i=f_get_value(0,9);
@@ -853,11 +853,11 @@ void delete_item_sort()
   i=f_get_value(0,9);
   sscanf(ls_sorts[i],"%d",&i);
   if (i<0 || i>=max_items) return;
-  if (msg_box("Dotaz?",'\x02',"Opravdu m ¨ v £myslu vymazat tento vzor? Je mo‘n‚,"
-             " ‘e na tento vzor se odvol v j¡ p©edmˆty v jin‚ mapˆ. MAPEDIT je "
-             "nem–‘e vymazat, a mohou se dal¨¡ pr c¡ zmˆnit v p©edmˆt jin˜!",
-             "P©esto vymazat","Zru¨it",NULL)==2) return;
-  strcpy(item_list[i].jmeno,"??? Vymaz n");
+  if (msg_box("Dotaz?",'\x02',"Opravdu mï¿½ï¿½ v ï¿½myslu vymazat tento vzor? Je moï¿½nï¿½,"
+             " ï¿½e na tento vzor se odvolï¿½vï¿½jï¿½ pï¿½edmï¿½ty v jinï¿½ mapï¿½. MAPEDIT je "
+             "nemï¿½ï¿½e vymazat, a mohou se dalï¿½ï¿½ prï¿½cï¿½ zmï¿½nit v pï¿½edmï¿½t jinï¿½!",
+             "Pï¿½esto vymazat","Zruï¿½it",NULL)==2) return;
+  strcpy(item_list[i].jmeno,"??? Vymazï¿½n");
   while (max_items && item_list[max_items-1].jmeno[0]=='?') max_items--;
   create_isort_list(&ls_sorts,grep_num);
   send_message(E_GUI,9,E_CONTROL,1,ls_sorts);
@@ -899,27 +899,27 @@ void open_item_win()
      default_font=vga_font;
      memcpy(f_default,flat_color(0x0000),sizeof(charcolors));
      memcpy(&f_sel,flat_color(RGB555(0,0,24)),sizeof(charcolors));
-     item_win=def_window(200,300,"P©edmˆty");
+     item_win=def_window(200,300,"Pï¿½edmï¿½ty");
      waktual->y=2;waktual->x=SCR_WIDTH_X-20-160-3;
      waktual->minsizx=120;
      waktual->minsizy=100;
-     on_change(close_current);
+     on_control_change(close_current);
      define(9,5,20,170,240,0,listbox,ls_buffer,RGB555(31,31,0),0);c_default(0);
      property(&b2,NULL,&f_sel,WINCOLOR);
      o_end->autoresizex=1;
      o_end->autoresizey=1;
      define(10,3,41,19,198,1,scroll_bar_v,0,10,1,SCROLLBARCOL);
-     property(&b2,NULL,NULL,WINCOLOR);on_change(scroll_support);
+     property(&b2,NULL,NULL,WINCOLOR);on_control_change(scroll_support);
      o_end->autoresizey=1;
      define(11,3,20,19,19,1,scroll_button,-1,0,"\x1e");
-     property(NULL,icones,NULL,WINCOLOR);on_change(scroll_support);
+     property(NULL,icones,NULL,WINCOLOR);on_control_change(scroll_support);
      define(12,3,40,19,19,2,scroll_button,1,10,"\x1f");
-     property(NULL,icones,NULL,WINCOLOR);on_change(scroll_support);
+     property(NULL,icones,NULL,WINCOLOR);on_control_change(scroll_support);
      define(20,3,1,10,10,2,resizer);
-     define(30,5,10,50,20,3,button,"P©ekr.");
-     property(&b1,NULL,NULL,WINCOLOR);on_change(refresh_itm);
-     define(30,60,10,50,20,3,button,"Vyma‘");
-     property(&b1,NULL,NULL,WINCOLOR);on_change(it_kos);
+     define(30,5,10,50,20,3,button,"Pï¿½ekr.");
+     property(&b1,NULL,NULL,WINCOLOR);on_control_change(refresh_itm);
+     define(30,60,10,50,20,3,button,"Vymaï¿½");
+     property(&b1,NULL,NULL,WINCOLOR);on_control_change(it_kos);
      movesize_win(waktual,waktual->x,waktual->y,waktual->xs,150);
      redraw_window();
 
@@ -934,7 +934,7 @@ void umisti_item()
 
   if (selected_place==-1)
      {
-     msg_box("Nic nen¡ vybr no",'\x01',"Nejd©¡ve klikni my¨¡ na mapˆ, na m¡sto kam chce¨ p©edmˆt um¡stit","Ok",NULL);
+     msg_box("Nic nenï¿½ vybrï¿½no",'\x01',"Nejdï¿½ï¿½ve klikni myï¿½ï¿½ na mapï¿½, na mï¿½sto kam chceï¿½ pï¿½edmï¿½t umï¿½stit","Ok",NULL);
      return;
      }
   i=f_get_value(0,9);
@@ -942,7 +942,7 @@ void umisti_item()
   for(j=0;j<ITEM_BUFFER && item_buffer[j];j++);
   if (j==ITEM_BUFFER)
      {
-     msg_box("Omezeni.",' ',"MAPEDIT omezil po‡et p©edmˆt– na jednom poli‡ku. Dal¨¡ ji‘ nelze vlo‘it","Ok",NULL);
+     msg_box("Omezeni.",' ',"MAPEDIT omezil poï¿½et pï¿½edmï¿½tï¿½ na jednom poliï¿½ku. Dalï¿½ï¿½ jiï¿½ nelze vloï¿½it","Ok",NULL);
      return;
      }
   item_buffer[j]=i+1;
@@ -970,7 +970,7 @@ void vloz_do_item()
 void inv_testmap()
   {
   if (selected_place<0)
-     msg_box("Nic nen¡ vybr no",'\x01',"Nejd©¡ve klikni my¨¡ na mapˆ, na m¡sto kde chce¨ za‡¡t","Ok",NULL);
+     msg_box("Nic nenï¿½ vybrï¿½no",'\x01',"Nejdï¿½ï¿½ve klikni myï¿½ï¿½ na mapï¿½, na mï¿½sto kde chceï¿½ zaï¿½ï¿½t","Ok",NULL);
   else
      call_testmap(selected_place/4);
   }
@@ -1007,35 +1007,35 @@ void editor_vzoru()
      vzor_win=def_window(200,370,"Vzory");
      waktual->minsizx=130;
      waktual->minsizy=170;
-     on_change(close_current);
+     on_control_change(close_current);
      define(9,5,20,170,240,0,listbox,ls_sorts,RGB555(31,31,0),0);c_default(0);
      property(&b2,NULL,&f_sel,WINCOLOR);
      o_end->autoresizex=1;
      o_end->autoresizey=1;
      define(10,3,41,19,198,1,scroll_bar_v,0,10,1,SCROLLBARCOL);
-     property(&b2,NULL,NULL,WINCOLOR);on_change(scroll_support);
+     property(&b2,NULL,NULL,WINCOLOR);on_control_change(scroll_support);
      o_end->autoresizey=1;
      define(11,3,20,19,19,1,scroll_button,-1,0,"\x1e");
-     property(NULL,icones,NULL,WINCOLOR);on_change(scroll_support);
+     property(NULL,icones,NULL,WINCOLOR);on_control_change(scroll_support);
      define(12,3,110,19,19,2,scroll_button,1,10,"\x1f");
-     property(NULL,icones,NULL,WINCOLOR);on_change(scroll_support);
+     property(NULL,icones,NULL,WINCOLOR);on_control_change(scroll_support);
      define(20,3,1,10,10,2,resizer);
-     define(30,5,35,50,20,3,button,"Vyma‘");on_change(delete_item_sort);
+     define(30,5,35,50,20,3,button,"Vymaï¿½");on_control_change(delete_item_sort);
      property(&b1,NULL,NULL,WINCOLOR);
-     define(40,5,60,50,20,3,button,"Klonuj");on_change(clone_item);
+     define(40,5,60,50,20,3,button,"Klonuj");on_control_change(clone_item);
      property(&b1,NULL,NULL,WINCOLOR);
-     define(50,5,85,50,20,3,button,"Oprav");on_change(edit_selected_item);
+     define(50,5,85,50,20,3,button,"Oprav");on_control_change(edit_selected_item);
      property(&b1,NULL,NULL,WINCOLOR);
-     define(60,10,35,60,20,2,button,"Um¡stit");on_change(umisti_item);
+     define(60,10,35,60,20,2,button,"Umï¿½stit");on_control_change(umisti_item);
      property(&b1,NULL,NULL,WINCOLOR);
-     define(70,10,60,60,20,2,button,"Vlo‘ do");on_change(vloz_do_item);
+     define(70,10,60,60,20,2,button,"Vloï¿½ do");on_control_change(vloz_do_item);
      property(&b1,NULL,NULL,WINCOLOR);
-     define(80,10,85,60,20,2,button,"Test");on_change(inv_testmap);
+     define(80,10,85,60,20,2,button,"Test");on_control_change(inv_testmap);
      property(&b1,NULL,NULL,WINCOLOR);
      define(90,5,10,170,12,3,str_line,typy_veci);c_default(grep_num>-1?grep_num:0);
-     property(&b2,NULL,&f_sel,WINCOLOR);on_enter(string_list_sup);on_change(change_grep);
+     property(&b2,NULL,&f_sel,WINCOLOR);on_enter(string_list_sup);on_control_change(change_grep);
      o_end->autoresizex=1;
-     define(100,10,10,10,10,2,check_box,"");c_default(grep_num>-1);on_change(change_grep);
+     define(100,10,10,10,10,2,check_box,"");c_default(grep_num>-1);on_control_change(change_grep);
      movesize_win(waktual,waktual->x,160,waktual->xs,SCR_WIDTH_Y-20-160);
      redraw_window();
      }
@@ -1198,7 +1198,7 @@ void re_build_shop_list(TSTR_LIST *ls,TSHOP *p, int count)
      str_add(ls,s);
      p++;
      }
-  str_add(ls,"<nov˜ obchod>");
+  str_add(ls,"<novï¿½ obchod>");
   }
 
 
@@ -1218,7 +1218,7 @@ void re_build_item_list(TSTR_LIST *ls,TPRODUCT *p,int count)
   *ls=create_list(16);
   if (!count || p==NULL)
      {
-     str_add(ls,"<‘ dn˜ p©edmˆt>");
+     str_add(ls,"<ï¿½ï¿½dnï¿½ pï¿½edmï¿½t>");
      return;
      }
   while (count--)
@@ -1229,7 +1229,7 @@ void re_build_item_list(TSTR_LIST *ls,TPRODUCT *p,int count)
      d=p->item;
      if (p->trade_flags & SHP_TYPE)
         sprintf(s,"typ: <%s>",typy_veci[d]);
-     else if (d>=max_items) strcpy(s,"<p©edmˆt vymaz n!>");
+     else if (d>=max_items) strcpy(s,"<pï¿½edmï¿½t vymazï¿½n!>");
      else
         sprintf(s,"%c%c%c%c %s (%d)",(p->trade_flags & SHP_SELL?'P':219),
                                     (p->trade_flags & SHP_BUY?'N':219),
@@ -1270,17 +1270,17 @@ static void close_edit_shop()
   p->spec_max=vals(230);
   if (s[0]==0)
      {
-     msg_box("Editor obchod–",'\x1',"Obchod mus¡ m¡t sv‚ho prodava‡e (shopkeeppera). Obchod bude ozna‡en jako smazan˜.","Ok",NULL);
-     strcpy(s,"*vymaz n*");
+     msg_box("Editor obchodï¿½",'\x1',"Obchod musï¿½ mï¿½t svï¿½ho prodavaï¿½e (shopkeeppera). Obchod bude oznaï¿½en jako smazanï¿½.","Ok",NULL);
+     strcpy(s,"*vymazï¿½n*");
      }
   if (s[0]=='<')
      {
-     msg_box("Editor obchod–",'\x1',"Obchodn¡k m  neplatn‚ jm‚no","Ok",NULL);
+     msg_box("Editor obchodï¿½",'\x1',"Obchodnï¿½k mï¿½ neplatnï¿½ jmï¿½no","Ok",NULL);
      return;
      }
   strcpy(p->keeper,s);
   if (!p->products && s[0]!='*')
-     msg_box("Editor obchod–",'\x1',"S ni‡¡m se neobchoduje. Nejsou definov ny ‘ dn‚ produkty. Tato situace m–‘e v‚st ke krachu hry!","Beru na vˆdom¡",NULL);
+     msg_box("Editor obchodï¿½",'\x1',"S niï¿½ï¿½m se neobchoduje. Nejsou definovï¿½ny ï¿½ï¿½dnï¿½ produkty. Tato situace mï¿½ï¿½e vï¿½st ke krachu hry!","Beru na vï¿½domï¿½",NULL);
   send_message(E_GUI,9,E_CONTROL,0,&ls);
   release_list(ls);
   close_current();
@@ -1428,42 +1428,42 @@ void edit_shop(int i)
   re_build_item_list(&ls,shp->list,shp->products);
   memcpy(&ctl1,def_border(1,0),sizeof(ctl1));
   memcpy(&ctl2,def_border(2,WINCOLOR),sizeof(ctl2));
-  def_window(400,300,"Editor obchod–");
-  on_change(close_edit_shop);
+  def_window(400,300,"Editor obchodï¿½");
+  on_control_change(close_edit_shop);
   define(500,0,0,0,0,0,value_store,4);c_default(i);
   define(9,10,20,200,166,0,listbox,ls,RGB555(31,31,31),0);
-  property(&ctl1,NULL,NULL,WINCOLOR);c_default(0);on_change(show_selected);
+  property(&ctl1,NULL,NULL,WINCOLOR);c_default(0);on_control_change(show_selected);
   define(10,217,40,19,127,0,scroll_bar_v,0,10,1,SCROLLBARCOL);
   property(&ctl1,NULL,NULL,WINCOLOR);
   define(11,216,20,21,17,0,scroll_button,-1,0,"\x1e");
-  property(NULL,icones,NULL,WINCOLOR);on_change(scroll_support);
+  property(NULL,icones,NULL,WINCOLOR);on_control_change(scroll_support);
   define(12,216,170,21,17,0,scroll_button,1,10,"\x1f");
-  property(NULL,icones,NULL,WINCOLOR);on_change(scroll_support);
-  define(20,75,30,60,20,1,button,"Vo‘it");property(&ctl1,NULL,NULL,WINCOLOR);on_change(add_item);
-  define(60,75,55,60,20,1,button,"P©epsat");property(&ctl1,NULL,NULL,WINCOLOR);on_change(rewrite_item);
-  define(30,10,30,60,20,1,button,"Typ");property(&ctl1,NULL,NULL,WINCOLOR);on_change(add_type);
-  define(40,10,55,60,20,1,button,"Odebrat");property(&ctl1,NULL,NULL,WINCOLOR);on_change(remove_item);
-  define(50,10,10,80,20,2,button,"Zav©¡t");property(&ctl1,NULL,NULL,WINCOLOR);on_change(close_edit_shop);
+  property(NULL,icones,NULL,WINCOLOR);on_control_change(scroll_support);
+  define(20,75,30,60,20,1,button,"Voï¿½it");property(&ctl1,NULL,NULL,WINCOLOR);on_control_change(add_item);
+  define(60,75,55,60,20,1,button,"Pï¿½epsat");property(&ctl1,NULL,NULL,WINCOLOR);on_control_change(rewrite_item);
+  define(30,10,30,60,20,1,button,"Typ");property(&ctl1,NULL,NULL,WINCOLOR);on_control_change(add_type);
+  define(40,10,55,60,20,1,button,"Odebrat");property(&ctl1,NULL,NULL,WINCOLOR);on_control_change(remove_item);
+  define(50,10,10,80,20,2,button,"Zavï¿½ï¿½t");property(&ctl1,NULL,NULL,WINCOLOR);on_control_change(close_edit_shop);
   define(100,10,80,150,12,1,str_line,shop_items);property(&ctl2,NULL,NULL,WINCOLOR);
-     c_default(0); on_enter(string_list_sup);on_change(zjisti_cenu);
+     c_default(0); on_enter(string_list_sup);on_control_change(zjisti_cenu);
   define(-1,155,100,1,1,1,label,"Cena:");
   define(110,10,100,90,12,1,input_line,10,0,9999999,"%7d");property(&ctl2,NULL,NULL,WINCOLOR);
      set_default(strs(item_list[0].cena));on_exit(test_int);
-  define(-1,155,120,1,1,1,label,"Po‡et:");
+  define(-1,155,120,1,1,1,label,"Poï¿½et:");
   define(120,10,120,90,12,1,input_line,10,-1,9999999,"%7d");property(&ctl2,NULL,NULL,WINCOLOR);
      set_default(strs(1));on_exit(test_int);
-  define(130,10,135,150,10,1,check_box,"Prod vat");c_default(1);
+  define(130,10,135,150,10,1,check_box,"Prodï¿½vat");c_default(1);
   define(140,10,147,150,10,1,check_box,"Nakupovat");c_default(0);
-  define(150,10,159,150,10,1,check_box,"Zbo‘¡ p©ib˜v ");c_default(0);
-  define(160,10,171,150,10,1,check_box,"Nen¡ v‘dy na skladˆ");c_default(0);
+  define(150,10,159,150,10,1,check_box,"Zboï¿½ï¿½ pï¿½ibï¿½vï¿½");c_default(0);
+  define(160,10,171,150,10,1,check_box,"Nenï¿½ vï¿½dy na skladï¿½");c_default(0);
   define(-1,10,200,1,1,0,label,"Shopkeeper:");
   define(200,100,200,200,12,0,input_line,15);set_default(shp->keeper);property(&ctl2,NULL,NULL,WINCOLOR);
-  define(-1,10,220,1,1,0,label,"Obr zek:");
+  define(-1,10,220,1,1,0,label,"Obrï¿½zek:");
   define(210,100,220,100,12,0,input_line,12);set_default(shp->picture);property(&ctl2,NULL,NULL,WINCOLOR);
-  define(215,220,218,80,14,0,button,"Nalistuj");property(&ctl1,NULL,NULL,WINCOLOR);on_change(browse_dialogs);
+  define(215,220,218,80,14,0,button,"Nalistuj");property(&ctl1,NULL,NULL,WINCOLOR);on_control_change(browse_dialogs);
   define(-1,10,240,1,1,0,label,"Rozptyl cen +/- [%]");
   define(220,150,240,60,12,0,input_line,6,0,100,"%5d");set_default(strs(shp->koef));on_exit(test_int);property(&ctl2,NULL,NULL,WINCOLOR);
-  define(-1,220,240,1,1,0,label,"Po‡et spec:");
+  define(-1,220,240,1,1,0,label,"Poï¿½et spec:");
   define(230,320,240,60,12,0,input_line,6,0,100,"%5d");set_default(strs(shp->spec_max));on_exit(test_int);property(&ctl2,NULL,NULL,WINCOLOR);
      {
      char s[50];
@@ -1482,7 +1482,7 @@ static void close_shop_list()
   send_message(E_GUI,9,E_CONTROL,0,&ls);
   for(i=0;i<max_shops;i++) if (shopstate[i]==1)
         {
-        msg_box("Toto okno nelze uzav©¡t!",'\x1',"Program ‡ek  na dokon‡en¡ prace v nˆkter‚m z pod©¡zen˜ch oken","Ok",NULL);
+        msg_box("Toto okno nelze uzavï¿½ï¿½t!",'\x1',"Program ï¿½ekï¿½ na dokonï¿½enï¿½ prace v nï¿½kterï¿½m z podï¿½ï¿½zenï¿½ch oken","Ok",NULL);
         return;
         }
   for(i=0;i<max_shops;)
@@ -1523,7 +1523,7 @@ void open_shop_editor()
      if (ls[i]==NULL) return;
      if (shopstate[i]==1)
         {
-        msg_box("Seznam obchod–",'\x1',"Tento obchod je ji‘ opravov n v jin‚m oknˆ. Nelze jej znovu otev©¡t","Ok",NULL);
+        msg_box("Seznam obchodï¿½",'\x1',"Tento obchod je jiï¿½ opravovï¿½n v jinï¿½m oknï¿½. Nelze jej znovu otevï¿½ï¿½t","Ok",NULL);
         return;
         }
      shopstate[i]=1;
@@ -1545,12 +1545,12 @@ static void erase_shop()
   if (ls[i]==NULL) return;
   if (ls[i][0]=='<')
         {
-        msg_box("Seznam obchod–",'\x1',"Tento obchod je opravov n v jin‚m oknˆ. Nelze jej vymazat","Ok",NULL);
+        msg_box("Seznam obchodï¿½",'\x1',"Tento obchod je opravovï¿½n v jinï¿½m oknï¿½. Nelze jej vymazat","Ok",NULL);
         return;
         }
-  if (msg_box("Vymazat obchod?",'\x2',"Opravdu chce¨ vymazat obchod?","Ano","Ne",NULL)==2) return;
+  if (msg_box("Vymazat obchod?",'\x2',"Opravdu chceï¿½ vymazat obchod?","Ano","Ne",NULL)==2) return;
   p=shop_list+i;
-  strcpy(p->keeper,"*vymaz n*");
+  strcpy(p->keeper,"*vymazï¿½n*");
   re_build_shop_list(&ls,shop_list,max_shops);
   send_message(E_GUI,9,E_CONTROL,1,ls);
   }
@@ -1570,18 +1570,18 @@ void open_shop_list()
      ls_sorts=NULL;
      re_build_shop_list(&ls,shop_list,max_shops);
      memcpy(&ctl1,def_border(1,0),sizeof(ctl1));
-     shop_window=def_window(250,220,"Seznam obchod–");
-     on_change(close_shop_list);
+     shop_window=def_window(250,220,"Seznam obchodï¿½");
+     on_control_change(close_shop_list);
      define(9,10,20,200,166,0,listbox,ls,RGB555(31,31,31),0);
      property(&ctl1,NULL,NULL,WINCOLOR);c_default(0);//on_change(edit_shop_item);
      define(10,217,40,19,127,0,scroll_bar_v,0,10,1,SCROLLBARCOL);
      property(&ctl1,NULL,NULL,WINCOLOR);
      define(11,216,20,21,17,0,scroll_button,-1,0,"\x1e");
-     property(NULL,icones,NULL,WINCOLOR);on_change(scroll_support);
+     property(NULL,icones,NULL,WINCOLOR);on_control_change(scroll_support);
      define(12,216,170,21,17,0,scroll_button,1,10,"\x1f");
-     property(NULL,icones,NULL,WINCOLOR);on_change(scroll_support);
-     define(200,5,5,70,20,3,button,"Oprava");on_change(open_shop_editor);property(&ctl1,NULL,NULL,WINCOLOR);
-     define(210,80,5,70,20,3,button,"Vymazat");on_change(erase_shop);property(&ctl1,NULL,NULL,WINCOLOR);
+     property(NULL,icones,NULL,WINCOLOR);on_control_change(scroll_support);
+     define(200,5,5,70,20,3,button,"Oprava");on_control_change(open_shop_editor);property(&ctl1,NULL,NULL,WINCOLOR);
+     define(210,80,5,70,20,3,button,"Vymazat");on_control_change(erase_shop);property(&ctl1,NULL,NULL,WINCOLOR);
      movesize_win(waktual,10,10,250,220);
      }
   else select_window(shop_window);
@@ -1618,7 +1618,7 @@ void save_shop(TSHOP *p,FILE *f)
            {
            char s[300];
 
-           sprintf(s,"Duplicitn¡ p©edmˆt v definici v obchodu '%s'. Soubor obchodu bude ulo‘en, ale vlastn¡ hra m–‘e na tomto p©edmˆtu zkrachovat!",p->keeper);
+           sprintf(s,"Duplicitnï¿½ pï¿½edmï¿½t v definici v obchodu '%s'. Soubor obchodu bude uloï¿½en, ale vlastnï¿½ hra mï¿½ï¿½e na tomto pï¿½edmï¿½tu zkrachovat!",p->keeper);
            msg_box("Shop edit",'\x1',s,"Ok",NULL);
            typs++;
            }

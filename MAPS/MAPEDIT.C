@@ -46,10 +46,10 @@ word icone_color[7]={RGB555(8,8,8),RGB555(31,31,31),RGB555(0,0,15),RGB555(16,16,
 extern word sipka;
 static char *error_texts[]=
      {
-     "Progamov  chyba",
-     "Pr vˆ bˆ‘¡c¡ ud lost zp–sobila neplatnou referenci pamˆŸi!",
-     "Pr vˆ bˆ‘¡c¡ ud lost zp–sobila zpracov n¡ neplatn‚ instrukce!",
-     "Syst‚m zachytil neo‡ek vanou chybu programu!"
+     "Progamovï¿½ chyba",
+     "Prï¿½vï¿½ bï¿½ï¿½ï¿½cï¿½ udï¿½lost zpï¿½sobila neplatnou referenci pamï¿½ï¿½i!",
+     "Prï¿½vï¿½ bï¿½ï¿½ï¿½cï¿½ udï¿½lost zpï¿½sobila zpracovï¿½nï¿½ neplatnï¿½ instrukce!",
+     "Systï¿½m zachytil neoï¿½ekï¿½vanou chybu programu!"
      };
 
 static char ask_exit_status;
@@ -123,7 +123,7 @@ EVENT_PROC(exit_key)
   WHEN_MSG(E_KEYBOARD)
      {
      c=GET_DATA(int);
-     if ((c & 0xff)==0 && (c>>8)=='D') terminate();
+     if ((c & 0xff)==0 && (c>>8)=='D') terminate_gui();
      if ((c & 0xff)==0 && (c>>8)==';') about();
      if ((c & 0xff)==0 && (c>>8)=='?') save_dump();
      if ((c & 0xff)==0 && (c>>8)=='<') movesize_test();
@@ -141,7 +141,7 @@ EVENT_PROC(wait_ms_key)
   WHEN_MSG(E_MOUSE)
      {
      ms=get_mouse(GET_MSG_VAR());
-     if (ms->event_type & 4) terminate();
+     if (ms->event_type & 4) terminate_gui();
      }
   }
 
@@ -281,7 +281,7 @@ void prg_error(EVENT_MSG *msg,void **unused)
        }
     zobraz_mysku();
     showview(0,0,0,0);
-    *err=2-msg_box(error_texts[0],' ',c,"Ignoruj","Konec","Ulo‘ mapu",NULL);
+    *err=2-msg_box(error_texts[0],' ',c,"Ignoruj","Konec","Uloï¿½ mapu",NULL);
     if (*err==-1) save_all_map();
      }
   }
@@ -399,7 +399,7 @@ long def_window(word xs,word ys,char *name)
   if (xs>=70)
      {
   define(1,1,1,19,16,1,button,"\x0f");
-     property(NULL,icones,&icone_color,WINCOLOR);on_change(close_test);
+     property(NULL,icones,&icone_color,WINCOLOR);on_control_change(close_test);
      }
   return q;
   }
@@ -465,14 +465,14 @@ void about()
   define(-1,5,25,29,29,0,dtext,"\x8");property(NULL,icones,&c,WINCOLOR);
   define(-1,75,25,100,29,0,dtext,"MAPEDIT");property(NULL,NULL,&c2,WINCOLOR);
   define(-1,200,35,60,29,0,label,"verze 2.0");property(NULL,NULL,&c3,WINCOLOR);
-  define(-1,20,80,200,10,0,label,"Naps no pro hru \"Br ny Skeldalu\"");
+  define(-1,20,80,200,10,0,label,"Napsï¿½no pro hru \"Brï¿½ny Skeldalu\"");
   define(-1,20,92,200,10,0,label,"(C) 1997 Napoleon gameS ");
-  define(-1,20,104,200,10,0,label,"Naprogamoval: Ond©ej Nov k ");
-  define(-1,20,116,200,10,0,label,"Tento software sm¡ b˜t pou‘it jen");
-  define(-1,20,128,200,10,0,label,"ve spojen¡ s v˜vojem hry \"Br ny");
-  define(-1,20,140,200,10,0,label,"Skeldalu\" (a p©¡padn‚ dal¨¡ verze)");
-  define(-1,20,152,200,10,0,label,"a to pouze ‡leny v˜vojov‚ho t˜mu.");
-  define(10,110,170,80,20,0,button,"Ok");on_change(close_test);
+  define(-1,20,104,200,10,0,label,"Naprogamoval: Ondï¿½ej Novï¿½k ");
+  define(-1,20,116,200,10,0,label,"Tento software smï¿½ bï¿½t pouï¿½it jen");
+  define(-1,20,128,200,10,0,label,"ve spojenï¿½ s vï¿½vojem hry \"Brï¿½ny");
+  define(-1,20,140,200,10,0,label,"Skeldalu\" (a pï¿½ï¿½padnï¿½ dalï¿½ï¿½ verze)");
+  define(-1,20,152,200,10,0,label,"a to pouze ï¿½leny vï¿½vojovï¿½ho tï¿½mu.");
+  define(10,110,170,80,20,0,button,"Ok");on_control_change(close_test);
   }
   else select_window(about_win);
   redraw_window();
@@ -500,7 +500,7 @@ void close_app(void)
   desktop_add_window(w);
   define(-1,0,0,mx,my,0,fog_bar);property(NULL,NULL,NULL,RGB555(16,0,0));
   redraw_desktop();
-  if ((ask_exit_status=msg_box("Dotaz?",'\x2',"Chce¨ program ukon‡it, nebo nahr t jinou mapu?","Jinou mapu","Ukon‡it","Ne",NULL))!=3) terminate();
+  if ((ask_exit_status=msg_box("Dotaz?",'\x2',"Chceï¿½ program ukonï¿½it, nebo nahrï¿½t jinou mapu?","Jinou mapu","Ukonï¿½it","Ne",NULL))!=3) terminate_gui();
   close_window(w);
   do_events();
   }
@@ -563,11 +563,11 @@ void open_editor_win()
   if (find_window(editor_win)==NULL)
      {
      editor_win=def_window(100,150,"Editory");
-     define(10,10,25,80,20,0,button,"map script");on_change(edit_script_file);
-     define(20,10,50,80,20,0,button,"map texty");on_change(edit_script_file);
-     define(30,10,75,80,20,0,button,"items.scr");on_change(edit_script_file);
-     define(40,10,100,80,20,0,button,"items.pic");on_change(edit_script_file);
-     define(50,10,125,80,20,0,button,"animator");on_change(call_animator);
+     define(10,10,25,80,20,0,button,"map script");on_control_change(edit_script_file);
+     define(20,10,50,80,20,0,button,"map texty");on_control_change(edit_script_file);
+     define(30,10,75,80,20,0,button,"items.scr");on_control_change(edit_script_file);
+     define(40,10,100,80,20,0,button,"items.pic");on_control_change(edit_script_file);
+     define(50,10,125,80,20,0,button,"animator");on_control_change(call_animator);
      redraw_window();
      }
   else
@@ -583,27 +583,27 @@ void create_menu(void)
   menu_win=def_window(400,150,"Map Edit v2.0 for Windows - " MAPEDIT_VERSION );
   waktual->x=120;
   waktual->y=250;
-  on_change(close_app);
+  on_control_change(close_app);
   curcolor=WINCOLOR;
   default_font=icones;
-  define(10,5,25,29,29,0,button,"\x8");property(NULL,NULL,&c,WINCOLOR);on_change(edit_basic_maze);
-  define(20,5,55,29,29,0,button,"\x9");property(NULL,NULL,&c,WINCOLOR);on_change(editor_veci);
-  define(30,5,85,29,29,0,button,"\xA");property(NULL,NULL,&c,WINCOLOR);on_change(enemy_window);
+  define(10,5,25,29,29,0,button,"\x8");property(NULL,NULL,&c,WINCOLOR);on_control_change(edit_basic_maze);
+  define(20,5,55,29,29,0,button,"\x9");property(NULL,NULL,&c,WINCOLOR);on_control_change(editor_veci);
+  define(30,5,85,29,29,0,button,"\xA");property(NULL,NULL,&c,WINCOLOR);on_control_change(enemy_window);
   c[1]=RGB555(20,0,0);c[2]=RGB555(0,0,16);
-  define(40,200,25,29,29,0,button,"e");property(NULL,NULL,&c,WINCOLOR);on_change(shop_train_edit);
+  define(40,200,25,29,29,0,button,"e");property(NULL,NULL,&c,WINCOLOR);on_control_change(shop_train_edit);
   c[1]=RGB555(31,31,31);c[2]=RGB555(24,24,24);
   c[3]=RGB555(20,0,0);c[4]=RGB555(0,0,16);
-  define(50,200,55,29,29,0,button,"E");property(NULL,NULL,&c,WINCOLOR);on_change(open_editor_win);
-  define(60,200,85,29,29,0,button,"S");property(NULL,NULL,&c,WINCOLOR);on_change(save_all_map);
-  define(70,5,115,29,29,0,button,"P");property(NULL,NULL,&c,WINCOLOR);on_change(pcxviewer);
+  define(50,200,55,29,29,0,button,"E");property(NULL,NULL,&c,WINCOLOR);on_control_change(open_editor_win);
+  define(60,200,85,29,29,0,button,"S");property(NULL,NULL,&c,WINCOLOR);on_control_change(save_all_map);
+  define(70,5,115,29,29,0,button,"P");property(NULL,NULL,&c,WINCOLOR);on_control_change(pcxviewer);
   memcpy(c,flat_color(RGB555(0,0,15)),sizeof(FC_TABLE));
-  define(-1,45,35,90,20,0,label,"Kreslen¡ mapy");property(NULL,vga_font,&c,WINCOLOR);
-  define(-1,45,65,90,20,0,label,"Pokl d n¡ p©edmˆt–");property(NULL,vga_font,&c,WINCOLOR);
-  define(-1,45,95,90,20,0,label,"Um¡sŸov n¡ nestv–r");property(NULL,vga_font,&c,WINCOLOR);
+  define(-1,45,35,90,20,0,label,"Kreslenï¿½ mapy");property(NULL,vga_font,&c,WINCOLOR);
+  define(-1,45,65,90,20,0,label,"Poklï¿½dï¿½nï¿½ pï¿½edmï¿½tï¿½");property(NULL,vga_font,&c,WINCOLOR);
+  define(-1,45,95,90,20,0,label,"Umï¿½sï¿½ovï¿½nï¿½ nestvï¿½r");property(NULL,vga_font,&c,WINCOLOR);
   define(-1,240,35,90,20,0,label,"Obchody");property(NULL,vga_font,&c,WINCOLOR);
-  define(-1,240,65,90,20,0,label,"Editor script–");property(NULL,vga_font,&c,WINCOLOR);
-  define(-1,240,95,90,20,0,label,"Ulo‘en¡ mapy");property(NULL,vga_font,&c,WINCOLOR);
-  define(-1,45,125,90,20,0,label,"Prohl¡‘e‡ PCX");property(NULL,vga_font,&c,WINCOLOR);
+  define(-1,240,65,90,20,0,label,"Editor scriptï¿½");property(NULL,vga_font,&c,WINCOLOR);
+  define(-1,240,95,90,20,0,label,"Uloï¿½enï¿½ mapy");property(NULL,vga_font,&c,WINCOLOR);
+  define(-1,45,125,90,20,0,label,"Prohlï¿½ï¿½eï¿½ PCX");property(NULL,vga_font,&c,WINCOLOR);
   default_font=vga_font;
   memcpy(f_default,flat_color(0x0000),sizeof(charcolors));
   //set_enable(0,20,0);
@@ -715,8 +715,8 @@ static ask_password_event(EVENT_MSG *msg,OBJREC *obj)
   WHEN_MSG(E_KEYBOARD)
     {
     char c=GET_DATA(char);
-    if (c==13) {goto_control(20);terminate();}
-    if (c==27) {goto_control(30);terminate();}
+    if (c==13) {goto_control(20);terminate_gui();}
+    if (c==27) {goto_control(30);terminate_gui();}
     }
   }
 
@@ -726,19 +726,19 @@ char ask_password(char *pass,char text)
 
   switch (text)
     {
-    case 0:c="Provˆ©en¡";break;
-    case 1:c="Zmˆna hesla";break;
+    case 0:c="Provï¿½ï¿½enï¿½";break;
+    case 1:c="Zmï¿½na hesla";break;
     case 2:c="Kontrola";break;
     }
   def_dialoge(320-100,240-50,200,90,c);
-  define(-1,10,20,1,1,0,label,"Vlo‘ heslo:");
+  define(-1,10,20,1,1,0,label,"Vloï¿½ heslo:");
   define(10,10,40,180,12,0,input_line,49);
   property(def_border(3,WINCOLOR),NULL,flat_color(RGB555(31,31,31)),RGB555(8,8,8));
   if (text==1)set_default(pass);else set_default("");on_event(ask_password_event);
   define(20,5,5,50,20,2,button,"OK");
-  property(def_border(1,0),NULL,NULL,WINCOLOR);on_change(terminate);
-  define(30,5,5,50,20,3,button,"Zru¨it");
-  property(def_border(1,0),NULL,NULL,WINCOLOR);on_change(terminate);
+  property(def_border(1,0),NULL,NULL,WINCOLOR);on_control_change(terminate_gui);
+  define(30,5,5,50,20,3,button,"Zruï¿½it");
+  property(def_border(1,0),NULL,NULL,WINCOLOR);on_control_change(terminate_gui);
   redraw_window();
   goto_control(10);
   escape();
@@ -763,7 +763,7 @@ char check_data_password(void)
   if (ask_password(text,0)==0) return 0;
   if (strcmp(data_password,text))
     {
-    msg_box("Chyba!",1,"Chybn‚ heslo! P©¡stup zam¡tnut!","OK",NULL);
+    msg_box("Chyba!",1,"Chybnï¿½ heslo! Pï¿½ï¿½stup zamï¿½tnut!","OK",NULL);
     return 0;
     }
   else
@@ -927,7 +927,7 @@ int main(int argc,char *argv[])
        init_maps();
        set_defaults();
        if (load_map(filename))
-          msg_box(filename,'\01',"Tento soubor je buƒ ne‡iteln˜, nebo po¨kozen˜","Pokra‡ovat",NULL);
+          msg_box(filename,'\01',"Tento soubor je buï¿½ neï¿½itelnï¿½, nebo poï¿½kozenï¿½","Pokraï¿½ovat",NULL);
        if (check_password(NULL)==0)
           if (ask_password(test,0)==0 || check_password(test)==0)
             {
@@ -937,8 +937,8 @@ int main(int argc,char *argv[])
             }
        if (maplen<2)
           {
-          sel=msg_box(filename,' ',"Soubor neexistuje, bude vytvo©en nov˜. Nyn¡ je nutn‚ nastavit z kladn¡ stˆny"
-                               " a jin‚ dal¨¡ parametry pro tuto mapu","Pokra‡ujem","Zav©it",NULL);
+          sel=msg_box(filename,' ',"Soubor neexistuje, bude vytvoï¿½en novï¿½. Nynï¿½ je nutnï¿½ nastavit zï¿½kladnï¿½ stï¿½ny"
+                               " a jinï¿½ dalï¿½ï¿½ parametry pro tuto mapu","Pokraï¿½ujem","Zavï¿½it",NULL);
           if (sel==1)
              {
              newmap=1;
