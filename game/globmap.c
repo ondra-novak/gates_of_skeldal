@@ -1,4 +1,4 @@
-#include <skeldal_win.h>
+#include <platform.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <malloc.h>
@@ -246,9 +246,10 @@ static char test_kriterii(void)
                 break;
         default:
                 {
-                char c[200];
-                sprintf(c,"%s%s.TMP",pathtable[SR_TEMP],text);
-                hodn=!access(c,0);
+                    hodn=temp_storage_find(text);
+/*                char c[200];
+                sprintf(c,"%s.TMP",text);
+                hodn=!access(c,0);*/
                 }
               break;
         }
@@ -477,7 +478,7 @@ static char load_index_map(int index)
       if (h->sektor!=lv && !labyrinth_find_path(h->sektor,lv,(SD_PLAY_IMPS | SD_SECRET),flp_validate2,NULL))
         {
         char c[20];
-        bott_disp_text(itoa(i,c,10));
+        bott_disp_text(int2ascii(i,c,10));
         return 0;
         }
   if (!GlobEvent(MAGLOB_LEAVEMAP,viewsector,viewdir)) return 0;

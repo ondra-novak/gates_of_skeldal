@@ -1,4 +1,4 @@
-#include <skeldal_win.h>
+#include <platform.h>
 #include "strlite.h"
 #include <stdlib.h>
 #include <stdio.h>
@@ -14,7 +14,7 @@ TSTR_LIST create_list(int count)
   size_t *s=(size_t *)malloc(count*sizeof(*p)+sizeof(size_t));
   if (p==NULL) return NULL;
   *s = count;
-  p = (TSTR_LIST)s;
+  p = (TSTR_LIST)(s+1);
   for(i=0;i<count;i++) p[i]=NULL;
   return p;
   }

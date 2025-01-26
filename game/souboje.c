@@ -1,4 +1,4 @@
-#include <skeldal_win.h>
+#include <platform.h>
 #include <bios.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -1321,6 +1321,7 @@ void fill_rune(char *d,int i)
         for(y=378;y<480;y++)
            {
            word *z;
+           int32_t scr_linelen2 = GetScreenPitch();
            z=GetScreenAdr()+y*scr_linelen2;
            for(x=520;x<640;x++)
               if (*dd++==i) z[x]=z[x]-((z[x] & RGB555(28,28,28))>>2);
@@ -1376,6 +1377,7 @@ void display_power_bar(char drw)
   int coords[][2]={{20,11},{20,41},{20,71}};
   int i;
 
+  int32_t scr_linelen2 = GetScreenPitch();
   schovej_mysku();
   put_picture(520,378,ablock(H_POWERBAR));
   for(i=0;i<3;i++)
@@ -1662,6 +1664,7 @@ void souboje_redrawing()
 
 void souboje_stisknout(int d)
   {
+    int32_t scr_linelen2 = GetScreenPitch();
   update_mysky();
   schovej_mysku();
   d--;

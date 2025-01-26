@@ -1,3 +1,4 @@
+#include <types.h>
 #include <stdio.h>
 #include <malloc.h>
 #include <mem.h>
@@ -27,7 +28,7 @@ void open_files(char *src,char *tgr)
     char *c,*d;
     tgr=alloca(strlen(src)+5);
     strcpy(tgr,src);
-    c=strrchr(tgr,'\\');
+    c=strrchr(tgr,PATH_SEPARATOR_CHR);
     d=strrchr(tgr,'.');
     if (c>d) d=strchr(tgr,0);
     strcpy(d,".ENC");

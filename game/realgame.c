@@ -1,4 +1,4 @@
-#include <skeldal_win.h>
+#include <platform.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <malloc.h>
@@ -45,7 +45,7 @@
 
 extern TSTR_LIST texty_v_mape;
 
-static TSTR_LIST leaving_places=NULL;
+
 
 char pass_zavora=0;
 
@@ -129,9 +129,9 @@ static void preload_percent(int cur,int max)
   int pos;
   pos=cur*640/max;
   if (pos>640) pos=640;
-  curcolor=RGB555(16,16,16);hor_line(0,476,pos);
-  curcolor=RGB555(8,8,8);hor_line(0,477,pos);
-  curcolor=RGB555(31,31,31);hor_line(0,475,pos);
+  curcolor=RGB555(16,16,16);hor_line32(0,476,pos);
+  curcolor=RGB555(8,8,8);hor_line32(0,477,pos);
+  curcolor=RGB555(31,31,31);hor_line32(0,475,pos);
   showview(0,460,640,20);
   do_events();
   }
@@ -181,7 +181,7 @@ char *pripona(char *filename,char *pripona)
 
   buff=getmem(strlen(filename)+strlen(pripona)+2);
   strcpy(buff,filename);
-  c=strrchr(buff,'\\');
+  c=strrchr(buff,PATH_SEPARATOR_CHR);
   if (c==NULL) c=buff;
   c=strchr(c,'.');
   if (c!=NULL) *c=0;
@@ -372,8 +372,7 @@ int load_map(char *filename)
   suc=load_level_texts(d);free(d);
   if (!suc && level_texts!=NULL) create_playlist(level_texts[0]);
   init_tracks();
-  play_next_music(&d);
-  change_music(d);
+  change_music(get_next_music_from_playlist());
   for(r=0;r<mapsize*4;r++) flag_map[r]=(char)map_sides[r].flags;
   if (!doNotLoadMapState && load_map_state()==-2)
      {
@@ -388,26 +387,9 @@ int load_map(char *filename)
 
 void add_leaving_place(int sector)
   {
-  if (leaving_places==NULL) leaving_places=create_list(16);
-  add_field_num(&leaving_places,level_fname,sector);
-  }
-
-void save_leaving_places(void)
-  {
-  char *s;
-
-  if (leaving_places==NULL) return;
-  concat(s,pathtable[SR_TEMP],"_LPLACES.TMP");
-  save_config(leaving_places,s);
-  }
-
-void load_leaving_places(void)
-  {
-  char *s;
-
-  if (leaving_places!=NULL) release_list(leaving_places);
-  concat(s,pathtable[SR_TEMP],"_LPLACES.TMP");
-  leaving_places=read_config(s);
+    char *s;
+    concat(s,level_fname, ".lplace");
+    temp_storage_store(s, &sector, sizeof(sector));
   }
 
 int set_leaving_place(void)
@@ -417,16 +399,13 @@ int set_leaving_place(void)
 
 int get_leaving_place(char *level_name)
   {
-  int s=0,i;
-  if (leaving_places==NULL) return 0;
-  if (get_num_field(leaving_places,level_name,&s) ||
-    ~map_coord[s].flags & 1 || map_sectors[s].sector_type!=S_LEAVE || s==0)
-      {
-      for (i=1;i<mapsize;i++) if (map_sectors[i].sector_type==S_LEAVE && map_coord[i].flags & 0x1)
-        return i;
-      return s;
-      }
-  return s;
+    char *s;
+    concat(s,level_fname, ".lplace");
+    int sector;
+    if (temp_storage_retrieve(s, &sector, sizeof(sector))<0) {
+        return 0;
+    }
+    return sector;
   }
 
 
@@ -1849,7 +1828,7 @@ void sleep_players(va_list args)
   insleep=1;
   update_mysky();
   schovej_mysku();
-  curcolor=0;bar(0,17,639,360+16);
+  curcolor=0;bar32(0,17,639,360+16);
   send_message(E_ADD,E_KEYBOARD,key_break_sleep);
   ukaz_mysku();
   showview(0,0,0,0);
@@ -1868,7 +1847,7 @@ void sleep_players(va_list args)
            update_mysky();
            schovej_mysku();
            bott_draw(0);
-           curcolor=0;bar(0,120,639,140);
+           curcolor=0;bar32(0,120,639,140);
            sprintf(s,texty[71],hours++);
            set_font(H_FBOLD,RGB555(31,31,0));
            set_aligned_position(320,130,1,1,s);outtext(s);

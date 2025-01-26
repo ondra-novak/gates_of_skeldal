@@ -1,4 +1,4 @@
-#include <skeldal_win.h>
+#include <platform.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <malloc.h>
@@ -189,7 +189,8 @@ void show_money()
 
 void anim_sipky(int h,int mode)
   {
-  static int phase=0;
+   int32_t scr_linelen2 = GetScreenPitch();
+   static int phase=0;
   static char drw=0;
   static short handle=0;
 
@@ -254,6 +255,7 @@ void draw_blood(char mode,int mob_dostal,int mob_dostal_pocet)
 	word *adr;
 	int i;
 
+	int32_t scr_linelen2 = GetScreenPitch();
 	mob_dostal_pocet;
   if (mode) {
     if (phase<3) dostal+=mob_dostal_pocet;else dostal=mob_dostal_pocet;
@@ -267,13 +269,14 @@ void draw_blood(char mode,int mob_dostal,int mob_dostal_pocet)
 	phase++;
   put_8bit_clipped(ablock(H_KREVMIN+block-1),adr,i,120,102);
 	set_font(H_FTINY,RGB555(31,31,31));
-	itoa(dostal,s,10);
+	int2ascii(dostal,s,10);
 	set_aligned_position(60+520,51+378,1,1,s);outtext(s);
 	}
 
 word *bott_clear(void)
   {
   word *bott_scr;
+  int32_t scr_linelen2 = GetScreenPitch();
 
   int32_t sz;
   bott_scr=(word *)getmem(sz = scr_linelen2*104*2);
@@ -314,6 +317,7 @@ static void bott_draw_normal(void **pp,int32_t *s)
   word *bott_scr;
   THUMAN *p;
 
+  int32_t scr_linelen2 = GetScreenPitch();
   bott_scr=bott_clear();
   RedirectScreen(bott_scr);
   if (battle && cur_mode==MD_INBATTLE) put_picture(0,0,ablock(H_BATTLE_BAR));
@@ -339,12 +343,12 @@ static void bott_draw_normal(void **pp,int32_t *s)
      else put_picture(PIC_X+x,PIC_Y,ablock(H_LEBKA));
      curcolor=0;
      y=BARS_YS-p->lives*BARS_YS/p->vlastnosti[VLS_MAXHIT];
-     if (y) bar(x+ZIVOTY_S,BARS_S,x+ZIVOTY_E,BARS_S+y);
+     if (y) bar32(x+ZIVOTY_S,BARS_S,x+ZIVOTY_E,BARS_S+y);
      y=BARS_YS-p->kondice*BARS_YS/p->vlastnosti[VLS_KONDIC];
-     if (y) bar(x+KONDIC_S,BARS_S,x+KONDIC_E,BARS_S+y);
+     if (y) bar32(x+KONDIC_S,BARS_S,x+KONDIC_E,BARS_S+y);
      if (p->vlastnosti[VLS_MAXMANA]) y=BARS_YS-p->mana*BARS_YS/p->vlastnosti[VLS_MAXMANA];else y=BARS_YS;
      if (y<0) y=0;
-     if (y) bar(x+MANA_S,BARS_S,x+MANA_E,BARS_S+y);
+     if (y) bar32(x+MANA_S,BARS_S,x+MANA_E,BARS_S+y);
      if (p->sektor!=viewsector) trans_bar25(x,0,74,102);
      set_font(H_FLITT,p->groupnum==cur_group && !battle?SEL_COLOR:barvy_skupin[p->groupnum]);
      set_aligned_position(x+36,92,1,0,p->jmeno);outtext(p->jmeno);
@@ -459,6 +463,7 @@ static void MaskPutPicture(int x, int y, char mask, word color, char blend, void
   {
   short *info=(short *)pic;
   char *data=(char *)(info+3+256);
+  int32_t scr_linelen2 = GetScreenPitch();
   word *pos=GetScreenAdr()+x+y*scr_linelen2;
   if (blend) color=color & 0xF7DE;
   for (y=0;y<info[1];y++,pos+=scr_linelen2,data+=info[0])
@@ -555,6 +560,8 @@ void draw_spell(int handle,int phase,int xicht)
   {
   int x,y,i;
   word *w;
+  int32_t scr_linelen2 = GetScreenPitch();
+
 
   if (bott_display!=BOTT_NORMAL) bott_draw(1);
   for(i=0;i<POCET_POSTAV;i++)
@@ -588,6 +595,8 @@ void other_draw()
   show_money();
   anim_sipky(0,-1);
   draw_fx();
+  int32_t scr_linelen2 = GetScreenPitch();
+
   memset(GetScreenAdr()+(SCREEN_OFFLINE-1)*scr_linelen2,0,1280);
   memset(GetScreenAdr()+(SCREEN_OFFLINE+360)*scr_linelen2,0,1280);
   }
@@ -1012,7 +1021,7 @@ void back_clear(int celx,int color)
      {
      curcolor=color;
      RedirectScreenBufferSecond();
-     bar(x1,y1,x2,y2);
+     bar32(x1,y1,x2,y2);
      RestoreScreen();
      }
   }
@@ -1034,6 +1043,8 @@ extern char folow_mode;
 
 static void zobraz_lodku(word *lodka, word *screen, int size)
   {
+    int32_t scr_linelen2 = GetScreenPitch();
+
   int x;
   while (size)
 	{
@@ -1072,6 +1083,9 @@ static void trace_for_bgr(int dir)
 	static int olddist=0;
 	static int olddir=0;
 	TSTENA *ss;
+
+	  int32_t scr_linelen2 = GetScreenPitch();
+
 
 	bgr_handle=0;
 	bgr_distance=-1;
@@ -1269,6 +1283,7 @@ void draw_fx()
   FX_PLAY *fx;
   FX_PLAY **last;
 
+  int32_t scr_linelen2 = GetScreenPitch();
   if (fx_data==NULL) return;
   fx=fx_data;last=&fx_data;
   c=ablock(H_FX);

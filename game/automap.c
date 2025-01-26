@@ -1,4 +1,4 @@
-#include <skeldal_win.h>
+#include <platform.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <malloc.h>
@@ -423,10 +423,10 @@ static void draw_amap_sector(int x,int y,int sector,int mode,int turn,int line1,
               {
               switch (j)
                  {
-                 case 0:hor_line(x,y,x+8);break;
-                 case 1:ver_line(x+8,y,y+8);break;
-                 case 2:hor_line(x,y+8,x+8);break;
-                 case 3:ver_line(x,y,y+8);break;
+                 case 0:hor_line32(x,y,x+8);break;
+                 case 1:ver_line32(x+8,y,y+8);break;
+                 case 2:hor_line32(x,y+8,x+8);break;
+                 case 3:ver_line32(x,y,y+8);break;
                  }
               }
            }
@@ -488,6 +488,7 @@ static void displ_button(char disable,char **text)
   int sizy[]={18,20,20,21};
   int i;
 
+  int32_t scr_linelen2 = GetScreenPitch();
   cur_disables=disable;
   set_font(H_FTINY,0);
   put_picture(LEFT,BOTT,ablock(H_CHARGEN));

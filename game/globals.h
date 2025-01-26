@@ -103,7 +103,7 @@ static __inline int rangrnd(int a, int b) {return rnd(b-a+1)+a;}
 
 #define TX_LOAD 0
 
-#define LODKA_POS (SCREEN_OFFLINE+301)*scr_linelen2+GetBuffer2nd()
+#define LODKA_POS (SCREEN_OFFLINE+301)*GetBuffer2ndPitch()+GetBuffer2nd()
 #define LODKA_SIZ 640*60
 
 
@@ -119,7 +119,7 @@ static __inline int rangrnd(int a, int b) {return rnd(b-a+1)+a;}
 #define NOSHADOW(x) ((x)|BGSWITCHBIT)
 
 
-#define PICTURES "..\\OBRAZKY\\"
+#define PICTURES ".." PATH_SEPARATOR "OBRAZKY" PATH_SEPARATOR
 #define PIC_FADE_PAL_SIZE (10*512+6)
 
 #define E_REFRESH  256 //udalost refresh scene
@@ -325,7 +325,6 @@ static __inline int rangrnd(int a, int b) {return rnd(b-a+1)+a;}
 #define SR_FONT 3
 #define SR_MAP 4
 #define SR_MUSIC 5
-#define SR_TEMP 6
 #define SR_BGRAFIKA 7
 #define SR_ITEMS 8
 #define SR_ENEMIES 9
@@ -749,8 +748,6 @@ void check_players_place(char mode);
 
 
 void add_leaving_place(int sector);
-void save_leaving_places(void);
-void load_leaving_places(void);
 int set_leaving_place(void);
 int get_leaving_place(char *level_name);
 
@@ -1647,8 +1644,7 @@ void fletna_glob_add_note(char note);
 
 char *find_map_path(char *filename); //vyhledava jmeno mapy v alternativnich cestach.
 				//Vysledny retezec je nutne uvolnit (free) !
-FILE *enc_open(char *filename,ENCFILE *fil); //dekoduje a otevira TXT soubor (ENC)
-void enc_close(ENCFILE *fil); //uzavira dekodovany soubor.
+char *enc_open(char *filename); //dekoduje a otevira TXT soubor (ENC)
 int load_string_list_ex(char ***list,char *filename);
 
 int smlouvat_nakup(int cena,int ponuka,int posledni,int puvod,int pocet);

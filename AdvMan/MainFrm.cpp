@@ -67,7 +67,7 @@ static UINT indicators[] =
 CMainFrame::CMainFrame()
 {
 	// TODO: add member initialization code here
-	
+
 }
 
 CMainFrame::~CMainFrame()
@@ -85,7 +85,7 @@ int CMainFrame::OnCreate(LPCREATESTRUCT lpCreateStruct)
 		TRACE0("Failed to create view window\n");
 		return -1;
 	}
-	
+
 	if (!m_wndToolBar.CreateEx(this, TBSTYLE_BUTTON, WS_CHILD | WS_VISIBLE | CBRS_TOP
 		| CBRS_TOOLTIPS | CBRS_FLYBY |BTNS_AUTOSIZE | CBRS_SIZE_DYNAMIC) ||
 		!m_wndToolBar.LoadToolBar(IDR_MAINFRAME))
@@ -132,14 +132,14 @@ int CMainFrame::OnCreate(LPCREATESTRUCT lpCreateStruct)
   CRect rc;
   GetClientRect(&rc);
   ClientToScreen(&rc);
-  DockControlBar(&m_wndEditoryBar,(UINT)0,CRect(rc.left+180,rc.top+5,rc.left+180,rc.top+5));  
-  DockControlBar(&m_wndPrekladaceBar,(UINT)0,CRect(rc.left+350,rc.top+5,rc.left+350,rc.top+5));  
+  DockControlBar(&m_wndEditoryBar,(UINT)0,CRect(rc.left+180,rc.top+5,rc.left+180,rc.top+5));
+  DockControlBar(&m_wndPrekladaceBar,(UINT)0,CRect(rc.left+350,rc.top+5,rc.left+350,rc.top+5));
 
 	_adv=0;
 	CString untitled;
 	untitled.LoadString(IDS_UNTITLED);
-	SetTitle(untitled);	
-  
+	SetTitle(untitled);
+
 	SetClassLong(*this,GCL_HICON,(LONG)(theApp.LoadIcon(IDR_MAINFRAME)));
 
 	return 0;
@@ -192,7 +192,7 @@ BOOL CMainFrame::OnCmdMsg(UINT nID, int nCode, void* pExtra, AFX_CMDHANDLERINFO*
 }
 
 
-void CMainFrame::OnInitMenuPopup(CMenu* pPopupMenu, UINT nIndex, BOOL bSysMenu) 
+void CMainFrame::OnInitMenuPopup(CMenu* pPopupMenu, UINT nIndex, BOOL bSysMenu)
 {
   if (_adv==0)
   {
@@ -205,7 +205,7 @@ void CMainFrame::OnInitMenuPopup(CMenu* pPopupMenu, UINT nIndex, BOOL bSysMenu)
 	}
   }
   else
-	CFrameWnd::OnInitMenuPopup(pPopupMenu, nIndex, bSysMenu);	
+	CFrameWnd::OnInitMenuPopup(pPopupMenu, nIndex, bSysMenu);
 }
 
 #include "DlgNoveDobr.h"
@@ -227,7 +227,7 @@ static str_add_wildcard(TSTR_LIST *lst, const char *mask)
   }
 }
 
-void CMainFrame::OnFileNovdobrodrust() 
+void CMainFrame::OnFileNovdobrodrust()
 {
   DlgNoveDobr dlg;
   int id=dlg.DoModal();
@@ -247,29 +247,29 @@ void CMainFrame::OnFileNovdobrodrust()
 	switch (dlg.vOrganizace)
 	{
 	case 0:
-	  cestaGrafika=baseMap+_T("GRFSTENY\\");
-	  cestaDialogy=baseMap+_T("GRFDIALG\\");
-	  cestaEnemy=baseMap+_T("GRFENEMY\\");
-	  cestaItemy=baseMap+_T("GRFITEMS\\");
-	  cestaPozice=baseMap+_T("SAVEGAME\\");
-	  cestaZvuky=baseMap+_T("SOUNDS\\");
-	  cestaBasicGr=baseMap+_T("GRFBASIC\\");
+	  cestaGrafika=baseMap+_T("GRFSTENY" PATH_SEPARATOR);
+	  cestaDialogy=baseMap+_T("GRFDIALG" PATH_SEPARATOR);
+	  cestaEnemy=baseMap+_T("GRFENEMY" PATH_SEPARATOR);
+	  cestaItemy=baseMap+_T("GRFITEMS" PATH_SEPARATOR);
+	  cestaPozice=baseMap+_T("SAVEGAME" PATH_SEPARATOR);
+	  cestaZvuky=baseMap+_T("SOUNDS" PATH_SEPARATOR);
+	  cestaBasicGr=baseMap+_T("GRFBASIC" PATH_SEPARATOR);
 	  break;
 	case 1:
-	  cestaGrafika=baseMap+_T("graphics\\");
-	  cestaDialogy=baseMap+_T("graphics\\dialogs\\");
-	  cestaEnemy=baseMap+_T("graphics\\enemies\\");
-	  cestaItemy=baseMap+_T("graphics\\items\\");
-	  cestaPozice=baseMap+_T("SAVEGAME\\");
-	  cestaZvuky=baseMap+_T("SAMPLES\\");
-	  cestaBasicGr=baseMap+_T("graphics\\basic\\");
+	  cestaGrafika=baseMap+_T("graphics" PATH_SEPARATOR);
+	  cestaDialogy=baseMap+_T("graphics" PATH_SEPARATOR "dialogs" PATH_SEPARATOR);
+	  cestaEnemy=baseMap+_T("graphics" PATH_SEPARATOR "enemies" PATH_SEPARATOR);
+	  cestaItemy=baseMap+_T("graphics" PATH_SEPARATOR "items");
+	  cestaPozice=baseMap+_T("SAVEGAME" PATH_SEPARATOR );
+	  cestaZvuky=baseMap+_T("SAMPLES" PATH_SEPARATOR);
+	  cestaBasicGr=baseMap+_T("graphics" PATH_SEPARATOR "basic" PATH_SEPARATOR);
 	  break;
 	case 2:
 	  cestaGrafika=baseMap;
 	  cestaDialogy=baseMap;
 	  cestaEnemy=baseMap;
 	  cestaItemy=baseMap;
-	  cestaPozice=baseMap+_T("SAVEGAME\\");
+	  cestaPozice=baseMap+_T("SAVEGAME" PATH_SEPARATOR);
 	  cestaZvuky=baseMap;
 	  cestaBasicGr=baseMap;
 	  break;
@@ -282,7 +282,7 @@ void CMainFrame::OnFileNovdobrodrust()
 	add_field_txt(&_adv,_T("CESTA_POZICE"),cestaPozice);
 	add_field_txt(&_adv,_T("CESTA_ZVUKY"),cestaZvuky);
 	add_field_txt(&_adv,_T("CESTA_BGRAFIKA"),cestaBasicGr);
-	
+
 	add_field_txt(&_adv,_T("DEFAULT_MAP"),dlg.vStartMap);
 	add_field_num(&_adv,_T("CHAR_MIN"),dlg.vMinPostav);
 	add_field_num(&_adv,_T("CHAR_MAX"),dlg.vMaxPostav);
@@ -298,7 +298,7 @@ void CMainFrame::OnFileNovdobrodrust()
 	_advPath=pth.GetDirectoryWithDrive();
 
 	SetTitle(pth);
-	
+
 
 	Pathname exePath=Pathname::GetExePath();
 
@@ -310,7 +310,7 @@ void CMainFrame::OnFileNovdobrodrust()
 	pth.CreateFolder(exePath.GetDirectoryWithDrive()+cestaPozice);
 	pth.CreateFolder(exePath.GetDirectoryWithDrive()+cestaZvuky);
 	pth.CreateFolder(exePath.GetDirectoryWithDrive()+cestaBasicGr);
-	
+
 	CString basePath=pth.GetDirectoryWithDrive();
 
 	TSTR_LIST fileList=create_list(10);
@@ -379,11 +379,11 @@ void CMainFrame::OnFileNovdobrodrust()
 	oper.pFrom=buffer;
 	oper.pTo=target;
 	oper.fFlags=0;
-	SHFileOperation(&oper);	
+	SHFileOperation(&oper);
 	release_list(fileList);
 
 	_baseMapPath=_advPath+baseMap;
-  
+
 	CFileFind fnd;
 	BOOL f=fnd.FindFile(_baseMapPath+"*.*");
 	while (f)
@@ -396,7 +396,7 @@ void CMainFrame::OnFileNovdobrodrust()
   }
 }
 
-void CMainFrame::OnFileNatidobrodrustv() 
+void CMainFrame::OnFileNatidobrodrustv()
 {
   CString filter;
   filter.LoadString(IDS_ADVFILTER);
@@ -429,31 +429,31 @@ void CMainFrame::SetTitle(const _TCHAR *name)
   SetWindowText(title);
 }
 
-void CMainFrame::OnEditoryKouzlatab() 
+void CMainFrame::OnEditoryKouzlatab()
 {
-  OpenEditor(_baseMapPath+"KOUZLA.TAB");	
+  OpenEditor(_baseMapPath+"KOUZLA.TAB");
 }
 
-void CMainFrame::OnEditoryPostavytab() 
+void CMainFrame::OnEditoryPostavytab()
 {
-  OpenEditor(_baseMapPath+"POSTAVY.TAB");	
+  OpenEditor(_baseMapPath+"POSTAVY.TAB");
 
 }
 
-void CMainFrame::OnEditoryItemsscr() 
+void CMainFrame::OnEditoryItemsscr()
 {
-  OpenEditor(_baseMapPath+"ITEMS.SCR");		
+  OpenEditor(_baseMapPath+"ITEMS.SCR");
 }
 
 
-void CMainFrame::OnEditoryItemspic() 
+void CMainFrame::OnEditoryItemspic()
 {
-  OpenEditor(_baseMapPath+"ITEMS.PIC");		
+  OpenEditor(_baseMapPath+"ITEMS.PIC");
 }
 
-void CMainFrame::OnEditoryWeaponsscr() 
+void CMainFrame::OnEditoryWeaponsscr()
 {
-  OpenEditor(_baseMapPath+"WEAPONS.SCR");		
+  OpenEditor(_baseMapPath+"WEAPONS.SCR");
 }
 
 static BOOL CALLBACK BroadcastMsgCallback(HWND wnd, LPARAM lParam)
@@ -489,20 +489,20 @@ void CMainFrame::OpenEditor(const char *name)
   }
 }
 
-void CMainFrame::OnDestroy() 
+void CMainFrame::OnDestroy()
 {
   SaveBarState("MainFrame");
 	CFrameWnd::OnDestroy();
-	
+
 	BroadcastMessage(MSG_CLOSEEDITOR,0,0);
 	release_list(_adv);
 	_adv=0;
 
-	
+
 }
 
 void CMainFrame::StartApp(const char *appname, CString cmdline, bool wait, const char *folder)
-{  
+{
   SaveAll();
   STARTUPINFO nfo;
   memset(&nfo,0,sizeof(nfo));
@@ -539,7 +539,7 @@ void CMainFrame::StartApp(const char *appname, CString cmdline, bool wait, const
   {
 	CloseHandle(pi.hThread);
 	if (wait)
-	{	  
+	{
 	  int rep=10;
 	  bool end;
 	  do
@@ -554,7 +554,7 @@ void CMainFrame::StartApp(const char *appname, CString cmdline, bool wait, const
 		  if (readed==0) break;
 		  int cnt=m_wndView.GetWindowTextLength();
 		  if (cnt>20000)
-		  {	
+		  {
 			m_wndView.SetSel(0,10000);
 			m_wndView.ReplaceSel("");
 			cnt=m_wndView.GetWindowTextLength();
@@ -565,16 +565,16 @@ void CMainFrame::StartApp(const char *appname, CString cmdline, bool wait, const
 		  m_wndView.ReplaceSel(buff);
 		  PeekNamedPipe(pipe,0,0,0,&datalen,0);
 		  rep=10;
-		}		
+		}
 		UpdateWindow();
 		end=WaitForSingleObject(pi.hProcess,200)==WAIT_TIMEOUT;
 		rep--;
 	  }
 	  while (rep>0 || end);
 	}
-	CloseHandle(pi.hProcess);	
+	CloseHandle(pi.hProcess);
   }
-  if (wait) 
+  if (wait)
   {
 	CloseHandle(pipe);
 	CloseHandle(nfo.hStdOutput);
@@ -582,55 +582,55 @@ void CMainFrame::StartApp(const char *appname, CString cmdline, bool wait, const
   SetForegroundWindow();
 }
 
-void CMainFrame::OnPekladaePelokouzla() 
+void CMainFrame::OnPekladaePelokouzla()
 {
   CString cmdline=_T("\"")+_baseMapPath+_T("KOUZLA.TAB")+_T("\"");
   Pathname apppath=Pathname::GetExePath();
-  CString appname=apppath.GetDirectoryWithDrive()+CString(_T("AdvManData\\CSPELLS.EXE"));	
+  CString appname=apppath.GetDirectoryWithDrive()+CString(_T("AdvManData\\CSPELLS.EXE"));
   StartApp(appname,cmdline,true,_baseMapPath);
 }
 
-void CMainFrame::OnPekladaePelodialogy() 
+void CMainFrame::OnPekladaePelodialogy()
 {
   CString cmdline=_T("\"")+_baseMapPath+_T("DIALOGY.DLG")+_T("\"");
   Pathname apppath=Pathname::GetExePath();
-  CString appname=apppath.GetDirectoryWithDrive()+CString(_T("AdvManData\\CDIALOGY.EXE"));	
+  CString appname=apppath.GetDirectoryWithDrive()+CString(_T("AdvManData\\CDIALOGY.EXE"));
   StartApp(appname,cmdline,true,_baseMapPath);
-	
+
 }
 
-void CMainFrame::OnPekladaePelopostavytab() 
+void CMainFrame::OnPekladaePelopostavytab()
 {
   CString cmdline=_T("\"")+_baseMapPath+_T("POSTAVY.TAB\" \"")+_baseMapPath+_T("POSTAVY.DAT")+_T("\"");
   Pathname apppath=Pathname::GetExePath();
-  CString appname=apppath.GetDirectoryWithDrive()+CString(_T("AdvManData\\Lex_Lib.exe"));		
+  CString appname=apppath.GetDirectoryWithDrive()+CString(_T("AdvManData\\Lex_Lib.exe"));
   StartApp(appname,cmdline,true,_baseMapPath);
 
 }
 
-void CMainFrame::OnNstrojeMapedit() 
+void CMainFrame::OnNstrojeMapedit()
 {
   Pathname apppath=Pathname::GetExePath();
   apppath.SetFilename(_T("MapEdit.exe"));
-  StartApp(apppath,CString(_T("\""))+_advName+_T("\""),false);    	
+  StartApp(apppath,CString(_T("\""))+_advName+_T("\""),false);
 }
 
-void CMainFrame::OnNstrojeTestujdobrodrustv() 
+void CMainFrame::OnNstrojeTestujdobrodrustv()
 {
   Pathname apppath=Pathname::GetExePath();
   apppath.SetFilename(_T("Skeldal.exe"));
-  StartApp(apppath,CString(_T("\""))+_advName+_T("\""),false);    	
+  StartApp(apppath,CString(_T("\""))+_advName+_T("\""),false);
 }
 
-void CMainFrame::OnNstrojeTvrcepodlah() 
+void CMainFrame::OnNstrojeTvrcepodlah()
 {
   Pathname apppath=Pathname::GetExePath();
   apppath.SetFilename(_T("AdvManData\\Podlahar.exe"));
-  StartApp(apppath,"",false,_advPath+get_text_field(_adv,"CESTA_GRAFIKA"));    	
-	
+  StartApp(apppath,"",false,_advPath+get_text_field(_adv,"CESTA_GRAFIKA"));
+
 }
 
-void CMainFrame::OnNstrojeTvrcepaletpronestvry() 
+void CMainFrame::OnNstrojeTvrcepaletpronestvry()
 {
   Pathname apppath=Pathname::GetExePath();
   apppath.SetFilename(_T("AdvManData\\ColEdit.exe"));
@@ -638,32 +638,32 @@ void CMainFrame::OnNstrojeTvrcepaletpronestvry()
 }
 
 
-void CMainFrame::OnNstrojeTvrceikonpropedmty() 
+void CMainFrame::OnNstrojeTvrceikonpropedmty()
 {
   Pathname apppath=Pathname::GetExePath();
   apppath.SetFilename(_T("AdvManData\\ItemIcons.exe"));
-  StartApp(apppath,"",false,_advPath+get_text_field(_adv,"CESTA_ITEMY"));    		
+  StartApp(apppath,"",false,_advPath+get_text_field(_adv,"CESTA_ITEMY"));
 }
 
-void CMainFrame::OnEditorySouboradv() 
+void CMainFrame::OnEditorySouboradv()
 {
   AfxMessageBox(IDS_EDITADVWARN,MB_ICONEXCLAMATION);
-  OpenEditor(_advName);		
+  OpenEditor(_advName);
 }
 
-void CMainFrame::OnFileZnovunast() 
+void CMainFrame::OnFileZnovunast()
 {
 	release_list(_adv);
     _adv=read_config(_advName);
-    _baseMapPath=_advPath+get_text_field(_adv,"CESTA_MAPY");   	
+    _baseMapPath=_advPath+get_text_field(_adv,"CESTA_MAPY");
 }
 
-void CMainFrame::OnUpdateFileZnovunast(CCmdUI* pCmdUI) 
+void CMainFrame::OnUpdateFileZnovunast(CCmdUI* pCmdUI)
 {
   pCmdUI->Enable(_adv!=0);
 }
 
-void CMainFrame::OnEditoryDialogy() 
+void CMainFrame::OnEditoryDialogy()
 {
   DlgDialogy dlg;
   dlg._dlgpath.SetDirectory(_baseMapPath);

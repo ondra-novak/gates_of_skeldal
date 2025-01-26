@@ -1,4 +1,4 @@
-#include <skeldal_win.h>
+#include <platform.h>
 #include <bios.h>
 #include <stdlib.h>
 #include <ctype.h>

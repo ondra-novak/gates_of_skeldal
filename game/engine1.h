@@ -18,7 +18,7 @@
 #define FACTOR_3D 3.33
 #define ZOOM_PHASES 9
 #define SCREEN_OFFLINE (17)
-#define SCREEN_OFFSET (scr_linelen2*SCREEN_OFFLINE)
+#define SCREEN_OFFSET (GetScreenPitch()*SCREEN_OFFLINE)
 #define C_YMAP_SIZE 90
 #define F_YMAP_SIZE 199
 #define CF_XMAP_SIZE 7

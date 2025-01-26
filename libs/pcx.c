@@ -1,4 +1,4 @@
-#include <skeldal_win.h>
+#include <platform.h>
 #include <malloc.h>
 #include <mem.h>
 #include <stdio.h>

@@ -1,4 +1,4 @@
-#include <skeldal_win.h>
+#include <platform.h>
 // MOTION GIF - LZW komprimovana animace v rozliseni 320x180 256 barev avsak
 // upravena pro prehravani v HICOLOR pro konkretni rezim (32768 barev)
 

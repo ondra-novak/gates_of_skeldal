@@ -1,4 +1,4 @@
-#include <skeldal_win.h>
+#include <platform.h>
 #include <string.h>
 #include <stdlib.h>
 #include <stdio.h>

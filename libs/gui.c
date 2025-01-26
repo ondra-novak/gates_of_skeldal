@@ -1,4 +1,4 @@
-#include <skeldal_win.h>
+#include <platform.h>
 //Gui system - object system + graphic
 #include "types.h"
 #include <stdio.h>
@@ -64,11 +64,11 @@ void draw_border(integer x,integer y,integer xs,integer ys,CTL3D *btype)
      {
      x--;y--;xs+=2;ys+=2;
      if (j & 1) curcolor=btype->shadow; else curcolor=btype->light;
-     hor_line(x,y,xs+x);
-     ver_line(x,y,ys+y);
+     hor_line32(x,y,xs+x);
+     ver_line32(x,y,ys+y);
      if (j & 1) curcolor=btype->light; else curcolor=btype->shadow;
-     hor_line(x,y+ys,xs+x);
-     ver_line(x+xs,y,ys+y);
+     hor_line32(x,y+ys,xs+x);
+     ver_line32(x+xs,y,ys+y);
      j>>=1;
      }
   curcolor=c;
@@ -231,6 +231,7 @@ void absolute_window(WINDOW *w,OBJREC *o, int *x, int *y)
      {
      int i,j;
      word *a;
+     int32_t scr_linelen2 = GetScreenPitch();
 
      for (i=y;i<=y+ys;i++)
         {
@@ -434,7 +435,7 @@ void redraw_desktop_call(EVENT_MSG *msg,void **data)
   if (gui_background==NULL)
      {
      curcolor=DESK_TOP_COLOR;
-     bar(0,0,SCR_WIDTH_X,SCR_WIDTH_Y-1);
+     bar32(0,0,SCR_WIDTH_X,SCR_WIDTH_Y-1);
      }
   else
      put_picture(0,0,gui_background);

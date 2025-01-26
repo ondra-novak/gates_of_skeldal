@@ -1,22 +1,20 @@
 #include "types.h"
-#define line line32
-#define hor_line hor_line32
-#define ver_line ver_line32
-#define bar bar32
-#define point point32
+
+
+
 
 word *GetScreenAdr();
-int32_t GetScreenSizeBytes();
 word *GetBuffer2nd();
+int32_t GetScreenPitch();
+int32_t GetBuffer2ndPitch();
+int32_t GetScreenSizeBytes();
+
 void RedirectScreen(word *newaddr);
 void RestoreScreen();
 void RedirectScreenBufferSecond();
 
 
 extern word curcolor,charcolors[7];
-extern int32_t scr_linelen;
-extern int32_t scr_linelen2;
-extern int32_t dx_linelen;
 extern word *curfont,*writepos,writeposx;
 extern byte fontdsize;
 extern byte *palmem,*xlatmem;
@@ -29,7 +27,7 @@ extern char no_restore_mode;
 
 static __inline word *getadr32(longint x,longint y)
   {
-  return GetScreenAdr()+scr_linelen2*y+x;
+  return GetScreenAdr()+GetScreenPitch()*y+x;
   }
 
 static __inline void point32(longint x,longint y, word color)

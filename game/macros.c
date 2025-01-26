@@ -1,4 +1,4 @@
-#include <skeldal_win.h>
+#include <platform.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <malloc.h>
@@ -569,7 +569,7 @@ static int  ma_play_anim(char *filename,char cls)
   curcolor=0;
   if (cls)
      {
-     bar(0,0,639,479);
+     bar32(0,0,639,479);
      showview(0,0,0,0);
      }
   mute_all_tracks(1);

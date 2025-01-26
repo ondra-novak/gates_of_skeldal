@@ -1,4 +1,4 @@
-#include <skeldal_win.h>
+#include <platform.h>
 #include <bios.h>
 #include <stdlib.h>
 #include <string.h>
@@ -758,27 +758,23 @@ static void MakeSaveGameDir(const char *name)
 
 static int save_global_events()
 {
-  FILE *f;
-  char *c;
-  concat(c,pathtable[SR_TEMP],_GLOBAL_ST );
-  f=fopen(c,"wb");
+  TMPFILE_WR *f;
+  f=temp_storage_create(_GLOBAL_ST);
   if (f==NULL) return 1;
-  fwrite(GlobEventList,1,sizeof(GlobEventList),f);
-  fclose(f);
+  temp_storage_write(GlobEventList,1*sizeof(GlobEventList),f);
+  temp_storage_close_wr(f);
   return 0;
 }
 
 static int load_global_events()
 {
-  FILE *f;
-  char *c;
+  TMPFILE_RD *f;
   memset(GlobEventList,0,sizeof(GlobEventList));
 
-  concat(c,pathtable[SR_TEMP],_GLOBAL_ST );
-  f=fopen(c,"rb");
+  f=temp_storage_open(_GLOBAL_ST);
   if (f==NULL) return 1;
-  fread(GlobEventList,1,sizeof(GlobEventList),f);
-  fclose(f);
+  temp_storage_read(GlobEventList,1*sizeof(GlobEventList),f);
+  temp_storage_close_rd(f);
   return 0;
 }
 
@@ -798,7 +794,6 @@ int save_game(int slotnum,char *gamename)
   strncpy(gn,gamename,SAVE_NAME_SIZE);
   if ((r=save_shops())!=0) return r;
   if ((r=save_basic_info())!=0) return r;
-  save_leaving_places();
   save_book();
   save_global_events();
   svf=fopen(ssn,"wb");
@@ -841,7 +836,6 @@ int load_game(int slotnum)
   if (svf==NULL) return 1;
   fseek(svf,SAVE_NAME_SIZE,SEEK_CUR);
   r=unpack_all_status(svf);
-  load_leaving_places();
   fclose(svf);
   open_story_file();
   if (r>0)
@@ -1420,7 +1414,7 @@ void wire_save_load(char save)
   load_mode=save;
   if (slot_list==NULL) read_slot_list();
   curcolor=0;
-  bar(0,17,639,17+360);
+  bar32(0,17,639,17+360);
   if (force_save) redraw_save();else redraw_load();
   if (save==4) effect_show(NULL);else showview(0,0,0,0);
   redraw_story_bar(cur_story_pos);

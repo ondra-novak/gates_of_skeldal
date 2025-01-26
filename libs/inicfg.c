@@ -1,4 +1,4 @@
-#include <skeldal_win.h>
+#include <platform.h>
 #include <stdio.h>
 #include <malloc.h>
 #include <stdlib.h>
@@ -104,7 +104,7 @@ void add_field_num(TSTR_LIST *ls,const char *name,int32_t number)
   {
   char buff[20];
 
-  itoa(number,buff,10);
+  int2ascii(number,buff,10);
   add_field_txt(ls,name,buff);
   }
 

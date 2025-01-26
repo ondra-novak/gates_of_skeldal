@@ -1,4 +1,4 @@
-#include <skeldal_win.h>
+#include <platform.h>
 #include "types.h"
 #include "engine1.h"
 #include <bgraph.h>
@@ -13,6 +13,7 @@ extern word *screen;
 void sikma_zleva(void)
 {
 
+    int32_t scr_linelen2 = GetScreenPitch();
 	word *scr = (word *)zoom.startptr;
 	const word *palette = (word *)zoom.palette;
 	word cy = zoom.ycount;
@@ -86,7 +87,7 @@ void sikma_zleva(void)
 
 void sikma_zprava(void)
 {
-
+    int32_t scr_linelen2 = GetScreenPitch();
 	word *scr = (word *)zoom.startptr;
 	const word *palette = (word *)zoom.palette;
 	word cy = zoom.ycount;
@@ -204,6 +205,7 @@ void klicovani_anm_back(void *target,void *source);
 void klicovani_anm(void *target,void *source,char mirror)
 //#pragma aux klicovani_anm parm [edi][esi][eax] modify [ecx edx ebx]
 {
+    int32_t scr_linelen2 = GetScreenPitch();
 	word *t = (word *)target;
 	word *s = (word *)source;
 	if (mirror) {
@@ -334,6 +336,7 @@ kba_skip:dec     ebx
 void small_anm_buff(void *target,void *buff,void *paleta)
 //#pragma aux small_anm_buff parm[edi][esi][ebx] modify [eax ecx]
 {
+    int32_t scr_linelen2 = GetScreenPitch();
 	word *t = (word *)target;
 	unsigned char *s = (unsigned char *)buff;
 	word *p = (word *)paleta;
@@ -366,6 +369,7 @@ shmab3: zobraz_1
 void small_anm_delta(void *target,void *buff,void *paleta)
 //#pragma aux small_anm_delta parm[edi][esi][ebx] modify [eax ecx]
 {
+    int32_t scr_linelen2 = GetScreenPitch();
 	word *t = (word *)target;
 	word *pal = (word *)paleta;
 	uint32_t *deltastart = (uint32_t *)buff;
@@ -444,7 +448,7 @@ shmad4: add     edi,scr_linelen
 void scroll_and_copy(void *pic,void *slide, void *scr, int _size,int shift, void *lineinfo)
 //#pragma aux scroll_and_copy parm[esi][ebx][edi][ecx][edx][eax]
 {
-
+    int32_t scr_linelen2 = GetScreenPitch();
 	word *srcpc = (word *)pic;
 	word *trg = (word *)scr;
 	word *sld = (word *)slide;
@@ -569,6 +573,7 @@ sac_end:sub     ecx,2           ;odecti counter
 void enemy_draw(void *src,void *trg,int shade,int scale,int maxspace,int clip)
 //#pragma aux enemy_draw parm[ESI][EDI][EBX][EDX][EAX][ECX]
 {
+    int32_t scr_linelen2 = GetScreenPitch();
 	word *picinfo = (word *)src;
 	word *screen = (word *)trg;
 	int xtable[800];
@@ -756,6 +761,7 @@ void enemy_draw_transp(void *src,void *trg,void *shade,int scale,int maxspace,in
 //#pragma aux enemy_draw_transp parm[ESI][EDI][EBX][EDX][EAX][ECX]
 {
 
+    int32_t scr_linelen2 = GetScreenPitch();
 	word *picinfo = (word *)src;
 	word *screen = (word *)trg;
 	int xtable[800];
@@ -946,6 +952,7 @@ void enemy_draw_mirror_transp(void *src,void *trg,void *shade,int scale,int maxs
 //#pragma aux enemy_draw_mirror_transp parm[ESI][EDI][EBX][EDX][EAX][ECX]
 {
 
+    int32_t scr_linelen2 = GetScreenPitch();
 	word *picinfo = (word *)src;
 	word *screen = (word *)trg;
 	int xtable[800];
@@ -1134,6 +1141,7 @@ void enemy_draw_mirror(void *src,void *trg,int shade,int scale,int maxspace,int 
 //#pragma aux enemy_draw_mirror parm[ESI][EDI][EBX][EDX][EAX][ECX]
 //clip je v poradi vpravo - vlevo (HiLo)
 {
+    int32_t scr_linelen2 = GetScreenPitch();
 	word *picinfo = (word *)src;
 	word *screen = (word *)trg;
 	int xtable[800];

@@ -1,5 +1,5 @@
 //Toto je hlavni soubor specialnich procedur pro hru BRANY SKELDALU
-#include <skeldal_win.h>
+#include <platform.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <event.h>
@@ -233,6 +233,8 @@ static __inline int toInt(float fval)
 
 static void OtocObrazPodleMatice(float mx[3][2], word *picture)
   {
+    int32_t scr_linelen2 = GetScreenPitch();
+
   word *trg=GetScreenAdr()+17*scr_linelen2;
   int x,y;
   picture+=6;

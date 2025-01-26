@@ -1,4 +1,4 @@
-#include <skeldal_win.h>
+#include <platform.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <malloc.h>
@@ -1223,6 +1223,7 @@ void build_items_called(void **p,int32_t *s)
 void display_items_wearing(THUMAN *h)
   {
   int it;
+  int32_t scr_linelen2 = GetScreenPitch();
   put_picture(4,TOP_OFS,ablock(H_IOBLOUK));
   zneplatnit_block(h-postavy+H_POSTAVY);
   enemy_draw(ablock(h-postavy+H_POSTAVY),GetScreenAdr()+HUMAN_X+HUMAN_Y*scr_linelen2,6,320,HUMAN_Y,640*65536);
@@ -1262,7 +1263,7 @@ static void percent_bar(int x,int y,int xs,int ys,int val,int max,char *popis)
   char s[25];
 
   memcpy(&clt,def_border(3,0),sizeof(clt));
-  bar(x,y,x+xs*val/max,ys+y);
+  bar32(x,y,x+xs*val/max,ys+y);
   show_textured_button(x-2,y-2,xs+5,ys+5,0,&clt);
   set_aligned_position(x,y-5,0,2,popis);
   outtext(popis);
@@ -1526,8 +1527,8 @@ void redraw_inventory()
   update_mysky();
   schovej_mysku();
   curcolor=0;
-  bar(0,16,30,16+360);
-  bar(620,16,640,16+360);
+  bar32(0,16,30,16+360);
+  bar32(620,16,640,16+360);
   if (inv_view_mode==0 && ~human_selected->stare_vls[VLS_KOUZLA] & SPL_DEMON && ~human_selected->vlastnosti[VLS_KOUZLA] & SPL_STONED) display_items_in_inv(human_selected);
   else inv_display_vlastnosti();
   display_items_wearing(human_selected);
@@ -2859,7 +2860,7 @@ void enter_shop(int shopid)
   unwire_proc();
   cur_shop=shop_list[i];
   curcolor=0;
-  bar(0,0,639,479);
+  bar32(0,0,639,479);
   rebuild_keepers_items();
   bott_draw(1);
   shop_sector=viewsector;
@@ -2970,43 +2971,41 @@ void reroll_all_shops()
 
 char save_shops()
   {
-  FILE *f;
+  TMPFILE_WR *f;
   char *c;
   int res=0;
 
   SEND_LOG("(SHOP) Saving shops...",0,0);
   if (max_shops==0 || shop_hacek==NULL) return 0;
-  concat(c,pathtable[SR_TEMP],_SHOP_ST);
-  f=fopen(c,"wb");
+  f = temp_storage_create(_SHOP_ST);
   if (f==NULL) return 1;
-  fwrite(&max_shops,1,sizeof(max_shops),f);
-  fwrite(&shop_hacek_size,1,sizeof(shop_hacek_size),f);
-  res=(fwrite(shop_hacek,1,shop_hacek_size,f)!=(unsigned)shop_hacek_size);
-  fclose(f);
+  temp_storage_write(&max_shops,1*sizeof(max_shops),f);
+  temp_storage_write(&shop_hacek_size,1*sizeof(shop_hacek_size),f);
+  temp_storage_write(shop_hacek,1*shop_hacek_size,f);
+  temp_storage_close_wr(f);
   return res;
   }
 
 
 char load_saved_shops()
   {
-  FILE *f;
+  TMPFILE_RD *f;
   char *c;
   int res=0;
   int i=0,j=0;
 
   SEND_LOG("(SHOP) Loading saved shops...",0,0);
-  concat(c,pathtable[SR_TEMP],_SHOP_ST);
-  f=fopen(c,"rb");
+  f=temp_storage_open(_SHOP_ST);
   if (f==NULL) return 0;
-  fread(&i,1,sizeof(max_shops),f);
-  fread(&j,1,sizeof(shop_hacek_size),f);
+  temp_storage_read(&i,1*sizeof(max_shops),f);
+  temp_storage_read(&j,1*sizeof(shop_hacek_size),f);
   if (i!=max_shops || j!=shop_hacek_size)
      {
-     fclose(f);
+      temp_storage_close_rd(f);
      return 0;
      }
-  res=(fread(shop_hacek,1,shop_hacek_size,f)!=(unsigned)shop_hacek_size);
-  fclose(f);
+  res=(temp_storage_read(shop_hacek,1*shop_hacek_size,f)!=(unsigned)shop_hacek_size);
+  temp_storage_close_rd(f);
   rebuild_shops();
   return res;
   }

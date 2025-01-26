@@ -13,7 +13,7 @@ SET(files basicobj.c
           pcx.c
           strlite.c
           wav_mem.c
-          strlists.c
+          strlists.c          
           swaper.c )
 
 add_library(skeldal_libs  ${files})

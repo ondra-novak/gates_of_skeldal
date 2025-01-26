@@ -1,4 +1,4 @@
-#include <skeldal_win.h>
+#include <platform.h>
 #include "types.h"
 #include "bgraph.h"
 #include "event.h"

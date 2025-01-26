@@ -1,6 +1,8 @@
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/tests/)
 
-set(testFiles sdl_minimal_test.cpp sdl_surface_test.cpp
+set(testFiles sdl_minimal_test.cpp sdl_surface_test.cpp 
+    sdl_mouse.cpp
+    sdl_update_texture.cpp
               )
 
 foreach (testFile ${testFiles})

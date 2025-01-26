@@ -1,5 +1,5 @@
 #define INITGUID
-#include <skeldal_win.h>
+#include <platform.h>
 #include <malloc.h>
 #include <debug.h>
 #include <stdio.h>

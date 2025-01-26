@@ -1,5 +1,5 @@
 //CHARACTER GENERATOR
-#include <skeldal_win.h>
+#include <platform.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <malloc.h>
@@ -59,8 +59,8 @@ typedef struct staty
 
 static T_STATY cur_stats;
 
-word color_butt_on[]={0,RGB555(31,27,4),RGB555(30,26,4),RGB555(29,25,4)};
-word color_butt_off[]={0,RGB555(10,10,10),RGB555(10,10,10),RGB555(10,10,10)};
+word color_butt_on[7]={0,RGB555(31,27,4),RGB555(30,26,4),RGB555(29,25,4)};
+word color_butt_off[7]={0,RGB555(10,10,10),RGB555(10,10,10),RGB555(10,10,10)};
 
 
 typedef struct vlasts
@@ -201,6 +201,8 @@ void displ_button(char disable,char **text)
   int sizy[]={18,20,20,21};
   int i;
 
+  int32_t scr_linelen2 = GetScreenPitch();
+
   set_font(H_FTINY,0);
   put_picture(LEFT,BOTT,ablock(H_GEN_CHARGEN));
   for(i=0;i<4;i++)
@@ -223,9 +225,11 @@ void displ_button(char disable,char **text)
 static void draw_other_bar()
   {
   int i;
+  int32_t scr_linelen2 = GetScreenPitch();
+
   word *bbar=ablock(H_BOTTBAR);
   word *screen=GetScreenAdr()+(480-102)*scr_linelen2;
-  for (i=0;i<102;i++,screen+=scr_linelen2,bbar+=scr_linelen2) memcpy(screen,bbar,scr_linelen);
+  for (i=0;i<102;i++,screen+=scr_linelen2,bbar+=scr_linelen2) memcpy(screen,bbar,scr_linelen2*2);
   //put_8bit_clipped(ablock(H_GEN_OKBUTT),378*640+520+screen,0,120,102);
   displ_button(b_disables,b_texty);
   put_picture(0,0,ablock(H_GEN_TOPBAR));
@@ -279,6 +283,8 @@ static void zobraz_perlu(void)
   char *p;
   word *b;
   int xs,ys,xxs;
+
+  int32_t scr_linelen2 = GetScreenPitch();
 
   alock(H_GEN_PERLA);
   perla=ablock(H_GEN_PERLA);
@@ -505,7 +511,7 @@ static int edit_task=-1;
 static void edit_name()
   {
   if (shut_downing_text) return;
-  curcolor=0;bar(120,2,120+104,16);
+  curcolor=0;bar32(120,2,120+104,16);
   edit_task=add_task(16384,type_text_v2,postavy[cur_edited].jmeno,120,2,104,
      sizeof(postavy[cur_edited].jmeno)-1,H_FONT6,RGB555(31,31,0),edit_name);
   }
@@ -655,8 +661,8 @@ static void redraw_svitek(char)
   update_mysky();
   schovej_mysku();
   curcolor=0;
-  bar(0,16,30,16+360);
-  bar(620,16,640,16+360);
+  bar32(0,16,30,16+360);
+  bar32(620,16,640,16+360);
   inv_display_vlastnosti();
   display_character(postavy+cur_edited,0);
 //  display_items_wearing(human_selected);
@@ -817,7 +823,7 @@ char enter_generator()
   b_texty[2]=texty[172];
   b_texty[3]=texty[173];
   def_entries();
-  curcolor=0;bar(0,0,639,479);
+  curcolor=0;bar32(0,0,639,479);
   cur_angle=315;
   cur_edited=0;
   memset(postavy,0,sizeof(postavy));
@@ -890,7 +896,7 @@ char enter_generator()
   disable_click_map();
   schovej_mysku();
   curcolor=0;
-  bar(0,0,639,479);
+  bar32(0,0,639,479);
   showview(0,0,0,0);
   ukaz_mysku();
   for(i=0;i<3;i++)

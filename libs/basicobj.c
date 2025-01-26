@@ -1,4 +1,4 @@
-#include <skeldal_win.h>
+#include <platform.h>
 // toto je include soubor, jenz je pouzit v knihovne GUI.C
 
 #include "types.h"
@@ -111,7 +111,7 @@ void button_draw(int x1,int y1,int x2,int y2,OBJREC *o)
   CTL3D x;
   char w;
 
-  bar(x1,y1,x2,y2);
+  bar32(x1,y1,x2,y2);
   highlight(&x,o->color);
   w=*(char *)o->data;
   x.bsize=2-w;
@@ -126,7 +126,7 @@ void button_draw2(int x1,int y1,int x2,int y2,OBJREC *o)
   CTL3D x;
   char w;
 
-  bar(x1,y1,x2,y2);
+  bar32(x1,y1,x2,y2);
   highlight(&x,o->color);
   w=*(char *)o->data;
   x.bsize=1;
@@ -134,8 +134,8 @@ void button_draw2(int x1,int y1,int x2,int y2,OBJREC *o)
   draw_border(x1+1,y1+1,x2-x1-2,y2-y1-2,&x);
   if (!w)
   {
-  curcolor=x.light;hor_line(x1,y1,x2);hor_line(x1,y1+1,x2);
-  curcolor=x.shadow;hor_line(x1,y2,x2);hor_line(x1,y2-1,x2);
+  curcolor=x.light;hor_line32(x1,y1,x2);hor_line32(x1,y1+1,x2);
+  curcolor=x.shadow;hor_line32(x1,y2,x2);hor_line32(x1,y2-1,x2);
   }
   set_aligned_position(((x1+x2)>>1)+(w<<1),((y1+y2)>>1)+(w<<1),1,1,(char *)o->userptr);
   outtext((char *)o->userptr);
@@ -225,7 +225,7 @@ void draw_status_line(char *c)
   memcpy(&charcolors,&color,sizeof(charcolors));
   y=SCR_WIDTH_Y-ysize-3;
   desktop_y_size=y-3;
-  bar(0,y,SCR_WIDTH_X-1,SCR_WIDTH_Y-1);
+  bar32(0,y,SCR_WIDTH_X-1,SCR_WIDTH_Y-1);
   draw_border(2,y,SCR_WIDTH_X-5,ysize,&ctl);
   while (text_width(c)>SCR_WIDTH_X)
      {
@@ -324,7 +324,7 @@ void *show_time(EVENT_MSG *msg)
 
 void win_label_draw(int x1,int y1,int x2,int y2,OBJREC *o)
   {
-  bar(x1,y1,x2,y2);
+  bar32(x1,y1,x2,y2);
   set_aligned_position(x1+5,(y1+y2)/2,0,1,(char *)o->userptr);
   outtext((char *)o->userptr);
   }
@@ -450,18 +450,18 @@ void check_box_draw(int x1,int y1, int x2, int y2,OBJREC *o)
   x1+=1;y1+=1;x2-=1;y2-=1;
   x3=x1+(y2-y1);
   draw_border(x1,y1,x3-x1,y2-y1,def_border(4,curcolor));
-  bar(x1,y1,x3,y2);
+  bar32(x1,y1,x3,y2);
   if (*(char *)o->data & 1)
      {
      curcolor=0x0000;
-     line(x1,y1,x3,y2);line(x1+1,y1,x3,y2-1);line(x1,y1+1,x3-1,y2);
-     line(x1,y2,x3,y1);line(x1+1,y2,x3,y1+1);line(x1,y2-1,x3-1,y1);
+     line32(x1,y1,x3,y2);line32(x1+1,y1,x3,y2-1);line32(x1,y1+1,x3-1,y2);
+     line32(x1,y2,x3,y1);line32(x1+1,y2,x3,y1+1);line32(x1,y2-1,x3-1,y1);
      }
   if (*(char *)o->data & 0x80)
      {
      curcolor=0x0000;
-     hor_line(x1,y1,x3);ver_line(x3,y1,y2);
-     ver_line(x1,y1,y2);hor_line(x1,y2,x3);
+     hor_line32(x1,y1,x3);ver_line32(x3,y1,y2);
+     ver_line32(x1,y1,y2);hor_line32(x1,y2,x3);
      }
   else
      {
@@ -551,7 +551,7 @@ void radio_butts_draw(int x1,int y1,int x2,int y2,OBJREC *o)
   cr=curcolor;
   highlight(&ctl,curcolor);
   params=(int32_t *)o->userptr;
-  if (*params) bar(x1,y1,x2,y2);
+  if (*params) bar32(x1,y1,x2,y2);
   step=(y2-y1)/(*(params+1));
   size=(step*9)/10;
   sizpul=size>>1;
@@ -561,16 +561,16 @@ void radio_butts_draw(int x1,int y1,int x2,int y2,OBJREC *o)
      {
      int j;
      curcolor=ctl.shadow;
-     line(x1+sizpul,y1,x1,y1+sizpul);
-     line(x1,y1+sizpul,x1+sizpul,y1+size-1);
+     line32(x1+sizpul,y1,x1,y1+sizpul);
+     line32(x1,y1+sizpul,x1+sizpul,y1+size-1);
      curcolor=ctl.light;
-     line(x1+sizpul+1,y1,x1+size,y1+sizpul);
-     line(x1+size,y1+sizpul,x1+sizpul+1,y1+size-1);
+     line32(x1+sizpul+1,y1,x1+size,y1+sizpul);
+     line32(x1+size,y1+sizpul,x1+sizpul+1,y1+size-1);
      if (*(int32_t *)o->data==i) curcolor=0;else curcolor=cr;
      for (j=0;j<3;j++)
         {
-        hor_line(x1+sizpul-j,y1+sizpul-2+j,x1+sizpul+j);
-        hor_line(x1+sizpul-j,y1+sizpul+2-j,x1+sizpul+j);
+        hor_line32(x1+sizpul-j,y1+sizpul-2+j,x1+sizpul+j);
+        hor_line32(x1+sizpul-j,y1+sizpul+2-j,x1+sizpul+j);
         }
      if (*params)
         {
@@ -689,7 +689,7 @@ void input_line_draw(int x1,int y1, int x2, int y2, OBJREC *o)
   int len;
   int shift;
 
-  bar(x1,y1,x2,y2);
+  bar32(x1,y1,x2,y2);
   position(x1,y1);
   c=(char *)o->data;
   if (!*c) return;
@@ -868,7 +868,7 @@ void scroll_button_draw(int x1,int y1,int x2,int y2,OBJREC *o)
   SCR_BUTTON *param;
 
   param=(SCR_BUTTON *)o->userptr;
-  bar(x1,y1,x2,y2);
+  bar32(x1,y1,x2,y2);
   highlight(&x,o->color);
   w=*(char *)o->data;
   x.bsize=2-w;
@@ -963,7 +963,7 @@ void scroll_bar_v_draw(int x1,int y1,int x2,int y2,OBJREC *o)
   if (barsize>wsize) barsize=wsize;
   wsize-=barsize;
   curcolor=p->bgcolor;
-  bar(x1,y1,x2,y2);
+  bar32(x1,y1,x2,y2);
   curcolor=o->color;
   highlight(&ctl,o->color);ctl.bsize=2;ctl.ctldef=0;
   y=valsize?(*d-p->minvalue)*(wsize+barsize)/valsize:0;
@@ -972,7 +972,7 @@ void scroll_bar_v_draw(int x1,int y1,int x2,int y2,OBJREC *o)
   if (y<0) y=0;
   y+=y1;
   draw_border(x1+2,y+2,(x2-x1)-4,barsize-4,&ctl);
-  if (barsize>4)bar(x1+2,y+2,x2-2,y+barsize-2);
+  if (barsize>4)bar32(x1+2,y+2,x2-2,y+barsize-2);
   p->barsize=barsize;
   }
 
@@ -1076,7 +1076,7 @@ void scroll_bar_h_draw(int x1,int y1,int x2,int y2,OBJREC *o)
   if (barsize>wsize) barsize=wsize;if (barsize<2) barsize=2;
   wsize-=barsize;
   curcolor=p->bgcolor;
-  bar(x1,y1,x2,y2);
+  bar32(x1,y1,x2,y2);
   curcolor=o->color;
   highlight(&ctl,o->color);ctl.bsize=2;ctl.ctldef=0;
   x=(*d-p->minvalue)*wsize/valsize;
@@ -1085,7 +1085,7 @@ void scroll_bar_h_draw(int x1,int y1,int x2,int y2,OBJREC *o)
   if (x<0) x=0;
   x+=x1;
   draw_border(x+2,y1+2,barsize-4,(y2-y1)-4,&ctl);
-  if (barsize>4)bar(x+2,y1+2,x+barsize-2,y2-2);
+  if (barsize>4)bar32(x+2,y1+2,x+barsize-2,y2-2);
   p->barsize=barsize;
   }
 
@@ -1234,17 +1234,17 @@ void resizer_draw(int x1,int y1,int x2,int y2,OBJREC *o)
 
   highlight(&ctl,o->color);
   curcolor=o->color;
-  bar(x1,y1,x2,y2);
+  bar32(x1,y1,x2,y2);
   curcolor=ctl.light;
-  line(x2-1,y1+1,x1+1,y2-1);
-  line(x2-1,(y1+y2)>>1,(x1+x2)>>1,y2-1);
+  line32(x2-1,y1+1,x1+1,y2-1);
+  line32(x2-1,(y1+y2)>>1,(x1+x2)>>1,y2-1);
   curcolor=ctl.shadow;
-  line(x2-1,y1+4,x1+4,y2-1);
-  line(x2-1,y1+2,x2-1,y1+4);
-  line(x1+2,y2-1,x1+4,y2-1);
-  line(x2-1,((y1+y2)>>1)+4,((x1+x2)>>1)+4,y2-1);
-  line(x2-1,((y1+y2)>>1)+2,x2-1,((y1+y2)>>1)+4);
-  line(((x1+x2)>>1)+2,y2-1,((x1+x2)>>1)+4,y2-1);
+  line32(x2-1,y1+4,x1+4,y2-1);
+  line32(x2-1,y1+2,x2-1,y1+4);
+  line32(x1+2,y2-1,x1+4,y2-1);
+  line32(x2-1,((y1+y2)>>1)+4,((x1+x2)>>1)+4,y2-1);
+  line32(x2-1,((y1+y2)>>1)+2,x2-1,((y1+y2)>>1)+4);
+  line32(((x1+x2)>>1)+2,y2-1,((x1+x2)>>1)+4,y2-1);
   }
 
 void resizer_event(EVENT_MSG *msg,OBJREC *o)

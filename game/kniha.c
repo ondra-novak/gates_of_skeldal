@@ -1,4 +1,4 @@
-#include <skeldal_win.h>
+#include <platform.h>
 /*
 
  Popis jazyka pro psani textu do knihy
@@ -286,25 +286,25 @@ static void break_line()
   save_buffer();
   }
 
-static char read_set(FILE *txt,char *var,char *set)
+static char read_set(TMPFILE_RD *txt,char *var,char *set)
   {
   int c;
   char *cc;
   char d;
 
-  fscanf(txt,"%[^=]%c",var,&d);
+  temp_storage_scanf(txt,"%[^=]%c",var,&d);
   do
-     c=fgetc(txt);
+     c=temp_storage_getc(txt);
   while (c<33);
-  if (c=='"') fscanf(txt,"%[^\"]%c%c",set,&d,&d);
-  else if (c=='\'') fscanf(txt,"%[^']%c%c",set,&d,&d);
+  if (c=='"') temp_storage_scanf(txt,"%[^\"]%c%c",set,&d,&d);
+  else if (c=='\'') temp_storage_scanf(txt,"%[^']%c%c",set,&d,&d);
   else
      {
-     ungetc(c,txt);
-     fscanf(txt,"%[^> ]%c",set,&d);
+      temp_storage_ungetc(txt);
+      temp_storage_scanf(txt,"%[^> ]%c",set,&d);
      }
-  while(c<33 && c!=EOF) c=fgetc(txt);
-  if (c!='>') ungetc(c,txt);
+  while(c<33 && c!=EOF) c=temp_storage_getc(txt);
+  if (c!='>') temp_storage_ungetc(txt);
   cc=strchr(var,0);
   while (cc!=var)
      {
@@ -375,14 +375,14 @@ static void insert_picture(char *filename,int align,int line,int lsize)
   str_add(&all_text,write_buff);
   }
 
-static char read_tag(FILE *txt)
+static char read_tag(TMPFILE_RD *txt)
   {
   char c,var[256],set[256];
   int i;
 
-  i=fscanf(txt,"%[^> ] %c",var,&c);
-  while(c<33 && i!=EOF) c=i=fgetc(txt);
-  if (c!='>') ungetc(c,txt);
+  i=temp_storage_scanf(txt,"%[^> ] %c",var,&c);
+  while(c<33 && i!=EOF) c=i=temp_storage_getc(txt);
+  if (c!='>') temp_storage_ungetc(txt);
   strupr(var);
   if (!strcmp(var,PARAGRAPH))
      {
@@ -432,15 +432,15 @@ static char read_tag(FILE *txt)
   }
 
 
-static char skip_section(FILE *txt)
+static char skip_section(TMPFILE_RD *txt)
   {
   int c;
   char end=1;
 
-  c=fgetc(txt);
+  c=temp_storage_getc(txt);
   while (c!=']' && c!=EOF)
      {
-     c=fgetc(txt);
+     c=temp_storage_getc(txt);
      end=0;
      }
   if (c==EOF) end=1;
@@ -456,9 +456,9 @@ void prekodovat(char *c)
      }
   }
 
-static void read_text(FILE *txt)
+static void read_text(TMPFILE_RD *txt)
   {
-  int i;
+  int i = 0;
   int xs;
   char ss[2]=" ";
   char wsp=1;
@@ -468,7 +468,7 @@ static void read_text(FILE *txt)
   xs=0;
   do
      {
-     i=fgetc(txt);
+     i=temp_storage_getc(txt);
      if (i==EOF) break;
      if (i<32) i=32;
      if (i=='<')
@@ -492,7 +492,7 @@ static void read_text(FILE *txt)
         wsp=1;
         }
      else wsp=0;
-     if (i=='&') i=fgetc(txt);
+     if (i=='&') i=temp_storage_getc(txt);
      if (winconv && i>137) i=xlat_table[i-138];
      ss[0]=i;
      xs+=text_width(ss);
@@ -507,26 +507,33 @@ static void read_text(FILE *txt)
   while (1);
   }
 
-void seek_section(FILE *txt,int sect_number)
+static void seek_section(TMPFILE_RD *txt,int sect_number)
   {
   int c=0,i;
 
   winconv=0;
   do
      {
-     while (c!='[' && c!=EOF) c=fgetc(txt);
+     while (c!='[' && c!=EOF) c=temp_storage_getc(txt);
      if (c=='[')
        {
        i=-2;
-       fscanf(txt,"%d",&i);
+       c = temp_storage_getc(txt);
+       if (c>='0' && c<='9') {
+           i = 0;
+           while (c>='0' && c<='9') {
+               i = i * 10 +(c - '0');
+               c = temp_storage_getc(txt);
+           }
+       }
        if (i==sect_number)
           {
-          c=fgetc(txt);
+          c=temp_storage_getc(txt);
           while(c!=']')
              {
              if (c=='W' || c=='w') winconv=1;
              if (c=='K' || c=='k') winconv=0;
-             c=fgetc(txt);
+             c=temp_storage_getc(txt);
              }
           return;
           }
@@ -545,17 +552,22 @@ void seek_section(FILE *txt,int sect_number)
 
 void add_text_to_book(char *filename,int odst)
   {
-  FILE *txt;
-  ENCFILE fl;
+  char *txt;
+  TMPFILE_RD *fl;
 
   set_font(H_FKNIHA,NOSHADOW(0));
   if (all_text==NULL) all_text=create_list(256);
-  txt=enc_open(filename,&fl);
+  txt=enc_open(filename);
   if (txt==NULL) return;
-  seek_section(txt,odst);
-  read_text(txt);
+  const char *bookenc = "__bookenc";
+  temp_storage_store(bookenc, txt, strlen(txt));
+  fl = temp_storage_open(bookenc);
+  seek_section(fl,odst);
+  read_text(fl);
   next_line(1000);
-  enc_close(&fl);
+  free(txt);
+  temp_storage_close_rd(fl);
+  temp_storage_delete(bookenc);
   }
 
 static char *displ_picture(char *c)
@@ -563,6 +575,8 @@ static char *displ_picture(char *c)
   char *d;
   int x,y,hn,z,ln,sl;
   short *sh;
+  int32_t scr_linelen2 = GetScreenPitch();
+
 
   d=write_buff;
   while (*c!=':') *d++=*c++;
@@ -675,41 +689,47 @@ int count_pages()
 void save_book()
   {
   char *c;
-  FILE *f;
+  TMPFILE_WR *f;
   int i,ss;
   char *tx;
 
   if (all_text==NULL) return;
-  concat(c,pathtable[SR_TEMP],BOOK_FILE);
-  f=fopen(c,"w");if (f==NULL) return;
+
+  f = temp_storage_create(BOOK_FILE);
   i=0;
   ss=str_count(all_text);
   while (i<ss && (tx=all_text[i++])!=NULL)
      {
-     fputs(tx,f);
-     fputc('\n',f);
+      temp_storage_write(tx,strlen(tx), f);
+      temp_storage_write("\n",1, f);
      }
-  fclose(f);
+  temp_storage_close_wr(f);
   }
 
 void load_book()
   {
   char *c;
-  FILE *f;
-  char tx[512];
+  TMPFILE_RD *f;
 
   if (all_text!=NULL) release_list(all_text);
   all_text=NULL;
-  concat(c,pathtable[SR_TEMP],BOOK_FILE);
-  f=fopen(c,"r");if (f==NULL) return;
-  all_text=create_list(256);
-  while (fgets(tx,510,f)!=NULL)
-     {
-     char *c;
-     c=strchr(tx,0);c--;*c=0;
-     str_add(&all_text,tx);
-     }
-  fclose(f);
+  int sz = temp_storage_find(BOOK_FILE);
+  if (sz < 0) return;
+  char *data = getmem(sz);
+  temp_storage_retrieve(BOOK_FILE, data, sz);
+  int b = 0;
+  int e;
+  for (e = 0; e < sz; ++e) {
+      if (data[e] == '\n') {
+          data[e] = 0;
+          str_add(&all_text, data+b);
+          b = e+1;
+      }
+  }
+  if (b < e) {
+      str_add(&all_text, data+b);
+  }
+  free(data);
   }
 
 

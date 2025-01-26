@@ -1,4 +1,4 @@
-#include <skeldal_win.h>
+#include <platform.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <malloc.h>
@@ -223,6 +223,7 @@ static void zobraz_podle_masky(char barva,char anim)
   {
   char *maska;
   word *data;
+  int32_t scr_linelen2 = GetScreenPitch();
   word *obr=GetScreenAdr()+300*scr_linelen2+220;
   word xs,ys;
 
@@ -341,7 +342,7 @@ int enter_menu(char open)
     }
   update_mysky();
   schovej_mysku();
-  curcolor=0;bar(0,0,639,479);
+  curcolor=0;bar32(0,0,639,479);
   put_picture(0,0,ablock(H_MENU_BAR));
   put_picture(0,56,ablock(H_ANIM));
   ukaz_mysku();
@@ -364,7 +365,8 @@ int enter_menu(char open)
 
 char *get_next_title(signed char control,char *filename)
   {
-  static FILE *titles=NULL;
+/*
+    static TMPFILE_RD *titles=NULL;
   static ENCFILE fl;
   static char buffer[81];
   char *path,*c;
@@ -372,11 +374,11 @@ char *get_next_title(signed char control,char *filename)
   switch(control)
      {
      case 1:concat(path,pathtable[SR_MAP],filename);
-            titles=enc_open(path,&fl);
+            titles=enc_open(path);
             if (titles==NULL)
               {
               concat(path,pathtable[SR_DATA],filename);
-              titles=enc_open(path,&fl);
+              titles=enc_open(path);
               if (titles==NULL)
                 {
 			    char popis[300];
@@ -393,6 +395,7 @@ char *get_next_title(signed char control,char *filename)
      case -1:if (titles!=NULL)enc_close(&fl);
             break;
      }
+     */
   return NULL;
   }
 
@@ -448,7 +451,7 @@ static int insert_next_line(int ztrata)
         if (ll<title_line) ll=title_line;
         curcolor=BGSWITCHBIT;
         charcolors[0]=RGB555(0,0,1);
-        bar(0,360+ztrata,639,360+ztrata+ll);
+        bar32(0,360+ztrata,639,360+ztrata+ll);
         switch(title_mode)
            {
            case TITLE_TEXT:
@@ -468,6 +471,7 @@ static int insert_next_line(int ztrata)
 static void scan_lines(word *buffer,int start,int poc)
   {
   int first, last,i,pocet=poc;
+  int32_t scr_linelen2 = GetScreenPitch();
   word *buf;
   while (pocet--)
      {
@@ -506,6 +510,7 @@ static void get_max_extend(int *l,int *r)
 void titles(va_list args)
 //#pragma aux titles parm[]
   {
+    int32_t scr_linelen2 = GetScreenPitch();
   char send_back=va_arg(args,int);
   char *textname=va_arg(args,char *);
 
@@ -520,8 +525,8 @@ void titles(va_list args)
   if (get_next_title(1,textname)==NULL) return;
   schovej_mysku();
   speedscroll=4;
-  curcolor=BGSWITCHBIT ; bar(0,0,639,479);
-  RedirectScreenBufferSecond();bar(0,0,639,479);RestoreScreen();
+  curcolor=BGSWITCHBIT ; bar32(0,0,639,479);
+  RedirectScreenBufferSecond();bar32(0,0,639,479);RestoreScreen();
   memset(title_lines,0,sizeof(title_lines));
   def_handle(H_PICTURE,"titulky.pcx",pcx_15bit_decomp,SR_BGRAFIKA);
   alock(H_PICTURE);
@@ -550,7 +555,7 @@ void titles(va_list args)
         //showview(l,60,r-l+1,360);
         showview(0,60,639,360);
         buff+=scr_linelen2*359;
-        memcpy(buff,buff+scr_linelen2*skip,40*scr_linelen);
+        memcpy(buff,buff+scr_linelen2*skip,2*40*scr_linelen2);
         showview(0,0,640,40);
         task_wait_event(E_TIMER);
         counter+=skip;
@@ -595,7 +600,7 @@ void konec_hry()
 
   schovej_mysku();
   curcolor=0;
-  bar(0,0,639,479);
+  bar32(0,0,639,479);
   effect_show(NULL);
   create_playlist(texty[205]);
   change_music(get_next_music_from_playlist());
@@ -611,7 +616,7 @@ void konec_hry()
   if (is_running(task_id)) term_task(task_id);
   change_music("?");
   curcolor=0;
-  bar(0,0,639,479);
+  bar32(0,0,639,479);
   ukaz_mysku();
   effect_show(NULL);
   timer=get_timer_value();

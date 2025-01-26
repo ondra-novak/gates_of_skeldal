@@ -2,10 +2,9 @@
 #include <stdio.h>
 //#include <i86.h>
 //#include <dpmi.h>
-#include <conio.h>
+
 #include <mem.h>
 #include <bios.h>
-#include <dos.h>
 #include "zvuk.h"
 //#include "pcspeak.h"
 
@@ -101,7 +100,7 @@ int bxbass=0;
 static int gfxvol=255;
 int32_t blength;
 static char depack[32768];
-void (__far __interrupt *oldvect)();
+//void (__far __interrupt *oldvect)();
 static char swap_chans=0;
 
 char da_xlat[256]; // Xlat tabulka pro DA a PC Speaker;

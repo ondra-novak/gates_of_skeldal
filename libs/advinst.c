@@ -39,7 +39,7 @@ char disk_finder()
   }
 
 char find_path(char *path)
-  {
+  {SEPARATOR
   char *oldpath;
   unsigned pismeno='C';
 

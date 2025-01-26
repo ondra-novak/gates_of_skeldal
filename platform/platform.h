@@ -6,7 +6,7 @@
 
 #define BGSWITCHBIT 0x0020
 
-#define SKELDALINI "WSKELDAL.INI"
+#define SKELDALINI "wskeldal.ini"
 
 #ifdef __cplusplus
 extern "C"
@@ -17,22 +17,10 @@ extern "C"
 #define _KEYBRD_READY 0
 #define _KEYBRD_READ 1
 
-#define TIMERSPEED 20;
+#define TIMERSPEED 20
 
 uint32_t _bios_keybrd(int mode);
 
-
-//LRESULT GameMainWindowWindowProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
-
-
-void CheckMessageQueue();
-
-//void DSReportWindowCreation(HWND hWindow);
-char *AutodetectWinAmp();
-
-#ifdef __cplusplus
-  }
-#endif
 
 #define RGB888(r,g,b) ((unsigned short)((((r)<<8)&0xF800) | (((g)<<3) & 0x7C0) | ((b)>>3)))
 #define RGB555(r,g,b) ((unsigned short)(((r)<<11) | ((g)<<6) | (b)))
@@ -40,8 +28,6 @@ char *AutodetectWinAmp();
 #pragma warning (disable : 4244 4761 4133)
 
 
-void *LoadDefaultFont();
-void *LoadResourceFont(const char *name);
 void *map_file_to_memory(const char *name, size_t *sz);
 void unmap_file(void *ptr, size_t sz);
 
@@ -56,13 +42,17 @@ int stricmp(const char *a, const char *b);
 #define MIN(a, b) ((a)<(b)?(a):(b))
 #define MAX(a, b) ((a)>(b)?(a):(b))
 void strupr(char *c);
-const char * itoa(int i, char *c, int radix);
+const char * int2ascii(int i, char *c, int radix);
 
 uint32_t get_game_tick_count();
 void sleep_ms(uint32_t);
 
+#ifdef __cplusplus
+  }
+#endif
+
 //------------- BGRAPH DX wrapper -------------------
-#include "BGraph2Dx.h"
+#include "sdl/BGraph2.h"
 
 #define WM_RELOADMAP (WM_APP+215)
 #define E_RELOADMAP 40

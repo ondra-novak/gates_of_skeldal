@@ -1,4 +1,4 @@
-#include <skeldal_win.h>
+#include <platform.h>
 #include "types.h"
 #include "bgraph.h"
 
@@ -19,6 +19,7 @@ void bar32(int x1,int y1, int x2, int y2)
   if (y1<0) y1=0;
   if (x2>mx) x2=mx;
   if (y2>my) y2=my;
+  int32_t scr_linelen2 = GetScreenPitch();
   for (i=y1,begline=GetScreenAdr()+scr_linelen2*i;i<=y2;i++,begline+=scr_linelen2)
     {
     for (j=x1;j<=x2;j++) begline[j]=curcolor;
@@ -38,6 +39,7 @@ void hor_line32(int x1,int y1,int x2)
   if (x1>x2) swap_int(x1,x2);
   if (x1<0) x1=0;
   if (x2>mx) x2=mx;
+  int32_t scr_linelen2 = GetScreenPitch();
   begline=GetScreenAdr()+scr_linelen2*y1;
   for (i=x1;i<x2;i+=2) *(uint32_t *)(begline+i)=curcolor2;
   if (i==x2) begline[i]=curcolor;
@@ -54,6 +56,7 @@ void ver_line32(int x1,int y1,int y2)
   if (x1<0 || x1>mx) return;
   if (y1<0) y1=0;
   if (y2>my) y2=my;
+  int32_t scr_linelen2 = GetScreenPitch();
   begline=GetScreenAdr()+scr_linelen2*y1+x1;
   for (i=y1;i<=y2;i++,begline+=scr_linelen2) *begline=curcolor;
   }
@@ -71,6 +74,7 @@ void hor_line_xor(int x1,int y1,int x2)
   if (x1>x2) swap_int(x1,x2);
   if (x1<0) x1=0;
   if (x2>mx) x2=mx;
+  int32_t scr_linelen2 = GetScreenPitch();
   begline=GetScreenAdr()+scr_linelen2*y1;
   for (i=x1;i<x2;i+=2) *(uint32_t *)(begline+i)^=curcolor2;
   if (i==x2) begline[i]^=curcolor;
@@ -88,6 +92,7 @@ void ver_line_xor(int x1,int y1,int y2)
   if (x1<0 || x1>mx) return;
   if (y1<0) y1=0;
   if (y2>my) y2=my;
+  int32_t scr_linelen2 = GetScreenPitch();
   begline=GetScreenAdr()+scr_linelen2*y1+x1;
   for (i=y1;i<=y2;i++,begline+=scr_linelen2) *begline^=curcolor;
   }
@@ -119,6 +124,7 @@ void line_32(int x,int y,int xs,int ys)
 void char_32(word *posit,word *font,char znak)
 //#pragma aux char_32 parm [edi] [esi] [eax] modify [eax ebx ecx edx]
   {
+    int32_t scr_linelen2 = GetScreenPitch();
 
 	word *edi = posit;
 	unsigned char *esi = (unsigned char *)font;
@@ -305,6 +311,7 @@ chsend: and     eax,0ffffh
 void put_picture(word x,word y,void *p)
 //#pragma aux put_picture parm [esi] [eax] [edi] modify [ebx ecx edx]
   {
+  int32_t scr_linelen2 = GetScreenPitch();
   word *adr=GetScreenAdr()+scr_linelen2*y+x;
   word *data=p;
   word xs=data[0];
@@ -375,6 +382,7 @@ void put_picture(word x,word y,void *p)
   }
 void get_picture(word x,word y,word xs,word ys,void *p)
   {
+  int32_t scr_linelen2 = GetScreenPitch();
   word *adr=GetScreenAdr()+scr_linelen2*y+x;
   word *data=p;
   word xss=xs;
@@ -403,7 +411,7 @@ void get_picture(word x,word y,word xs,word ys,void *p)
 void put_image(word *image,word *target,int start_line,int sizex,int sizey)
 //#pragma aux put_image parm [ESI][EDI][EAX][EBX][EDX] modify [ECX]
   {
-
+    int32_t scr_linelen2 = GetScreenPitch();
 	word *esi = image;
 	word *edi = target;
 	int eax = start_line;
@@ -457,6 +465,7 @@ puti_lp:mov     ecx,ebx
 void put_8bit_clipped(void *src,void *trg,int startline,int velx,int vely)
 //#pragma aux put_8bit_clipped parm [ESI][EDI][EAX][EBX][EDX] modify [ECX];
   {
+    int32_t scr_linelen2 = GetScreenPitch();
 	  if (src==NULL) return;
 	  {
 		  word *esi = src;
@@ -529,6 +538,7 @@ void put_textured_bar_(void *src,void *trg,int xsiz,int ysiz,int xofs,int yofs)
 //#pragma aux put_textured_bar_ parm [EBX][EDI][EDX][ECX][ESI][EAX];
   {
 
+    int32_t scr_linelen2 = GetScreenPitch();
 	word *imghdr = (word *)src;
 	word cx = imghdr[0];
 	word cy = imghdr[1];
@@ -633,6 +643,7 @@ ptb_skip2:
 
 void trans_bar(int x,int y,int xs,int ys,int barva)
   {
+  int32_t scr_linelen2 = GetScreenPitch();
   word *begline;
   int x1=x;
   int y1=y;
@@ -674,6 +685,7 @@ void trans_bar25(int x,int y,int xs,int ys)
   int y2=y+ys-1;
   int i,j;
 
+  int32_t scr_linelen2 = GetScreenPitch();
   int mx =  DxGetResX() - 1;
   int my =  DxGetResY() - 1;
 

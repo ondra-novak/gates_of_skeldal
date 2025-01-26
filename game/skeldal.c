@@ -1,4 +1,4 @@
-#include <skeldal_win.h>
+#include <platform.h>
 #include <assert.h>
 #include <stdarg.h>
 #include <bios.h>
@@ -27,6 +27,7 @@
 #include "engine1.h"
 #include "wizard.h"
 #include "version.h"
+#include "default_font.h"
 
 #include <unistd.h>
 #define CONFIG_NAME SKELDALINI
@@ -36,18 +37,18 @@
 
 #define ERR_GENERAL 1
 char def_path[]="";
-char graph_path[]="graphics\\";
-char basc_graph[]="graphics\\basic\\";
-char item_graph[]="graphics\\items\\";
-char sample_path[]="samples\\";
-char font_path[]="font\\";
-char map_path[]="maps\\";
-char music_path[]="music\\";
-char org_music_path[]="music\\";
+char graph_path[]="graphics" PATH_SEPARATOR;
+char basc_graph[]="graphics" PATH_SEPARATOR "basic" PATH_SEPARATOR;
+char item_graph[]="graphics" PATH_SEPARATOR "items" PATH_SEPARATOR;
+char sample_path[]="samples" PATH_SEPARATOR;
+char font_path[]="font" PATH_SEPARATOR;
+char map_path[]="maps" PATH_SEPARATOR;
+char music_path[]="music" PATH_SEPARATOR;
+char org_music_path[]="music" PATH_SEPARATOR;
 char temp_path[]="?";
-char enemies_path[]="graphics\\enemies\\";
-char video_path[]="video\\";
-char dialogs_path[]="graphics\\dialogs\\";
+char enemies_path[]="graphics" PATH_SEPARATOR "enemies" PATH_SEPARATOR;
+char video_path[]="video" PATH_SEPARATOR;
+char dialogs_path[]="graphics" PATH_SEPARATOR "dialogs" PATH_SEPARATOR;
 char saves_path[]="";
 char work_path[]="";
 char cd_path[]="";
@@ -311,6 +312,8 @@ int set_video(int mode)
   {
   int er=0;
 
+  int32_t scr_linelen2 = GetScreenPitch();
+
   report_mode(1);
   er=initmode_dx(windowed,windowedzoom,monitor,refresh);
 /*
@@ -345,20 +348,13 @@ int set_video(int mode)
 
   default:er=-1;
   }*/
-  screen_buffer_size=scr_linelen*480;
+  screen_buffer_size=scr_linelen2*2*480;
   return er;
   }
 
-int ask_video()
-  {
-  int c;
-  printf("\nJaky videomode?:\n"
-         "  1) 640x480x256 \n"
-         "  2) 640x480xHiColor \n");
-  c=_bios_keybrd(_KEYBRD_READ)>>8;
-  if (c==1) exit(0);
-  return c-1;
-  }
+void purge_temps(char) {
+    temp_storage_clear();
+}
 
 void pcx_fade_decomp(void **p,int32_t *s)
   {
@@ -455,8 +451,10 @@ void set_background(void **p,int32_t *s)
   char *pic;
   int counter;
 
+
   if (!bgr_handle) return;
   if (bgr_distance==-1) return;
+  int32_t scr_linelen2 = GetScreenPitch();
   data=ablock(bgr_handle);
   *s=scr_linelen2*360*2;
   ptr=*p=getmem(*s);
@@ -555,14 +553,6 @@ void music_init()
   set_snd_effect(SND_GFX,init_gfx_vol);
   set_snd_effect(SND_MUSIC,init_music_vol);
   path=plugins_path;
-  if (path==0 || path[0]==0)
-    path=AutodetectWinAmp();
-  if (path!=0 && path[0]!=0)
-  {
-    SEND_LOG("(SOUND) Installing plugins, path: %s",path,0);
-    init_winamp_plugins(path);
-    if (path!=plugins_path) free(path);
-  }
   SEND_LOG("(SOUND) SOUND_DONE Sound Engine should work now",0,0);
 
   }
@@ -863,6 +853,7 @@ void global_kbd(EVENT_MSG *msg,void **usr)
   if (msg->msg==E_KEYBOARD)
      {
      c=va_arg(msg->data,int)>>8;
+     int32_t scr_linelen2 = GetScreenPitch();
      if (c==';') save_dump(GetScreenAdr(), DxGetResX(), DxGetResY(), scr_linelen2);
      }
   return;
@@ -957,7 +948,7 @@ char device_error(int chyba,char disk,char info)
 static void patch_error(int err)
 	{
 	position(0,460);
-	curcolor=0;bar(0,460,640,479);
+	curcolor=0;bar32(0,460,640,479);
 	memcpy(charcolors,flat_color(RGB555(31,31,31)),sizeof(charcolors));
 	curfont=boldcz;
 	switch(err)
@@ -1227,7 +1218,10 @@ static void config_skeldal(const char *line)
   maxi=strlen(c);
   data=alloca(maxi+1);
   strcpy(data,c);
-  if (data[maxi-1]=='\n') data[maxi-1]=0;
+  while (maxi && (isspace(data[maxi-1]))) {
+      --maxi;
+      data[maxi]=0;
+  }
   maxi=(sizeof(sinit)/sizeof(INIS));
   for(i=0;i<maxi;i++) if (comcmp(line,sinit[i].heslo)) break;
   if (i==maxi)
@@ -1342,7 +1336,7 @@ void play_anim(int anim_num)
       }
      else titl=NULL;
      set_title_list(titl);set_font(H_FBIG,RGB(200,200,200));
-     curcolor=0;bar(0,0,639,459);
+     curcolor=0;bar32(0,0,639,459);
      showview(0,0,0,0);
      play_movie_seq(s,60);
      set_title_list(NULL);if (titl!=NULL) release_list(titl);
@@ -1615,7 +1609,7 @@ static void start(va_list args)
                           exit_wait=1;
                           }
                         break;
-       case V_UVOD:bar(0,0,639,479);goto zde;break;
+       case V_UVOD:bar32(0,0,639,479);goto zde;break;
        case V_OBNOVA_HRY:load_saved_game();break;
        case V_AUTORI:run_titles(NULL);break;
         }
@@ -1655,7 +1649,7 @@ void main(int argc,char *argv[])
   c=getcwd(NULL,0);
   pathtable[SR_SAVES]=getmem(strlen(c)+2);
   strcpy(pathtable[SR_SAVES],c);
-  strcat(pathtable[SR_SAVES],"\\");
+  strcat(pathtable[SR_SAVES],PATH_SEPARATOR);
   free(c);
   SEND_LOG("(GAME) Save directory sets to '%s'",pathtable[SR_SAVES],0);
 //  set_verify(0);

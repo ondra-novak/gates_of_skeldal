@@ -1,4 +1,4 @@
-#include <skeldal_win.h>
+#include <platform.h>
 #include <bgraph.h>
 #include <stdio.h>
 #include "types.h"
@@ -53,6 +53,7 @@ static void StretchImageHQ(word *src, word *trg, uint32_t linelen, char full)
 
 static void PlayMGFFile(void *file, MGIF_PROC proc,int ypos,char full)
   {
+  int32_t scr_linelen2 = GetScreenPitch();
   mgif_install_proc(proc);
   sound=PrepareVideoSound(22050,256*1024);
   mgif_accnums[0]=mgif_accnums[1]=0;

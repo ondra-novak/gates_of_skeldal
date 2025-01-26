@@ -1,4 +1,4 @@
-#include <skeldal_win.h>
+#include <platform.h>
 #include <types.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -282,6 +282,8 @@ void create_tables(void)
   {
   int x,y;
 
+  int32_t scr_linelen2 = GetScreenPitch();
+
 
   for (y=0;y<VIEW3D_Z+1;y++)
      {
@@ -374,7 +376,7 @@ void create_tables(void)
       xr=xr*(y1+1)/points[0][0][0].y+MIDDLE_X;
       if (xl<0) xl=0;if (xr<0) xr=0;
       if (xl>639) xl=639;if (xr>639) xr=639;
-      showtabs.f_table[x][y].lineofs=(y1+MIDDLE_Y)*scr_linelen+xl*2;
+      showtabs.f_table[x][y].lineofs=(y1+MIDDLE_Y)*2*scr_linelen2+xl*2;
       showtabs.f_table[x][y].linesize=xr-xl+(xl!=xr);
       showtabs.f_table[x][y].counter=(y1-points[0][0][yp].y);
       showtabs.f_table[x][y].txtrofs=(y1+MIDDLE_Y-VIEW_SIZE_Y+F_YMAP_SIZE)*1280+xl*2;
@@ -404,7 +406,7 @@ void create_tables(void)
       xr=xr*(y1-2)/points[0][1][0].y+MIDDLE_X;
       if (xl<0) xl=0;if (xr<0) xr=0;
       if (xl>639) xl=639;if (xr>639) xr=639;
-      showtabs.c_table[x][y].lineofs=(y1+MIDDLE_Y)*scr_linelen+xl*2;
+      showtabs.c_table[x][y].lineofs=(y1+MIDDLE_Y)*2*scr_linelen2+xl*2;
       showtabs.c_table[x][y].linesize=xr-xl+(xl!=xr);
       showtabs.c_table[x][y].counter=points[0][1][yp].y-y1;
       showtabs.c_table[x][y].txtrofs=(y1+MIDDLE_Y)*1280+xl*2;
@@ -433,11 +435,13 @@ void create_zooming(void)
   {
   int i,j;
 
+  int32_t scr_linelen2 = GetScreenPitch();
+
   for (j=0;j<ZOOM_PHASES;j++)
      {
      calc_zooming(zooming_xtable[j],320,zooming_points[j][0]);
      calc_y_buffer(zooming_ytable[j],zooming_points[j][1],360,360);
-     for(i=0;i<360;i++) zooming_ytable[j][i]*=scr_linelen;
+     for(i=0;i<360;i++) zooming_ytable[j][i]*=2*scr_linelen2;
      }
   }
 
@@ -574,6 +578,8 @@ void show_cel(int celx,int cely,void *stena,int xofs,int yofs,char rev)
   int txtsx,txtsy,realsx,realsy,x,i,yss,ysd;
   char *p;int plac;
 
+  int32_t scr_linelen2 = GetScreenPitch();
+
   plac=rev>>5;
   rev&=3;
   if (celx<=0) x3d=&showtabs.z_table[-celx][cely]; else  x3d=&showtabs.z_table[celx][cely];
@@ -632,7 +638,7 @@ void show_cel(int celx,int cely,void *stena,int xofs,int yofs,char rev)
   zoom.palette=(word *)((byte *)stena+6+512*(cely)+(secnd_shade?SHADE_STEPS*512:0));
   zoom.ycount=realsy+1;
   zoom.xmax=realsx;
-  zoom.line_len=scr_linelen;
+  zoom.line_len=2*scr_linelen2;
   if (rev) sikma_zprava(); else sikma_zleva();
  }
 
@@ -643,6 +649,8 @@ void show_cel2(int celx,int cely,void *stena,int xofs,int yofs,char rev)
   T_INFO_Y *yd;
   int txtsx,txtsy,realsx,realsy,x,i;
   char *p;int plac;
+
+  int32_t scr_linelen2 = GetScreenPitch();
 
   if (stena==NULL) return ;
   plac=rev>>5;
@@ -696,7 +704,7 @@ void show_cel2(int celx,int cely,void *stena,int xofs,int yofs,char rev)
   zoom.palette=(word *)((byte *)stena+6+512*(cely)+(secnd_shade?SHADE_STEPS*512:0));
   zoom.ycount=realsy+1;
   zoom.xmax=realsx;
-  zoom.line_len=scr_linelen;
+  zoom.line_len=scr_linelen2*2;
   if (rev==2) sikma_zprava(); else sikma_zleva();
   }
 
@@ -738,6 +746,8 @@ void draw_floor_ceil(int celx,int cely,char f_c,void *txtr)
 void OutBuffer2nd(void)
   {
   int i;
+  int32_t scr_linelen2 = GetScreenPitch();
+
   for (i=0;i<480;i++)
 	memcpy(GetScreenAdr()+i*scr_linelen2,GetBuffer2nd()+i*scr_linelen2,640*2);
   }
@@ -745,6 +755,8 @@ void OutBuffer2nd(void)
 void CopyBuffer2nd(void)
   {
   int i;
+  int32_t scr_linelen2 = GetScreenPitch();
+
   for (i=0;i<480;i++)
 	memcpy(GetBuffer2nd()+i*scr_linelen2,GetScreenAdr()+i*scr_linelen2,640*2);
   }
@@ -881,7 +893,7 @@ void report_mode(int mode)
      }*/
   }
 
-__inline void clear_color(void *start,int _size,word _color)
+void clear_color(void *start,int _size,word _color)
   {
 	word *s = (word *)start;
 	int i;
@@ -906,6 +918,8 @@ __inline void clear_color(void *start,int _size,word _color)
 
 void clear_buff(word *background,word backcolor,int lines)
 {
+    int32_t scr_linelen2 = GetScreenPitch();
+
   if (background!=NULL) put_picture(0,SCREEN_OFFLINE,background);else lines=0;
   if (lines!=360)
 	for (i=lines;i<360;i++)
@@ -915,6 +929,8 @@ void clear_buff(word *background,word backcolor,int lines)
 
 void clear_screen(word *screen, word color)
 {
+    int32_t scr_linelen2 = GetScreenPitch();
+
 for (i=0;i<480;i++) clear_color(screen+scr_linelen2*i,640,color);
 }
 
@@ -925,6 +941,8 @@ void general_engine_init()
   create_zooming();
   clear_screen(GetScreenAdr(),0);
   clear_screen(GetBuffer2nd(),0);
+  int32_t scr_linelen2 = GetScreenPitch();
+
   screen_buffer_size=scr_linelen2*480*2;
 }
 
@@ -1035,6 +1053,8 @@ void draw_item(int celx,int cely,int posx,int posy,short *txtr,int index)
   int x,y;
   int clipl,clipr;
   int randx,randy;
+  int32_t scr_linelen2 = GetScreenPitch();
+
 
   if (txtr==NULL) return;
   randx=items_indextab[7-(index & 0x7)][0];
@@ -1057,6 +1077,8 @@ void put_textured_bar(void *src,int x,int y,int xs,int ys,int xofs,int yofs)
   {
   word *pos;
   word *xy;
+  int32_t scr_linelen2 = GetScreenPitch();
+
 
   pos=GetScreenAdr()+x+scr_linelen2*y;
   xy=src;
@@ -1071,6 +1093,7 @@ void draw_placed_texture(short *txtr,int celx,int cely,int posx,int posy,int pos
   {
   int x,y;
   int clipl,clipr;
+  int32_t scr_linelen2 = GetScreenPitch();
 
   if (txtr==NULL) return;
   map_pos(celx,cely,posx,posy,posz,&x,&y);
@@ -1187,6 +1210,8 @@ void draw_enemy(DRW_ENEMY *drw)
   int posx,posy,cely;
   short *ys,yss,*xs,xss;
   int grcel;
+  int32_t scr_linelen2 = GetScreenPitch();
+
 
   if (drw->stoned)
   {
@@ -1253,6 +1278,8 @@ void draw_player(short *txtr,int celx,int cely,int posx,int posy,int adjust,char
   {
   int x,y,yc,lx,sd;
   int clipl,clipr;
+  int32_t scr_linelen2 = GetScreenPitch();
+
 
   RedirectScreenBufferSecond();
   map_pos(celx,cely,posx+64,posy+64,0,&x,&y);
@@ -1285,6 +1312,8 @@ void draw_player(short *txtr,int celx,int cely,int posx,int posy,int adjust,char
 void draw_spectxtr(short *txtr,int celx,int cely,int xpos)
   {
   int x,y,lx,clipl,clipr;
+  int32_t scr_linelen2 = GetScreenPitch();
+
   map_pos(celx,cely,64,64,0,&x,&y);
   lx=x;
   x-=(((*txtr>>1)+xpos)*last_scale*2)/320;
@@ -1304,6 +1333,7 @@ void draw_item2(int celx,int cely,int xpos,int ypos,void *txtr,int index)
   {
   int x,y,xs,ys,ysc,abc,asc,clipl,clipr;
   static int indextab[][2]={{0,0},{0,1},{1,0},{-1,0},{1,2},{-1,1},{-2,1},{2,1}};
+  int32_t scr_linelen2 = GetScreenPitch();
 
   celx--;
   asc=(celx<0);

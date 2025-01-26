@@ -1,4 +1,4 @@
-#include <skeldal_win.h>
+#include <platform.h>
 #include <stdio.h>
 #include <mem.h>
 #include "types.h"
@@ -17,8 +17,8 @@ int bott_line;
 int base_line;
 int top_ofs;
 
-char znaky[]="0123456789ABC€D…E‰FGHI‹JKLŠœMN¥O•PQRS›T†U—¦VWXYZ’"
-             "a bc‡dƒe‚ˆfghi¡jklŒmn¤o¢pqr©s¨tŸu£–vwxy˜z‘"
+char znaky[]="0123456789Aï¿½BCï¿½Dï¿½Eï¿½ï¿½FGHIï¿½JKLï¿½ï¿½MNï¿½Oï¿½PQRï¿½Sï¿½Tï¿½Uï¿½ï¿½VWXYï¿½Zï¿½"
+             "aï¿½bcï¿½dï¿½eï¿½ï¿½fghiï¿½jklï¿½ï¿½mnï¿½oï¿½pqrï¿½sï¿½tï¿½uï¿½ï¿½vwxyï¿½zï¿½"
              "~!@#$%^&*()_+|-=\\[]{};':,./<>?";
 
 void load_font_pic(char *filename)

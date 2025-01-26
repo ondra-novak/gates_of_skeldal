@@ -1,4 +1,4 @@
-#include <skeldal_win.h>
+#include <platform.h>
 #include "types.h"
 //#include <vesa.h>
 //#include <dpmi.h>
@@ -13,9 +13,6 @@
 
 word *screen;
 word curcolor,charcolors[7] = {0x0000,RGB555(0,31,0),RGB555(0,28,0),RGB555(0,24,0),RGB555(0,20,0),0x0000,0x0000};
-int32_t scr_linelen;
-int32_t scr_linelen2;
-int32_t dx_linelen;
 word *curfont,*writepos,writeposx;
 byte fontdsize=0;
 byte *palmem=NULL,*xlatmem=NULL;
@@ -302,7 +299,6 @@ int initmode_dx(char inwindow, char zoom, char monitor, int refresh)
   if (!DXInit64(inwindow,zoom,monitor,refresh)) return -1;
   showview=showview_dx;
   screenstate=1;
-  scr_linelen2=scr_linelen/2;
   return 0;
   }
 
@@ -659,10 +655,10 @@ void set_aligned_position(int x,int y,char alignx,char aligny,char *text)
 void rectangle(int x1,int y1,int x2,int y2,int color)
   {
   curcolor=color;
-  hor_line(x1,y1,x2);
-  hor_line(x1,y2,x2);
-  ver_line(x1,y1,y2);
-  ver_line(x2,y1,y2);
+  hor_line32(x1,y1,x2);
+  hor_line32(x1,y2,x2);
+  ver_line32(x1,y1,y2);
+  ver_line32(x2,y1,y2);
   }
 
 void *create_special_palette()

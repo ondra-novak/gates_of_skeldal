@@ -1,3 +1,5 @@
+#include <cstdarg>
+#include <cstdio>
 #include <map>
 #include <string>
 #include <string_view>
@@ -13,6 +15,8 @@ typedef struct _temp_storage_file_wr {
 
 typedef struct _temp_storage_file_rd {
     std::basic_string_view<uint8_t> _data;
+    int skp = 0;
+    int scan_ret = 0;
 } TMPFILE_RD;
 
 using FileSystem = std::map<std::string, std::vector<uint8_t>, std::less<> >;
@@ -93,4 +97,39 @@ void temp_storage_skip(TMPFILE_RD *f, int bytes) {
     auto &d = f->_data;
     auto p = d.substr(0,bytes);
     d = d.substr(p.size());
+}
+
+void temp_storage_delete(const char *name) {
+    temp_fsystem.erase(std::string(name));
+}
+
+
+int temp_storage_getc(TMPFILE_RD *f) {
+    if (f->_data.empty()) return -1;
+    int r = f->_data[0];
+    f->_data = f->_data.substr(1);
+    return r;
+}
+
+void temp_storage_internal_begin_scanf(TMPFILE_RD *f, const char *format, ...) {
+    if (f->_data.empty()) {
+        f->scan_ret = -1;
+    }
+    va_list lst;
+    va_start(lst, format);
+    f->scan_ret =  vsscanf(reinterpret_cast<const char *>(f->_data.data()), format, lst);
+    va_end(lst);
+}
+
+int *temp_storage_internal_skip_ptr(TMPFILE_RD *f) {
+    return &f->skp;
+}
+
+int temp_storage_internal_end_scanf(TMPFILE_RD *f) {
+    temp_storage_skip(f, f->skp);
+    return f->scan_ret;
+}
+
+void temp_storage_ungetc(TMPFILE_RD *f) {
+    f->_data = std::basic_string_view<uint8_t>(f->_data.data()-1, f->_data.size()+1);
 }

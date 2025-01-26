@@ -4,7 +4,7 @@
 
 #define WIDTH 640
 #define HEIGHT 480
-
+#define PITCH 1024  // Pro optimalizaci paměti (pitch může být širší než WIDTH)
 
 int main(int argc, char *argv[]) {
     // Inicializace SDL
@@ -14,14 +14,14 @@ int main(int argc, char *argv[]) {
     }
 
     // Vytvoření SDL okna
-    SDL_Window *window = SDL_CreateWindow("DOS Game Port", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, WIDTH, HEIGHT, 0);
+    SDL_Window *window = SDL_CreateWindow("DOS Game Port", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, WIDTH, HEIGHT, SDL_WINDOW_RESIZABLE);
     if (!window) {
         fprintf(stderr, "Chyba při vytváření okna: %s\n", SDL_GetError());
         SDL_Quit();
         return 1;
     }
 
-    // Vytvoření rendereru (pouze pro zobrazení)
+    // Vytvoření SDL rendereru
     SDL_Renderer *renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED);
     if (!renderer) {
         fprintf(stderr, "Chyba při vytváření rendereru: %s\n", SDL_GetError());
@@ -30,9 +30,9 @@ int main(int argc, char *argv[]) {
         return 1;
     }
 
-    // Vytvoření SDL Surface (backbuffer)
-    SDL_Texture *texture = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_RGB565,SDL_TEXTUREACCESS_STREAMING, WIDTH, HEIGHT);
-    if (!texture) {
+    // Vytvoření softwarového backbufferu (surface)
+    SDL_Surface *backbuffer = SDL_CreateRGBSurfaceWithFormat(0, PITCH, HEIGHT, 16, SDL_PIXELFORMAT_RGB565);
+    if (!backbuffer) {
         fprintf(stderr, "Chyba při vytváření surface: %s\n", SDL_GetError());
         SDL_DestroyRenderer(renderer);
         SDL_DestroyWindow(window);
@@ -40,31 +40,56 @@ int main(int argc, char *argv[]) {
         return 1;
     }
 
-    void *raw_pixels;
-    int pitch;
-    SDL_LockTexture(texture, NULL, &raw_pixels, &pitch);
-    // Přímý přístup do paměti surface
-    Uint16 *pixels = reinterpret_cast<Uint16 *>(raw_pixels);
-    printf("Adresa pixelů: %p, pitch: %d bajtů\n", (void *)pixels, pitch);
-
-    // Software rendering - příklad kreslení do paměti
-    for (int y = 0; y < HEIGHT; y++) {
-        for (int x = 0; x < WIDTH; x++) {
-            Uint16 color = (x ^ y) & 0xFFFF; // Příklad barvy
-            pixels[y * (pitch / 2) + x] = color; // Zápis pixelu
-        }
+    // Vytvoření textury pro zobrazení backbufferu
+    SDL_Texture *texture = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_RGB565, SDL_TEXTUREACCESS_STREAMING, WIDTH, HEIGHT);
+    if (!texture) {
+        fprintf(stderr, "Chyba při vytváření textury: %s\n", SDL_GetError());
+        SDL_FreeSurface(backbuffer);
+        SDL_DestroyRenderer(renderer);
+        SDL_DestroyWindow(window);
+        SDL_Quit();
+        return 1;
     }
 
-    SDL_UnlockTexture(texture);
+    // Hlavní smyčka
+    int running = 1;
+    int frame = 0;
+    while (running) {
+        frame++;
+        SDL_Event event;
+        while (SDL_PollEvent(&event)) {
+            if (event.type == SDL_QUIT) {
+                running = 0;
+            }
+        }
 
-    SDL_RenderClear(renderer);
-    SDL_RenderCopy(renderer, texture, NULL, NULL);
-    SDL_RenderPresent(renderer);
+        // Přímý přístup do paměti backbufferu
+        Uint16 *pixels = (Uint16 *)backbuffer->pixels;
+        int pitch = backbuffer->pitch / 2; // Pitch v počtu pixelů (ne bajtů)
 
-    SDL_Delay(3000); // Zobrazení okna na 3 sekundy
+        // Software rendering - příklad (čtení a zápis do backbufferu)
+        for (int y = 0; y < HEIGHT; y++) {
+            for (int x = 0; x < WIDTH; x++) {
+                Uint16 color = (x ^ y ^ frame) & 0xFFFF; // Vzor barvy (testovací)
+                pixels[y * pitch + x] = color;   // Zápis pixelu
+            }
+        }
+
+        // Kopírování backbufferu do textury
+        SDL_UpdateTexture(texture, NULL, backbuffer->pixels, backbuffer->pitch);
+
+        // Vykreslení textury na obrazovku
+        SDL_RenderClear(renderer);
+        SDL_RenderCopy(renderer, texture, NULL, NULL);
+        SDL_RenderPresent(renderer);
+
+        // Zpoždění pro demonstraci (30 FPS)
+        SDL_Delay(1000 / 30);
+    }
 
     // Uvolnění zdrojů
     SDL_DestroyTexture(texture);
+    SDL_FreeSurface(backbuffer);
     SDL_DestroyRenderer(renderer);
     SDL_DestroyWindow(window);
     SDL_Quit();

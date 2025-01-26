@@ -1,4 +1,4 @@
-#include <skeldal_win.h>
+#include <platform.h>
 #include "strlite.c"
 
 #include "devices.h"
@@ -100,7 +100,7 @@ void string_list_draw(int x1,int y1,int x2,int y2,OBJREC *o)
   xs=x2-x1;ys=y2-y1;
   p=o->userptr;
   ls=p->list;
-  bar(x1,y1,x2,y2);
+  bar32(x1,y1,x2,y2);
   y=y1;p->maxitems=str_count(ls);
   for(j=p->maxitems-1;j>=0;j--) if (ls[j]!=NULL) break;
   j++;
@@ -124,7 +124,7 @@ void string_list_draw(int x1,int y1,int x2,int y2,OBJREC *o)
           if (i==*(int *)(o->data))
           {
             curcolor=p->selcolor;
-            bar(x1,y,x2,y+znh-1);
+            bar32(x1,y,x2,y+znh-1);
           }
           position(x1,y);
           for(j=0,x=x1,savech[0]=c[j];
@@ -145,7 +145,7 @@ void string_list_draw(int x1,int y1,int x2,int y2,OBJREC *o)
         int dif=y2-(y+znh);
         p->topline-=(dif*2/3)/znh+1;
         curcolor=savcolor;
-        bar(x1,y1,x2,y2);
+        bar32(x1,y1,x2,y2);
       }
     }
     while (p->topline && y+2*znh<y2 && znh);

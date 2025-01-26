@@ -1,4 +1,4 @@
-#include <skeldal_win.h>
+#include <platform.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <malloc.h>
@@ -160,6 +160,7 @@ static void dialog_anim(va_list args)
   char hid;
   int spdc=0,cntr=rep,tm,tm2;
 
+  int32_t scr_linelen2 = GetScreenPitch();
   loc_anim_render_buffer=PIC_Y*scr_linelen2+PIC_X;
   mgif_install_proc(animace_kouzla);
   concat(ch,pathtable[SR_DIALOGS],block);
@@ -1125,7 +1126,7 @@ static void dark_screen(int time,int gtime)
   THUMAN *h;
   i=get_timer_value()+time*50;
   curcolor=0;
-  bar(0,17,639,377);
+  bar32(0,17,639,377);
   showview(0,0,0,0);
   while (get_timer_value()<i) do_events();
   game_time+=gtime*HODINA;
@@ -1298,6 +1299,7 @@ static void create_back_pic()
   {
   int skpx=4,skpy=5,xp,yp;
   word *p,*s=GetScreenAdr()+SCREEN_OFFSET,*s2;
+  int32_t scr_linelen2 = GetScreenPitch();
 
   schovej_mysku();
   p=back_pic=NewArr(word,3+340*200);
@@ -1324,7 +1326,7 @@ void call_dialog(int entr,int mob)
   void (*old_wire_proc)()=wire_proc;
   curcolor=0;
   create_back_pic();
-  bar(0,SCREEN_OFFLINE,639,SCREEN_OFFLINE+359);
+  bar32(0,SCREEN_OFFLINE,639,SCREEN_OFFLINE+359);
   SEND_LOG("(DIALOGS) Starting dialog...",0,0);
   for(i=0;i<POCET_POSTAV;i++) if (isdemon(postavy+i)) unaffect_demon(i);
   mute_all_tracks(0);

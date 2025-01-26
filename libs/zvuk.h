@@ -27,7 +27,6 @@ char start_mixing();
 void stop_mixing();
 void play_sample(int channel,void *sample,int32_t size,int32_t lstart,int32_t sfreq,int type);
 void set_channel_volume(int channel,int left,int right);
-void init_winamp_plugins(const char *path);
 void set_end_of_song_callback(const char * (*cb)(void *), void *ctx);
 
 void fade_music();

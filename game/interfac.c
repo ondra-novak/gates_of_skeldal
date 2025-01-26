@@ -1,4 +1,4 @@
-#include <skeldal_win.h>
+#include <platform.h>
 #include <bios.h>
 #include <stdlib.h>
 #include <string.h>
@@ -42,6 +42,8 @@ void create_frame(int x,int y,int xs,int ys,char clear)
    word *line;
    word *col;
    int i;
+   int32_t scr_linelen2 = GetScreenPitch();
+
 
    x-=VEL_RAMEC;
    y-=VEL_RAMEC;
@@ -75,7 +77,7 @@ void create_frame(int x,int y,int xs,int ys,char clear)
      x+=VEL_RAMEC;y+=VEL_RAMEC;
      xs=(xs-1)*VEL_RAMEC;
      ys=(ys-1)*VEL_RAMEC;
-     bar(x,y,x+xs-1,y+ys-1);
+     bar32(x,y,x+xs-1,y+ys-1);
      }
   }
 
@@ -650,13 +652,13 @@ static void radio_butts_draw(int x1,int y1,int x2,int y2,OBJREC *o)
         {
         int xx1=x1+2,yy1=y1+1,xx2=x1+size-2,yy2=y1+size-3,xxs=(xx1+xx2)>>1,yys=(yy1+yy2)>>1;
         curcolor=0x0;
-        line(xx2+1,yy1+2,xxs+2,yy2+2);
-        line(xx1+1,yys+2,xxs+1,yy2+2);
+        line32(xx2+1,yy1+2,xxs+2,yy2+2);
+        line32(xx1+1,yys+2,xxs+1,yy2+2);
         curcolor=RGB555(31,31,31);
-        line(xx2,yy1+1,xxs+1,yy2+1);
-        line(xx1,yys+1,xxs,yy2+1);
-        line(xx2,yy1,xxs+1,yy2);
-        line(xx1,yys,xxs,yy2);
+        line32(xx2,yy1+1,xxs+1,yy2+1);
+        line32(xx1,yys+1,xxs,yy2+1);
+        line32(xx2,yy1,xxs+1,yy2);
+        line32(xx1,yys,xxs,yy2);
         }
      draw_border(x1+1,y1+1,size-2,size-2,clt);
      if (*params)
@@ -908,6 +910,7 @@ static void skeldal_checkbox_draw(int x1,int y1,int x2,int y2,OBJREC *o)
   word *obr;
   char *data;
   int phase;
+  int32_t scr_linelen2 = GetScreenPitch();
 
   y2,x2;
   data=(char *)o->data;
@@ -1321,68 +1324,45 @@ char *find_map_path(char *filename)
 	return p;
 	}
 
-FILE *enc_open(char *filename,ENCFILE *fil)
+static char *load_file_to_string(FILE *f, int *size) {
+    fseek(f,0, SEEK_END);
+    int sz = ftell(f);
+    fseek(f, 0 , SEEK_SET);
+    char *c = getmem(sz+1);
+    fread(c,1,sz,f);
+    *size = sz;
+    c[sz] = 0;
+    return c;
+}
+
+char *enc_open(char *filename)
   {
   FILE *f,*g;
   char *c,*d,*enc,*temp;
   int i,j,last=0;
+  int size;
 
   f=fopen(filename,"r");
-  if (f!=NULL)
-    {
-    fil->f=f;
-    fil->to_delete=NULL;
-    return f;
-    }
+  if (f!=NULL) {
+      char *c = load_file_to_string(f, &size);
+      fclose(f);
+      return c;
+  }
+
   enc=alloca(strlen(filename)+5);
   strcpy(enc,filename);
   c=strrchr(enc,'.');
   if (c==NULL) c=strchr(enc,0);
   strcpy(c,".ENC");
   f=fopen(enc,"rb");
-  if (f==NULL)
-    {
-    fil->f=NULL;
-    fil->to_delete=NULL;
-    return NULL;
-    }
-  d=strrchr(enc,'\\');if(d==NULL)d=enc;else d++;
-  temp=malloc((i=strlen(pathtable[SR_TEMP]))+strlen(d)+1);
-  strcpy(temp,pathtable[SR_TEMP]);
-  strcat(temp,d);
-  d=temp+i;
-  d=strrchr(d,'.');
-  strcpy(d,".dec");
-  g=fopen(temp,"wb");
-  if (g==NULL)
-    {
-    free(temp);
-    fclose(f);
-    fil->f=NULL;
-    fil->to_delete=NULL;
-    return NULL;
-    }
-  i=getc(f);
-  while (i!=EOF)
-    {
-    j=(last+i) & 0xff;
-    last=j;
-    putc(j,g);
-    i=getc(f);
-    }
+  if (f==NULL) return NULL;
+  char *encdata = load_file_to_string(f, &size);
   fclose(f);
-  fclose(g);
-  f=fopen(temp,"r");
-  if (f==NULL)
-    {
-    free(temp);
-    fil->f=NULL;
-    fil->to_delete=NULL;
-    return NULL;
-    }
-  fil->f=f;
-  fil->to_delete=temp;
-  return f;
+  for (int i = 0; i < size; ++i) {
+      last = (last + encdata[i]) & 0xFF;
+      encdata[i] = last;
+  }
+  return encdata;
   }
 
 void enc_close(ENCFILE *fil)
@@ -1397,10 +1377,41 @@ void enc_close(ENCFILE *fil)
 
 int load_string_list_ex(TSTR_LIST *list,char *filename)
   {
+    char *data = enc_open(filename);
+    if (data == NULL) return -1;
+
+    if (*list==NULL) *list=create_list(256);
+    char *d = data;
+    do {
+        while (*d && isspace(d)) ++d;
+        if (!*d) break;
+        if (*d && *d == ';') {
+            while (*d && *d != '\n') ++d;
+        } else {
+            int idx = 0;
+            int m = 1;
+            if (*d == '-') {m = -1;++d;}
+            while (*d >= '0' && *d <='9') {
+                idx = idx*10+(*d-'0');
+                ++d;
+            }
+            if (idx == -1) break;
+            while (*d && isspace(d)) ++d;
+            char *b = d;
+            while (*d && *d != '\n' && *d != '\r') ++d;
+            if (*d) {*d = 0;++d;}
+            str_replace(list, idx, b);
+        }
+    } while (1);
+    free(data);
+  }
+    /*
   char c[1024],*p;
   int i,j,lin=0;
   FILE *f;
   ENCFILE fl;
+
+
 
   f=enc_open(filename,&fl);
   if (*list==NULL) *list=create_list(256);
@@ -1447,6 +1458,7 @@ int load_string_list_ex(TSTR_LIST *list,char *filename)
   enc_close(&fl);
   return 0;
   }
+  */
 
 //------------------------------------------------------------
 int smlouvat_nakup(int cena,int ponuka,int posledni,int puvod,int pocet)
@@ -1508,7 +1520,7 @@ int smlouvat(int cena,int puvod,int pocet,int money,char mode)
   cena,puvod,pocet,money;text[0]=0;text[1]=0;
   add_window(170,130,300,150,H_IDESKA,3,20,20);
   define(-1,10,15,1,1,0,label,texty[241]);
-  set_font(H_FBOLD,RGB555(31,31,31));define(-1,150,15,100,13,0,label,itoa(cena,buffer,10));
+  set_font(H_FBOLD,RGB555(31,31,31));define(-1,150,15,100,13,0,label,int2ascii(cena,buffer,10));
   set_font(H_FBOLD,MSG_COLOR1);
   define(-1,10,30,1,1,0,label,texty[238]);
   define(10,150,30,100,13,0,input_line,8);property(def_border(5,BAR_COLOR),NULL,NULL,0);set_default("");
@@ -1579,7 +1591,7 @@ void show_jrc_logo(char *filename)
   int cntr,cdiff,cpalf,ccc;
 
   change_music("?");
-  curcolor=0;bar(0,0,639,479);
+  curcolor=0;bar32(0,0,639,479);
   showview(0,0,0,0);sleep_ms(1000);
   concat(s,pathtable[SR_VIDEO],filename);
   if (open_pcx(s,A_8BIT,&pcx)) return;
@@ -1628,7 +1640,7 @@ void show_jrc_logo(char *filename)
     mix_back_sound(0);
     }
   while (cdiff<SHOWDELAY && !_bios_keybrd(_KEYBRD_READY));
-  curcolor=0;bar(0,0,639,479);
+  curcolor=0;bar32(0,0,639,479);
   showview(0,0,0,0);
   free(pcx);
   }
