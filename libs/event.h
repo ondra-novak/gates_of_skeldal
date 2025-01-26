@@ -124,7 +124,7 @@ static __inline void shift_message(EVENT_MSG *msg) {
 void do_events();
 void escape();
 
-#include <FCS_Tasker.h>
+#include <legacy_coroutines.h>
 /*
 void *task_sleep(void *param);
 //#pragma aux task_sleep parm [eax] value [eax]
@@ -142,18 +142,6 @@ char is_running(int id_num);
 */
 void timer(EVENT_MSG *msg);
 
-#define EVENT_PROC(name) void name(EVENT_MSG *msg,void **user_ptr)
-#define WHEN_MSG(msg_num) if (msg->msg==msg_num)
-#define UNTIL_MSG(msg_num) if (msg->msg!=msg_num)
-#define GET_DATA(data_type) (va_arg(msg->data, data_type))
-#define GET_DATA_PTR(data_type) (va_arg(msg->data, data_type *))
-#define GET_USER(data_type) (*(data_type *)user_ptr)
-#define SAVE_USER_PTR(p) (*user_ptr=p)
-#define GET_USER_PTR() user_ptr
-#define EVENT_RETURN(value) msg->msg=value
-#define GET_MSG_VAR() msg
-#define GET_MSG() msg->msg
-#define TASK_GET_TERMINATE() ((task_info[cur_task] & TASK_TERMINATING)!=0)
 
 #define EVENT_HALT -1
 #define EVENT_DONE -2

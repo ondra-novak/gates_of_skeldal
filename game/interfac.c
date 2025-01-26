@@ -232,23 +232,30 @@ void open_message_win(int pocet_textu,char **texts)
 
 static char default_action,cancel_action;
 
-EVENT_PROC(message_keyboard)
+void message_keyboard(EVENT_MSG *msg,void **user_ptr)
   {
-  switch(GET_MSG())
+    char *c;
+    char *d;
+  switch(msg->msg)
      {
-     case E_INIT:SAVE_USER_PTR(NewArr(char,strlen(GET_DATA(char *))+1));
-                 strcpy(GET_USER(char *),GET_DATA(char *));
-                 break;
-     case E_DONE:free(*GET_USER_PTR());
-                 SAVE_USER_PTR(NULL);
+     case E_INIT:
+         c = va_arg(msg->data, char *);
+         d = NewArr(char, strlen(c)+1);
+         strcpy(d, c);
+         *user_ptr = d;
+         break;
+
+     case E_DONE:c = *user_ptr;
+                 free(c);
+                 user_ptr = NULL;
                  break;
      case E_KEYBOARD:
                  {
-                 char *keys=GET_USER(char *);
+                 char *keys=*(char **)(user_ptr);
                  char code,*p;
                  int key;
 
-                 code=GET_DATA(char);
+                 code=va_arg(msg->data, int);
                  if (code==0) return;
                  code=toupper(code);
                  if (code==13) key=default_action;
@@ -383,7 +390,7 @@ void type_text_v2(va_list args)
   short *back_pic;
   int i;
 
-  task_sleep(NULL);
+  task_sleep();
   schovej_mysku();
   set_font(font,color);
   xs=max_size+text_width("_");
@@ -410,7 +417,10 @@ void type_text_v2(va_list args)
      position(px+x,y+3);outtext("_");
      ukaz_mysku();
      showview(x,y,xs,ys);
-     znak=*(word *)task_wait_event(E_KEYBOARD); //proces bude cekat na klavesu
+
+     EVENT_MSG *ev= task_wait_event(E_KEYBOARD); //proces bude cekat na klavesu
+     if (ev == NULL) return;
+     znak=va_arg(ev->data, int);
      schovej_mysku();
      if (task_quitmsg()==1) znak=27;
      switch(znak & 0xff)
@@ -968,7 +978,7 @@ void skeldal_checkbox(OBJREC *o)
 static void setup_button_init(OBJREC *o,va_list params)
   {
   void **d;
-  char title = va_arg(params, char *);
+  char *title = va_arg(params, char *);
   d=NewArr(void *,2);
   d[0]=NewArr(char,strlen(title)+1);
   strcpy(d[0],title);

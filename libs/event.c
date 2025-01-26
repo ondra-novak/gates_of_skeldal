@@ -430,11 +430,10 @@ void timer(EVENT_MSG *msg)
      }
   }
 
-void tasker(EVENT_MSG *msg,void **data)
+void tasker(EVENT_MSG *msg,void **)
   {
 
 
-  data;
   switch (msg->msg)
      {
      case E_INIT:
@@ -449,22 +448,22 @@ void tasker(EVENT_MSG *msg,void **data)
      case E_IDLE:
      default:
            if (q_any_task()>=1)
-              task_sleep(NULL);
+              task_sleep();
            break;
      case E_DONE:
            {
-           int i;
+/*           int i;
            memset(task_info,1,taskcount);
            do
               {
               for (i=1;i<taskcount;i++)
                  if (tasklist_sp[i]!=NULL) break;
-              if (i!=taskcount) task_sleep(NULL);
+              if (i!=taskcount) task_sleep();
               }
            while (i<taskcount);
            free(tasklist_sp);
            free(tasklist_low);
-           free(task_info);
+           free(task_info);*/
            }
            break;
      }
@@ -505,7 +504,7 @@ static char do_events_called=0;
 void do_events()
   {
   do_events_called=1;
-  if (!q_is_mastertask()) task_sleep(NULL);
+  if (!q_is_mastertask()) task_sleep();
   else
      {
      send_message(E_WATCH);
@@ -662,6 +661,6 @@ void shut_down_task(int id_num)
   {
   if (!curtask) return NULL;
   suspend_task(curtask,event_number);
-  return task_sleep(NULL);
+  return task_sleep();
   }
 */

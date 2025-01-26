@@ -280,7 +280,7 @@ static void preload_anim(va_list args)
   for(i=0;i<30;i+=2)
      {
      apreload(H_ANIM+i);
-     task_sleep(NULL);
+     task_sleep();
      }
   for(i=1;i<30;i+=2)
      {
@@ -293,12 +293,12 @@ static void preload_anim(va_list args)
         break;
         }
      apreload(H_ANIM+i);
-     task_sleep(NULL);
+     task_sleep();
      }
   for(i=0;i<5;i++)
      {
      apreload(H_MENU_ANIM+i);
-     task_sleep(NULL);
+     task_sleep();
      }
   apreload(H_MENU_MASK);
   task_wait_event(E_TIMER);
@@ -334,11 +334,10 @@ int enter_menu(char open)
   init_menu_entries();
   add_task(2048,preload_anim);
   load_ok=0;
-  while(!load_ok) task_sleep(NULL);
+  while(!load_ok) task_sleep();
   if (!open)
     {
-    play_next_music(&d);
-    change_music(d);
+    change_music(get_next_music_from_playlist());
     }
   update_mysky();
   schovej_mysku();
@@ -352,8 +351,8 @@ int enter_menu(char open)
   send_message(E_ADD,E_KEYBOARD,klavesnice);
   ms_last_event.event_type=0x1;
   send_message(E_MOUSE,&ms_last_event);
-  d=task_wait_event(E_MENU_SELECT);
-  c=*d;
+  EVENT_MSG *ev = task_wait_event(E_MENU_SELECT);
+  c=va_arg(ev->data, int);
   disable_click_map();
   send_message(E_DONE,E_KEYBOARD,klavesnice);
   cur_dir[c]=UNSELECT;
@@ -599,10 +598,9 @@ void konec_hry()
   bar(0,0,639,479);
   effect_show(NULL);
   create_playlist(texty[205]);
-  play_next_music(&d);
-  change_music(d);
+  change_music(get_next_music_from_playlist());
   timer=get_timer_value();
-  while (get_timer_value()-timer<150) task_sleep(NULL);
+  while (get_timer_value()-timer<150) task_sleep();
   task_id=add_task(8196,titles,1,"ENDTEXT.TXT");
   task_wait_event(E_KEYBOARD);
   if (is_running(task_id)) term_task(task_id);
@@ -617,6 +615,6 @@ void konec_hry()
   ukaz_mysku();
   effect_show(NULL);
   timer=get_timer_value();
-  while (get_timer_value()-timer<150) task_sleep(NULL);
+  while (get_timer_value()-timer<150) task_sleep();
   }
 

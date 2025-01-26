@@ -1,4 +1,4 @@
-
+#include <stdint.h>
 
 ///store to temp storage
 void temp_storage_store(const char *name, const void *data, int32_t size);

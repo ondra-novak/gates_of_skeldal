@@ -1511,7 +1511,7 @@ void postavy_teleport_effect(int sector,int dir,int postava,char effect)
      while (running_anm) do_events();
      play_sample_at_channel(H_SND_TELEPIN,2,100);
      play_big_mgif_animation(H_TELEPORT);
-     while (!running_anm) task_sleep(NULL);
+     while (!running_anm) task_sleep();
      kolo=global_anim_counter;
      if (norefresh)
         {

@@ -222,7 +222,7 @@ static void play_anim(va_list args) //tasked animation
 void play_big_mgif_animation(int block)
   {
   add_task(2048,play_anim,block);
-  task_sleep(NULL);
+  task_sleep();
   }
 
 int get_spell_mana(int num)

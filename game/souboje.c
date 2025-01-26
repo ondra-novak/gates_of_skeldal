@@ -645,11 +645,10 @@ T_CLK_MAP clk_end_game[]=
   };
 
 
-EVENT_PROC(end_game_end_phase)
-  {
+void end_game_end_phase(EVENT_MSG *msg,void **)
+{
   static int wait=0;
-  WHEN_MSG(E_TIMER)
-   {
+  if (msg->msg == E_TIMER) {
    if (pass_zavora) return;
      if (wait==2)
      {
@@ -659,10 +658,10 @@ EVENT_PROC(end_game_end_phase)
      }
      else wait++;
    }
-  WHEN_MSG(E_INIT)
+  if (msg->msg == E_INIT) {
      wait=0;
-  user_ptr;
   }
+}
 
 void wire_end_game()
   {

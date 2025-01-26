@@ -495,17 +495,16 @@ static char *fly_text;
 static int fly_x,fly_y,fly_xs,fly_ys;
 static void *fly_background;
 
-EVENT_PROC(global_map_point)
+void global_map_point(EVENT_MSG *msg,void **)
   {
   MS_EVENT *ms;
 
-  user_ptr;
-  WHEN_MSG(E_INIT)
+  if(msg->msg == E_INIT)
      {
      fly_background=NULL;last_index=0;fly_text=NULL;
      fly_x=0;fly_y=0;fly_xs=4;fly_ys=4;
      }
-  WHEN_MSG(E_MOUSE)
+  if(msg->msg == E_MOUSE)
      {
      int x,y,i,xs,ys;
      char *ptr;
@@ -561,7 +560,7 @@ EVENT_PROC(global_map_point)
            trans_bar(x,y,xs,ys,0);
            position(x+2,y+2);outtext(fly_text);
            }
-        send_message(E_MOUSE,msg);
+        send_message(E_MOUSE,ms);
         ukaz_mysku();
         showview(fly_x,fly_y,fly_xs+1,fly_ys);
         showview(fly_x=x,fly_y=y,(fly_xs=xs)+1,fly_ys=ys);
@@ -582,7 +581,7 @@ EVENT_PROC(global_map_point)
 		 		msg->msg=-1;
 				}
      }
-  WHEN_MSG(E_DONE)
+  if (msg->msg == E_DONE)
      {
      free(fly_background);
      }

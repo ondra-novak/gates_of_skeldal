@@ -611,8 +611,7 @@ void macro_change_music(int textindex)
   char *nextTrack;
 
   create_playlist(trackdef);
-  play_next_music(&nextTrack);
-  change_music(nextTrack);
+  change_music(get_next_music_from_playlist());
 }
 
 void macro_register_global_event(TMULTI_ACTION *q)

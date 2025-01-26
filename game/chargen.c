@@ -24,7 +24,7 @@
 
 void display_items_wearing(THUMAN *h);
 void inv_display_vlastnosti();;
-extern void (*inv_redraw)();
+extern void (*inv_redraw)(char);
 void write_human_big_name(char *c);
 
 #define MSG_COLOR1 RGB555(30,30,23)
@@ -123,16 +123,16 @@ char *error_text=NULL;
 
 
 
-char select_xicht(int id,int xa,int ya,int xr,int yr);
-char vol_vlastnosti(int id,int xa,int ya,int xr,int yr);
-char go_next_page(int id,int xa,int ya,int xr,int yr);
+static char select_xicht(int id,int xa,int ya,int xr,int yr);
+static char vol_vlastnosti(int id,int xa,int ya,int xr,int yr);
+static char go_next_page(int id,int xa,int ya,int xr,int yr);
 char vls_click(int id,int xa,int ya,int xr,int yr);
-char view_another_click2(int id,int xa,int ya,int xr,int yr);
+static char view_another_click2(int id,int xa,int ya,int xr,int yr);
 //char edit_another_click(int id,int xa,int ya,int xr,int yr);
-char edit_another_click2(int id,int xa,int ya,int xr,int yr);
-char gen_exit_editor(int id,int xa,int ya,int xr,int yr);
+//static char edit_another_click2(int id,int xa,int ya,int xr,int yr);
+static char gen_exit_editor(int id,int xa,int ya,int xr,int yr);
 
-void zobraz_staty(T_VLASTS *st);
+static void zobraz_staty(T_VLASTS *st);
 
 #define CLK_PAGE1 6
 
@@ -513,9 +513,9 @@ static void edit_name()
 static void stop_edit_name()
   {
   shut_downing_text=1;send_message(E_KEYBOARD,13);
-  task_sleep(NULL);
+  task_sleep();
   if (edit_task>0 && is_running(edit_task))
-    shut_down_task(edit_task);
+    term_task(edit_task);
   shut_downing_text=0;
   }
 
@@ -623,7 +623,7 @@ void generuj_postavu(THUMAN *h)
   //postava je vygenerovana
   }
 
-static void redraw_page3()
+static void redraw_page3(char)
   {
   update_mysky();
   schovej_mysku();
@@ -639,7 +639,7 @@ static void redraw_page3()
   }
 
 
-static void redraw_svitek()
+static void redraw_svitek(char)
   {
   if (postavy[cur_edited].bonus==0)
      {
@@ -649,7 +649,7 @@ static void redraw_svitek()
      if (!postavy[charmax-1].used) mode&=~1;
      if (!del_mode) mode&=~4;
      b_disables=mode;
-     redraw_page3();
+     redraw_page3(0);
      return;
      }
   update_mysky();
@@ -694,13 +694,13 @@ static void empty_proc()
   {
   }
 
-char potvrzeno(char *text,void (*redraw)())
+char potvrzeno(char *text,void (*redraw)(char))
   {
   int i;
   unwire_proc=empty_proc;
   stop_edit_name();
   i=message(2,0,1,texty[118],text,texty[114],texty[115])==0;
-  redraw();
+  redraw(0);
   edit_name();
   return i;
   }
@@ -721,7 +721,7 @@ static char view_another_click2(int id,int xa,int ya,int xr,int yr)
   human_selected=postavy+id;
   cur_edited=id;
   edit_name();
-  redraw_page3();
+  redraw_page3(0);
   if (del_mode)
      if (potvrzeno(texty[117],redraw_page3))
      {
@@ -764,15 +764,14 @@ static void enter_reaction(EVENT_MSG *msg,void **unused)
      }
   }
 
-static void enter_reaction2(EVENT_MSG *msg,void **unused)
+static void enter_reaction2(EVENT_MSG *msg,void **)
   {
-  unused;
-  int c = va_arg(msg->data, int)
+  int c = va_arg(msg->data, int);
   if (msg->msg==E_KEYBOARD && c==13 && !shut_downing_text && ~b_disables & 0x3)
      {
      send_message(E_KEYBOARD,13);
      bott_draw(1);
-     redraw_page3();
+     redraw_page3(0);
      msg->msg=-1;
      }
   }
@@ -787,7 +786,7 @@ char gen_exit_editor(int id,int xa,int ya,int xr,int yr)
       del_mode=0;
       mouse_set_default(H_MS_DEFAULT);
       b_disables&=~0x4;
-      redraw_svitek();
+      redraw_svitek(0);
       return 1;
      }
   unwire_proc=empty_proc;
@@ -799,7 +798,7 @@ char gen_exit_editor(int id,int xa,int ya,int xr,int yr)
   else
      {
      if (id==2)redraw_generator(1);
-     else redraw_svitek();
+     else redraw_svitek(0);
      edit_name();
      }
   return 1;
@@ -841,7 +840,8 @@ char enter_generator()
      do
        {
        send_message(E_ADD,E_KEYBOARD,enter_reaction);
-       i=*(char *)task_wait_event(E_CLOSE_GEN);
+       EVENT_MSG *ev= task_wait_event(E_CLOSE_GEN);;
+       i=va_arg(ev->data, int);
        send_message(E_DONE,E_KEYBOARD,enter_reaction);
        if (i==3 && potvrzeno(texty[116],redraw_generator)) goto znova;
        if (i==255) return 1;
@@ -857,12 +857,13 @@ char enter_generator()
      b_disables=0x7;
      do
        {
-       redraw_svitek();
+       redraw_svitek(0);
        change_click_map(clk_page2,CLK_PAGE2);
        do
         {
         send_message(E_ADD,E_KEYBOARD,enter_reaction2);
-        i=*(char *)task_wait_event(E_CLOSE_GEN);
+        EVENT_MSG *ev= task_wait_event(E_CLOSE_GEN);;
+        i=va_arg(ev->data, int);
         send_message(E_DONE,E_KEYBOARD,enter_reaction2);
         if (i==3 && potvrzeno(texty[116],redraw_svitek)) goto znova;
         if (i==2)
@@ -870,7 +871,7 @@ char enter_generator()
            del_mode=1;
            mouse_set_default(H_MS_WHO);
            b_disables|=0x4;
-           redraw_svitek();
+           redraw_svitek(0);
            i=3;
            }
         }

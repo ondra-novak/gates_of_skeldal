@@ -78,12 +78,12 @@ static void change_turn()
 
 static void unwire_setup();
 
-static EVENT_PROC(setup_keyboard)
+static void setup_keyboard(EVENT_MSG *msg,void **)
   {
-  user_ptr;
-  WHEN_MSG(E_KEYBOARD)
+  if (msg->msg == E_KEYBOARD)
      {
-     if (GET_DATA(char)==27)
+      char c= va_arg(msg->data, int);
+     if (c==27)
         {
         unwire_proc();
         }

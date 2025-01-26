@@ -888,7 +888,7 @@ static void load_specific_file(int slot_num,char *filename,void **out,int32_t *s
   fread(fname,1,12,slot);
   while(fname[0] && !succes)
      {
-     task_sleep(NULL);
+     task_sleep();
      if (task_quitmsg()) break;
      fread(&siz,1,4,slot);
      if (!strncmp(fname,filename,12)) succes=1; else
@@ -1113,10 +1113,9 @@ char updown_scroll(int id,int xa,int ya,int xr,int yr);
 
 static char updown_noinst=0;
 
-static EVENT_PROC(updown_scroll_hold)
+static void updown_scroll_hold(EVENT_MSG *msg,void **)
   {
-  user_ptr;
-  WHEN_MSG(E_MOUSE)
+  if (msg->msg == E_MOUSE)
     {
     MS_EVENT *ms;
 
@@ -1128,7 +1127,7 @@ static EVENT_PROC(updown_scroll_hold)
       updown_noinst=0;
       }
     }
-  WHEN_MSG(E_TIMER)
+  if (msg->msg == E_TIMER)
     {
     MS_EVENT *ms;
 
@@ -1382,12 +1381,12 @@ T_CLK_MAP clk_save[]=
   {-1,0,0,639,479,close_saveload,9,H_MS_DEFAULT},
   };
 
-static EVENT_PROC(saveload_keyboard)
+static void saveload_keyboard(EVENT_MSG *msg,void **)
   {
-  user_ptr;
-  WHEN_MSG(E_KEYBOARD)
+  if (msg->msg == E_KEYBOARD)
      {
-     switch (GET_DATA(word)>>8)
+      int v = va_arg(msg->data, int);
+     switch (v>>8)
         {
         case 1:unwire_proc();wire_proc();break;
         case 'H':if (last_select>0) bright_slot((last_select-1)*SLOT_SPACE+1);break;

@@ -42,7 +42,7 @@ char *script_name;
 extern word ikones;
 extern word boldcz;
 extern word font8x5;
-word icone_color[7]={RGB555(8,8,8),RGB555(31,31,31),RGB555(0,0,15),RGB555(16,16,16),RGB555(0x1b,0x1b,0x1b)}; 
+word icone_color[7]={RGB555(8,8,8),RGB555(31,31,31),RGB555(0,0,15),RGB555(16,16,16),RGB555(0x1b,0x1b,0x1b)};
 extern word sipka;
 static char *error_texts[]=
      {
@@ -233,7 +233,7 @@ static word *p=NULL;
 
  const char *c=get_text_field(config_file,"MAPEDIT_WINDOW");
  int scale = 1;
- if (c != 0) 
+ if (c != 0)
  {
     int x,y;
     if (sscanf(c,"%dx%d",&x,&y) == 2 && x>=640 && y>=480)
@@ -301,7 +301,8 @@ static void key_test(va_list args)
   word c;
   do
      {
-     c=*(word *)task_wait_event(E_KEYBOARD);
+      EVENT_MSG *msg = task_wait_event(E_KEYBOARD);
+     c=va_arg(msg->data,unsigned int);
      }
   while ((c & 0xff)!='!');
   puts("\x7");
@@ -685,7 +686,7 @@ void load_background()
   {
   FILE *f;
   long siz;
-  
+
   if (gui_background!=NULL)
      {
      free(gui_background);
@@ -878,7 +879,7 @@ int main(int argc,char *argv[])
 	TSTR_LIST adv_cfg=read_config(filename);
 	config_file=merge_configs(config_file,adv_cfg);
 	filename[0]=0;
-  }  
+  }
   sample_path=get_text_field(config_file,"CESTA_ZVUKY");
   if (sample_path==NULL) sample_path="";
   mob_dir=get_text_field(config_file,"CESTA_ENEMY");
@@ -886,7 +887,7 @@ int main(int argc,char *argv[])
   init_sound();
   init();
 
-  concat(mask,get_text_field(config_file,"CESTA_MAPY"),"*.map");  
+  concat(mask,get_text_field(config_file,"CESTA_MAPY"),"*.map");
   atexit(shut_down);
 //  signal(SIGABRT,shut_down);
   init_mob_list();

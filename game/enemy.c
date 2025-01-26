@@ -142,12 +142,10 @@ int load_enemy_paths(TMPFILE_RD *f)
   return 0;
   }
 
-static EVENT_PROC(mob_reload)
-  {
+static void mob_reload(EVENT_MSG *msg,void **){
   static int counter=0;
 
-  user_ptr;
-  WHEN_MSG(E_KOUZLO_KOLO)
+  if (msg->msg = E_KOUZLO_KOLO)
      {
      if (insleep) return;
      if (counter++==10)

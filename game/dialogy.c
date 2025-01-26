@@ -170,7 +170,7 @@ static void dialog_anim(va_list args)
      anm=open_mgif(aptr);
      while (anm!=NULL && task_quitmsg())
        {
-       task_sleep(NULL);
+       task_sleep();
        if (!spdc)
           {
           if (ms_last_event.x<=PIC_X+320 && ms_last_event.y<=PIC_Y+180)

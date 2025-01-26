@@ -421,13 +421,15 @@ void create_playlist(char *playlist)
   playing_track=-1;
   }
 
-void play_next_music(char **c)
+const char * end_of_song_callback(void *ctx) {
+    return get_next_music_from_playlist();
+}
+const char *get_next_music_from_playlist()
   {
   int i,step;
   static char d[MAX_FILESYSTEM_PATH];
 
-  *c=NULL;
-  if (cur_playlist==NULL) return;
+  if (cur_playlist==NULL) return NULL;
   if (!remain_play)
      for(i=0;cur_playlist[i]!=NULL;remain_play++,i++) cur_playlist[i][0]=32;
   if (play_list_mode==PL_RANDOM)
@@ -444,11 +446,15 @@ void play_next_music(char **c)
   while (step);
   playing_track=i;
   snprintf(d,sizeof(d),"%s%s",pathtable[SR_MUSIC],cur_playlist[i]+1);
-  if (access(d,0) == -1)
+  if (access(d,0) == -1) {
       snprintf(d,sizeof(d),"%s%s",pathtable[SR_ORGMUSIC],cur_playlist[i]+1);
+      if (access(d,0) == -1) {
+          return NULL;
+      }
+  }
   cur_playlist[i][0]=33;
   remain_play--;
-  *c=d;
+  return d;
   }
 
 void purge_playlist()

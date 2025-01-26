@@ -1043,7 +1043,7 @@ SEND_LOG("(INIT) Mouse initialized.",0,0);
 SEND_LOG("(INIT) Loading mouse cursor.",0,0);
   mouse_set_default(H_MS_DEFAULT);
   ukaz_mysku();
-  konec_skladby=play_next_music;
+  set_end_of_song_callback(end_of_song_callback, NULL);
 SEND_LOG("(INIT) Loading spells.",0,0);
   kouzla_init();
 SEND_LOG("(INIT) Loading items.",0,0);
@@ -1143,7 +1143,10 @@ void enter_game()
   set_game_click_map();
   SEND_LOG("(GAME) --------- Waiting for E_CLOSE_MAP ------------\n",0,0);
   send_message(E_ADD,E_RELOADMAP,reload_map_handler);
-  end=*(int *)task_wait_event(E_CLOSE_MAP);
+  {
+      EVENT_MSG *msg = task_wait_event(E_CLOSE_MAP);
+      end = va_arg(msg->data, int);
+  }
   send_message(E_DONE,E_RELOADMAP,reload_map_handler);
   SEND_LOG("(GAME) --------- E_CLOSE_MAP triggered, leaving map------------\n",0,0);
   unwire_main_functs();
@@ -1522,10 +1525,9 @@ static void undef_menu()
   }
 
 
-static EVENT_PROC(load_error_report)
+static void load_error_report(EVENT_MSG *msg,void **)
   {
-  user_ptr;
-  WHEN_MSG(E_IDLE)
+  if (msg->msg == E_IDLE)
      {
      message(1,0,0,"",texty[79],texty[80]);
      exit_wait=0;
@@ -1551,7 +1553,10 @@ static void load_saved_game(void)
   wire_save_load(4);
   ukaz_mysku();
   update_mysky();
-  game=*((char *)task_wait_event(E_CLOSE_MAP));
+  {
+      EVENT_MSG *msg = task_wait_event(E_CLOSE_MAP);
+      game = va_arg(msg->data, int);
+  }
   unwire_proc();
   disable_click_map();
   task_wait_event(E_TIMER);
