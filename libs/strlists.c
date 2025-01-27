@@ -259,6 +259,7 @@ void string_list_event(EVENT_MSG *msg,OBJREC *o)
                   break;
            }
         }
+        break;
      case E_LOST_FOCUS:clicked=0;
      }
   }

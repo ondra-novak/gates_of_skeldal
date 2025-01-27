@@ -526,7 +526,7 @@ _inline unsigned char rotate(unsigned char c)
 int pack_status_file(FILE *f,const char *status_name)
   {
   char rcheck=0;
-  uint32_t fsz;
+  int32_t fsz;
   char *buffer,*c;
   unsigned char name_len;
 

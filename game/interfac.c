@@ -351,6 +351,9 @@ void type_text(EVENT_MSG *msg,void **data)
            {
            case 8:if (index) index--; text[index]='_';text[index+1]=0;break;
            case 13:text[index]=0;strcpy(source,text);
+                   send_message(E_DONE,E_MOUSE,type_text);
+                   send_message(E_DONE,E_KEYBOARD,type_text);
+                   break;
            case 27:send_message(E_DONE,E_MOUSE,type_text);
                    send_message(E_DONE,E_KEYBOARD,type_text);
                    return;
@@ -441,6 +444,8 @@ void type_text_v2(va_list args)
               break;
         case 13:strcpy(text_buffer,text);
                  ok=1;
+                 wait_loop=0;
+                 break;
         case 27:wait_loop=0;
                 break;
         case 0:switch(znak>>8)
@@ -1610,8 +1615,13 @@ void show_jrc_logo(char *filename)
         palw[i]=b | (r<<11) | (g<<6);
         }
       }
-    if (!bnk) wait_retrace();put_picture(xp,yp,pcx);
-    if (bnk) {wait_retrace();showview(xp,yp,pcxw[0],pcxw[1]);}
+        if (!bnk)
+            wait_retrace();
+        put_picture(xp, yp, pcx);
+        if (bnk) {
+            wait_retrace();
+            showview(xp, yp, pcxw[0], pcxw[1]);
+        }
     ccc=cdiff;
     mix_back_sound(0);
     }

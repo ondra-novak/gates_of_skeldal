@@ -228,7 +228,8 @@ void chveni(int i)
   static int count=0;
 
   if (!count && !i) return;
-  if (i) count=i;count--;
+  if (i) count=i;
+  count--;
   if (!count) pos=0;
   wait_retrace();
   setvesa_displaystart(8*pos,0);
@@ -960,18 +961,22 @@ void draw_players(int sector,int dir,int celx,int cely)
            freep[f=p_place_table[d][j]]=i+1;
            }
         }
-     if (pp==1 && freep[f] & 1)
-        {pp=f+1&3;freep[pp]=freep[f];freep[f]=0;}
-     for(i=0;i<5;i++)
-        if ((j=freep[d=p_place_table[0][i]])!=0) {
-           if (postavy[j-1].lives)
-           {
-           set_font(H_FLITT5,barvy_skupin[postavy[j-1].groupnum]);
-           draw_player(ablock(H_POSTAVY+j-1),celx,cely,p_positions_x[d],p_positions_y[d],HUMAN_ADJUST,postavy[j-1].jmeno);
-           }
-        else
-           draw_player(ablock(H_KOSTRA),celx,cely,p_positions_x[d],p_positions_y[d]-32,HUMAN_ADJUST,NULL);
+        if (pp == 1 && freep[f] & 1) {
+            pp = (f + 1) & 3;
+            freep[pp] = freep[f];
+            freep[f] = 0;
         }
+        for (i = 0; i < 5; i++)
+            if ((j = freep[d = p_place_table[0][i]]) != 0) {
+                if (postavy[j - 1].lives) {
+                    set_font(H_FLITT5, barvy_skupin[postavy[j - 1].groupnum]);
+                    draw_player(ablock(H_POSTAVY + j - 1), celx, cely,
+                            p_positions_x[d], p_positions_y[d], HUMAN_ADJUST,
+                            postavy[j - 1].jmeno);
+                } else
+                    draw_player(ablock(H_KOSTRA), celx, cely, p_positions_x[d],
+                            p_positions_y[d] - 32, HUMAN_ADJUST, NULL);
+            }
 
 
      }

@@ -320,6 +320,9 @@ void put_picture(word x,word y,void *p)
   word xss=xs;
   word yss=ys;
 
+  if (x > DxGetResX() || y > DxGetResY()) return;
+
+
   if (x+xss>=DxGetResX()) xss=DxGetResX()-x;
   if (y+yss>=DxGetResY()) yss=DxGetResY()-y;
 
@@ -387,6 +390,7 @@ void get_picture(word x,word y,word xs,word ys,void *p)
   word *data=p;
   word xss=xs;
   word yss=ys;
+  if (x > DxGetResX() || y > DxGetResY()) return;
 
   if (x+xss>=DxGetResX()) xss=DxGetResX()-x;
   if (y+yss>=DxGetResY()) yss=DxGetResY()-y;

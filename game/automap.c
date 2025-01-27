@@ -248,7 +248,7 @@ void psani_poznamek_event(EVENT_MSG *msg,void **data)
         switch (c)
            {
            case 8:if (index) index--; text[index]=0;break;
-           case 27:strcpy(text,save);
+           case 27:strcpy(text,save);break;
            case 13:save_text_to_map(x,y,cur_depth,text);
                   send_message(E_DONE,E_MOUSE,psani_poznamek_event);msg->msg=-2;return;
            default:if (c>=32)
@@ -407,8 +407,10 @@ static void draw_amap_sector(int x,int y,int sector,int mode,int turn,int line1,
               case S_SCHODY:set_font(H_FSYMB,0x3e0);
                             memcpy(charcolors,stairs_colors,sizeof(stairs_colors));
                             print_symbol(x,y,'s');break;
-              case S_TELEPORT:for(i=0,sd=map_sides+sector*4;i<4 && ~sd->flags & SD_SEC_VIS;i++,sd++);
-                             if (i!=4) {set_font(H_FSYMB,0x3e0);print_symbol(x,y,'T');}break;
+              case S_TELEPORT:
+                  for(i=0,sd=map_sides+sector*4;i<4 && ~sd->flags & SD_SEC_VIS;i++,sd++) {}
+                  if (i!=4) {set_font(H_FSYMB,0x3e0);print_symbol(x,y,'T');}
+                  break;
               case S_DIRA:set_font(H_FSYMB,NOSHADOW(0));print_symbol(x,y,'N');break;
               }
            }

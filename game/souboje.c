@@ -1236,6 +1236,7 @@ void jadro_souboje(EVENT_MSG *msg,void **unused) //!!!! Jadro souboje
                              cislo_potvory=-2;
                              neco_v_pohybu=1;
                              }
+                             break;
                 case AC_STAND:pomala_regenerace_postavy(p);break;
                 case AC_RUN:utek_postavy(p);break;
                 case AC_MAGIC:
@@ -1845,7 +1846,7 @@ char mask_click(int id,int xa,int ya,int xr,int yr)
      souboje_stisknout(d);
      switch(d)
         {
-        case AC_RUN: postavy[select_player].utek=5+postavy[select_player].actions;
+        case AC_RUN: postavy[select_player].utek=5+postavy[select_player].actions;break;
         case AC_ATTACK:
         case AC_STAND:
         case AC_ARMOR:
@@ -1942,6 +1943,7 @@ void programming_keyboard(EVENT_MSG *msg,void **unused)
               break;
         case 0x17:unwire_proc();
                  wire_inv_mode(human_selected);
+                 break;
         case 82:group_all();break;
         CASE_KEY_1_6:c=group_sort[c-2];
                      if (postavy[c].used)
@@ -2112,7 +2114,7 @@ char zasah_veci(int sector,TFLY *fl)
                 mob_hit(m1,
                         vypocet_zasahu(it->zmeny, m1->vlastnosti, 1, fl->damage,
                                 fl->hit_bonus));
-                m1->dir = fl->smer + 2 & 3;
+                m1->dir = (fl->smer + 2) & 3;
             } else {
                 mob_hit(m1,
                         vypocet_zasahu(it->zmeny, m1->vlastnosti, 2, fl->damage,
@@ -2120,8 +2122,8 @@ char zasah_veci(int sector,TFLY *fl)
                 mob_hit(m2,
                         vypocet_zasahu(it->zmeny, m1->vlastnosti, 2, fl->damage,
                                 fl->hit_bonus));
-                m1->dir = fl->smer + 2 & 3;
-                m2->dir = fl->smer + 2 & 3;
+                m1->dir = (fl->smer + 2) & 3;
+                m2->dir = (fl->smer + 2) & 3;
             }
             return 1;
         }
@@ -2180,7 +2182,7 @@ char zasah_veci(int sector,TFLY *fl)
            for(i=0;i<MOBS_INV;i++) if (m1->inv[i]==0) { m1->inv[i]=it-glob_items+1;break;}
            if (i==MOBS_INV) fl->flags &=FLY_DESTROY;
            }
-     m1->dir=fl->smer+2&3;
+     m1->dir=(fl->smer+2)&3;
      return 1;
      }
   else if (map_coord[sector].flags & MC_PLAYER && (fl->owner<=0 || pocet_zivych(sector)>2))

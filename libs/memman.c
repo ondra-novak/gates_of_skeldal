@@ -275,7 +275,6 @@ void heap_error(size_t size) //heap system
   char repeat=0,did=0;
   THANDLE_DATA *lastblock=NULL;
   char *last_free=NULL;
-  int num;
   do
   {
   maxcounter=0;
@@ -295,14 +294,13 @@ void heap_error(size_t size) //heap system
               if (last_free!=NULL)
                  {
                  d=(char *)h->blockdata-last_free;
-                 if (d<max) sh=h,max=d,did=1,num=i*BK_MINOR_HANDLES+j;
+                 if (d<max) sh=h,max=d,did=1;
                  }
               else if (c>maxcounter)
                  {
                  maxcounter=c;
                  sh=h;
                  did=1;
-                 num=i*BK_MINOR_HANDLES+j;
                  }
            }
            }

@@ -104,7 +104,12 @@
 #define FLG_SCORE      0x80000 //zapnute ukazovani score nad potvorama.
 #define FLG_HALUCINACE 0x100000 // zapne halucinaci
 
-#define GET_WORD(c) *(word *)c;c+=2
+static inline word _impl_get_word(unsigned char **c) {
+    word r = (*c)[0] + 256* (*c)[1];
+    c+=2;
+    return r;
+}
+#define GET_WORD(c) _impl_get_word(&c)
 
 #define MAX_SPELLS 500
 
@@ -367,8 +372,8 @@ static void spell_vzplanuti2(THE_TIMER *tt)
   if (map_sides[(ss<<2)+du].flags & SD_PLAY_IMPS) return;
   ss1=ss2=ss=map_sectors[ss].step_next[du];
   if (ss==0) return;
-  dp=du+1&3;
-  dl=du+3&3;
+  dp=(du+1)&3;
+  dl=(du+3)&3;
   do
     {
     if (ss1!=0)
@@ -1090,7 +1095,7 @@ static void spell_summon(int cil)
      int i;
      stdir=rnd(4);
 
-     for(i=0;i<4;i++,stdir=stdir+1&3)
+     for(i=0;i<4;i++,stdir=(stdir+1)&3)
         if (!mob_check_next_sector(sector,stdir,mobs[slc].stay_strategy,0)) break;
      if (i==4)
         {
@@ -1100,7 +1105,7 @@ static void spell_summon(int cil)
      sector=map_sectors[sector].step_next[stdir];
      }
   mobs[slc].sector=sector;
-  if (cil>0) mobs[slc].dir=postavy[cil-1].direction+2&3;
+  if (cil>0) mobs[slc].dir=(postavy[cil-1].direction+2)&3;
   if (cil<0) mobs[slc].dir=mobs[-cil-1].dir;
   refresh_mob_map();
   }
@@ -1273,7 +1278,8 @@ void spell_special(int num,TKOUZLO *spl,int spc)
      case SP_PRIPOJENIA:spell_pripojenia(spl->owner);break;
      case SP_CHVENI:chveni(100);break;
      case SP_DEFAULT_EFFEKT:
-      if (spl->cil>0)display_spell_in_icone(H_SPELLDEF,1<<(spl->cil-1));break;
+                 if (spl->cil>0) display_spell_in_icone(H_SPELLDEF,1<<(spl->cil-1));
+                 break;
      case SP_TRUE_SEEING: true_seeing=1;_flag_map[num]|=FLG_TRUESEEING;break;
      case SP_SCORE:show_lives=1;_flag_map[num]|=FLG_SCORE;break;
      case SP_HALUCINACE:set_halucination=1;_flag_map[num]|=FLG_HALUCINACE;
@@ -1281,7 +1287,7 @@ void spell_special(int num,TKOUZLO *spl,int spc)
                        break;
      case SP_TELEPORT:if (hod_na_uspech(spl->cil,spl)) spell_teleport(spl->cil,spl->owner,spl->teleport_target);break;
      case SP_PHASEDOOR:if (hod_na_uspech(spl->cil,spl)) spell_teleport(spl->cil,spl->owner,-1);break;
-     case SP_SUMMON: spell_summon(spl->cil);
+     case SP_SUMMON: spell_summon(spl->cil); break;
      case SP_HLUBINA1:if (hlubina_level==0) hlubina_level=1;_flag_map[num]|=FLG_HLUBINA1;
                       break;
      case SP_HLUBINA2:hlubina_level=2;_flag_map[num]|=FLG_HLUBINA2;
@@ -1413,66 +1419,214 @@ void call_spell(int i)
   start = c;
   c+=p->start;
   twins=0;
-  do
-  switch (twins=twins==3?0:twins,*c++)
-     {
-     case S_zivel:p->pc=GET_WORD(c);
-	   if (p->owner>=0 && !GlobEvent(MAGLOB_ONFIREMAGIC+p->pc,postavy[p->owner].sektor,postavy[p->owner].direction))
-	   {
-		   spell_end(i,p->cil,p->owner);
-		   return;
-       }
-       break;
-     case S_hpnorm_min:parm1=GET_WORD(c);twins|=1;if (twins==3) spell_hit(p->cil,parm1,parm2,p->owner);break;
-     case S_hpnorm_max:parm2=GET_WORD(c);twins|=2;if (twins==3) spell_hit(p->cil,parm1,parm2,p->owner);break;
-     case S_hpzivl_min:parm1=GET_WORD(c);twins|=1;if (twins==3) spell_hit_zivel(p->cil,parm1,parm2,p->owner,p->pc);break;
-     case S_hpzivl_max:parm2=GET_WORD(c);twins|=2;if (twins==3) spell_hit_zivel(p->cil,parm1,parm2,p->owner,p->pc);break;
-     case S_vlastnost:parm1=GET_WORD(c);twins|=1;
-                      if (twins==3) if (hod_na_uspech(p->cil,p)) zmen_vlastnost(i,p->cil,parm1,parm2);break;
-     case S_vls_kolik:parm2=GET_WORD(c);twins|=2;
-                      if (twins==3) if (hod_na_uspech(p->cil,p)) zmen_vlastnost(i,p->cil,parm1,parm2);break;
-     case S_trvani:p->delay=GET_WORD(c);p->wait=0;ext=1;break;
-     case S_throw_item:z=GET_WORD(c);spell_throw(p->cil,z);break;
-     case S_create_item:z=GET_WORD(c);spell_create(p->cil,z);break;
-     case S_create_weapon:z=GET_WORD(c);spell_create_weapon(p->cil,z);break;
-     case S_animace:if (p->owner>=0 && !p->traceon)spell_anim((char *)c);c=(unsigned char *)strchr((char *)c,0);c++;break;
-     case S_zvuk:if (p->owner>=0 && !p->traceon)spell_sound((char *)c);c=(unsigned char *)strchr((char *)c,0);c++;break;
-     case S_wait:p->wait=GET_WORD(c);if (p->owner>=0) ext=1;break;
-     case 0xff:spell_end(i,p->cil,p->owner);return;
-     case S_pvls:parm2=GET_WORD(c);twins|=2;
-                      if (twins==3) if (hod_na_uspech(p->cil,p)) zmen_vlastnost_percent(i,p->cil,parm1,parm2);break;
-     case S_set:parm2=GET_WORD(c);if (hod_na_uspech(p->cil,p)) set_flag(i,p->cil,parm2,1);break;
-     case S_reset:parm2=GET_WORD(c);if (hod_na_uspech(p->cil,p)) set_flag(i,p->cil,parm2,0);break;
-     case S_special:parm2=GET_WORD(c);spell_special(i,p,parm2);break;
-     case S_drain_min:parm1=GET_WORD(c);twins|=1;if (twins==3) spell_drain(p,p->cil,parm1,parm2);break;
-     case S_drain_max:parm2=GET_WORD(c);twins|=2;if (twins==3) spell_drain(p,p->cil,parm1,parm2);break;
-     case S_rand_min:parm1=GET_WORD(c);twins|=1;if (twins==3) calc_rand_value(parm1,parm2);break;
-     case S_rand_max:parm2=GET_WORD(c);twins|=2;if (twins==3) calc_rand_value(parm1,parm2);break;
-     case S_mana:parm1=GET_WORD(c);set_kondice_mana(parm1,p,S_mana,0);break;
-     case S_kondice:parm1=GET_WORD(c);set_kondice_mana(parm1,p,S_kondice,1);break;
-     case S_mana_clip:parm1=GET_WORD(c);set_kondice_mana(parm1,p,S_mana,1);break;
-     case S_mana_steal:parm1=GET_WORD(c);spell_mana_steal(parm1,p->cil,p->owner);break;
-     case S_location_sector: parm1=GET_WORD(c);
-       TelepLocation.sector=parm1;
-       TelepLocation.loc_x=0;
-       TelepLocation.loc_y=0;
-       break;
-     case S_location_map: TelepLocation.map=(char *)c;c=(unsigned char *)strchr((char *)c,0);c++;break;
-     case S_location_dir: parm1=GET_WORD(c);TelepLocation.dir=parm1;break;
-     case S_location_x: TelepLocation.loc_x=GET_WORD(c);TelepLocation.map=0;break;
-     case S_location_y: TelepLocation.loc_y=GET_WORD(c);TelepLocation.map=0;break;
-     default:
-            {
-            char *d="Chyba v popisu kouzel: Program narazil na neznamou instrukci %d (%02X) pri zpracovani kouzla s cislem %d. Kouzlo bylo ukon�eno";
-            char *c=alloca(strlen(d)+20);
-            sprintf(c,d,*(c-1),*(c-1),p->num);
-            bott_disp_text(c);
-            spell_end(i,p->cil,p->owner);
-            return;
+  do {
+        switch (twins = twins == 3 ? 0 : twins, *c++) {
+            case S_zivel:
+                p->pc = GET_WORD(c)
+                ;
+                if (p->owner >= 0
+                        && !GlobEvent(MAGLOB_ONFIREMAGIC + p->pc,
+                                postavy[p->owner].sektor,
+                                postavy[p->owner].direction)) {
+                    spell_end(i, p->cil, p->owner);
+                    return;
+                }
+                break;
+            case S_hpnorm_min:
+                parm1 = GET_WORD(c)
+                ;
+                twins |= 1;
+                if (twins == 3)
+                    spell_hit(p->cil, parm1, parm2, p->owner);
+                break;
+            case S_hpnorm_max:
+                parm2 = GET_WORD(c)
+                ;
+                twins |= 2;
+                if (twins == 3)
+                    spell_hit(p->cil, parm1, parm2, p->owner);
+                break;
+            case S_hpzivl_min:
+                parm1 = GET_WORD(c)
+                ;
+                twins |= 1;
+                if (twins == 3)
+                    spell_hit_zivel(p->cil, parm1, parm2, p->owner, p->pc);
+                break;
+            case S_hpzivl_max:
+                parm2 = GET_WORD(c)
+                ;
+                twins |= 2;
+                if (twins == 3)
+                    spell_hit_zivel(p->cil, parm1, parm2, p->owner, p->pc);
+                break;
+            case S_vlastnost:
+                parm1 = GET_WORD(c)
+                ;
+                twins |= 1;
+                if (twins == 3 && (hod_na_uspech(p->cil, p)))
+                    zmen_vlastnost(i, p->cil, parm1, parm2);
+                break;
+            case S_vls_kolik:
+                parm2 = GET_WORD(c)
+                ;
+                twins |= 2;
+                if (twins == 3 && (hod_na_uspech(p->cil, p)))
+                    zmen_vlastnost(i, p->cil, parm1, parm2);
+                break;
+            case S_trvani:
+                p->delay = GET_WORD(c)
+                ;
+                p->wait = 0;
+                ext = 1;
+                break;
+            case S_throw_item:
+                z = GET_WORD(c)
+                ;
+                spell_throw(p->cil, z);
+                break;
+            case S_create_item:
+                z = GET_WORD(c)
+                ;
+                spell_create(p->cil, z);
+                break;
+            case S_create_weapon:
+                z = GET_WORD(c)
+                ;
+                spell_create_weapon(p->cil, z);
+                break;
+            case S_animace:
+                if (p->owner >= 0 && !p->traceon)
+                    spell_anim((char*) c);
+                c = (unsigned char*) strchr((char*) c, 0);
+                c++;
+                break;
+            case S_zvuk:
+                if (p->owner >= 0 && !p->traceon)
+                    spell_sound((char*) c);
+                c = (unsigned char*) strchr((char*) c, 0);
+                c++;
+                break;
+            case S_wait:
+                p->wait = GET_WORD(c)
+                ;
+                if (p->owner >= 0)
+                    ext = 1;
+                break;
+            case 0xff:
+                spell_end(i, p->cil, p->owner);
+                return;
+            case S_pvls:
+                parm2 = GET_WORD(c)
+                ;
+                twins |= 2;
+                if (twins == 3 && (hod_na_uspech(p->cil, p)))
+                    zmen_vlastnost_percent(i, p->cil, parm1, parm2);
+                break;
+            case S_set:
+                parm2 = GET_WORD(c)
+                ;
+                if (hod_na_uspech(p->cil, p))
+                    set_flag(i, p->cil, parm2, 1);
+                break;
+            case S_reset:
+                parm2 = GET_WORD(c)
+                ;
+                if (hod_na_uspech(p->cil, p))
+                    set_flag(i, p->cil, parm2, 0);
+                break;
+            case S_special:
+                parm2 = GET_WORD(c)
+                ;
+                spell_special(i, p, parm2);
+                break;
+            case S_drain_min:
+                parm1 = GET_WORD(c)
+                ;
+                twins |= 1;
+                if (twins == 3)
+                    spell_drain(p, p->cil, parm1, parm2);
+                break;
+            case S_drain_max:
+                parm2 = GET_WORD(c)
+                ;
+                twins |= 2;
+                if (twins == 3)
+                    spell_drain(p, p->cil, parm1, parm2);
+                break;
+            case S_rand_min:
+                parm1 = GET_WORD(c)
+                ;
+                twins |= 1;
+                if (twins == 3)
+                    calc_rand_value(parm1, parm2);
+                break;
+            case S_rand_max:
+                parm2 = GET_WORD(c)
+                ;
+                twins |= 2;
+                if (twins == 3)
+                    calc_rand_value(parm1, parm2);
+                break;
+            case S_mana:
+                parm1 = GET_WORD(c)
+                ;
+                set_kondice_mana(parm1, p, S_mana, 0);
+                break;
+            case S_kondice:
+                parm1 = GET_WORD(c)
+                ;
+                set_kondice_mana(parm1, p, S_kondice, 1);
+                break;
+            case S_mana_clip:
+                parm1 = GET_WORD(c)
+                ;
+                set_kondice_mana(parm1, p, S_mana, 1);
+                break;
+            case S_mana_steal:
+                parm1 = GET_WORD(c)
+                ;
+                spell_mana_steal(parm1, p->cil, p->owner);
+                break;
+            case S_location_sector:
+                parm1 = GET_WORD(c)
+                ;
+                TelepLocation.sector = parm1;
+                TelepLocation.loc_x = 0;
+                TelepLocation.loc_y = 0;
+                break;
+            case S_location_map:
+                TelepLocation.map = (char*) c;
+                c = (unsigned char*) strchr((char*) c, 0);
+                c++;
+                break;
+            case S_location_dir:
+                parm1 = GET_WORD(c)
+                ;
+                TelepLocation.dir = parm1;
+                break;
+            case S_location_x:
+                TelepLocation.loc_x = GET_WORD(c)
+                ;
+                TelepLocation.map = 0;
+                break;
+            case S_location_y:
+                TelepLocation.loc_y = GET_WORD(c)
+                ;
+                TelepLocation.map = 0;
+                break;
+            default: {
+                char *d =
+                        "Chyba v popisu kouzel: Program narazil na neznamou instrukci %d (%02X) pri zpracovani kouzla s cislem %d. Kouzlo bylo ukon�eno";
+                char *c = alloca(strlen(d) + 20);
+                sprintf(c, d, *(c - 1), *(c - 1), p->num);
+                bott_disp_text(c);
+                spell_end(i, p->cil, p->owner);
+                return;
             }
 
-
-     }
+        }
+    }
   while(!ext);
   p->start=c-start;
   }

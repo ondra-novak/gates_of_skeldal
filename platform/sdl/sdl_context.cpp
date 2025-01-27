@@ -96,6 +96,7 @@ void SDLContext::init_screen(DisplayMode mode, const char *title) {
         }
         done = true;
         done.notify_all();
+        SDL_ShowCursor(SDL_DISABLE);
         if (!err) event_loop(stp);
         _texture.reset();
         _renderer.reset();

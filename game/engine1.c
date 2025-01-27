@@ -372,8 +372,10 @@ void create_tables(void)
       y1=(VIEW_SIZE_Y-y)-MIDDLE_Y;
       xl=xl*(y1+1)/points[0][0][0].y+MIDDLE_X;
       xr=xr*(y1+1)/points[0][0][0].y+MIDDLE_X;
-      if (xl<0) xl=0;if (xr<0) xr=0;
-      if (xl>639) xl=639;if (xr>639) xr=639;
+      if (xl<0) xl=0;
+      if (xr<0) xr=0;
+      if (xl>639) xl=639;
+      if (xr>639) xr=639;
       showtabs.f_table[x][y].lineofs=(y1+MIDDLE_Y)*2*scr_linelen2+xl*2;
       showtabs.f_table[x][y].linesize=xr-xl+(xl!=xr);
       showtabs.f_table[x][y].counter=(y1-points[0][0][yp].y);
@@ -405,8 +407,10 @@ void create_tables(void)
       }
       xl=xl*(y1-2)/points[0][1][0].y+MIDDLE_X;
       xr=xr*(y1-2)/points[0][1][0].y+MIDDLE_X;
-      if (xl<0) xl=0;if (xr<0) xr=0;
-      if (xl>639) xl=639;if (xr>639) xr=639;
+      if (xl<0) xl=0;
+      if (xr<0) xr=0;
+      if (xl>639) xl=639;
+      if (xr>639) xr=639;
       showtabs.c_table[x][y].lineofs=(y1+MIDDLE_Y)*2*scr_linelen2+xl*2;
       showtabs.c_table[x][y].linesize=xr-xl+(xl!=xr);
       showtabs.c_table[x][y].counter=points[0][1][yp].y-y1;

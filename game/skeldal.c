@@ -766,8 +766,14 @@ void done_skeldal(void)
   purge_temps(1);
   stop_mixing();
 //  deinstall_mouse_handler();
-  if (texty!=NULL) release_list(texty);texty=NULL;
-  if (cur_config!=NULL) release_list(cur_config);cur_config=NULL;
+    if (texty != NULL) {
+        release_list(texty);
+        texty = NULL;
+    }
+    if (cur_config != NULL) {
+        release_list(cur_config);
+        cur_config = NULL;
+    }
   kill_timer();
 
   }
@@ -1196,12 +1202,12 @@ static int do_config_skeldal(int num,int numdata,char *txt)
 	 case 20:game_extras=numdata;break;
 	 case 21:windowed=numdata;break;
 	 case 22:gamespeedbattle=numdata;break;
-	 case 23:windowedzoom=numdata;
-     case 24:monitor=numdata;
+	 case 23:windowedzoom=numdata;break;
+     case 24:monitor=numdata;break;
      case 25:if (VERSIONNUM<numdata)
                display_error("Pozor! Hra je starsi verze, nez vyzaduje dobrodruzstvi. Ve vlastnim zajmu si stahnete novou verzi, protoze toto dobrodruzstvi nemusi byt s aktualni verzi dohratelne");
             break;
-     case 26:refresh=numdata;
+     case 26:refresh=numdata;break;
      default:num-=CESTY_POS;
              mman_pathlist[num]=(char *)getmem(strlen(txt)+1);
              strcpy(mman_pathlist[num],txt);

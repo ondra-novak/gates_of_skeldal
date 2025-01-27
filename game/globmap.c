@@ -360,7 +360,8 @@ static void preskoc_prikaz(void)
         case EOF: if (uroven!=0)ex_error(OD_OUT);return;break;
         case '{': if (last==OD_CRIT || last==OD_NEWLINE) uroven++;break;
         case '}': if (last==OD_NEWLINE) uroven--; if (uroven<0) ex_error(OD_IN);
-                  else if (uroven==0)return;break;
+                  else if (uroven==0)return;
+        break;
         }
      if (ODD!=0) ending=0;
      }
@@ -569,8 +570,13 @@ void global_map_point(EVENT_MSG *msg,void **_)
         }
      if (ms->event_type & 0x2 && ms->y>SCREEN_OFFLINE && ms->y<378)
         {
-        if (last_index && index_tab[last_index].defined) if (load_index_map(last_index)) return;
-        else;else return;
+            if (last_index && index_tab[last_index].defined) {
+                if (load_index_map(last_index)) {
+                    return;
+                }
+            } else {
+                return;
+            }
         unwire_proc();
         wire_proc();
 		 		msg->msg=-1;

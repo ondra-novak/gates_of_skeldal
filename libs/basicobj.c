@@ -40,7 +40,7 @@ CTL3D *def_border(int btype,int color)
   highlight(&ctl,color);
   switch (btype)
      {
-     case 0:ctl.bsize=0;
+     case 0:ctl.bsize=0;break;
      case 1:ctl.light=color;ctl.shadow=color;ctl.bsize=1;break;
      case 2:ctl.bsize=2;ctl.ctldef=0;break;
      case 3:ctl.bsize=2;ctl.ctldef=3;break;
@@ -782,8 +782,8 @@ void input_line_event(EVENT_MSG *msg,OBJREC *o)
            case 'M':if (cursor<slen)  cursor++;break;
            case 'K':if (cursor>0)  cursor--;break;
            case 'S':if (cursor<slen) strcpy(&c[cursor],&c[cursor+1]);slen--;break;
-           case 'G':cursor=0;
-           case 'O':cursor=slen;
+           case 'G':cursor=0;break;
+           case 'O':cursor=slen;break;
            }
         else
         if (key)
@@ -1079,7 +1079,8 @@ void scroll_bar_h_draw(int x1,int y1,int x2,int y2,OBJREC *o)
   valsize=p->maxvalue-p->minvalue;
   wsize=x2-x1;
   barsize=wsize*p->parview/valsize;
-  if (barsize>wsize) barsize=wsize;if (barsize<2) barsize=2;
+  if (barsize>wsize) barsize=wsize;
+  if (barsize<2) barsize=2;
   wsize-=barsize;
   curcolor=p->bgcolor;
   bar32(x1,y1,x2,y2);

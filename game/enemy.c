@@ -420,8 +420,8 @@ int mob_pocet_vychodu(int sector,int dir)
 
   sector<<=2;
   return ((map_sides[sector+dir].flags & SD_MONST_IMPS)==0)+
-         ((map_sides[sector+(dir+1 & 3)].flags & SD_MONST_IMPS)==0)+
-         ((map_sides[sector+(dir-1 & 3)].flags & SD_MONST_IMPS)==0);
+         ((map_sides[sector+((dir+1) & 3)].flags & SD_MONST_IMPS)==0)+
+         ((map_sides[sector+((dir-1) & 3)].flags & SD_MONST_IMPS)==0);
   }
 
   //retval: 0 - sector is free
@@ -638,7 +638,7 @@ void stop_mob(TMOB *p)
      {
      if (miri_middle(q))
         {
-        p->dir=p->dir+1 & 3;
+        p->dir=(p->dir+1) & 3;
         stop_mob(q);
         }
      }
@@ -746,7 +746,7 @@ char return_home(TMOB *p,int *smer)
   int i;
 
   i=p->dir;
-  if (!mob_check_next_sector(p->sector,i+1&3,p->stay_strategy & MOB_BIG,0) || !mob_check_next_sector(p->sector,i+3&3,p->stay_strategy & MOB_BIG,0)) return 1;
+  if (!mob_check_next_sector(p->sector,(i+1)&3,p->stay_strategy & MOB_BIG,0) || !mob_check_next_sector(p->sector,(i+3)&3,p->stay_strategy & MOB_BIG,0)) return 1;
   if (p->sector==p->home_pos) return 1;
   najdi_cestu(p->sector,p->home_pos,SD_MONST_IMPS,&path,(p->stay_strategy & MOB_BIG)?1:2);
   if (path==NULL)
@@ -849,7 +849,7 @@ void rozhodni_o_smeru(TMOB *p)
      }
  if (dir==-1)
      {
-     dir=p->dir;p->dir=p->dir+2&3;
+     dir=p->dir;p->dir=(p->dir+2)&3;
      stop_mob(p);
      p->walk_data=rnd(32)+223;
      if (vdir!=-1)p->dir=vdir;
@@ -862,7 +862,7 @@ void rozhodni_o_smeru(TMOB *p)
         stop_mob(p);
         p->walk_data=oldwalk;
         }
-        else if ((p->dir-dir &0x3)==2 && (p->headx!=p->locx || p->heady!=p->locy))
+        else if (((p->dir-dir) &0x3)==2 && (p->headx!=p->locx || p->heady!=p->locy))
            {
            stop_mob(p);
            p->walk_data=0;
@@ -1780,8 +1780,8 @@ void sirit_zvuk(word start)
            mob=mob_map[d]-MOB_START;
            if (mob>=0)
               {
-              reakce_na_hluk(mob,i+2&3);
-              if ((mob=mobs[mob].next-MOB_START)>=0) reakce_na_hluk(mob,i+2&3);
+              reakce_na_hluk(mob,(i+2)&3);
+              if ((mob=mobs[mob].next-MOB_START)>=0) reakce_na_hluk(mob,(i+2)&3);
               }
            }
         }
@@ -1920,7 +1920,7 @@ char akce_moba_zac(TMOB *m)
                     {stop_all_mobs_on_sector(m->sector);smeruj_moba(m,0);}
               else stop_mob(m);
               viewsector=sect;
-              viewdir=m->dir+2 &3;
+              viewdir=(m->dir+2) &3;
               m->csektor=sect;
               if ((m->vlajky & MOB_CASTING)&& rnd(100)<=(unsigned int)m->vlastnosti[VLS_SMAGIE]) m->mode=MBA_SPELL;else m->mode=MBA_ATTACK;
               bott_draw(1);
@@ -1961,7 +1961,7 @@ char akce_moba_zac(TMOB *m)
           m->mode=MBA_ATTACK;
         smeruj_moba(m,0);
         viewsector=h->sektor;
-        viewdir=m->dir+2 & 3;
+        viewdir=(m->dir+2) & 3;
         return 0;
         }
      else

@@ -660,8 +660,8 @@ void calc_fly()
               {
               TFLY *q,*z;
 
-              q=duplic_fly(p);q->smer=p->smer+1&3;
-              z=duplic_fly(p);z->smer=p->smer-1&3;
+              q=duplic_fly(p);q->smer=(p->smer+1)&3;
+              z=duplic_fly(p);z->smer=(p->smer-1)&3;
               add_fly(q);
               add_fly(z);
               }
@@ -1055,82 +1055,93 @@ static void akce_voda(THUMAN *h,int mode)
   bott_draw(0);
   }
 
-void check_players_place(char mode)
-  {
-  int i;
-  THUMAN *h=postavy;
-  char vir_eff=0;
-  static char vir_zavora=0;
-  char levitat;
+void check_players_place(char mode) {
+    int i;
+    THUMAN *h = postavy;
+    char vir_eff = 0;
+    static char vir_zavora = 0;
+    char levitat;
 
-  for(i=0;i<POCET_POSTAV;i++,h++)
-     if (h->used && h->lives)
-     {
-     int sect;
-     int u1;
+    for (i = 0; i < POCET_POSTAV; i++, h++)
+        if (h->used && h->lives) {
+            int sect;
+            int u1;
 
-     levitat=(h->vlastnosti[VLS_KOUZLA] & SPL_LEVITATION)!=0;
-     sect=h->sektor;
-     if (sect>=mapsize) continue;
-     switch (map_sectors[sect].sector_type)
-        {
-        case S_ACID:if (!levitat) {
-            if (h->lives>3) {h->lives-=3;bott_draw(0);}
-        } else
-                          player_hit(h,3+7*mode,0);
-                       break;
-        case S_VIR:
-          if (!levitat) {
-          if (mode==0 && vir_zavora==0)
-                          {
-                          int i,smer;
-                          vir_zavora=1;pass_zavora=0;
-                          smer=rnd(100)<50?-1:1;
-                          if (vir_eff==0)
-                             for(i=0;i<8;i++) turn_zoom(smer);
-                          vir_eff=1;
-                          vir_zavora=0;
-                          cancel_pass=1;
-                          }
-          }           else
-            break;
-        case S_LAVA: if (!levitat)
-                     {
-                       u1=(h->lives);
-                       player_hit(h,u1,0);
-                       bott_draw(0);
-                     }
-                     else
-                     {
-                       if (h->lives>3) {h->lives-=3;bott_draw(0);}
-                       else player_hit(h,3+7*mode,0);
-                     }
+            levitat = (h->vlastnosti[VLS_KOUZLA] & SPL_LEVITATION) != 0;
+            sect = h->sektor;
+            if (sect >= mapsize)
+                continue;
+            switch (map_sectors[sect].sector_type) {
+                case S_ACID:
+                    if (!levitat) {
+                        if (h->lives > 3) {
+                            h->lives -= 3;
+                            bott_draw(0);
+                        } else {
+                            player_hit(h, 3 + 7 * mode, 0);
+                        }
+                    }
+                    break;
+                case S_VIR:
+                    if (!levitat) {
+                        if (mode == 0 && vir_zavora == 0) {
+                            int i, smer;
+                            vir_zavora = 1;
+                            pass_zavora = 0;
+                            smer = rnd(100) < 50 ? -1 : 1;
+                            if (vir_eff == 0)
+                                for (i = 0; i < 8; i++)
+                                    turn_zoom(smer);
+                            vir_eff = 1;
+                            vir_zavora = 0;
+                            cancel_pass = 1;
+                        }
+                    }
+                    break;
+                case S_LAVA:
+                    if (!levitat) {
+                        u1 = (h->lives);
+                        player_hit(h, u1, 0);
+                        bott_draw(0);
+                    } else {
+                        if (h->lives > 3) {
+                            h->lives -= 3;
+                            bott_draw(0);
+                        } else
+                            player_hit(h, 3 + 7 * mode, 0);
+                    }
 
-
-                     break;
-        case S_SSMRT:
-          u1=(h->lives);
-            player_hit(h,u1,0);
-            bott_draw(0);
-            break;
-        case S_VODA:
-          if (!levitat) {
-            akce_voda(h,mode);break;
-          }
-        case S_DIRA:if (!pass_zavora) postavy_propadnout(sect);break;
-        case S_LODKA:if (lodka!=1 && mode)
-                       {
-                       set_backgrnd_mode(1);lodka=1;
-                       }
-                     break;
+                    break;
+                case S_SSMRT:
+                    u1 = (h->lives);
+                    player_hit(h, u1, 0);
+                    bott_draw(0);
+                    break;
+                case S_VODA:
+                    if (!levitat) {
+                        akce_voda(h, mode);
+                    }
+                    break;
+                case S_DIRA:
+                    if (!pass_zavora)
+                        postavy_propadnout(sect);
+                    break;
+                case S_LODKA:
+                    if (lodka != 1 && mode) {
+                        set_backgrnd_mode(1);
+                        lodka = 1;
+                    }
+                    break;
+            }
+            if (mglob.map_effector == ME_PVODA
+                    && ~map_coord[h->sektor].flags & MC_SAFEPLACE)
+                akce_voda(h, mode);
+            if (map_sectors[sect].sector_type != S_LODKA && lodka) {
+                set_backgrnd_mode(0);
+                lodka = 0;
+            }
         }
-     if (mglob.map_effector==ME_PVODA && ~map_coord[h->sektor].flags & MC_SAFEPLACE) akce_voda(h,mode);
-     if (map_sectors[sect].sector_type!=S_LODKA && lodka)
-        {
-        set_backgrnd_mode(0);lodka=0;
-        }
-     }
-  }
+}
 
 static void move_lodka(int oldsect,int newsect)
   {
@@ -1305,8 +1316,7 @@ void build_player_map()  //je nutne volat po presunu postav
 
 char chod_s_postavama(char sekupit)
   {
-  int i,/*j,*/lastsec=-1;
-  char marks[6];
+  int i;
   char gatt=0;
   signed char group_nums[7];
 
@@ -1324,55 +1334,14 @@ char chod_s_postavama(char sekupit)
         {
         if (postavy[i].groupnum==cur_group)
            {
-           lastsec=postavy[i].sektor;
            postavy[i].sektor=viewsector;
            postavy[i].direction=viewdir;
            postavy[i].utek=1;
            postavy[i].kondice-=weigth_defect(postavy+i);
            if (postavy[i].kondice<0) postavy[i].kondice=0;
-           marks[i]=1;
            group_nums[cur_group]=1;
            }
-        else
-           if (sekupit && lastsec==viewsector) marks[i]=postavy[i].sektor==viewsector;
-           else marks[i]=0;
         }
-     //map_coord[viewsector].flags|=MC_PLAYER;
-/*     if (formace && sekupit)
-        {
-        int gr=2;
-        for(;;)
-           {
-           THUMAN *h1,*h2;
-           int dir;
-           char attach=0;
-           for(i=0;h1=postavy+group_sort[i],i<POCET_POSTAV;i++) if (h1->used && h1->lives && !marks[group_sort[i]])
-             {
-             int sc;
-             int ss=(sc=h1->sektor)<<2;
-             for(dir=0;dir<4;dir++) if (map_sectors[sc].step_next[dir]==lastsec && ~map_sides[ss+dir].flags & SD_PLAY_IMPS) break;
-             if (dir!=4)
-                {
-                for(j=0,h2=postavy;j<POCET_POSTAV;j++,h2++) if (h2->used && h2->lives && h2->groupnum==h1->groupnum)
-                   {
-                   h2->sektor=lastsec;
-                   h2->direction=dir;
-                   h2->utek=1;
-                   marks[j]=1;
-                   }
-                lastsec=sc;
-                attach=1;
-                gatt=1;
-                group_nums[h1->groupnum]=gr++;
-                }
-             }
-           if (!attach) break;
-           }
-        for(i=1;i<7;i++) if (group_nums[i]==-1) group_nums[i]=gr++;
-        for(i=0;i<POCET_POSTAV;i++) if (postavy[i].used) postavy[i].groupnum=group_nums[postavy[i].groupnum];
-        cur_group=1;
-        }
-  */
      }
   build_player_map();
   SEND_LOG("(GAME) New position %d:%d",viewsector,viewdir);
@@ -1917,6 +1886,7 @@ void *game_keyboard(EVENT_MSG *msg,void **usr)
         case 81:
         case 't':step_zoom(1);break;
         case 0x21:if (q_item(flute_item,viewsector)) bott_draw_fletna();
+            break;
         case 57:a_touch(viewsector,viewdir);if (cur_mode==MD_PRESUN)send_message(E_KEYBOARD,28*256);break;
         case 15:
         case 50:

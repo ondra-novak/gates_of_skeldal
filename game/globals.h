@@ -263,10 +263,10 @@ static __inline int rangrnd(int a, int b) {return rnd(b-a+1)+a;}
 
 #define MAX_HLAD(x) (((x)->vlastnosti[VLS_MAXHIT]/2+2*24)*HODINA)
 #define MAX_ZIZEN(x) (((x)->vlastnosti[VLS_MAXHIT]/3+24)*HODINA)
-#define concat(c,s1,s2) \
-        c=alloca(strlen(s1)+strlen(s2)+1);\
-        strcpy(c,s1);\
-        strcat(c,s2)
+
+
+#define concat(c,s1,s2) c=strcat(strcpy((char *)alloca(strlen(s1)+strlen(s2)+1),s1),s2)
+#define concat_r(c,s1,s2) strcat(strcpy((char *)alloca(strlen(s1)+strlen(s2)+1),s1),s2)
 
 #define get_ap(vls) (((vls[VLS_POHYB])>0 && (vls[VLS_POHYB])<15)?1:(vls[VLS_POHYB])/15)
 
@@ -277,7 +277,7 @@ static __inline int rangrnd(int a, int b) {return rnd(b-a+1)+a;}
 
 //typy sektoru
 
-#define ISTELEPORT(c) ((c)==S_TELEPORT || (c)>=S_USERTELEPORT && (c)<=S_USERTELEPORT_END)
+#define ISTELEPORT(c) ((c)==S_TELEPORT || ((c)>=S_USERTELEPORT && (c)<=S_USERTELEPORT_END))
 #define ISTELEPORTSECT(sect) ISTELEPORT(map_sectors[sect].sector_type)
 
 #undef S_NORMAL

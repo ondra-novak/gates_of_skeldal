@@ -488,13 +488,13 @@ static char mob_strelec(int event_type,TMOB *m)
            {
            int s=m->sector;
            m->user_data&=~128;
-           i=m->dir+2&3;
+           i=(m->dir+2)&3;
            while (s && !(map_coord[s].flags & MC_PLAYER)) if (map_sides[(s<<2)+i].flags & SD_MONST_IMPS) s=0;else s=map_sectors[s].step_next[i];
            if (s) m->dir=i;else return 1;
            }
         return 0; //strilej
         }
-     i=i+2&3;
+     i=(i+2)&3;
      if (mob_check_next_sector(m->sector,i,m->stay_strategy & MOB_BIG,0))
         {
         int l=4,z,max=RAND_MAX;

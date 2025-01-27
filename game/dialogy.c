@@ -1141,11 +1141,11 @@ static void dark_screen(int time,int gtime)
   for(i=0,h=postavy;i<POCET_POSTAV;i++,h++) if (h->used && h->lives)
      {
      z=h->vlastnosti[VLS_HPREG]*gtime;z+=h->lives;
-     if (z>h->vlastnosti[VLS_MAXHIT]) z=h->vlastnosti[VLS_MAXHIT];h->lives=z;
+     if (z>h->vlastnosti[VLS_MAXHIT]) {z=h->vlastnosti[VLS_MAXHIT];h->lives=z;}
      z=h->vlastnosti[VLS_MPREG]*gtime;z+=h->mana;
-     if (z>h->vlastnosti[VLS_MAXMANA]) z=h->vlastnosti[VLS_MAXMANA];h->mana=z;
+     if (z>h->vlastnosti[VLS_MAXMANA]) {z=h->vlastnosti[VLS_MAXMANA];h->mana=z;}
      z=h->vlastnosti[VLS_VPREG]*gtime;z+=h->kondice;
-     if (z>h->vlastnosti[VLS_KONDIC]) z=h->vlastnosti[VLS_KONDIC];h->kondice=z;
+     if (z>h->vlastnosti[VLS_KONDIC]) {z=h->vlastnosti[VLS_KONDIC];h->kondice=z;}
      }
   bott_draw(0);
   }
@@ -1208,7 +1208,7 @@ void do_dialog()
      case 128:add_desc(Get_string());break;
      case 129:show_emote(Get_string());break;
      case 130:save_name(Get_short());break;
-     case 131:iff=!iff;
+     case 131:iff=!iff;break;
      case 132:load_name(Get_short());break;
      case 133:nahodne(0,0,Get_short());break;
      case 134:p1=Get_short();p2=Get_short();nahodne(VLS_SMAGIE,p1,p2);break;
@@ -1257,7 +1257,7 @@ void do_dialog()
      case 172:code_page=Get_short();break;
      case 173:break; //ALT_SENTENCE
      case 174:iff=join_character(Get_short());break;
-     case 189:dead_players=1;
+     case 189:dead_players=1;break;
      case 175:echo(Get_string()); p1=Get_short();
               if (dlg_ask_who()) if (p1) goto_paragraph(p1);
                                    else iff=1;
