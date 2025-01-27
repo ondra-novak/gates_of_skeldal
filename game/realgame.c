@@ -52,7 +52,7 @@ char pass_zavora=0;
 char map_with_password=0;
 
 MAPGLOBAL mglob={
-  "","","","",0,0,0,1
+        {"","","",""},0,0,0,1,0,"",0,0,0
 };
 TSTENA *map_sides;
 TSECTOR *map_sectors;
@@ -68,8 +68,8 @@ char sekceid[]="<BLOCK>";
 char datapath;
 D_ACTION *d_action={NULL};
 int end_ptr;
-char cur_group=1;
-char group_select=1;
+uint8_t cur_group=1;
+uint8_t group_select=1;
 char cancel_pass=0;
 char break_sleep=0;
 char enable_sort=0;
@@ -296,7 +296,7 @@ int load_map(char *filename)
          case A_MAPGLOB:
                   num_ofsets[BACK_NUM]=ofsts;
 				  memset(&mglob,0,sizeof(mglob));
-                  memcpy(&mglob,temp,MIN(size,sizeof(mglob)));
+                  memcpy(&mglob,temp,MIN((int)size,(int)sizeof(mglob)));
                   free(temp);
                   for(r=0;r<4;r++)
                   def_handle(ofsts++,mglob.back_fnames[r],pcx_fade_decomp,SR_GRAFIKA);
@@ -586,7 +586,7 @@ void calc_fly()
   for(p=letici_veci;p!=NULL;p=q)
      {
      p->xpos+=p->speed;
-     if (p->flags & FLY_BURNT)
+     if (p->flags & FLY_BURNT) {
       if (p->flags & FLY_UNUSED)
         {
         short ds[2];
@@ -609,6 +609,7 @@ void calc_fly()
         q=p->next;
         continue;
         }
+     }
      q=p->next;
     if (!(p->flags & FLY_NEHMOTNA))
               {
@@ -1073,13 +1074,13 @@ void check_players_place(char mode)
      if (sect>=mapsize) continue;
      switch (map_sectors[sect].sector_type)
         {
-        case S_ACID:if (!levitat)
+        case S_ACID:if (!levitat) {
             if (h->lives>3) {h->lives-=3;bott_draw(0);}
-                       else
+        } else
                           player_hit(h,3+7*mode,0);
                        break;
         case S_VIR:
-          if (!levitat)
+          if (!levitat) {
           if (mode==0 && vir_zavora==0)
                           {
                           int i,smer;
@@ -1091,7 +1092,7 @@ void check_players_place(char mode)
                           vir_zavora=0;
                           cancel_pass=1;
                           }
-          else
+          }           else
             break;
         case S_LAVA: if (!levitat)
                      {
@@ -1102,9 +1103,9 @@ void check_players_place(char mode)
                      else
                      {
                        if (h->lives>3) {h->lives-=3;bott_draw(0);}
-                       else
-                         player_hit(h,3+7*mode,0);
+                       else player_hit(h,3+7*mode,0);
                      }
+
 
                      break;
         case S_SSMRT:
@@ -1113,8 +1114,9 @@ void check_players_place(char mode)
             bott_draw(0);
             break;
         case S_VODA:
-          if (!levitat)
+          if (!levitat) {
             akce_voda(h,mode);break;
+          }
         case S_DIRA:if (!pass_zavora) postavy_propadnout(sect);break;
         case S_LODKA:if (lodka!=1 && mode)
                        {
@@ -1152,8 +1154,9 @@ void calc_game()
      call_dialog(start_dialog_number,start_dialog_mob);
      }
   check_players_place(0);
-  if ((d=check_end_game())!=0)
+  if ((d=check_end_game())!=0) {
      if (d==1) wire_end_game();else mrtva_skupina();
+  }
   if (battle && cur_mode!=MD_INBATTLE)
       {
       start_battle();
@@ -1321,8 +1324,6 @@ char chod_s_postavama(char sekupit)
         {
         if (postavy[i].groupnum==cur_group)
            {
-           int wh;
-           int wf;
            lastsec=postavy[i].sektor;
            postavy[i].sektor=viewsector;
            postavy[i].direction=viewdir;
@@ -1385,12 +1386,12 @@ void shift_zoom(char smer)
   switch (smer & 3)
      {
      case 0:if (lodka)zooming_forward(ablock(H_LODKA));
-             else
-            zooming_forward(ablock(H_BGR_BUFF));break;
+             else zooming_forward(ablock(H_BGR_BUFF));
+     break;
      case 1:turn_left();break;
      case 2:if (lodka)zooming_backward(ablock(H_LODKA));
-             else
-            zooming_backward(ablock(H_BGR_BUFF));break;
+             else zooming_backward(ablock(H_BGR_BUFF));
+     break;
      case 3:turn_right();break;
      }
   hold_timer(TM_BACK_MUSIC,0);
@@ -1556,7 +1557,8 @@ static char test_can_walk(int grp)
 
 void step_zoom(char smer)
   {
-  char nopass,drs;
+  char nopass;
+  uint8_t drs;
   int sid,nsect,sect;
   char can_go=1;
 
@@ -1599,9 +1601,10 @@ void step_zoom(char smer)
         }
      mob_map[nsect]=0;
      }
-  else if (mob_map[nsect] && !nopass)
+  else if (mob_map[nsect] && !nopass) {
      if (!battle){ if (!mob_alter(nsect)) return; }
      else return;
+  }
   if (map_sectors[nsect].sector_type==S_LODKA)
      {
      int i;
@@ -1733,14 +1736,15 @@ int check_path(word **path,word tosect)
      {
      if (map_sectors[*n].sector_type!=S_DIRA && ISTELEPORTSECT(*n))
         {
-        for(i=0;i<4 && map_sectors[*p].step_next[i]!=*n;i++)
+        for(i=0;i<4 && map_sectors[*p].step_next[i]!=*n;i++) {
            if (i==4)
               {
               ss=*p;
               free(*path);*path=NULL;
               return ss;
               }
-           if (!map_sides[(*p<<2)+i].flags & SD_PLAY_IMPS) ok=1;
+        }
+           if (!(map_sides[(*p<<2)+i].flags & SD_PLAY_IMPS)) ok=1;
         }
      if (!ok)
         {
@@ -1768,7 +1772,8 @@ static unsigned int get_path_len(const word *w) {
 void recall()
   {
   int tosect;
-  unsigned int max,i,j;
+  unsigned int max,i;
+  int j;
   word *paths[POCET_POSTAV];
 
   for(i=0;i<POCET_POSTAV;i++)
@@ -1884,7 +1889,7 @@ void sleep_players(va_list args)
 
 void *game_keyboard(EVENT_MSG *msg,void **usr)
   {
-  char c;
+  uint8_t c;
 
   usr;
   if (pass_zavora) return NULL;

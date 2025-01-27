@@ -539,8 +539,8 @@ extern int end_ptr;                //ukazatel na uplny konec tabulky registraci
 extern short **map_items;          //ukazatel na mapu predmetu
 extern int default_ms_cursor;      //cislo zakladniho mysiho kurzoru
 extern void *cur_xlat;             //aktualni tabulka pro 256 barev
-extern void (*unwire_proc)();      //procedura zajistujici odpojeni prave ukoncovane interakce
-extern void (*wire_proc)();        //procedura zajistujici pripojeni drive ukoncene interakce
+extern void (*unwire_proc)(void);      //procedura zajistujici odpojeni prave ukoncovane interakce
+extern void (*wire_proc)(void);        //procedura zajistujici pripojeni drive ukoncene interakce
 extern char cur_mode;              //cislo aktualni interakce
 extern word minimap[VIEW3D_Z+1][VIEW3D_X*2+1]; //minimalizovana mapa s informacemi pro sestaveni vyhledu
 extern char norefresh;             //vypina refresh obrazovky
@@ -551,8 +551,8 @@ extern char gamespeed;             //rychlost hry
 extern char gamespeedbattle;	   //akcelerace rychlosti pro bitvy
 extern int num_ofsets[];           //tabulka offsetu pro steny
 extern int back_color;             //cislo barvy pozadi
-extern char cur_group;             //cislo aktualni skupiny
-extern char group_select;               //1 = prave byla sestavena nova skupina
+extern uint8_t cur_group;             //cislo aktualni skupiny
+extern uint8_t group_select;               //1 = prave byla sestavena nova skupina
 extern unsigned short barvy_skupin[POCET_POSTAV+1]; //cisla barev skupin
 extern char battle;          //jednicka znaci ze bezi bitva
 extern char battle_mode;          //rezim bitvy 0=programovani
@@ -619,8 +619,8 @@ int set_video(int mode);
 void *game_keyboard(EVENT_MSG *msg,void **usr);
 void calc_animations(void);
 int load_map(char *filename);
-void other_draw();
-void refresh_scene();
+void other_draw(void);
+void refresh_scene(void);
 void pcx_fade_decomp(void **p,int32_t *s);
 void pcx_15bit_decomp(void **p,int32_t *s);
 void pcx_15bit_autofade(void **p,int32_t *s);
@@ -630,19 +630,19 @@ void hi_8bit_correct(void **p,int32_t *s);
 void pcx_8bit_nopal(void **p,int32_t *s);
 void set_background(void **p,int32_t *s);
 void wav_load(void **p,int32_t *s);
-void wire_main_functs();
+void wire_main_functs(void);
 void ukaz_kompas(char mode);
 void *timming(EVENT_MSG *msg,void **data);
-void do_timer();
+void do_timer(void);
 void hold_timer(int id,char hld);
 THE_TIMER *add_to_timer(int id,int delay,int maxcall,void *proc);
 void delete_from_timer(int id);
 THE_TIMER *find_timer(int id);
-void objekty_mimo();
+void objekty_mimo(void);
 void mouse_set_cursor(int cursor);
 void set_font(int font,int c1,...);
 void bott_draw(char);
-void bott_draw_proc();
+void bott_draw_proc(void **p,int32_t *s);
 THE_TIMER *add_to_timer(int id,int delay,int maxcall,void *proc);
 void mouse_set_default(int cursor);
 void create_frame(int x,int y,int xs,int ys,char clear);
@@ -651,19 +651,19 @@ void save_dump(const uint16_t *screen_addr,
         unsigned int height,
         unsigned int linelen);
 void bott_disp_text(const char *);
-void bott_text_forever();
+void bott_text_forever(void);
 char chod_s_postavama(char sekupit);
 void hide_ms_at(int line); //schova mysku ktera je nad line
 int cislovka(int i);
-void wire_kniha();
+void wire_kniha(void);
 void purge_temps(char z); //z=1 vymaze i swapsoubor
-void destroy_player_map(); //je nutne volat pred presunem postav
-void build_player_map(); //je nutne volat po presunem postav
+void destroy_player_map(void); //je nutne volat pred presunem postav
+void build_player_map(void); //je nutne volat po presunem postav
 int postavy_propadnout(int sector);
 void postavy_teleport_effect(int sector,int dir,int postava,char eff);
-void reg_grafiku_postav();
+void reg_grafiku_postav(void);
 void play_movie_seq(char *s,int y);
-void check_postavy_teleport();  //je-li viewsector=teleport pak presune postavy
+void check_postavy_teleport(void);  //je-li viewsector=teleport pak presune postavy
 
 //builder
 #define MAIN_NUM 0
@@ -702,7 +702,7 @@ void add_spectxtr(word sector,word fhandle,word count,word repeat,integer xpos);
 void calc_spectxtrs(void);
 void init_spectxtrs(void);
 void play_fx(int x,int y);
-void draw_fx();
+void draw_fx(void);
 void play_fx_at(int where);
 void draw_blood(char mode,int mob_dostal,int mob_dostal_pocet);
 		//kresli krev. mode=1 nasaveni, mode=0 kresleni, pri mode=0 se parametry ignoruji
@@ -728,19 +728,19 @@ void delay_action(int action_numb,int sector,int direct,int flags,int nosend,int
 int32_t load_section(FILE *f,void **section, int *sct_type,int32_t *sect_size);
 void prepare_graphics(int *ofs,char *names,int32_t size,void *decomp,int class);
 void show_automap(char full);
-void draw_medium_map();
+void draw_medium_map(void);
 void anim_sipky(int h,int mode);
-void redraw_scene();
-void calc_game();
-void do_delay_actions();
+void redraw_scene(void);
+void calc_game(void);
+void do_delay_actions(void);
 void real_krok(EVENT_MSG *msg,void **data);
-void sort_groups();
+void sort_groups(void);
 void recheck_button(int sector,char auto_action);
 void start_dialog(int entr,int mob);
-void show_money();
+void show_money(void);
 void chveni(int i);
 void render_scene(int,int);
-void bott_draw_fletna();
+void bott_draw_fletna(void);
 void bott_disp_rune(char rune, int item);
 extern char noarrows;
 void display_ver(int x,int y,int ax,int ay);
@@ -882,7 +882,7 @@ typedef struct titem
   short user_value;            //146  uzivatelska hodnota
   short keynum;                //148 cislo klice
   short polohy[2][2];          //156 souradnice poloh pro zobrazeni v inv
-  char typ_zbrane;              //160 Typ zbrane
+  uint8_t typ_zbrane;              //160 Typ zbrane
   char unused;
   short sound;                  //cislo zvuku
   short v_letu[16];             //192
@@ -908,9 +908,9 @@ typedef struct thuman
   {
   char used;                    //1 kdyz je pozice pouzita
   char spell;                   //1 kdyz postava ma na sobe aspon 1 kouzlo.
-  char groupnum;                //cislo skupiny 0-6
-  signed char xicht;                   //cislo obliceje 0-5
-  char direction;               //smer otoceni
+  uint8_t groupnum;                //cislo skupiny 0-6
+  int8_t xicht;                   //cislo obliceje 0-5
+  uint8_t direction;               //smer otoceni
   short sektor;                 //sektor postaveni
   short vlastnosti[VLS_MAX];    //mapa aktualnich vlastnosti po korekcich
   short bonus_zbrani[TPW_MAX];  //bonusy za zbrane
@@ -954,19 +954,19 @@ extern int face_arr[IT_FACES];
 char pick_item_(int id,int xa,int ya,int xr,int yr);
 void wire_inv_mode(THUMAN *select);
 void init_inventory(void);
-void init_items();
+void init_items(void);
 void push_item(int sect,int pos,short *picked_item);
 void pop_item(int sect,int pos,int mask,short **picked_item);
 int count_items_inside(short *place);
 int count_items_total(short *place);
 char put_item_to_inv(THUMAN *p,short *picked_items); //funkce vklada predmet(y) do batohu postavy
-void pick_set_cursor();         //nastavuje kurzor podle vlozeneho predmetu;
-void calc_fly();
+void pick_set_cursor(void);         //nastavuje kurzor podle vlozeneho predmetu;
+void calc_fly(void);
 void zmen_skupinu(THUMAN *p);
 void add_to_group(int num);
 void group_all(void);
 void build_items_called(void **p,int32_t *s);
-void real_regeneration(); //regenerace postav behem hry v realu (pouze kondice a mana)
+void real_regeneration(void); //regenerace postav behem hry v realu (pouze kondice a mana)
 char sleep_regenerace(THUMAN *p);  //regenerace postav behem spani
 char check_jidlo_voda(THUMAN *p);
 void prepocitat_postavu(THUMAN *human_selected);
@@ -1015,9 +1015,9 @@ typedef struct tshop
 
 void enter_shop(int shopid);
 void load_shops(void);
-void reroll_all_shops();
-char save_shops();
-char load_saved_shops();
+void reroll_all_shops(void);
+char save_shops(void);
+char load_saved_shops(void);
 
 //macros
 
@@ -1146,10 +1146,10 @@ typedef struct tma_gen
 
 typedef struct tma_sound
   {
-  char action,flags,eflags; //3
-  char bit16;
-  char volume;             //5
-  char soundid;            //6
+    uint8_t action,flags,eflags; //3
+    uint8_t bit16;
+  uint8_t volume;             //5
+  uint8_t soundid;            //6
   unsigned short freq;     //8
   int32_t start_loop,end_loop,offset;//20
   char filename[12];       //32
@@ -1158,26 +1158,26 @@ typedef struct tma_sound
 
 typedef struct tma_text
   {
-  char action,flags,eflags,pflags;
+    uint8_t action,flags,eflags,pflags;
   int32_t textindex;
   }TMA_TEXT;
 
 typedef struct tma_send_action
   {
-  char action,flags,eflags,change_bits;
+    uint8_t action,flags,eflags,change_bits;
   unsigned short sector,side,s_action;
   char delay;
   }TMA_SEND_ACTION;
 
 typedef struct tma_fireball
   {
-  char action,flags,eflags;
+    uint8_t action,flags,eflags;
   short xpos,ypos,zpos,speed,item;
   }TMA_FIREBALL;
 
 typedef struct tma_loadlev
   {
-  char action,flags,eflags;
+    uint8_t action,flags,eflags;
   short start_pos;
   char dir;
   char name[13];
@@ -1187,13 +1187,13 @@ typedef struct tma_loadlev
 
 typedef struct tma_dropitm
   {
-  char action,flags,eflags;
+    uint8_t action,flags,eflags;
   short item;
   }TMA_DROPITM;
 
 typedef struct tma_codelock
   {
-  char action,flags,eflags;
+    uint8_t action,flags,eflags;
   char znak;
   char string[8];
   char codenum;
@@ -1201,19 +1201,19 @@ typedef struct tma_codelock
 
 typedef struct tma_cancelaction
   {
-  char action,flags,eflags,pflags;
+    uint8_t action,flags,eflags,pflags;
   short sector,dir;
   }TMA_ACTN;
 
 typedef struct tma_swapsectors
   {
-  char action,flags,eflags,pflags;
+    uint8_t action,flags,eflags,pflags;
   short sector1,sector2;
   }TMA_SWAPS;
 
 typedef struct tma_wound
   {
-  char action,flags,eflags,pflags;
+    uint8_t action,flags,eflags,pflags;
   short minor,major;
   }TMA_WOUND;
 
@@ -1221,26 +1221,26 @@ typedef struct tma_wound
 
 typedef struct tma_lock
   {
-  char action,flags,eflags;
+    uint8_t action,flags,eflags;
   short key_id;
   short thieflevel;
   }TMA_LOCK;
 
 typedef struct tma_two_parms
   {
-  char action,flags,eflags;
+    uint8_t action,flags,eflags;
   short parm1,parm2;
   }TMA_TWOP;
 
 typedef struct tma_create_unique
   {
-  char action,flags,eflags;
+    uint8_t action,flags,eflags;
   TITEM item;
   }TMA_UNIQUE;
 
 typedef struct tma_globe
   {
-  char action,flags,eflags,event; //event - MAGLOB_XXXX
+  uint8_t action,flags,eflags,event; //event - MAGLOB_XXXX
   unsigned short sector;	  //sektor of action target, when event occured
   unsigned char side;		  //side of action target, when event occured
   unsigned char cancel;		  //1 - cancel event
@@ -1341,20 +1341,20 @@ system jistotu ze vsechny pripadne kopie fly jsou znicene a neukazuji
  ji mohl uvolnit
  */
 
-LETICI_VEC *create_fly(); //vytvari fly - optimalizuje tim ze hleda nevyuzity fly nosice, a teprve pokud neuspeje alokuje novy prostor.
+LETICI_VEC *create_fly(void); //vytvari fly - optimalizuje tim ze hleda nevyuzity fly nosice, a teprve pokud neuspeje alokuje novy prostor.
 void draw_fly_items(int celx,int cely,int sector,int side);
 void add_fly(LETICI_VEC *p);
-void build_fly_map();
-void destroy_fly_map();
+void build_fly_map(void);
+void destroy_fly_map(void);
 void stop_fly(LETICI_VEC *p,char zvuk);
 
 
 
 //gamesaver
-void leave_current_map();
-int save_map_state(); //uklada stav mapy pro savegame (neuklada aktualni pozici);
-int load_map_state(); //obnovuje stav mapy; nutno volat po zavolani load_map;
-void restore_current_map(); //pouze obnovuje ulozeny stav aktualni mapy
+void leave_current_map(void);
+int save_map_state(void); //uklada stav mapy pro savegame (neuklada aktualni pozici);
+int load_map_state(void); //obnovuje stav mapy; nutno volat po zavolani load_map;
+void restore_current_map(void); //pouze obnovuje ulozeny stav aktualni mapy
 int load_game(int slotnum);
 int save_game(int slotnum,char *gamename);
 void wire_save_load(char save);
@@ -1367,10 +1367,10 @@ int load_map_automap(char *mapfile);
 
 //setup
 char q_runsetup(char *);
-void user_setup();
-void setup_dialoge();
+void user_setup(void);
+void setup_dialoge(void);
 char game_setup(int id,int xa,int ya,int xr,int yr);
-void GamePause();
+void GamePause(void);
 typedef struct ctl3d CTL3D;
 void show_textured_button(int x,int y,int xs,int ys,int texture,CTL3D *border3d);
 
@@ -1379,29 +1379,29 @@ void show_textured_button(int x,int y,int xs,int ys,int texture,CTL3D *border3d)
 extern short sample_volume;           //hlastitost samplu
 extern char **sound_table;
 
-void init_tracks();
+void init_tracks(void);
 void recalc_volumes(int sector,int side);
 void play_effekt(int x,int y,int xd,int yd,int side,int sided,TMA_SOUND *p);
 void create_playlist(char *playlist);
-const char *get_next_music_from_playlist();
+const char *get_next_music_from_playlist(void);
 const char * end_of_song_callback(void *ctx);
-void purge_playlist();
-void restore_sound_names();
+void purge_playlist(void);
+void restore_sound_names(void);
 void play_sample_at_sector(int sample,int sector1,int sector2,int track, char loop);
 void play_sample_at_channel(int sample,int channel,int vol);
 void stop_track(int track);
 char test_playing(int track);
 void stop_track_free(int track);
 void mute_all_tracks(char all);
-void kill_all_sounds();
+void kill_all_sounds(void);
 void create_sound_table(char *template,int32_t size);
-void create_sound_table_old();
+void create_sound_table_old(void);
 void start_play_flute(char );
-void stop_play_flute();
+void stop_play_flute(void);
 void pc_speak_play_sample(char *sample,int size,char step,int freq);
 char enable_sound(char enbl);
-void wire_main_functs();
-void unwire_main_functs();
+void wire_main_functs(void);
+void unwire_main_functs(void);
 
 //enemy
 #define MOBS_INV 16
@@ -1480,23 +1480,23 @@ extern TMOB mobs[MAX_MOBS];
 extern char *mob_map;
 
 void draw_mob(int num,int curdir,int celx,int cely,char shiftup);
-void calc_mobs();
+void calc_mobs(void);
 void najdi_cestu(word start,word konec,int flag,word **cesta, int aimbig);
 void sirit_zvuk(word start);
-void check_all_mobs();
-void build_all_players();
-void init_mobs();
-void refresh_mob_map();
+void check_all_mobs(void);
+void build_all_players(void);
+void init_mobs(void);
+void refresh_mob_map(void);
 char akce_moba_zac(TMOB *m);
-void mob_animuj(); //animuje prave bojovou akci potvor na sektoru
+void mob_animuj(void); //animuje prave bojovou akci potvor na sektoru
 void sleep_enemy(char regen);
 int vyber_potvoru(int sect,int dir,int *z);
 void mob_hit(TMOB *mm,int dostal);
 int mob_alter(int sect);
-void check_all_mobs_battle(); //kontroluje zda je nekdo v battle
+void check_all_mobs_battle(void); //kontroluje zda je nekdo v battle
 void manashield_check(short *vls,short *lives,short *mana,int dostal);
 char track_mob(int sect,int dir);//trackuje pritomnost potvory v urcitem smeru
-void stop_all_mobs();
+void stop_all_mobs(void);
 int utok_na_sektor(THUMAN *p,TMOB *m,int chaos,int bonus);
 int vyber_potvoru(int sect,int dir,int *chaos); //vybere potvoru ze sektoru a smeru. Vraci take pocet potvor v promenne *chaos
 void load_enemies(short *data,int size,int *grptr,TMOB *template,int32_t tsize);
@@ -1504,7 +1504,7 @@ char mob_test_na_bitvu(TMOB *p);  //nastavi p->vlajky|MOB_INBATTLE pokud potvora
 void send_mob_to(int m,word *path);
 void save_enemy_paths(TMPFILE_WR *f);
 int load_enemy_paths(TMPFILE_RD *f);
-void regen_all_mobs();
+void regen_all_mobs(void);
 
 
 //souboje
@@ -1521,26 +1521,26 @@ extern char running_battle;
 void zacni_souboj(TMOB *p,int delka,short sector);
 char q_zacit_souboj(TMOB *p,int d,short sector);
 void stop_mob(TMOB *p);
-void start_battle();
+void start_battle(void);
 int vypocet_zasahu(short *utocnik,short *obrance, int chaos,int  zbran,int bonusplus);
 void rozhodni_o_smeru(TMOB *p);
 void krok_moba(TMOB *p);
 void pomala_regenerace_postavy(THUMAN *p);
 char zasah_veci(int sector,TFLY *fl);
 void vymaz_zasahy(THE_TIMER *q);
-char check_end_game();
-void wire_end_game();
-void auto_group();
+char check_end_game(void);
+void wire_end_game(void);
+void auto_group(void);
 void wire_fly_casting(int i);
-void konec_kola();
+void konec_kola(void);
 void send_experience(TMOB *p,int dostal);
 void send_weapon_skill(int druh);
 void check_player_new_level(THUMAN *p);
-void poloz_vsechny_predmety();
+void poloz_vsechny_predmety(void);
 char player_check_death(THUMAN *p, char afterround); //pokud je battle, nezabije postavu, ale az po skonceni kola (afterround==1)
 char player_hit(THUMAN *p,int zraneni,char manashield);
-void enforce_start_battle();
-void pozdrz_akci();
+void enforce_start_battle(void);
+void pozdrz_akci(void);
 void uprav_podle_kondice(THUMAN *p,int *chaos); //upravi parametr chaos podle kondice pro obranu
 THUMAN *isplayer(int sector,THUMAN *h,char death);
   /* Vraci nasledujiciho hrace na sektoru. Pokud je h==NULL vraci prvniho.
@@ -1556,7 +1556,7 @@ TMOB *ismonster(int sector,TMOB *m);
   /* Vraci dalsi nestvuru na sektoru, pokud je m==NULL vraci prvni.
      Pokud je vysledek NULL neni nestvura na sektoru*/
 
-void correct_level();
+void correct_level(void);
 
 
 
@@ -1570,7 +1570,7 @@ extern char spell_cast; //0=neni rezim vyberu kouzla;
 #define isdemon(p) ((p)->stare_vls[VLS_KOUZLA] & SPL_DEMON)
 
 
-void kouzla_init();
+void kouzla_init(void);
 void test_play(int handle);
 void cast(int num,THUMAN *p,int owner,char backfire);
 int add_spell(int num,int cil,int owner,char noanim);
@@ -1581,22 +1581,23 @@ int get_spell_mana(int num);
 int get_spell_um(int num);
 char ask_who(int num);
 void display_spell_in_icone(int handle,int xicht);
-void reinit_kouzla_full();
+void reinit_kouzla_full(void);
 char get_rune_enable(THUMAN *p,int strnum);
-void remove_all_mob_spells();
+void remove_all_mob_spells(void);
 int save_spells(TMPFILE_WR *f);
 int load_spells(TMPFILE_RD *f);
 char get_spell_track(int num);
 void mob_cast(int num,TMOB *m,int mob_num);
 void thing_cast(int num,int postava,int sector,TMOB *victim,char noanim);//vyvolavaji veci
 void area_cast(int num,int sector,int owner,char noanim);
-int select_teleport_target();
+int select_teleport_target(void);
 char get_spell_teleport(int num);
 void spell_throw(int cil,int what); //to je procedura ktera umoznuje potvoram strilet
 void play_big_mgif_animation(int block);
 void unaffect_demon(int cil); //ukonci demona pri jeho smrti
 char *get_rune_name(int strnum);
 void spell_sound(char *name);
+void spell_teleport(int cil,int owner, int teleport_target);
 
 
 //interface
@@ -1609,6 +1610,7 @@ void spell_sound(char *name);
 #define S_WINPOS_XS 320
 #define S_WINPOS_YS 300
 
+typedef struct objrec OBJREC;
 typedef struct enc_file
   {
   FILE *f;
@@ -1617,13 +1619,13 @@ typedef struct enc_file
 
 void add_window(int x,int y,int xs,int ys,int texture,int border,int txtx,int txty);
 int message(int butts,char def,char canc,char *keys,...);
-void type_text(); //event procedura (parms: X,Y,TEXT,MAX_SPACE,MAX_CHARS);
+void type_text(EVENT_MSG *msg,void **data); //event procedura (parms: X,Y,TEXT,MAX_SPACE,MAX_CHARS);
 void type_text_v2(va_list args);//char *text_buffer,int x,int y,int max_size,int max_chars,int font,int color,void (*exit_proc)(char));
 void zalamovani(char *source,char *target,int maxxs,int *xs,int *ys);
 void col_load(void **data,int32_t *size);
-void open_story_file();
+void open_story_file(void);
 void write_story_text(char *text);
-void close_story_file();
+void close_story_file(void);
 char labyrinth_find_path(word start,word konec,int flag,char (*proc)(word),word **cesta);
   //tato procedura je obecne hledani cesty. Start - startovni cislo sektoru
                                           //Konec - cilove cislo sektoru
@@ -1631,27 +1633,28 @@ char labyrinth_find_path(word start,word konec,int flag,char (*proc)(word),word 
                                           //proc - je procedura volana pro kazdy sektor
                                           //cesta - je ukazatel na ukazatel na vyslednou cestu
                  //pokud je cesta=NULL pak vraci pouze zda cesta existuje ci nikoliv
-void radio_butts_gr();
-void start_check(); //testuje stav pocitace a rozhodne zda lze program spustit
+void radio_butts_gr(OBJREC *o);
+void start_check(void); //testuje stav pocitace a rozhodne zda lze program spustit
 void check_number_1phase(char *exename); //check serial number! Task!//
 void animate_checkbox(int first_id,int last_id,int step);
 void fletna_pridej_notu(char note);
-void check_fletna();
-char fletna_get_buffer_pos();
-void check_global_fletna();
-void fletna_glob_add_note(char note);
+void check_fletna(THE_TIMER *t);
+char fletna_get_buffer_pos(void);
+void check_global_fletna(THE_TIMER *t);
+void fletna_glob_add_note(uint8_t note);
 
 
 char *find_map_path(char *filename); //vyhledava jmeno mapy v alternativnich cestach.
 				//Vysledny retezec je nutne uvolnit (free) !
-char *enc_open(char *filename); //dekoduje a otevira TXT soubor (ENC)
+TMPFILE_RD *enc_open(char *filename); //dekoduje a otevira TXT soubor (ENC)
+void enc_close(TMPFILE_RD *fil);
 int load_string_list_ex(char ***list,char *filename);
 
 int smlouvat_nakup(int cena,int ponuka,int posledni,int puvod,int pocet);
 int smlouvat_prodej(int cena,int ponuka,int posledni,int puvod,int pocet);
 int smlouvat(int cena,int puvod,int pocet,int money,char mode);
 
-void disable_intro();
+void disable_intro(void);
 void show_jrc_logo(char *filename);
 
 
@@ -1667,15 +1670,15 @@ char test_flag(int flag); //vraci stav vlajky;
 
 
 //generator
-char enter_generator();
+char enter_generator(void);
 
 //kniha
 #define add_to_book(odst) add_text_to_book(texty_knihy,odst)
 void add_text_to_book(char *filename,int odst);
 void write_book(int page);
-int count_pages();
-void save_book();
-void load_book();
+int count_pages(void);
+void save_book(void);
+void load_book(void);
 void prekodovat(char *c);
 
 
@@ -1684,13 +1687,15 @@ int enter_menu(char open); //task!
 void titles(va_list args); //task!
 void run_titles(va_list args); //task!
 void effect_show(va_list args); //effektni zobrazeni // task!
-void konec_hry();
+void konec_hry(void);
 
 
 //globmap
-void wire_global_map();
+void wire_global_map(void);
 void wire_automap_file(char *mapfile);
 char set_select_mode(char mode);
+
+void macro_load_another_map(TMA_LOADLEV *);
 
 void PodporaStitu(THUMAN *h, short *vlastnosti);
 

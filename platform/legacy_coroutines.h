@@ -14,7 +14,7 @@ extern "C" {
 typedef void (*TaskerFunctionName)(va_list);
 
 //void tasker(EVENT_MSG *msg,void **data);
-//int create_task();
+//int create_task(void);
 ///start new task
 /**
  * @param stack stack size - ignored by some platforms
@@ -29,7 +29,7 @@ int add_task(int stack,TaskerFunctionName fcname,...);
 ///terminate task
 /**
  * request to terminate given task. The task can check this flag by
- * task_quitmsg()
+ * task_quitmsg(void)
 
  */
 void term_task(int id_num);
@@ -52,13 +52,13 @@ void task_sleep_for(unsigned int time_ms);
  */
 EVENT_MSG *task_wait_event(int32_t event_number);
 ///returns count of tasks
-int q_any_task();
+int q_any_task(void);
 ///returns 1 if terminate is requested
-char task_quitmsg();
+char task_quitmsg(void);
 //char task_quitmsg_by_id(int id);
-char q_is_mastertask();
+char q_is_mastertask(void);
 ///returns id of current task
-int q_current_task();
+int q_current_task(void);
 
 
 #ifdef __cplusplus

@@ -60,7 +60,7 @@ void init_tracks()
   memset(locks,0,sizeof(locks));
   }
 
-static char last_beep_lev;
+
 
 /*void pcspeak_uroven(char value,int time);
 #pragma aux pcspeak_uroven parm[bh][ecx]=\
@@ -198,11 +198,8 @@ int calcul_volume(int chan,int x,int y,int side,int volume)
 void wav_load(void **p,int32_t *s)
   {
   char *sr;
-  int32_t *d;
-  char *c;
   char *tg;
   void *tgr;
-  size_t siz;
   struct t_wave x[3];
 
   sr=*p;
@@ -219,7 +216,6 @@ void wav_load(void **p,int32_t *s)
   read_chunk(sr,tg);
   free(*p);
   *p=tgr;
-  siz=*s;
   *s+=sizeof(struct t_wave)+4;
 /*  if (x[0].freq!=x[0].bps)
      {
@@ -250,7 +246,6 @@ void play_effekt(int x,int y,int xd,int yd,int side,int sided,TMA_SOUND *p)
   int chan;
   int blockid;
   SND_INFO *track;
-  THANDLE_DATA *z;
   char *s;
 
   if (!sound_enabled) return;
@@ -277,7 +272,7 @@ void play_effekt(int x,int y,int xd,int yd,int side,int sided,TMA_SOUND *p)
      blockid=find_handle(p->filename,wav_load);
      if (blockid==-1)
         {
-        z=def_handle(end_ptr,p->filename,wav_load,SR_ZVUKY);
+        def_handle(end_ptr,p->filename,wav_load,SR_ZVUKY);
         blockid=end_ptr++;
         if (level_preload) apreload(blockid);
        }
@@ -340,7 +335,7 @@ void restore_sound_names()
 void recalc_volumes(int sector,int side)
   {
   int i;
-  int newx,newy,layer;
+  int newx,newy;//,layer;
 
   if (sector>=mapsize) return;
 
@@ -348,7 +343,7 @@ void recalc_volumes(int sector,int side)
   SEND_LOG("(SOUND) %s","Recalculating volumes",0);
   newx=map_coord[sector].x;
   newy=map_coord[sector].y;
-  layer=map_coord[sector].layer;
+//  layer=map_coord[sector].layer;
   for(i=0;i<CHANNELS;i++)
      if (chan_state[i]>=0 && playings[i].side>=0)
         {
@@ -382,7 +377,7 @@ void create_playlist(char *playlist)
   if (cur_playlist!=NULL) release_list(cur_playlist);
   cur_playlist=NULL;
   if (playlist==NULL) return;
-  if (playlist=="") return;
+  if (!playlist[0]) return;
   c=playlist;
   while (*c && *c==32) c++;
   sscanf(c,"%s",mode);
@@ -395,7 +390,7 @@ void create_playlist(char *playlist)
   if (shift) c+=strlen(mode);else play_list_mode=PL_RANDOM;
   while (*c && *c==32) c++;
   playlist=c;
-  if (playlist=="") return;
+  if (!playlist[0]) return;
   for (c=playlist;c!=NULL;c=strchr(c+1,' ')) i++;
   playlist_size=i-1;
   cur_playlist=create_list(i);

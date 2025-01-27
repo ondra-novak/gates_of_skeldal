@@ -30,7 +30,7 @@ typedef struct thandle_data
   int32_t seekpos;       //16
   void *blockdata;    //20
   char flags;        //21
-  char path;        //22
+  uint8_t path;        //22
   short status;
   void (*loadproc)(void **data,int32_t *size);//28
   unsigned short lockcount;               //32
@@ -61,7 +61,7 @@ typedef handle_list *handle_groups[BK_MAJOR_HANDLES];
 
 extern char **mman_pathlist;  //tento pointer musi byt naplnen ukazatelem na tabulku cest
 extern void (*mem_error)(size_t);    //pokud neni NULL je tato funkce volana vzdy kdyz dojde pamet a system si s tim nevi rady
-extern void (*swap_error)();
+extern void (*swap_error)(void);
 extern int memman_handle; //cislo handle naposled zpracovavaneho prikazem ablock
 extern char mman_patch;    //jednicka zapina moznost pouziti patchu
 void *getmem(int32_t size);        //alokace pameti pres memman. alokovat pomoci malloc lze ale hrozi nebezpeci ze vrati NULL
@@ -75,8 +75,8 @@ void aunlock(int handle);             //odmyka blok
 void aswap(int handle);               //zapina swapovani pro blok
 void aunswap(int handle);             //vypina swapovani pro blok
 void apreload(int handle);            //zapina preloading pro blok (preloading proved pomoci ablock)
-//void free();                          //free
-void close_manager();                 //uzavre manager a uvolni veskerou pamet
+//void free(void);                          //free
+void close_manager(void);                 //uzavre manager a uvolni veskerou pamet
 void undef_handle(int handle);        //uvolni hadle k dalsimu pouziti
 THANDLE_DATA *zneplatnit_block(int handle); //zneplatni data bloku
 THANDLE_DATA *get_handle(int handle); //vraci informace o rukojeti
@@ -105,17 +105,17 @@ FILE *afiletemp(char *filename, int group);
 
 extern void (*mman_action)(int action);  //udalost volajici se pri akci mmanagera.
 
-void display_status();    //zobrazi na display status memmanageru
+void display_status(void);    //zobrazi na display status memmanageru
 
 #ifdef LOGFILE
-char *get_time_str();
-int q_current_task();
+char *get_time_str(void);
+int q_current_task(void);
 #define OPEN_LOG(log) memcpy(stderr,fopen(log,"w"),sizeof(FILE));
-#define SEND_LOG(format,parm1,parm2) fprintf(stderr,"%-2d %s "format"\n",q_current_task(),get_time_str(),parm1,parm2),fflush(stderr)
-#define CLOSE_LOG() fclose(logfile);
+#define SEND_LOG(format,parm1,parm2) fprintf(stderr,"%-2d %s "format"\n",q_current_task(void),get_time_str(void),parm1,parm2),fflush(stderr)
+#define CLOSE_LOG(void) fclose(logfile);
 #else
 #define OPEN_LOG(log)
 #define SEND_LOG(format,parm1,parm2)
-#define CLOSE_LOG()
+#define CLOSE_LOG(void)
 #endif
 #endif

@@ -111,6 +111,18 @@ int temp_storage_getc(TMPFILE_RD *f) {
     return r;
 }
 
+char *temp_storage_gets(char *buff, size_t sz, TMPFILE_RD *f) {
+    auto &d =f->_data;
+    auto pos = d.find('\n');
+    if (pos > d.size()) pos = d.size();
+    if (pos == 0) return NULL;
+    if (pos > sz - 1) pos = sz - 1;
+    temp_storage_read(buff, pos, f);
+    buff[pos] = 0;
+    return buff;
+}
+
+
 void temp_storage_internal_begin_scanf(TMPFILE_RD *f, const char *format, ...) {
     if (f->_data.empty()) {
         f->scan_ret = -1;

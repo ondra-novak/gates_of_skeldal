@@ -23,17 +23,17 @@ extern int bvolume;
 
 int sound_detect(int *dev,int *port,int *dma, int *irq);
 void set_mixing_device(int mix_dev,int mix_freq,...);
-char start_mixing();
-void stop_mixing();
+char start_mixing(void);
+void stop_mixing(void);
 void play_sample(int channel,void *sample,int32_t size,int32_t lstart,int32_t sfreq,int type);
 void set_channel_volume(int channel,int left,int right);
 void set_end_of_song_callback(const char * (*cb)(void *), void *ctx);
 
-void fade_music();
+void fade_music(void);
 int mix_back_sound(int synchro);
 int open_backsound(char *filename);
 void change_music(const char *filename);
-int get_timer_value();
+int get_timer_value(void);
 char *device_name(int device);
 void force_music_volume(int volume);
 

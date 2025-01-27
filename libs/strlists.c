@@ -91,13 +91,12 @@ static int set_line_back(TSTR_LIST ls,int line)
 void string_list_draw(int x1,int y1,int x2,int y2,OBJREC *o)
   {
   STRING_LIST_DATA *p;
-  int xs,ys,y;
+  int y;
   char savech[]=" ";
   int znh,i,j,max;
   TSTR_LIST ls;
   int savcolor=curcolor;
 
-  xs=x2-x1;ys=y2-y1;
   p=o->userptr;
   ls=p->list;
   bar32(x1,y1,x2,y2);
@@ -182,7 +181,7 @@ void string_list_event(EVENT_MSG *msg,OBJREC *o)
         i=get_to_topline(ls,p->topline,NULL);
         ms=get_mouse(msg);
         curfont=o->font;
-        if (ms->tl1 && clicked || ms->event_type & 0x2)
+        if ((ms->tl1 && clicked) || (ms->event_type & 0x2))
            {
 		   if (ls)
               do

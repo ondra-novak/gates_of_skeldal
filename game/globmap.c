@@ -41,7 +41,7 @@ typedef struct index_def
    }INDEX_DEF;
 
 static INDEX_DEF *index_tab=NULL;
-static char last_index=1;
+static uint8_t last_index=1;
 
 static int usemap;
 
@@ -446,7 +446,7 @@ static int find_leave_place(int sector)
   return found_place;
   }
 
-int macro_load_another_map();
+
 
 static int select_mode = 0;
 
@@ -496,7 +496,7 @@ static char *fly_text;
 static int fly_x,fly_y,fly_xs,fly_ys;
 static void *fly_background;
 
-void global_map_point(EVENT_MSG *msg,void **)
+void global_map_point(EVENT_MSG *msg,void **_)
   {
   MS_EVENT *ms;
 

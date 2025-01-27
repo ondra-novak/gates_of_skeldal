@@ -25,17 +25,17 @@ uint32_t _bios_keybrd(int mode);
 #define RGB888(r,g,b) ((unsigned short)((((r)<<8)&0xF800) | (((g)<<3) & 0x7C0) | ((b)>>3)))
 #define RGB555(r,g,b) ((unsigned short)(((r)<<11) | ((g)<<6) | (b)))
 
-#pragma warning (disable : 4244 4761 4133)
+
 
 
 void *map_file_to_memory(const char *name, size_t *sz);
 void unmap_file(void *ptr, size_t sz);
 
-void ShareCPU();
+void ShareCPU(void);
 void SetWheelMapping(char up, char down);
 
-char get_control_key_state();
-char get_shift_key_state();
+char get_control_key_state(void);
+char get_shift_key_state(void);
 void display_error(const char *text);
 
 int stricmp(const char *a, const char *b);
@@ -44,7 +44,7 @@ int stricmp(const char *a, const char *b);
 void strupr(char *c);
 const char * int2ascii(int i, char *c, int radix);
 
-uint32_t get_game_tick_count();
+uint32_t get_game_tick_count(void);
 void sleep_ms(uint32_t);
 
 #ifdef __cplusplus

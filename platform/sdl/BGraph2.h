@@ -7,15 +7,15 @@
 extern "C" {
 #endif
 
-uint16_t *GetScreenAdr();
-uint16_t *GetBuffer2nd();
-int32_t GetScreenPitch();
-int32_t GetBuffer2ndPitch();
-int32_t GetScreenSizeBytes();
+uint16_t *GetScreenAdr(void);
+uint16_t *GetBuffer2nd(void);
+int32_t GetScreenPitch(void);
+int32_t GetBuffer2ndPitch(void);
+int32_t GetScreenSizeBytes(void);
 
 void RedirectScreen(uint16_t *newaddr);
-void RestoreScreen();
-void RedirectScreenBufferSecond();
+void RestoreScreen(void);
+void RedirectScreenBufferSecond(void);
 
 
 //inicializuje a otevira rezim 640x480x16b v DX - otevre okno, pripravi vse pro beh hry
@@ -23,7 +23,7 @@ void RedirectScreenBufferSecond();
 char DXInit64(char inwindow,int zoom,int monitor, int refresh);
 
 //uzavre rezim grafiky
-void DXCloseMode();
+void DXCloseMode(void);
 
 //void DXCopyRects32(unsigned short x,unsigned short y,unsigned short xs,unsigned short ys);
 void DXCopyRects64(unsigned short x,unsigned short y,unsigned short xs,unsigned short ys);
@@ -44,8 +44,8 @@ void setvesa_displaystart(int x,int y);
 
 
 void DxSetInitResolution(int x, int y);
-int DxGetResX();
-int DxGetResY();
+int DxGetResX(void);
+int DxGetResY(void);
 
 void DXMouseTransform(unsigned short *x, unsigned short *y);
 

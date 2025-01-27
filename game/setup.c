@@ -63,7 +63,7 @@ static void change_zoom()
   int id=o_aktual->id;
   int i;
 
-  for(i=30;i<60;i+=10) c_set_value(0,i,f_get_value(0,i) & ~1 | (i==id));
+  for(i=30;i<60;i+=10) c_set_value(0,i,(f_get_value(0,i) & ~1) | (i==id));
   zoom_speed((id-30)/10);
   }
 
@@ -72,13 +72,13 @@ static void change_turn()
   int id=o_aktual->id;
   int i;
 
-  for(i=60;i<90;i+=10) c_set_value(0,i,f_get_value(0,i) & ~1 | (i==id));
+  for(i=60;i<90;i+=10) c_set_value(0,i,(f_get_value(0,i) & ~1) | (i==id));
   turn_speed((id-60)/10);
   }
 
 static void unwire_setup();
 
-static void setup_keyboard(EVENT_MSG *msg,void **)
+static void setup_keyboard(EVENT_MSG *msg,void **_)
   {
   if (msg->msg == E_KEYBOARD)
      {
@@ -184,10 +184,10 @@ void new_setup()
         }
      }
 
-  for(i=0;i<sizeof(textc)/sizeof(int);i++)
+  for(i=0;i<(int)(sizeof(textc)/sizeof(int));i++)
      define(-1,textxp[i],textyp[i]-1,1,1,0,label,texty[textc[i]]);
 
-  for(i=0;i<sizeof(effects)/sizeof(int);i++)
+  for(i=0;i<(int)(sizeof(effects)/sizeof(int));i++)
      if (check_snd_effect(effects[i]))
        {
        define(200+i*10,50+i*60,30,30,200,0,skeldal_soupak,effects[i]==SND_MUSIC?127:255);c_default(get_snd_effect(effects[i]));

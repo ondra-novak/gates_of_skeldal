@@ -9,10 +9,11 @@
 
 TSTR_LIST create_list(int count)
   {
-  TSTR_LIST p;int i,j;
+  TSTR_LIST p;
+  int i;
 
   size_t *s=(size_t *)malloc(count*sizeof(*p)+sizeof(size_t));
-  if (p==NULL) return NULL;
+  if (s==NULL) return NULL;
   *s = count;
   p = (TSTR_LIST)(s+1);
   for(i=0;i<count;i++) p[i]=NULL;
@@ -28,8 +29,7 @@ int find_ptr(TSTR_LIST source,void *_ptr,int _size)
 
 const char *str_replace(TSTR_LIST *list,int line,const char *text)
   {
-  int count,i,j;
-  TSTR_LIST p;
+  int count;
   char *c;
 
   count=str_count(*list);
@@ -61,7 +61,7 @@ const char *str_replace(TSTR_LIST *list,int line,const char *text)
 int str_add(TSTR_LIST *list,const char *text)
   {
   int count,i;
-  TSTR_LIST p;
+
 
   count=str_count(*list);
   i=find_ptr(*list,NULL,count);
@@ -72,7 +72,7 @@ int str_add(TSTR_LIST *list,const char *text)
 const char *str_insline(TSTR_LIST *list,int before,const char *text)
   {
   int i,count,punkt;
-  TSTR_LIST p;
+
 
   count=str_count(*list);
   punkt=find_ptr(*list,NULL,count);
@@ -90,7 +90,6 @@ void str_remove(TSTR_LIST *list,int line)
 void str_delfreelines(TSTR_LIST *list)
   {
   int count,i,j;
-  TSTR_LIST p;
 
   count=str_count(*list);
   j=0;
@@ -101,7 +100,7 @@ void str_delfreelines(TSTR_LIST *list)
 
 int str_count(TSTR_LIST p)
   {
-  int count;
+
 
   if (p==NULL) return 0;
   return *((size_t *)p-1);

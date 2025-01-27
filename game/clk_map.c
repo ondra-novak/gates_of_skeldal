@@ -53,7 +53,8 @@ char clk_touch_vyk(int sector,int side,int xr,int yr)
      {
      if (picked_item==NULL)
         {
-        for(i=0;v->items[i];i++);if (!i) return 0;
+        for(i=0;v->items[i];i++);
+        if (!i) return 0;
         i--;
         picked_item=NewArr(short,2);
         picked_item[0]=v->items[i];picked_item[1]=0;
@@ -67,7 +68,8 @@ char clk_touch_vyk(int sector,int side,int xr,int yr)
         {
         int fc;
         word *w;
-        for(i=0;v->items[i];i++);if (i==8)
+        for(i=0;v->items[i];i++);
+        if (i==8)
            {
            bott_disp_text(texty[36]);
            return 1;
@@ -92,7 +94,7 @@ char clk_touch_vyk(int sector,int side,int xr,int yr)
 
 char clk_touch(int id,int xa,int ya,int xr,int yr)
   {
-  int x1,y1,x2,y2;
+  int x1=0,y1=0,x2=0,y2=0;
   word *p;
   int ext=0;
 
@@ -107,7 +109,10 @@ char clk_touch(int id,int xa,int ya,int xr,int yr)
      ya=320-(map_sides[id].ysec<<1);
      p=(word *)ablock(map_sides[id].sec+num_ofsets[MAIN_NUM]);
      x1=*p++;y1=*p++;
-     x2=xa+x1/2;y2=ya+y1/2;y1=y2-y1;x1=x2-x1;
+     x2=xa+x1/2;
+     y2=ya+y1/2;
+     y1=y2-y1;
+     x1=x2-x1;
      x1+=MIDDLE_X-points[0][1][1].x;
      x2+=MIDDLE_X-points[0][1][1].x;
      y1+=MIDDLE_Y+points[0][1][1].y;
@@ -122,6 +127,7 @@ char clk_touch(int id,int xa,int ya,int xr,int yr)
      y2=MIDDLE_Y+points[0][0][1].y;
      ext=((map_sides[id].flags & SD_THING_IMPS) && !(map_sides[id].oblouk & SD_ITPUSH));
      }
+  else return 0;
   if (x1<=xr && xr<=x2 && y1<=yr && yr<=y2)
      {
      a_touch(viewsector,viewdir);

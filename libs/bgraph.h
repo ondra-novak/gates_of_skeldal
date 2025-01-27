@@ -3,15 +3,15 @@
 
 
 
-word *GetScreenAdr();
-word *GetBuffer2nd();
-int32_t GetScreenPitch();
-int32_t GetBuffer2ndPitch();
-int32_t GetScreenSizeBytes();
+word *GetScreenAdr(void);
+word *GetBuffer2nd(void);
+int32_t GetScreenPitch(void);
+int32_t GetBuffer2ndPitch(void);
+int32_t GetScreenSizeBytes(void);
 
 void RedirectScreen(word *newaddr);
-void RestoreScreen();
-void RedirectScreenBufferSecond();
+void RestoreScreen(void);
+void RedirectScreenBufferSecond(void);
 
 
 extern word curcolor,charcolors[7];
@@ -99,35 +99,35 @@ void showview256(word x,word y,word xs,word ys);
 void showview_lo(word x,word y,word xs,word ys);
 void outtext(char *text);
 int initmode_dx(char inwindow, char zoom, char monitor, int refresh);
-int initmode32();
-int initmode32b();
+int initmode32(void);
+int initmode32b(void);
 int initmode256(void *paletefile);
 int initmode256b(void *paletefile);
 int initmode_lo(void *paletefile);
 int initmode16(void *paletefile);
 int initmode64(void *paletefile);
 int initmode64b(void *paletefile);
-void *create_hixlat();
-void closemode();
+void *create_hixlat(void);
+void closemode(void);
 void line32(word x1,word y1, word x2, word y2);
 void position(word x,word y);
 void outtext(char *text);
 void show_ms_cursor(integer x,integer y);
 void *register_ms_cursor(void *cursor);
 void move_ms_cursor(integer newx,integer newy,char nodraw);
-void hide_ms_cursor();
+void hide_ms_cursor(void);
 int text_height(char *text);
 int text_width(char *text);
 void set_aligned_position(int x,int y,char alignx, char aligny,char *text);
-void wait_retrace();
-void pal_optimize();
+void wait_retrace(void);
+void pal_optimize(void);
 void rectangle(int x1,int y1,int x2,int y2,int color);
 word *mapvesaadr1(word *a);
-void *create_special_palette();
-void *create_special_palette2();
-void *create_blw_palette16();
+void *create_special_palette(void);
+void *create_special_palette2(void);
+void *create_blw_palette16(void);
 void rel_position_x(word x);
-int init_empty_mode();
+int init_empty_mode(void);
 
 void put_8bit_clipped(void *src,void *trg,int startline,int velx,int vely);
 //#pragma aux put_8bit_clipped parm [ESI][EDI][EAX][EBX][EDX] modify [ECX];

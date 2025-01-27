@@ -13,6 +13,7 @@
 #include "bgraph.h"
 #include "gui.h"
 #include "basicobj.h"
+#include <stdarg.h>
 
 #define MEMTEXT "Pam�t: "
 
@@ -233,7 +234,7 @@ void draw_status_line(char *c)
 
      p=strchr(c,'\0');
      *(--p)='\0';
-     if (p=c) break;
+     if (p==c) break;
      }
   position(5,y);outtext(c);
   ukaz_mysku();
@@ -263,7 +264,7 @@ void status_line(EVENT_MSG *msg, T_EVENT_ROOT **user_data) {
     static char st_line[256], oldline[256] = { "\0" };
     static char recurse = 1;
 
-    if (msg->msg == E_INIT)
+    if (msg->msg == E_INIT) {
         if (recurse) {
             T_EVENT_ROOT *p;
             recurse = 0;
@@ -274,8 +275,10 @@ void status_line(EVENT_MSG *msg, T_EVENT_ROOT **user_data) {
             draw_status_line(NULL);
             recurse = 1;
             return;
-        } else
+        } else {
             return;
+        }
+    }
 
     msg->msg = va_arg(msg->data, int);
     if (msg->msg == E_REDRAW) {
@@ -364,23 +367,21 @@ void win_label_move(EVENT_MSG *msg,OBJREC *o)
   static int drawed=0;
 
   o;
-  if (msg->msg==E_INIT) return;
-  if (msg->msg==E_TIMER)
-     {
-     send_message(E_TIMER);
-     if (!drawed)
-     if (!moved)
-     {
-     drawed=1;
-     redraw_desktop();
-     moved=0;
-     }
-     else
-     {
-     drawed=0;
-     moved=0;
-     }
-     }
+    if (msg->msg == E_INIT)
+        return;
+    if (msg->msg == E_TIMER) {
+        send_message(E_TIMER);
+        if (!drawed) {
+            if (!moved) {
+                drawed = 1;
+                redraw_desktop();
+                moved = 0;
+            } else {
+                drawed = 0;
+                moved = 0;
+            }
+        }
+    }
   if (msg->msg==E_MOUSE)
      {
         ms=get_mouse(msg);
@@ -447,7 +448,7 @@ void check_box_draw(int x1,int y1, int x2, int y2,OBJREC *o)
   {
   int x3;
 
-  x1+=1;y1+=1;x2-=1;y2-=1;
+  x1+=1;y1+=1;/*x2-=1*/;y2-=1;
   x3=x1+(y2-y1);
   draw_border(x1,y1,x3-x1,y2-y1,def_border(4,curcolor));
   bar32(x1,y1,x3,y2);
@@ -710,18 +711,21 @@ void input_line_draw(int x1,int y1, int x2, int y2, OBJREC *o)
 void input_line_event(EVENT_MSG *msg,OBJREC *o)
   {
    static int cursor=0;
-   int *len,*start,slen;
+   int len;
+   int *start;
+   int slen;
    char *c;
    static char *save;
    static char clear_kontext;
 
    input_line_state *st = o->userptr;
+   len = st->len;
    start=&st->start;
    c=(char *)o->data;
    slen=strlen(c);
    switch (msg->msg)
      {
-     case E_GET_FOCUS:cursor=0;save=(char *)getmem(*len+1);
+     case E_GET_FOCUS:cursor=0;save=(char *)getmem(len+1);
                       strcpy(save,c);clear_kontext=1;break;
      case E_LOST_FOCUS:cursor=0;*start=0;free(save);redraw_object(o);break;
      case E_CURSOR_TICK:
@@ -789,7 +793,7 @@ void input_line_event(EVENT_MSG *msg,OBJREC *o)
            case 0:break;
            case 13:break;
            case 27:strcpy(c,save);slen=strlen(c);if (cursor>slen) cursor=slen;break;
-           default:if (key>=' ') if (slen<*len || clear_kontext)
+           default:if (key>=' ') if (slen<len || clear_kontext)
              {
              int i;
 
@@ -895,13 +899,15 @@ void scroll_button_event(EVENT_MSG *msg,OBJREC *o)
            }
         }
      }
-  if (msg->msg==E_TIMER && *(char *)o->data )
-      if (ms_last_event.tl1) set_change();
-      else if (!ms_last_event.tl2)
+  if (msg->msg==E_TIMER && *(char *)o->data ) {
+      if (ms_last_event.tl1) {
+          set_change();
+      } else if (!ms_last_event.tl2)
              {
               *(char *)o->data=0;
                redraw_object(o);
              }
+  }
 
   if (msg->msg==E_GET_FOCUS || msg->msg==E_LOST_FOCUS)
      {
@@ -1258,7 +1264,7 @@ void resizer_event(EVENT_MSG *msg,OBJREC *o)
 
   o;
   if (msg->msg==E_INIT) return;
-  if (msg->msg==E_TIMER && !drawed)
+  if (msg->msg==E_TIMER && !drawed) {
      if (!moved)
      {
      drawed=1;
@@ -1270,6 +1276,7 @@ void resizer_event(EVENT_MSG *msg,OBJREC *o)
      drawed=0;
      moved=0;
      }
+  }
   if (msg->msg==E_MOUSE)
      {
         ms=get_mouse(msg);

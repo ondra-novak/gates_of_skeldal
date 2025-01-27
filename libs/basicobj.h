@@ -29,7 +29,7 @@ void label(OBJREC *o);
 void mid_label(OBJREC *o);
 void scroll_bar_v(OBJREC *o);
 void scroll_button(OBJREC *o);
-void scroll_support();
+void scroll_support(void);
 void scroll_bar_h(OBJREC *o);
 void button2(OBJREC *o);
 void resizer(OBJREC *o);

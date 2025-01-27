@@ -99,7 +99,7 @@ extern char *otevri_zavoru;
 //extern int curtask;
 //extern char *task_info;
 
-void init_events();
+void init_events(void);
  // inicalizuje zakladni strom udalosto
 void send_message(int message,...);
 
@@ -121,8 +121,8 @@ static __inline void shift_message(EVENT_MSG *msg) {
     msg->msg = va_arg(msg->data, int);
 }
 
-void do_events();
-void escape();
+void do_events(void);
+void escape(void);
 
 #include <legacy_coroutines.h>
 /*

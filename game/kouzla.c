@@ -538,7 +538,7 @@ char hod_na_uspech(int cil,TKOUZLO *k)
         cil=-cil-1;
         p=mobs[cil].vlastnosti+VLS_OHEN;
         }
-     else if(cil>0)
+     else
         {
         cil--;
         p=postavy[cil].vlastnosti+VLS_OHEN;
@@ -698,7 +698,7 @@ static void spell_demon(int num,TKOUZLO *spl,int cil,int demon)
 
 void spell_hit(int cil,int min,int max,int owner)
   {
-  if (cil)
+  if (cil) {
      if (cil<0)
      {
      TMOB *m;
@@ -708,7 +708,7 @@ void spell_hit(int cil,int min,int max,int owner)
      vybrana_zbran=-1;
      mob_hit(m,min+rnd(max-min));
      }
-     else if(cil>0)
+     else
      {
      THUMAN *h;
      int vysl;
@@ -726,11 +726,12 @@ void spell_hit(int cil,int min,int max,int owner)
      bott_draw(0);
      }
   }
+  }
 
 void spell_hit_zivel(int cil,int min,int max,int owner,int zivel)
   {
   int ochrana;
-  if (cil)
+  if (cil) {
      if (cil<0)
      {
      TMOB *m;
@@ -741,7 +742,7 @@ void spell_hit_zivel(int cil,int min,int max,int owner,int zivel)
      vybrana_zbran=-1;
      mob_hit(m,(min+rnd(max-min))*ochrana/100);
      }
-     else if(cil>0)
+     else
      {
      THUMAN *h;
 
@@ -751,6 +752,7 @@ void spell_hit_zivel(int cil,int min,int max,int owner,int zivel)
      player_hit(h,(min+rnd(max-min))*ochrana/100,0);
      bott_draw(0);
      }
+  }
   }
 
 
@@ -893,13 +895,22 @@ void spell_teleport(int cil,int owner, int teleport_target)
   {
     int sektor;
     int dir;
-    int um;
+    int um = 255;
 
-    if (cil>0) {sektor=postavy[cil-1].sektor;dir=postavy[cil-1].direction;}
-    else if (cil<0) {sektor=mobs[-cil-1].sector;dir=mobs[-cil-1].dir;}
-    if (owner>=0) um=postavy[owner].vlastnosti[VLS_SMAGIE];
-    teleport_target=calculatePhaseDoor(sektor,dir,um);
-  }
+        if (cil > 0) {
+            sektor = postavy[cil - 1].sektor;
+            dir = postavy[cil - 1].direction;
+        } else if (cil < 0) {
+            sektor = mobs[-cil - 1].sector;
+            dir = mobs[-cil - 1].dir;
+        } else {
+            return ;
+        }
+        if (owner >= 0) {
+            um = postavy[owner].vlastnosti[VLS_SMAGIE];
+        }
+        teleport_target = calculatePhaseDoor(sektor, dir, um);
+    }
   if (map_coord[teleport_target].flags & MC_NOSUMMON)
      {
      if (owner>=0) bott_disp_text(texty[88]);
@@ -955,7 +966,6 @@ void spell_teleport_sector(int cil,int owner)
       destroy_player_map();
       if (stricmp(TelepLocation.map,level_fname)!=0)
       {
-        int sector=postavy[cil].sektor;
         int i;
 
         if (cil!=owner) return;
@@ -1001,7 +1011,7 @@ void spell_teleport_sector(int cil,int owner)
       };
       {
         int newx=x+TelepLocation.loc_x*stpx+TelepLocation.loc_y*diffx;
-        int newy=y+TelepLocation.loc_x*stpx+TelepLocation.loc_y*diffy;
+        int newy=y+TelepLocation.loc_x*stpy+TelepLocation.loc_y*diffy;
         int i;
         int dist;
         int nearest=0;
@@ -1040,7 +1050,7 @@ void spell_teleport_sector(int cil,int owner)
 static void spell_summon(int cil)
   {
   short sector,i,rn,rno,slc;
-  char stdir,p;
+  int stdir,p;
 
   if (cil>0) sector=postavy[cil-1].sektor;
   if (cil<0) sector=mobs[-cil-1].sector;
@@ -1120,7 +1130,7 @@ static void spell_vahy_osudu(int zivel,char povaha)
   for(i=0,h=postavy;i<POCET_POSTAV;i++,h++) if (h->used && h->lives)
      {
      int obr=mgochrana(h->vlastnosti[VLS_OHEN+zivel]);
-     if (!povaha || rnd(100)<=obr)
+     if (!povaha || (int)rnd(100)<=obr)
            {
            h->lives=min;
            display_spell_in_icone(H_SPELLDEF,1<<i);
@@ -1130,7 +1140,7 @@ static void spell_vahy_osudu(int zivel,char povaha)
      if (m->vlajky & MOB_LIVE && m->vlajky & MOB_IN_BATTLE && m->lives<min)
         {
         int obr=mgochrana(m->vlastnosti[VLS_OHEN+zivel]);
-        if (!povaha || rnd(100)<=obr)
+        if (!povaha || (int)rnd(100)<=obr)
            m->lives=min;
         }
   bott_draw(1);
@@ -1425,8 +1435,8 @@ void call_spell(int i)
      case S_throw_item:z=GET_WORD(c);spell_throw(p->cil,z);break;
      case S_create_item:z=GET_WORD(c);spell_create(p->cil,z);break;
      case S_create_weapon:z=GET_WORD(c);spell_create_weapon(p->cil,z);break;
-     case S_animace:if (p->owner>=0 && !p->traceon)spell_anim(c);c=strchr(c,0);c++;break;
-     case S_zvuk:if (p->owner>=0 && !p->traceon)spell_sound(c);c=strchr(c,0);c++;break;
+     case S_animace:if (p->owner>=0 && !p->traceon)spell_anim((char *)c);c=(unsigned char *)strchr((char *)c,0);c++;break;
+     case S_zvuk:if (p->owner>=0 && !p->traceon)spell_sound((char *)c);c=(unsigned char *)strchr((char *)c,0);c++;break;
      case S_wait:p->wait=GET_WORD(c);if (p->owner>=0) ext=1;break;
      case 0xff:spell_end(i,p->cil,p->owner);return;
      case S_pvls:parm2=GET_WORD(c);twins|=2;
@@ -1447,14 +1457,14 @@ void call_spell(int i)
        TelepLocation.loc_x=0;
        TelepLocation.loc_y=0;
        break;
-     case S_location_map: TelepLocation.map=c;c=strchr(c,0);c++;break;
+     case S_location_map: TelepLocation.map=(char *)c;c=(unsigned char *)strchr((char *)c,0);c++;break;
      case S_location_dir: parm1=GET_WORD(c);TelepLocation.dir=parm1;break;
      case S_location_x: TelepLocation.loc_x=GET_WORD(c);TelepLocation.map=0;break;
      case S_location_y: TelepLocation.loc_y=GET_WORD(c);TelepLocation.map=0;break;
      default:
             {
             char *d="Chyba v popisu kouzel: Program narazil na neznamou instrukci %d (%02X) pri zpracovani kouzla s cislem %d. Kouzlo bylo ukon�eno";
-            c=alloca(strlen(d)+20);
+            char *c=alloca(strlen(d)+20);
             sprintf(c,d,*(c-1),*(c-1),p->num);
             bott_disp_text(c);
             spell_end(i,p->cil,p->owner);
@@ -1609,7 +1619,7 @@ static char get_valid_sector(word sector)
 
 void cast(int num,THUMAN *p,int owner, char backfire)
   {
-  int i,um,cil,num2;
+  int um,cil,num2;
   TKOUZLO *k;
 
   if (num>511)
@@ -1680,8 +1690,9 @@ void cast(int num,THUMAN *p,int owner, char backfire)
   if (!GlobEvent(MAGLOB_BEFOREMAGIC,p->sektor,p->direction)) return;
   if (!GlobEvents(MAGLOB_ONSPELLID1,MAGLOB_ONSPELLID9,p->sektor,p->direction,num2)) return;
 
-  if (cil && (k->cil==C_postava || k->cil==C_mrtva_postava || k->cil==C_postava_jinde)) i=add_spell(num2,cil,owner,0);
-  else
+  if (cil && (k->cil==C_postava || k->cil==C_mrtva_postava || k->cil==C_postava_jinde)) {
+      add_spell(num2,cil,owner,0);
+  } else
      {
      if (k->cil==C_policko) if (add_group_spell(num2,p->sektor,owner,C_policko,0)) goto end;
      if (k->cil==C_kouzelnik) add_spell(num2,p-postavy+1,owner,0);
@@ -1944,7 +1955,7 @@ void unaffect_demon(int cil)
   {
   int i;
   TKOUZLO *spl;
-  char a;
+
 
 
   cil++;
@@ -1956,12 +1967,12 @@ void unaffect_demon(int cil)
            if (spell_table[i]->wait)
               {
               spell_table[i]->wait=0;call_spell(i);
-              a=1;
+
               }
            if (spell_table[i]->cil>0)
               {
               spell_table[i]->delay=0;call_spell(i);
-              a=1;
+
               }
         }
      }

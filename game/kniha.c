@@ -552,22 +552,16 @@ static void seek_section(TMPFILE_RD *txt,int sect_number)
 
 void add_text_to_book(char *filename,int odst)
   {
-  char *txt;
   TMPFILE_RD *fl;
 
   set_font(H_FKNIHA,NOSHADOW(0));
   if (all_text==NULL) all_text=create_list(256);
-  txt=enc_open(filename);
-  if (txt==NULL) return;
-  const char *bookenc = "__bookenc";
-  temp_storage_store(bookenc, txt, strlen(txt));
-  fl = temp_storage_open(bookenc);
+  fl=enc_open(filename);
+  if (fl==NULL) return;
   seek_section(fl,odst);
   read_text(fl);
   next_line(1000);
-  free(txt);
-  temp_storage_close_rd(fl);
-  temp_storage_delete(bookenc);
+  enc_close(fl);
   }
 
 static char *displ_picture(char *c)
@@ -688,7 +682,6 @@ int count_pages()
 
 void save_book()
   {
-  char *c;
   TMPFILE_WR *f;
   int i,ss;
   char *tx;
@@ -708,8 +701,6 @@ void save_book()
 
 void load_book()
   {
-  char *c;
-  TMPFILE_RD *f;
 
   if (all_text!=NULL) release_list(all_text);
   all_text=NULL;

@@ -86,7 +86,7 @@ int autoopendata=0;
 
 void *cur_xlat;
 
-void redraw_desktop_call();
+void redraw_desktop_call(void);
 
 TMA_LOADLEV loadlevel;
 
@@ -112,8 +112,8 @@ int game_extras=0;
 char default_map[20]="LESPRED.MAP";
 
 THUMAN postavy[POCET_POSTAV],postavy_save[POCET_POSTAV];
-void (*unwire_proc)();
-void (*wire_proc)();
+void (*unwire_proc)(void);
+void (*wire_proc)(void);
 char cur_mode,battle_mode;
 static int init_music_vol=127;
 static int init_gfx_vol=255;
@@ -352,7 +352,7 @@ int set_video(int mode)
   return er;
   }
 
-void purge_temps(char) {
+void purge_temps(char _) {
     temp_storage_clear();
 }
 
@@ -462,7 +462,7 @@ void set_background(void **p,int32_t *s)
   pal=data+3+bgr_distance*256;
   pic=(char *)data+PIC_FADE_PAL_SIZE;
   do
-	*ptr++=pal[*pic++] | BGSWITCHBIT;
+	*ptr++=pal[(uint8_t)*pic++] | BGSWITCHBIT;
   while (--counter);
   }
 
@@ -537,9 +537,9 @@ void set_font(int font,int c1,...)
   memcpy(f_default,charcolors,sizeof(charcolors));
   }
 
-void music_init()
+void music_init(void)
   {
-  char *path;
+//  char *path;
 /*  if (sound_detection)
      {
      SEND_LOG("(SOUND) SOUND_DETECT Detecting sound card",0,0);
@@ -552,12 +552,12 @@ void music_init()
   start_mixing();
   set_snd_effect(SND_GFX,init_gfx_vol);
   set_snd_effect(SND_MUSIC,init_music_vol);
-  path=plugins_path;
+//  path=plugins_path;
   SEND_LOG("(SOUND) SOUND_DONE Sound Engine should work now",0,0);
 
   }
 
-void clrscr()
+void clrscr(void)
   {
 
   }
@@ -566,7 +566,7 @@ void clrscr()
 
 
 
-void back_music()
+void back_music(void)
   {
   mix_back_sound(0);
   }
@@ -578,7 +578,7 @@ void back_music()
   return &anim_idle;
   }*/
 
-/*void timer_error()
+/*void timer_error(void)
   {
   puts("\x7");
   }
@@ -600,7 +600,7 @@ void *timming(EVENT_MSG *msg,void **data)
      {
      p=q->next;
 //     if (p!=NULL && p->zero!=0) timer_error();
-     if (!(--q->counter))
+     if (!(--q->counter)) {
      if (q->zavora && i==(j-1))
         {
         q->zavora=0;
@@ -625,8 +625,10 @@ void *timming(EVENT_MSG *msg,void **data)
            //else
              // q->counter=1;
         }
-     else
+     else {
         q->counter=1;
+     }
+  }
      if (q->next!=p && q!=p)
         {
         THE_TIMER *z;
@@ -712,7 +714,7 @@ THE_TIMER *add_to_timer(int id,int delay,int maxcall,void *proc)
   return q;
   }
 
-static void kill_timer()
+static void kill_timer(void)
   {
   THE_TIMER *t;
 
@@ -742,7 +744,7 @@ void *user_timer(EVENT_MSG *msg,void **usr)
   return &user_timer;
   }
 
-void do_timer()
+void do_timer(void)
   {
   EVENT_MSG msg;
   char x;
@@ -775,7 +777,7 @@ int cislovka(int i)
   return 2;
   }
 
-void register_basic_data()
+void register_basic_data(void)
   {
   int i,s;
   TDREGISTERS *p;
@@ -802,7 +804,7 @@ void register_basic_data()
      }
   }
 
-void reg_grafiku_postav()
+void reg_grafiku_postav(void)
   {
   int i;
   char xname[16];
@@ -823,7 +825,7 @@ void reg_grafiku_postav()
      }
   }
 
-void cti_texty()
+void cti_texty(void)
   {
   char path[80];int err;
   texty=(TSTR_LIST)create_list(4);
@@ -859,7 +861,7 @@ void global_kbd(EVENT_MSG *msg,void **usr)
   return;
   }
 
-void  add_game_window()
+void  add_game_window(void)
   {
   WINDOW *p;
   CTL3D *c;
@@ -894,7 +896,7 @@ void error_exception(EVENT_MSG *msg,void **unused)
      }
   }
 
-void swap_error_exception()
+void swap_error_exception(void)
   {
   closemode();
   SEND_LOG("(ERROR) Disk is full ...",0,0);
@@ -976,7 +978,7 @@ SEND_LOG("(INIT) Setting random seed.",0,0);
 SEND_LOG("(INIT) Creating 256 color palette.",0,0);
   cur_xlat=create_special_palette();
 SEND_LOG("(INIT) Init message system - event handler",0,0);
-  init_events(100);
+  init_events();
 SEND_LOG("(INIT) Setting videomode.",0,0);
   verr=set_video(vmode);
   if (verr)
@@ -1045,7 +1047,7 @@ SEND_LOG("(INIT) Loading shops.",0,0);
   }
 
 void wire_main_functs();
-void unwire_main_functs()
+void unwire_main_functs(void)
   {
   SEND_LOG("(SYS) Wire main functions",0,0);
   delete_from_timer(TM_FLY);
@@ -1059,7 +1061,7 @@ void unwire_main_functs()
   }
 
 
-void wire_main_functs()
+void wire_main_functs(void)
   {
   SEND_LOG("(SYS) unWire main functions",0,0);
   add_to_timer(TM_SCENE,gamespeed,-1,refresh_scene);
@@ -1076,7 +1078,7 @@ void wire_main_functs()
   }
 
 
-void init_game()
+void init_game(void)
   {
   SEND_LOG("(INIT) Inventory.",0,0);
   init_inventory();
@@ -1116,9 +1118,10 @@ extern char running_battle;
     load_shops();
     send_message(E_CLOSE_MAP);
   }
+  return 0;
 }
 
-void enter_game()
+void enter_game(void)
   {
   int end;
   init_spectxtrs();
@@ -1264,7 +1267,7 @@ static void configure(char *filename)
   SEND_LOG("(GAME) Done config.",0,0);
   }
 
-static int update_config()
+static int update_config(void)
   {
   SEND_LOG("(GAME) Updating config. file '%s'",CONFIG_NAME,NULL);
   add_field_num(&cur_config,sinit[1].heslo,zoom_speed(-1));
@@ -1275,9 +1278,10 @@ static int update_config()
   add_field_num(&cur_config,sinit[13].heslo,autosave_enabled);
   save_config(cur_config,CONFIG_NAME);
   SEND_LOG("(GAME) Config. file was saved",0,0);
+  return 0;
   }
 
-void help()
+void help(void)
   {
   printf("Pouziti:\n\n   S <filename.MAP> <start_sector>\n\n"
          "<filename.MAP> jmeno mapy\n"
@@ -1512,14 +1516,14 @@ static void new_game(int argc, char *argv[])
   game_big_circle(enforce);
   }
 
-static void undef_menu()
+static void undef_menu(void)
   {
   int i;
   for(i=0;i<255;i++) undef_handle(0x8000+i);
   }
 
 
-static void load_error_report(EVENT_MSG *msg,void **)
+static void load_error_report(EVENT_MSG *msg,void **_)
   {
   if (msg->msg == E_IDLE)
      {
@@ -1529,7 +1533,7 @@ static void load_error_report(EVENT_MSG *msg,void **)
      }
   }
 
-static void wire_load_saved()
+static void wire_load_saved(void)
   {
   send_message(E_CLOSE_MAP,-1);
   }
@@ -1626,7 +1630,7 @@ static void start_from_mapedit(va_list args)
   exit_wait=1;
   }
 
-void disable_intro()
+void disable_intro(void)
   {
   add_field_num(&cur_config,sinit[12].heslo,1);
   update_config();
@@ -1634,7 +1638,7 @@ void disable_intro()
 
 
 
-void main(int argc,char *argv[])
+int main(int argc,char *argv[])
   {
   char *c,rm;
 
@@ -1702,13 +1706,14 @@ void main(int argc,char *argv[])
   escape();
   update_config();
   closemode();
+  return 0;
   }
 
 
 #include "version.h"
 
 
-int GetExeVersion()
+int GetExeVersion(void)
   {
 	return VERSIONNUM;
   }

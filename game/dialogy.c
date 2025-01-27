@@ -561,7 +561,7 @@ static void nahodne(int vls,int omz,char check)
   int i,l,m;
 
   memset(chk,0,sizeof(chk));
-  if (!check) for(i=0;i<SAVE_POSTS;i++) if (sn_nums[i]<POCET_POSTAV) chk[sn_nums[i]]|=1;
+  if (!check) for(i=0;i<SAVE_POSTS;i++) if (sn_nums[i]<POCET_POSTAV) chk[(uint8_t)sn_nums[i]]|=1;
   for(i=0;i<POCET_POSTAV;i++) if (postavy[i].sektor!=viewsector || !postavy[i].lives || !postavy[i].used) chk[i]|=2;
   m=0;l=-1;
   for(i=0;i<POCET_POSTAV;i++)
@@ -672,7 +672,7 @@ static void remove_all_cases();
 
 static void dialog_cont()
      {
-     save_jump=vol_n[vyb_volba];
+     save_jump=vol_n[(uint8_t)vyb_volba];
      remove_all_cases();
      echo(" ");
      his_line=get_last_his_line();
@@ -684,7 +684,7 @@ static void dialog_cont()
 
 static void key_check(EVENT_MSG *msg,void **unused)
   {
-  char c,d;
+  char d;
 
   unused;
   if (msg->msg==E_KEYBOARD)
@@ -785,7 +785,7 @@ static void add_case(int num,char *text)
   {
   char *a;
   int xs,ys;
-  vol_n[pocet_voleb]=num;
+  vol_n[(uint8_t)pocet_voleb]=num;
   if (pocet_voleb>MAX_VOLEB) {error("POZOR! Je priliz mnoho voleb");pocet_voleb=MAX_VOLEB;}
   a=alloca(strlen(text)+2);
   set_font(H_FBOLD,RGB555(0,30,0));
@@ -807,9 +807,17 @@ static void remove_all_cases()
   int cf,i;
   pocet_voleb=0;
   cf=str_count(history);
-  for(i=end_text_line;i<cf;i++) if (history[i]!=NULL)
-     if (history[i][0]-48!=vyb_volba) str_replace(&history,i,NULL);else
-     history[i][0]='M';else break;
+    for (i = end_text_line; i < cf; i++) {
+        if (history[i] != NULL) {
+            if (history[i][0] - 48 != vyb_volba) {
+                str_replace(&history, i, NULL);
+            } else {
+                history[i][0] = 'M';
+            }
+        } else {
+            break;
+        }
+    }
   str_delfreelines(&history);
   vyb_volba=0;
   }
@@ -1226,7 +1234,7 @@ void do_dialog()
 			  if (game_extras & EX_AUTOOPENBOOK) autoopenaction=1;
               break;
      case 150:set_nvisited(Get_short());break;
-     case 151:iff=rnd(100)<=Get_short();break;
+     case 151:iff=rnd(100)<=(unsigned int)Get_short();break;
      case 152:iff=q_item(Get_short(),viewsector)!=NULL;break;
      case 153:create_item(Get_short());break;
      case 154:destroy_item(Get_short());break;
@@ -1323,7 +1331,7 @@ static void create_back_pic()
 void call_dialog(int entr,int mob)
   {
   int i;
-  void (*old_wire_proc)()=wire_proc;
+//  void (*old_wire_proc)()=wire_proc;
   curcolor=0;
   create_back_pic();
   bar32(0,SCREEN_OFFLINE,639,SCREEN_OFFLINE+359);

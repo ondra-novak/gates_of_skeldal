@@ -1,1 +1,1 @@
-void install_wizard();
+void install_wizard(void);

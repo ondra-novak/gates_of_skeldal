@@ -1,5 +1,5 @@
 
 
-void *LoadDefaultFont();
+void *LoadDefaultFont(void);
 
 

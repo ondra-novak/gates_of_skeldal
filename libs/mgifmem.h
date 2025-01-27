@@ -36,5 +36,5 @@ typedef struct mgif_header
 void mgif_install_proc(MGIF_PROC proc);
 void *open_mgif(void *mgif); //vraci ukazatel na prvni frame
 void *mgif_play(void *mgif); //dekoduje a zobrazi frame
-void close_mgif();           //dealokuje buffery pro prehravani
+void close_mgif(void);           //dealokuje buffery pro prehravani
 #endif

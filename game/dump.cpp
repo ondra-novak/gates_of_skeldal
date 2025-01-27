@@ -78,7 +78,7 @@ void save_dump(const uint16_t *screen_addr,
     for (y = height; y > 0; y--) {
         const uint16_t *scr = screen_addr;
         a = scr + (y - 1) * linelen;
-        for (x = 0; x < width; x++) {
+        for (x = 0; (unsigned int)x < width; x++) {
             i = a[x];
             b = (i & 0x1f) << 3;
             g = (i & 0x7ff) >> 3;

@@ -97,9 +97,9 @@ static T_VLASTS rohy[9]=
 #define DIFF_RAND(x,y) ((x)+rnd((y)-(x)+1))
 
 #define MAX_RACES 5
-static char women[MAX_XICHTS]={0,0,0,0,1,1,1,1};
-static char poradi[MAX_XICHTS]={0,2,3,4,1,5,6,7};
-static char disable[MAX_XICHTS];
+static uint8_t women[MAX_XICHTS]={0,0,0,0,1,1,1,1};
+static uint8_t poradi[MAX_XICHTS]={0,2,3,4,1,5,6,7};
+static uint8_t disable[MAX_XICHTS];
 static int cur_edited=0;
 static int cur_angle=90;
 static int cur_polomer=0;
@@ -303,7 +303,7 @@ static void zobraz_perlu(void)
      scr=sss;
      for(xxs=0;xxs<xs;xxs++)
         if (!*p) scr++,p++;else
-        if (*p<128) *scr++=b[*p++];else
+        if (*p<128) *scr++=b[(uint8_t)*p++];else
            {
            *scr=(*scr & RGB555(30,30,30))>>1;
            scr++;p++;
@@ -325,13 +325,13 @@ static void vypocet_vlastnosti(int angle,T_VLASTS *vls)
   {
   T_VLASTS *low,*hi;
   div_t rm;
-  int p,test;
+  int p;
 
   rm=div(angle,45);
   p=rm.quot;
   low=rohy+p;p++;if (p>=8) p=0;
   hi=rohy+p;
-  test=CALC_DIFF(8,12,44);
+//  CALC_DIFF(8,12,44);
   vls->sill=CALC_DIFF(low->sill,hi->sill,rm.rem);
   vls->silh=CALC_DIFF(low->silh,hi->silh,rm.rem);
   vls->smgl=CALC_DIFF(low->smgl,hi->smgl,rm.rem);
@@ -475,13 +475,14 @@ static char vol_vlastnosti(int id,int xa,int ya,int xr,int yr)
       cancel=1;
       return 0;
      }
-  if (ms_last_event.event_type & 0x2)
+  if (ms_last_event.event_type & 0x2) {
      if (xa<pod_perlou_x || ya<pod_perlou_y || xa>pod_perlou_x+pod_perlou[0] ||  ya>pod_perlou_y+pod_perlou[1] )
         {
         cancel=1;
         return 0;
         }
      else cancel=0;
+  }
   if (cancel) return 0;
   xr=xa-PERLA_STRED_X;
   yr=-(ya-PERLA_STRED_Y);
@@ -629,7 +630,7 @@ void generuj_postavu(THUMAN *h)
   //postava je vygenerovana
   }
 
-static void redraw_page3(char)
+static void redraw_page3(char _)
   {
   update_mysky();
   schovej_mysku();
@@ -645,7 +646,7 @@ static void redraw_page3(char)
   }
 
 
-static void redraw_svitek(char)
+static void redraw_svitek(char _)
   {
   if (postavy[cur_edited].bonus==0)
      {
@@ -770,7 +771,7 @@ static void enter_reaction(EVENT_MSG *msg,void **unused)
      }
   }
 
-static void enter_reaction2(EVENT_MSG *msg,void **)
+static void enter_reaction2(EVENT_MSG *msg,void **_)
   {
   int c = va_arg(msg->data, int);
   if (msg->msg==E_KEYBOARD && c==13 && !shut_downing_text && ~b_disables & 0x3)

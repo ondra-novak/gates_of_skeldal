@@ -30,7 +30,6 @@
 #define MES_MAXSIZE 500
 #define CHECK_BOX_ANIM 6
 
-static char *error_hack="....Source compiled.";
 static char shadow_enabled=1;
 
 word color_topbar[7]={0,RGB555(22,14,4),RGB555(24,16,6),RGB555(25,17,7)};
@@ -301,14 +300,15 @@ int message(int butts,char def,char canc,char *keys,...)
 void type_text(EVENT_MSG *msg,void **data)
   {
   static int x,y;
-  static char text[255],index;
+  static char text[255];
+  static uint8_t index;
   static char *source;
   static int max_size,max_chars;
 
   data;
   if (msg->msg==E_INIT)
      {
-     int *p;
+//     int *p;
      char *c;
 
      set_font(H_FBOLD,RGB555(31,31,31));
@@ -387,7 +387,8 @@ void type_text_v2(va_list args)
   type_text_exit_proc exit_proc=va_arg(args,type_text_exit_proc);
 
   int xs,ys,tw;
-  char *text,pos,len;
+  char *text;
+  uint8_t pos,len;
   char wait_loop=1,ok=0,edit=0;
   short *back_pic;
   int i;
@@ -533,7 +534,7 @@ char labyrinth_find_path(word start,word konec,int flag,char (*proc)(word),word 
   ok_flags[start>>3]|=1<<(start & 0x7);
   for(*stk_free++=start;stk_free!=stk_cur;stk_cur++)
      {
-     char i;word s,d,ss;
+     uint8_t i;word s,d,ss;
      s=(ss=Lo(*stk_cur))<<2;
      for(i=0;i<4;i++) if (!(map_sides[s+i].flags & flag))
         {
@@ -1154,7 +1155,7 @@ void skeldal_soupak(OBJREC *o)
 
 
 static char fletna_str[13];
-static char pos=0;
+static uint8_t pos=0;
 
 // C  C# D  D# E  F  F# G  G# A  A# B  C
 // A  B  C  D  E  F  G  H  I  J  K  L  M
@@ -1248,7 +1249,7 @@ char fletna_get_buffer_pos()
 static char globFletnaStr[256]="";
 static char globNotes[][3]={"C","C#","D","D#","E","F","F#","G","G#","A","A#","H","C"};
 
-void fletna_glob_add_note(char note)
+void fletna_glob_add_note(uint8_t note)
 {
   if (strlen(globFletnaStr)<250) strcat(globFletnaStr,globNotes[note]);
 }
@@ -1335,85 +1336,52 @@ static char *load_file_to_string(FILE *f, int *size) {
     return c;
 }
 
-char *enc_open(char *filename)
+TMPFILE_RD *enc_open(char *filename)
   {
-  FILE *f,*g;
-  char *c,*d,*enc,*temp;
-  int i,j,last=0;
+  FILE *f;
+  char *c,*enc;
+  int last=0;
   int size;
+  char *encdata;
 
   f=fopen(filename,"r");
   if (f!=NULL) {
-      char *c = load_file_to_string(f, &size);
+      encdata = load_file_to_string(f, &size);
       fclose(f);
-      return c;
-  }
+  } else {
 
-  enc=alloca(strlen(filename)+5);
-  strcpy(enc,filename);
-  c=strrchr(enc,'.');
-  if (c==NULL) c=strchr(enc,0);
-  strcpy(c,".ENC");
-  f=fopen(enc,"rb");
-  if (f==NULL) return NULL;
-  char *encdata = load_file_to_string(f, &size);
-  fclose(f);
+      enc=alloca(strlen(filename)+5);
+      strcpy(enc,filename);
+      c=strrchr(enc,'.');
+      if (c==NULL) c=strchr(enc,0);
+      strcpy(c,".ENC");
+      f=fopen(enc,"rb");
+      if (f==NULL) return NULL;
+      encdata = load_file_to_string(f, &size);
+      fclose(f);
+  }
   for (int i = 0; i < size; ++i) {
       last = (last + encdata[i]) & 0xFF;
       encdata[i] = last;
   }
-  return encdata;
+  temp_storage_store("__enc_temp", encdata, size);
+  return temp_storage_open("__enc_temp");
   }
 
-void enc_close(ENCFILE *fil)
+void enc_close(TMPFILE_RD *fil)
   {
-  fclose(fil->f);
-  if (fil->to_delete!=NULL) remove(fil->to_delete);
-  free(fil->to_delete);
-  fil->f=NULL;
-  fil->to_delete=NULL;
+    temp_storage_close_rd(fil);
+    temp_storage_delete("__enc_temp");
   }
 
 
 int load_string_list_ex(TSTR_LIST *list,char *filename)
   {
-    char *data = enc_open(filename);
-    if (data == NULL) return -1;
-
-    if (*list==NULL) *list=create_list(256);
-    char *d = data;
-    do {
-        while (*d && isspace(d)) ++d;
-        if (!*d) break;
-        if (*d && *d == ';') {
-            while (*d && *d != '\n') ++d;
-        } else {
-            int idx = 0;
-            int m = 1;
-            if (*d == '-') {m = -1;++d;}
-            while (*d >= '0' && *d <='9') {
-                idx = idx*10+(*d-'0');
-                ++d;
-            }
-            if (idx == -1) break;
-            while (*d && isspace(d)) ++d;
-            char *b = d;
-            while (*d && *d != '\n' && *d != '\r') ++d;
-            if (*d) {*d = 0;++d;}
-            str_replace(list, idx, b);
-        }
-    } while (1);
-    free(data);
-  }
-    /*
   char c[1024],*p;
   int i,j,lin=0;
-  FILE *f;
-  ENCFILE fl;
+  TMPFILE_RD *f;
 
-
-
-  f=enc_open(filename,&fl);
+  f=enc_open(filename);
   if (*list==NULL) *list=create_list(256);
   if (f==NULL) return -1;
   do
@@ -1421,44 +1389,43 @@ int load_string_list_ex(TSTR_LIST *list,char *filename)
      lin++;
        do
         {
-        j=fgetc(f);
-        if (j==';') while ((j=fgetc(f))!='\n' && j!=EOF);
+        j=temp_storage_getc(f);
+        if (j==';') while ((j=temp_storage_getc(f))!='\n' && j!=EOF);
         if (j=='\n') lin++;
         }
        while (j=='\n');
-      ungetc(j,f);
-     j=fscanf(f,"%d",&i);
+       temp_storage_ungetc(f);
+     j=temp_storage_scanf(f,"%d",&i);
      if (j==EOF)
         {
-        enc_close(&fl);
+        enc_close(f);
         return -2;
         }
      if (j!=1)
         {
-        enc_close(&fl);
+        enc_close(f);
         return lin;
         }
      if (i==-1) break;
-     while ((j=fgetc(f))<33 && j!=EOF);
-     if (j!=EOF) ungetc(j,f);
-     if (fgets(c,1022,f)==NULL)
+     while ((j=temp_storage_getc(f))<33 && j!=EOF);
+     if (j!=EOF) temp_storage_ungetc(f);
+     if (temp_storage_gets(c,1022,f)==NULL)
         {
-        enc_close(&fl);
+        enc_close(f);
         return lin;
         }
      p=strchr(c,'\n');if (p!=NULL) *p=0;
      for(p=c;*p;p++) *p=*p=='|'?'\n':*p;
      if (str_replace(list,i,c)==NULL)
         {
-        enc_close(&fl);
+        enc_close(f);
         return -3;
         }
      }
   while (1);
-  enc_close(&fl);
+  enc_close(f);
   return 0;
   }
-  */
 
 //------------------------------------------------------------
 int smlouvat_nakup(int cena,int ponuka,int posledni,int puvod,int pocet)

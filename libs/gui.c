@@ -36,7 +36,7 @@ void empty1(OBJREC *o)
   o;
   }
 
-void empty2_p(OBJREC *o, va_list)
+void empty2_p(OBJREC *o, va_list _)
   {
   o;
   }
@@ -328,7 +328,7 @@ void add_to_idlist(OBJREC *o)
 void define(int id,int x,int y,int xs,int ys,char align,void (*initproc)(OBJREC *),...)
   {
   OBJREC *o;
-  int32_t *p;
+
 
   o=(OBJREC *)getmem(sizeof(OBJREC));
   o->x=x;o->y=y;o->xs=xs;o->ys=ys;
@@ -341,8 +341,8 @@ void define(int id,int x,int y,int xs,int ys,char align,void (*initproc)(OBJREC 
   o->autoresizey=0;
   o->on_event=empty;
   o->on_enter=empty;
-  o->on_exit=empty1;
-  o->on_change=empty3;
+  o->on_exit=empty;
+  o->on_change=empty;
   o->enabled=1;
   o->draw_error=0;
   o->color=waktual->color;memcpy(o->f_color,f_default,sizeof(f_default));
@@ -873,10 +873,11 @@ void set_enable(int win_id,int obj_id,int condition)
 
  condition=(condition!=0);
  if ((o=find_object_desktop(win_id,obj_id,&w))==NULL) return;
- if (o==o_aktual)
+ if (o==o_aktual) {
      if (send_lost()) return;
-     else
+ } else {
       o_aktual=NULL;
+ }
  if (o->enabled!=condition)
   {
   o->enabled=condition;
@@ -892,7 +893,7 @@ void close_current()
 void background_runner(EVENT_MSG *msg,void **prog)
   {
   void (*p)();
-  char i=1;
+
 
   if (msg->msg==E_INIT)
      {
@@ -906,7 +907,7 @@ void background_runner(EVENT_MSG *msg,void **prog)
      }
     p=*prog;
     p();
-    i=0;
+
   msg->msg=-2;
   }
 

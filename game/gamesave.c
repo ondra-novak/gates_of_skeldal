@@ -74,22 +74,9 @@ typedef struct s_save
 	int game_flags;
   }S_SAVE;
 
-#define ZAKLAD_CRC 0xC005
 
 static int get_list_count();
 
-static word vypocet_crc(char *data,int32_t delka)
-  {
-  uint32_t l=0;
-  do
-     {
-     l=(l<<8)|(delka>0?*data++:0);delka--;
-     l=(l<<8)|(delka>0?*data++:0);delka--;
-     l%=ZAKLAD_CRC;
-     }
-  while(delka>-1);
-  return l & 0xffff;
-  }
 static int unable_open_temp(char *c)
   {
   char d[]="Unable to open the file : ",*e;
@@ -349,7 +336,7 @@ int load_all_fly(TMPFILE_RD *fsta)
 int save_map_state() //uklada stav mapy pro savegame (neuklada aktualni pozici);
   {
   char sta[200];
-  char *bf;
+  char *bf = NULL;
   TMPFILE_WR *fsta;
   int i;
   int32_t siz;
@@ -429,7 +416,7 @@ int save_map_state() //uklada stav mapy pro savegame (neuklada aktualni pozici);
 int load_map_state() //obnovuje stav mapy; nutno volat po zavolani load_map;
   {
   char sta[200];
-  char *bf;
+  char *bf = NULL;
   TMPFILE_RD *fsta;
   int i;
   int32_t siz;
@@ -538,11 +525,9 @@ _inline unsigned char rotate(unsigned char c)
  */
 int pack_status_file(FILE *f,const char *status_name)
   {
-  int stt;
   char rcheck=0;
   uint32_t fsz;
-  char *buffer,*c,*fullnam;
-  word crc;
+  char *buffer,*c;
   unsigned char name_len;
 
   SEND_LOG("(SAVELOAD) Packing status file '%s'",status_name,0);
@@ -562,12 +547,11 @@ int pack_status_file(FILE *f,const char *status_name)
   fsz+=extra;
   rcheck=(fwrite(buffer,1,fsz,f)!=(unsigned)fsz);
   free(buffer);
-  return 0;
+  return rcheck;
   }
 
 int unpack_status_file(FILE *f)
   {
-  int stt;
   char rcheck=0;
   uint32_t fsz;
   char *buffer;
@@ -612,7 +596,6 @@ int unpack_all_status(FILE *f)
 int save_basic_info()
   {
   TMPFILE_WR *f;
-  char *c;
   S_SAVE s;
   short *p;
   int i;
@@ -670,7 +653,6 @@ int save_basic_info()
 int load_basic_info()
   {
   TMPFILE_RD *f;
-  char *c;
   S_SAVE s;
   int i;
   char res=0;
@@ -1107,7 +1089,7 @@ char updown_scroll(int id,int xa,int ya,int xr,int yr);
 
 static char updown_noinst=0;
 
-static void updown_scroll_hold(EVENT_MSG *msg,void **)
+static void updown_scroll_hold(EVENT_MSG *msg,void **_)
   {
   if (msg->msg == E_MOUSE)
     {
@@ -1375,7 +1357,7 @@ T_CLK_MAP clk_save[]=
   {-1,0,0,639,479,close_saveload,9,H_MS_DEFAULT},
   };
 
-static void saveload_keyboard(EVENT_MSG *msg,void **)
+static void saveload_keyboard(EVENT_MSG *msg,void **_)
   {
   if (msg->msg == E_KEYBOARD)
      {
@@ -1460,8 +1442,7 @@ void close_story_file()
 
 static int load_map_state_partial(char *level_fname,int mapsize) //obnovuje stav mapy; castecne
   {
-  char sta[200];
-  char *bf;
+  char *bf = NULL;
   TMPFILE_RD *fsta;
   int i;
   int32_t siz;

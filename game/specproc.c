@@ -41,7 +41,7 @@ MAP_PROC(map_test)
   return 1;
   }
 
-void spell_teleport();
+
 MAP_PROC(map_teleport)
   {
   side=0;event;
@@ -49,9 +49,9 @@ MAP_PROC(map_teleport)
   if (mob_map[sector]!=0)
      {
      int i;
-     spell_teleport(-mob_map[sector],-1);
+     spell_teleport(-mob_map[sector],-1,-1);
      if ((i=mobs[mob_map[sector]-1].next)!=0)
-        spell_teleport(-i,-1);
+        spell_teleport(-i,-1,-1);
      side=1;
      }
   if (map_coord[sector].flags & MC_DPLAYER)
@@ -222,7 +222,7 @@ static void show_liane(THE_TIMER *t)
 */
 
 
-static const float Inv2=0.5;
+
 static const float Snapper=3<<22;
 
 static __inline int toInt(float fval)
@@ -317,7 +317,7 @@ MAP_PROC(map_liana)
 
 MAP_PROC(map_identify)
   {
-  int x,y,yp,xp,ys,yss;
+  int x,y,yp,xp,ys;
   int i,cnt;char s[100];
   TITEM *it;
   TSTR_LIST ls;
@@ -354,19 +354,17 @@ MAP_PROC(map_identify)
   do
      {
      x=320-ID_XS/2;
-     y=y=240-ys/2;
+     y=240-ys/2;
      create_frame(x,y,ID_XS,ys,1);
      xp=x+5;yp=y+5;ys=ID_YS-10;
      set_font(H_FBOLD,NOSHADOW(0));
-     yss=ys;
      while(i<cnt)
         {
         position(xp,yp);outtext(ls[i]);
-        yp+=10;yss-=10;
+        yp+=10;
         i++;
         }
      showview(0,0,0,0);
-     getchar();
      wire_proc();
      }
   while (i<cnt);
@@ -389,7 +387,7 @@ static int get_dangerous_place(int sector)
 
 MOB_PROC(mob_open_door)
   {
-  if (event==SMPR_WALK)
+  if (event==SMPR_WALK) {
      if (m->user_data<128 || m->user_data>192)
         {
         int sector=m->sector;
@@ -427,6 +425,7 @@ MOB_PROC(mob_open_door)
            }
         return m->user_data<144;
         }
+  }
   return 0;
   }
 
@@ -683,7 +682,7 @@ static t_map_proc sp_map_table[]=
 char call_mob_event(int event_number,int event_type,TMOB *m)
   {
   if (!event_number) return 0;
-  if (event_number>=SP_MOB_TAB_SIZE)
+  if (event_number>=(int)SP_MOB_TAB_SIZE)
      event_error("Nestv�ra pou��va neplatnou specproc.",event_number);
   cur_event_number=event_number;
   return sp_mob_table[event_number](event_type,m);
@@ -692,7 +691,7 @@ char call_mob_event(int event_number,int event_type,TMOB *m)
 char call_item_event(int event_number,int event_type,short *ptr,THUMAN *p)
   {
   if (!event_number) return 0;
-  if (event_number>=SP_ITEM_TAB_SIZE)
+  if (event_number>=(int)SP_ITEM_TAB_SIZE)
      event_error("��slo ud�losti u v�ci je neplatn�. Specproc nen� definov�na.",event_number);
   cur_event_number=event_number;
   return sp_item_table[event_number](event_type,ptr,p);
@@ -701,7 +700,7 @@ char call_item_event(int event_number,int event_type,short *ptr,THUMAN *p)
 char call_map_event(int event_number,int sector,int side,int value,int event)
   {
   if (!event_number) return 0;
-  if (event_number>=SP_MAP_TAB_SIZE)
+  if (event_number>=(int)SP_MAP_TAB_SIZE)
      event_error("Neplatn� ��slo ud�losti na st�n�. Specproc s t�mto ��slem nen� definov�na.",event_number);
   cur_event_number=event_number;
   return sp_map_table[event_number](sector,side,value,event);

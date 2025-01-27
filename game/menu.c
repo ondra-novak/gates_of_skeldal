@@ -143,7 +143,7 @@ static void nahraj_rozdilovy_pcx(void **pp,int32_t *s)
   org=(char *)origin+6+512;
   pos=(char *)vysl+6+512;
   paltab=(word *)vysl+3;
-  rozdily(org,pos,hicolor+3,paltab,siz);
+  rozdily((uint8_t *)org,(uint8_t *)pos,hicolor+3,paltab,siz);
   free(vysl);
   *pp=hicolor;
   *s=siz*2+12;
@@ -232,7 +232,7 @@ static void zobraz_podle_masky(char barva,char anim)
   data=ablock(H_MENU_ANIM+anim);
   xs=data[0];
   ys=data[1];
-  zobraz_podle_masky_asm(barva,obr,data+3,maska+6+512,xs,ys,scr_linelen2);
+  zobraz_podle_masky_asm(barva,obr,data+3,(uint8_t *)maska+6+512,xs,ys,scr_linelen2);
   aunlock(H_MENU_MASK);
   }
 
@@ -330,8 +330,8 @@ static void klavesnice(EVENT_MSG *msg,void **unused)
 
 int enter_menu(char open)
   {
-  char c;
-  char *d;
+  uint8_t c;
+
   init_menu_entries();
   add_task(2048,preload_anim);
   load_ok=0;
@@ -596,7 +596,7 @@ void konec_hry()
   {
   int task_id;
   int timer;
-  char *d;
+
 
   schovej_mysku();
   curcolor=0;

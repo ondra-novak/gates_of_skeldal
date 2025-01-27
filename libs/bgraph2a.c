@@ -352,7 +352,7 @@ void put_picture(word x,word y,void *p)
   if (mode==8 || mode==264)
     {
     word *table=data;
-    char *cdata=(char *)(data+(mode==264?10*256:256));
+    uint8_t *cdata=(uint8_t *)(data+(mode==264?10*256:256));
     int i;
     int j;
 
@@ -367,7 +367,7 @@ void put_picture(word x,word y,void *p)
   else if (mode==512 )
     {
     word *table=data;
-    char *cdata=(char *)(data+256);
+    uint8_t *cdata=(uint8_t *)(data+256);
     int i;
     int j;
 
@@ -414,8 +414,6 @@ void put_image(word *image,word *target,int start_line,int sizex,int sizey)
     int32_t scr_linelen2 = GetScreenPitch();
 	word *esi = image;
 	word *edi = target;
-	int eax = start_line;
-	int ebx = sizex;
 	int edx = sizey;
 	int ecx = esi[0];
 	esi = esi + 3 + start_line * ecx;
@@ -718,7 +716,6 @@ void put_picture2picture(word *source,word *target,int xp,int yp)
    word src_cx = srchdr[0];
    word trg_cx = trghdr[0];
    word src_cy = srchdr[1];
-   word trg_cy = trghdr[1];
    word y;
 
    unsigned char *srcimagedata = (unsigned char *)source+pic_start;

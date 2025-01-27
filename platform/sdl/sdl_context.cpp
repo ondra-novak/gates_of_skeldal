@@ -147,8 +147,6 @@ void SDLContext::pool_events() {
                ms_event.x = (int16_t)(640*normalizedX);
                ms_event.y = (int16_t)(480*normalizedY);
            } else if (e.type == SDL_MOUSEBUTTONDOWN || e.type == SDL_MOUSEBUTTONUP) {
-               int mouseX = e.button.x;
-               int mouseY = e.button.y;
                int button = e.button.button;
                int up =  e.type == SDL_MOUSEBUTTONUP?1:0;
                ms_event.event = 1;

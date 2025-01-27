@@ -101,11 +101,13 @@ void macro_sound(TMA_SOUND *p,int psect,int pdir,int sect,int dir)
   {
   char up=4;
   if (sound_side_flags & SD_PRIM_FORV) up=2;
-  if (~(p->bit16) & up)
-     if (psect)
+  if (~(p->bit16) & up) {
+     if (psect) {
        play_effekt(map_coord[sect].x,map_coord[sect].y,map_coord[psect].x,map_coord[psect].y,dir,pdir,p);
-     else
+     }      else {
        play_effekt(0,0,0,0,-1,-1,p);
+     }
+  }
   }
 
 void macro_send_act(TMA_SEND_ACTION *p)
@@ -127,8 +129,9 @@ void macro_load_another_map(TMA_LOADLEV *z)
         }
   if (!GlobEvent(MAGLOB_LEAVEMAP,viewsector,viewdir)) return;
   for(i=0;i<POCET_POSTAV;i++)
-     if (postavy[i].groupnum)
+     if (postavy[i].groupnum) {
         if (i!=j)memcpy(&postavy[j++],&postavy[i],sizeof(postavy[i]));else j++;
+     }
   if (j<POCET_POSTAV) memset(&postavy[j],0,sizeof(THUMAN)*(POCET_POSTAV-j));
   loadlevel=*z;
   send_message(E_CLOSE_MAP);
@@ -156,7 +159,7 @@ static void macro_create_item(short item)
   }
 
 
-static char decode_lock(char znak,char *string,char codenum)
+static char decode_lock(char znak,char *string,uint8_t codenum)
   {
   char *memory;
   char *endm;
@@ -223,7 +226,7 @@ char if_lock(int side,int key_id,int level,TMA_LOCK *lk)
      h=postavy+j;
      if (level==0) level=100;
      if (level>=min)
-        if (rnd(100)<=level-min)
+        if ((int)rnd(100)<=level-min)
            {
            sprintf(s,texty[158+h->female],h->jmeno);
            bott_disp_text(s);
@@ -577,6 +580,7 @@ static int  ma_play_anim(char *filename,char cls)
   cancel_pass=0;
   play_movie_seq(a,cls?60:SCREEN_OFFLINE);
   wire_main_functs();
+  return 0;
   }
 
 static char ma_control_mob_control(word sector)
@@ -608,7 +612,6 @@ static void ma_drop_money(int sect,int side,TMULTI_ACTION *q)
 void macro_change_music(int textindex)
 {
   char *trackdef=level_texts[textindex];
-  char *nextTrack;
 
   create_playlist(trackdef);
   change_music(get_next_music_from_playlist());
@@ -742,13 +745,12 @@ void call_macro_ex(int side,int flags, int runatside)
   SEND_LOG("(MULTIACTIONS) End: Side %.1f Call %X",(float)(runatside/4)+((float)(runatside & 3)/10),flags);
   }
 
-static char lock_saved=255;
-static char lock_empty=254;
 
 
 char save_codelocks(TMPFILE_WR *fsta)
   {
   temp_storage_write(codelock_memory,sizeof(codelock_memory)*1,fsta);
+  return 0;
   }
 
 

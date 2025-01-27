@@ -4,6 +4,13 @@ project(skeldal)
 # Najít SDL2 knihovnu
 find_package(SDL2 REQUIRED)
 
+if (MSVC)
+    add_compile_options(/W4 /EHsc /DNOMINMAX)
+    set(STANDARD_LIBRARIES "")
+else()
+    add_compile_options(-Wall -Wextra -Werror -Wno-unused-parameter -Wno-unused-value)
+    set(STANDARD_LIBRARIES "pthread")
+endif()
 
 include_directories(platform libs)
 

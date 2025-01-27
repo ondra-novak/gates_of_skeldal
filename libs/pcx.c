@@ -42,12 +42,12 @@ void decomprimate_line_hi(char *src,unsigned short *trg,unsigned short *paleta,i
         {
         int i,j;
         i=(*src++) & 0x3f;
-        for (j=0;j<i;j++) *trg++=paleta[*src];
+        for (j=0;j<i;j++) *trg++=paleta[(uint8_t)*src];
         src++;
         linelen-=i-1;
         }
      else
-        *trg++=paleta[*src++];
+        *trg++=paleta[(uint8_t)*src++];
      }
   *srcstep=src-srcsave;
   }

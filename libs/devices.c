@@ -56,7 +56,7 @@ char *cz_key_tabs[]={cz_table_1,cz_table_2,cz_table_3};
 void keyboard(EVENT_MSG *msg,void *user_data)
   {
   int i;
-  static char cz_mode=0;
+  static uint8_t cz_mode=0;
   char c,d;
 
   msg;user_data;

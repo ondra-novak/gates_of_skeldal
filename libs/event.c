@@ -15,7 +15,6 @@
 #include <signal.h>
 #include <assert.h>
 
-static jmp_buf jmpenv;
 
 #define find_event_msg(where,what,res) \
      {\
@@ -285,7 +284,6 @@ static int call_proc(EVENT_MSG *msg, void *ctx) {
 T_EVENT_POINT *install_event(T_EVENT_ROOT **tree,int32_t ev_num,EV_PROC proc,void *procdata,char end)
 //instaluje novou udalost;
   {
-  EVENT_MSG x;
   void *user=NULL;
   T_EVENT_POINT *p;
   call_proc_context ctx = {proc, &user};
@@ -299,7 +297,6 @@ T_EVENT_POINT *install_event(T_EVENT_ROOT **tree,int32_t ev_num,EV_PROC proc,voi
 void deinstall_event(T_EVENT_ROOT **tree,int32_t ev_num,EV_PROC proc,void *procdata)
 //deinstaluje udalost;
   {
-  EVENT_MSG x;
   T_EVENT_ROOT *r;
   T_EVENT_POINT *p;
 
@@ -317,9 +314,7 @@ void deinstall_event(T_EVENT_ROOT **tree,int32_t ev_num,EV_PROC proc,void *procd
 
 void tree_basics(T_EVENT_ROOT **ev_tree,EVENT_MSG *msg)
 {
-  char *p;
   void (*q)();
-  EVENT_MSG tg;
 
   if (msg->msg==E_ADD || msg->msg==E_ADDEND)
      {
@@ -394,6 +389,7 @@ int send_message_to(int (*cb)(EVENT_MSG *, void *), void *ctx, int message, ...)
     va_start(x.data, message);
     int r = cb(&x, ctx);
     va_end(x.data);
+    return r;
 }
 
 static void send_message_to_tree(EVENT_MSG *x) {
@@ -430,7 +426,7 @@ void timer(EVENT_MSG *msg)
      }
   }
 
-void tasker(EVENT_MSG *msg,void **)
+void tasker(EVENT_MSG *msg,void **_)
   {
 
 

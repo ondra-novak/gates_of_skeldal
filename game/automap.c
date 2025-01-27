@@ -155,7 +155,7 @@ static char check_for_layer(int layer)
   return 0;
   }
 
-void ukaz_vsechny_texty_v_mape()
+void ukaz_vsechny_texty_v_mape(void)
   {
   int x,y,d,i,cn;
   char *c;
@@ -172,7 +172,7 @@ void ukaz_vsechny_texty_v_mape()
         x=x-map_xr;
         y=y-map_yr;
         x+=320;y+=197;
-        if (d==cur_depth)
+        if (d==cur_depth) {
         if (testclip(x,y))
            {
            int h;char *d,e;
@@ -185,7 +185,7 @@ void ukaz_vsechny_texty_v_mape()
            position(x,y);outtext(c);
            *d=e;
            }
-        else if(x<8 && x+text_width(c)>10 && y>16 && y<376)
+        else if(x<8 && (x+text_width(c)>10) && y>16 && y<376)
            {
            char cd[2]=" ";
            while (x<10 && *c)
@@ -195,13 +195,14 @@ void ukaz_vsechny_texty_v_mape()
            position(x,y);outtext(c);
            }
         }
+        }
      }
   }
 
 void psani_poznamek_event(EVENT_MSG *msg,void **data)
   {
-  static int x,y;
-  static char text[255],index;
+  static int x,y, index;
+  static char text[255];
   static char *save;
   static void *save_pic=NULL;
 
@@ -515,8 +516,8 @@ void draw_automap(int xr,int yr)
 {
   int i,k,x,y,xp,yp;
   int depth;
-  TSTENA *q;
-  word *s;
+//  TSTENA *q;
+  //word *s;
 
   update_mysky();
   schovej_mysku();
@@ -535,8 +536,8 @@ void draw_automap(int xr,int yr)
      {
      x=(map_coord[i].x*8+xr*8);
      y=(map_coord[i].y*8+yr*8);
-     q=map_sides+(i*4);
-     s=map_sectors[i].step_next;
+//     q=map_sides+(i*4);
+//     s=map_sectors[i].step_next;
      x-=xp;y-=yp;
      if (y>=-178 && y<170 && x>=-312 && x<310)
         {
@@ -550,9 +551,10 @@ void draw_automap(int xr,int yr)
               for(j=0;j<POCET_POSTAV;j++)
                {
                if (postavy[j].used)
-                 if (postavy[j].sektor==i)
+                 if (postavy[j].sektor==i) {
                     if (postavy[j].groupnum==cur_group) break;
-                    else l=j;
+                    l=j;
+                 }
                }
               if (j==POCET_POSTAV) j=l;
               if (j!=-1)
@@ -596,7 +598,7 @@ void disable_all_map(void)
   }
 
 
-void unwire_automap()
+void unwire_automap(void)
               {
               send_message(E_DONE,E_KEYBOARD,map_keyboard);
               send_message(E_DONE,E_AUTOMAP_REDRAW,map_keyboard);
@@ -683,7 +685,7 @@ static char mob_not_invis(int sector)
   return 1;
   }
 
-void draw_medium_map()
+void draw_medium_map(void)
   {
   int xr, yr;
   int xp, yp;
@@ -721,8 +723,9 @@ void draw_medium_map()
                  {
                  int u=-1,z=-1;
                  for(k=0;k<POCET_POSTAV;k++)
-                    if (postavy[k].sektor==i)
+                    if (postavy[k].sektor==i) {
                        if (postavy[k].groupnum==cur_group) z=k;else u=k;
+                    }
                  if (z!=-1) u=z;
                  if (u!=-1)
                     {
@@ -753,7 +756,7 @@ char map_menu_glob_map(int id,int xa,int ya,int xr,int yr)
   }
 
 
-static void wire_glob_map_control()
+static void wire_glob_map_control(void)
   {
   set_select_mode(0);
   schovej_mysku();
@@ -849,14 +852,14 @@ T_CLK_MAP clk_kniha[]=
   };
 
 
-void unwire_kniha()
+void unwire_kniha(void)
 {
   hold_timer(TM_FAST_TIMER,0);
   GlobEvent(MAGLOB_AFTERBOOK,viewsector,viewdir);
 }
 
 
-void wire_kniha()
+void wire_kniha(void)
   {
   int xa;
   if (!GlobEvent(MAGLOB_BEFOREBOOK,viewsector,viewdir))
@@ -935,7 +938,7 @@ char map_target_select(int id,int xa,int ya,int xr,int yr)
   }
 
 
-int select_teleport_target()
+int select_teleport_target(void)
   {
   *otevri_zavoru=1;
   unwire_proc();

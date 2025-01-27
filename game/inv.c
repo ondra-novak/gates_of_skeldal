@@ -159,7 +159,7 @@ static void items_15to16_correct(void **p,int32_t *s)
 void load_items()
   {
   char *name;
-  FILE *f;THANDLE_DATA *h;
+  FILE *f;
   int sect,i,hs;
   int32_t size;
   void *p;
@@ -167,15 +167,15 @@ void load_items()
   f=NULL;i=0;
   ikon_libs=hl_ptr;
   free(glob_items);
-  do
-     {
-		 char name[200];
-     sprintf(name,IT_LIB_NAME,i++);
-     if (test_file_exist(SR_ITEMS,name))
-        h=def_handle(hl_ptr++,name,items_15to16_correct,SR_ITEMS);
-     else break;
-     }
-  while (1);
+    do {
+        char name[200];
+        sprintf(name, IT_LIB_NAME, i++);
+        if (test_file_exist(SR_ITEMS, name)) {
+            def_handle(hl_ptr++, name, items_15to16_correct, SR_ITEMS);
+        } else {
+            break;
+        }
+    } while (1);
 	name=find_map_path(ITEM_FILE);
   f=fopen(name,"rb");free(name);
   if (f==NULL)
@@ -666,7 +666,7 @@ char pick_item_(int id,int xa,int ya,int xr,int yr)
 		  {
 		  int curinside=count_items_inside(picked_item);
 		  int nosnost=(glob_items[*picked_item-1].nosnost);
-		  short *batoh=(word *)getmem(nosnost*2+20);
+		  short *batoh=(short *)getmem(nosnost*2+20);
 		  short *cur=batoh;
 		  memcpy(cur,picked_item,(curinside+1)*2);
 		  cur+=curinside;
@@ -1115,7 +1115,7 @@ void init_inventory(void)
 
 void display_items_in_inv(THUMAN *h)
   {
-  int i,x,y,xr,yr,it;
+  int i,x,xr,yr,it;
   short *p;
 
   put_picture(266,TOP_OFS,ablock(H_IDESKA));
@@ -1123,7 +1123,7 @@ void display_items_in_inv(THUMAN *h)
   p[1]=INV_YS*((h->inv_size-1)/6)+58;
   put_picture(INV_X,INV_Y,p);
   xr=INV_X;x=0;
-  yr=INV_Y;y=0;
+  yr=INV_Y;
   for(i=0;i<h->inv_size;i++)
      {
      if ((it=h->inv[i])!=0)
@@ -1368,10 +1368,8 @@ static int calc_value(int parm,int lenght)
 
 void inv_display_vlastnosti()
   {
-  char b;
-  int i;
+  unsigned int i;
 
-  b=human_selected->bonus!=0;
   put_picture(INV_DESK,TOP_OFS,ablock(H_SVITEK));
   for(i=0;i<sizeof(script)/sizeof(struct t_inv_script);i++)
      {
@@ -2064,7 +2062,7 @@ char human_click(int id,int xa,int ya,int xr,int yr)
 
 
   xr;yr;id;
-  if (battle && (battle_mode!=MD_PREZBROJIT || select_player!=human_selected-postavy) || human_selected->vlastnosti[VLS_KOUZLA] & SPL_STONED) return 0;
+  if ((battle && ((battle_mode!=MD_PREZBROJIT) || (select_player!=human_selected-postavy))) || (human_selected->vlastnosti[VLS_KOUZLA] & SPL_STONED)) return 0;
   if (isdemon(human_selected)) return 0;
   if (picked_item!=NULL)
    if (muze_nosit(*picked_item))
@@ -2442,7 +2440,7 @@ static void rebuild_shops(void)
 
 void load_shops(void)
   {
-  char *c;
+
   int *d;
   if (!test_file_exist(SR_MAP,SHOP_NAME))
      {
@@ -2451,7 +2449,7 @@ void load_shops(void)
      return;
      }
   shop_hacek=afile(SHOP_NAME,SR_MAP,&shop_hacek_size);
-  d=shop_hacek;c=shop_hacek;
+  d=shop_hacek;
   max_shops=*d;
   if (!max_shops)
      {
@@ -2887,7 +2885,7 @@ char shop_change_player(int id, int xa, int ya,int xr,int yr)
      i=group_sort[i];
      p=&postavy[i];
 
-     if (p->used && p->sektor==viewsector)
+     if (p->used && p->sektor==viewsector) {
         if (ms_last_event.event_type & 0x2)
            {
            int j=select_player;
@@ -2915,6 +2913,7 @@ char shop_change_player(int id, int xa, int ya,int xr,int yr)
            }
         else if (picked_item==NULL) _exit_shop(id,xa,ya,xr,yr);
 
+     }
      return 1;
      }
   return 0;
@@ -2972,7 +2971,6 @@ void reroll_all_shops()
 char save_shops()
   {
   TMPFILE_WR *f;
-  char *c;
   int res=0;
 
   SEND_LOG("(SHOP) Saving shops...",0,0);
@@ -2990,7 +2988,6 @@ char save_shops()
 char load_saved_shops()
   {
   TMPFILE_RD *f;
-  char *c;
   int res=0;
   int i=0,j=0;
 

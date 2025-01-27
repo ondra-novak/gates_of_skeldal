@@ -117,7 +117,7 @@ void unwire_programming();
 void wire_jadro_souboje();
 void unwire_jadro_souboje();
 
-char sel_zivel=0;
+uint8_t sel_zivel=0;
 static char prekvapeni=0;
 char powers[3]={0,1,2};
 HUM_ACTION *magic_data;
@@ -266,12 +266,13 @@ void poloz_vsechny_predmety()
   {
   int i;
 
-  for(i=0;i<POCET_POSTAV && picked_item!=NULL;i++) //polozeni pripadne drzene veci v mysi.
+  for(i=0;i<POCET_POSTAV && picked_item!=NULL;i++) {//polozeni pripadne drzene veci v mysi.
     if (postavy[i].used && postavy[i].sektor==viewsector && put_item_to_inv(&postavy[i],picked_item))
           {
           free(picked_item);
           picked_item=NULL;
           }
+  }
     if (picked_item!=NULL)
        {
        push_item(viewsector,viewdir,picked_item);
@@ -345,7 +346,7 @@ int vypocet_zasahu(short *utocnik,short *obrance, int chaos,int  zbran,int bonus
 	zv=obrance[VLS_OHEN+utocnik[VLS_MGZIVEL]];
 	zv=mgochrana(zv);
 	mutok=zv*mutok/100;
-	if (rnd(obrance[VLS_OHEN+utocnik[VLS_MGZIVEL]]/2)>mutok) mutok=0;
+	if ((int)rnd(obrance[VLS_OHEN+utocnik[VLS_MGZIVEL]]/2)>mutok) mutok=0;
   	dmzhit=mutok;
 	zasah=utok-obrana;
 	}
@@ -645,7 +646,7 @@ T_CLK_MAP clk_end_game[]=
   };
 
 
-void end_game_end_phase(EVENT_MSG *msg,void **)
+void end_game_end_phase(EVENT_MSG *msg,void **_)
 {
   static int wait=0;
   if (msg->msg == E_TIMER) {
@@ -1065,7 +1066,7 @@ void pouzij_zbran(THUMAN *p,int ruka)
         anim_mirror=ruka==0;
         prejdi_na_pohled(p);
         if (itm) play_weapon_anim(it->weapon_attack,it->hitpos);
-        if (utok_na_sektor(p,m,chaos,bonus)>0 && itm && rnd(100)+1<it->magie)
+        if (utok_na_sektor(p,m,chaos,bonus)>0 && itm && (int)rnd(100)+1<it->magie)
            thing_cast(it->spell,p-postavy,p->sektor,m,1);
         }
      }
@@ -1101,7 +1102,7 @@ static char StrachPostavy(THUMAN *p)
 {
   word *cesta;
   int i;
-  int ln;
+
   int wf=weigth_defect(p)+1;
 
   prejdi_na_pohled(p);
@@ -1109,7 +1110,7 @@ static char StrachPostavy(THUMAN *p)
   for(select_player=0;select_player<6;select_player++) if (postavy+select_player==p) break;
   bott_draw(0);
   labyrinth_find_path(p->sektor,65535,SD_PLAY_IMPS,valid_sectors,NULL);
-  ln=labyrinth_find_path(p->sektor,last_sector,SD_PLAY_IMPS,valid_sectors,&cesta);
+  labyrinth_find_path(p->sektor,last_sector,SD_PLAY_IMPS,valid_sectors,&cesta);
   if (cesta[0]==0) {free(cesta);return 0;}
   for (i=0;i<6 && cesta[i] && p->kondice ;i++)
   {
@@ -1423,7 +1424,7 @@ char ask_who_proc(int id,int xa,int ya,int xr,int yr)
      p=&postavy[i];
      c=p->sektor!=viewsector;
      if (p->used)
-        if ((!far_play && !c || !death_play && c) && death_play==(p->lives==0))
+        if (((!far_play && !c) || (!death_play && c)) && death_play==(p->lives==0))
            {
            if (get_spell_teleport(magic_data->data1))
               if ((magic_data->data2=select_teleport_target())==0)
@@ -1495,9 +1496,10 @@ char runes_mask(int id,int xa,int ya,int xr,int yr)
   d=ablock(H_RUNEMASK);
   c=((char *)d)+6+512+xr+yr*d[0];
   cc=*c-6;
-  if (*c)
-     if (*c<6 && ms_last_event.event_type & 0x2) sel_zivel=*c-1;
-     else if (runes[sel_zivel] & (1<<cc))
+  if (*c) {
+     if (*c<6 && ms_last_event.event_type & 0x2) {
+         sel_zivel=*c-1;
+     } else if (runes[sel_zivel] & (1<<cc))
         {
         int x=(sel_zivel*7+(cc))*3;
         if (ms_last_event.event_type & 0x2)
@@ -1516,6 +1518,7 @@ char runes_mask(int id,int xa,int ya,int xr,int yr)
            rune_name=get_rune_name(x);
            }
         }
+  }
   if (cc<0) rune_name=NULL;
   free(runebar);runebar=NULL;
   display_rune_bar();
@@ -1785,20 +1788,26 @@ static void zahajit_kolo(char prekvapeni)
                              sect=map_sectors[sect].step_next[dir];
                              if (numplayers(sect,0)>2) break;
                              m1=mob_map[sect]-1;if (m1>=0) m2=mobs[m1].next-1;else m2=-1;
-                             if ((m1>=0 && mobs[m1].vlajky & MOB_IN_BATTLE) || (m2>=0 && mobs[m2].vlajky & MOB_IN_BATTLE))
-                                if (lnear) monster=1;else monster_far=1;
+                            if ((m1 >= 0 && (mobs[m1].vlajky & MOB_IN_BATTLE))
+                                    || (m2 >= 0 && (mobs[m2].vlajky & MOB_IN_BATTLE))) {
+                                if (lnear) {
+                                    monster = 1;
+                                } else {
+                                    monster_far = 1;
+                                }
+                            }
                              lnear=0;counter--;if(!counter) break;
                              }
                           w1=p->wearing[PO_RUKA_L];w2=p->wearing[PO_RUKA_R];
                           if (w1) dw1=glob_items[w1-1].druh;else dw1=-1;
                           if (w2) dw2=glob_items[w2-1].druh;else dw2=-1;
                           w=0;
-                          if (dw1==TYP_STRELNA && p->sipy || dw1==TYP_VRHACI) w|=1;
-                          if (dw2==TYP_STRELNA && p->sipy || dw2==TYP_VRHACI) w|=2;
+                          if ((dw1==TYP_STRELNA && p->sipy) || dw1==TYP_VRHACI) w|=1;
+                          if ((dw2==TYP_STRELNA && p->sipy) || dw2==TYP_VRHACI) w|=2;
                           if (w==0) w=select_weapon(p,0);
                           else if (w==3) w=select_weapon(p,0),monster|=monster_far;
                           else w--,monster|=monster_far;
-                          if (p->used && !p->programovano && p->lives)
+                          if (p->used && !p->programovano && p->lives) {
                              if (prekvapeni || !p->actions || !autoattack || !monster)
                              {
                              p->programovano++;p->zvolene_akce->action=AC_STAND;
@@ -1812,6 +1821,7 @@ static void zahajit_kolo(char prekvapeni)
                                 }
                              p->programovano=(char)p->actions;
                              }
+                          }
                           }
   rozhodni_o_poradi();
   unwire_proc();
@@ -1910,7 +1920,7 @@ void souboje_turn(char smer)
 
 void programming_keyboard(EVENT_MSG *msg,void **unused)
   {
-  char c;
+  uint8_t c;
 
   unused;
   if (msg->msg==E_KEYBOARD)
@@ -2074,32 +2084,47 @@ char zasah_veci(int sector,TFLY *fl)
   {
   if (mob_map[sector] && fl->owner>=0)
      {
-     if (fl->owner>=0) select_player=fl->owner-1;
-     if (it->druh!=TYP_VRHACI) return 1;
-     if (it->magie) area_cast(it->spell,sector,fl->owner,1);
-     mob1=mob_map[sector]-MOB_START;m1=&mobs[mob1];
-     mob2=m1->next-MOB_START;
-     if (mob2>=0)
-         {
-         m2=&mobs[mob2];
-         if (m2->vlajky & MOB_PASSABLE) m2=NULL;//pruchozi nestvury nemaji affekt na hozenou vec
-         }
-     else m2=NULL;
-     if (m1->vlajky & MOB_PASSABLE) if (m2!=NULL) m1=m2;else return 0;
-     if (m2==NULL)
-        {
-        mob_hit(m1,vypocet_zasahu(it->zmeny,m1->vlastnosti,1,fl->damage,fl->hit_bonus));
-        m1->dir=fl->smer+2&3;
+            if (fl->owner >= 0)
+                select_player = fl->owner - 1;
+            if (it->druh != TYP_VRHACI)
+                return 1;
+            if (it->magie)
+                area_cast(it->spell, sector, fl->owner, 1);
+            mob1 = mob_map[sector] - MOB_START;
+            m1 = &mobs[mob1];
+            mob2 = m1->next - MOB_START;
+            if (mob2 >= 0) {
+                m2 = &mobs[mob2];
+                if (m2->vlajky & MOB_PASSABLE) {
+                    m2 = NULL; //pruchozi nestvury nemaji affekt na hozenou vec
+                }
+            } else {
+                m2 = NULL;
+            }
+            if (m1->vlajky & MOB_PASSABLE) {
+                if (m2 != NULL) {
+                    m1 = m2;
+                } else {
+                    return 0;
+                }
+            }
+            if (m2 == NULL) {
+                mob_hit(m1,
+                        vypocet_zasahu(it->zmeny, m1->vlastnosti, 1, fl->damage,
+                                fl->hit_bonus));
+                m1->dir = fl->smer + 2 & 3;
+            } else {
+                mob_hit(m1,
+                        vypocet_zasahu(it->zmeny, m1->vlastnosti, 2, fl->damage,
+                                fl->hit_bonus));
+                mob_hit(m2,
+                        vypocet_zasahu(it->zmeny, m1->vlastnosti, 2, fl->damage,
+                                fl->hit_bonus));
+                m1->dir = fl->smer + 2 & 3;
+                m2->dir = fl->smer + 2 & 3;
+            }
+            return 1;
         }
-     else
-        {
-        mob_hit(m1,vypocet_zasahu(it->zmeny,m1->vlastnosti,2,fl->damage,fl->hit_bonus));
-        mob_hit(m2,vypocet_zasahu(it->zmeny,m1->vlastnosti,2,fl->damage,fl->hit_bonus));
-        m1->dir=fl->smer+2&3;
-        m2->dir=fl->smer+2&3;
-        }
-     return 1;
-     }
   else if (map_coord[sector].flags & MC_PLAYER && (fl->owner<=0 || pocet_zivych(sector)>2))
      {
      int kolik,i,c=0;
@@ -2314,7 +2339,7 @@ void send_weapon_skill(int druh)
 char player_check_death(THUMAN *p, char afterround)
   {
   p->used&=~0x80;
-  if (p->lives<=0 && p->groupnum)
+  if (p->lives<=0 && p->groupnum) {
 	if (!battle || afterround)
      {
      int mp;
@@ -2356,6 +2381,7 @@ char player_check_death(THUMAN *p, char afterround)
 	if (p->lives<0) p->lives=0;
 	p->used|=0x80;
 	}
+  }
   if (p->lives>p->vlastnosti[VLS_MAXHIT]) p->lives=p->vlastnosti[VLS_MAXHIT];
   return 0;
   }

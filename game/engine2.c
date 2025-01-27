@@ -579,7 +579,7 @@ void enemy_draw(void *src,void *trg,int shade,int scale,int maxspace,int clip)
 	int xtable[800];
 	int ytable[1200];
 	int xcount;
-	int ycount;
+
 	word pcx = picinfo[0];
 	word pcy = picinfo[1];
 	unsigned char *picdata = (unsigned char *)src + pic_start;
@@ -606,7 +606,6 @@ void enemy_draw(void *src,void *trg,int shade,int scale,int maxspace,int clip)
 			}
 			sp--;
 		}
-		ycount = w - ytable;
 		*w++=-1;
 		//ytable je hotova - obsahuje ofsety v obrazku pro kazdou radku a na konci je -1
 	}
@@ -767,7 +766,6 @@ void enemy_draw_transp(void *src,void *trg,void *shade,int scale,int maxspace,in
 	int xtable[800];
 	int ytable[1200];
 	int xcount;
-	int ycount;
 	word pcx = picinfo[0];
 	word pcy = picinfo[1];
 	word type = picinfo[2];
@@ -795,7 +793,6 @@ void enemy_draw_transp(void *src,void *trg,void *shade,int scale,int maxspace,in
 			}
 			sp--;
 		}
-		ycount = w - ytable;
 		*w++=-1;
 		//ytable je hotova - obsahuje ofsety v obrazku pro kazdou radku a na konci je -1
 	}
@@ -958,7 +955,6 @@ void enemy_draw_mirror_transp(void *src,void *trg,void *shade,int scale,int maxs
 	int xtable[800];
 	int ytable[1200];
 	int xcount;
-	int ycount;
 	word pcx = picinfo[0];
 	word pcy = picinfo[1];
 	word type = picinfo[2];
@@ -986,7 +982,6 @@ void enemy_draw_mirror_transp(void *src,void *trg,void *shade,int scale,int maxs
 			}
 			sp--;
 		}
-		ycount = w - ytable;
 		*w++=-1;
 		//ytable je hotova - obsahuje ofsety v obrazku pro kazdou radku a na konci je -1
 	}
@@ -1147,7 +1142,6 @@ void enemy_draw_mirror(void *src,void *trg,int shade,int scale,int maxspace,int 
 	int xtable[800];
 	int ytable[1200];
 	int xcount;
-	int ycount;
 	word pcx = picinfo[0];
 	word pcy = picinfo[1];
 	unsigned char *picdata = (unsigned char *)src + pic_start;
@@ -1174,7 +1168,6 @@ void enemy_draw_mirror(void *src,void *trg,int shade,int scale,int maxspace,int 
 			}
 			sp--;
 		}
-		ycount = w - ytable;
 		*w++=-1;
 		//ytable je hotova - obsahuje ofsety v obrazku pro kazdou radku a na konci je -1
 	}

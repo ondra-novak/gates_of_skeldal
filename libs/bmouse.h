@@ -9,12 +9,12 @@
 
 extern MS_EVENT ms_last_event;
 
-short init_mysky();
-short done_mysky();
-void ukaz_mysku();
-void schovej_mysku();
-void zobraz_mysku();
+short init_mysky(void);
+short done_mysky(void);
+void ukaz_mysku(void);
+void schovej_mysku(void);
+void zobraz_mysku(void);
 void set_ms_finger(int x,int y);
 void update_mysky(void);
-char je_myska_zobrazena();
+char je_myska_zobrazena(void);
 #endif

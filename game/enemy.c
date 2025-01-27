@@ -142,10 +142,10 @@ int load_enemy_paths(TMPFILE_RD *f)
   return 0;
   }
 
-static void mob_reload(EVENT_MSG *msg,void **){
+static void mob_reload(EVENT_MSG *msg,void **_){
   static int counter=0;
 
-  if (msg->msg = E_KOUZLO_KOLO)
+  if (msg->msg == E_KOUZLO_KOLO) {
      {
      if (insleep) return;
      if (counter++==10)
@@ -188,7 +188,7 @@ static void mob_reload(EVENT_MSG *msg,void **){
         }
      }
   }
-
+}
 
 void init_mobs()
   {
@@ -333,14 +333,21 @@ static char seber_predmet(TMOB *m)
   return 0;
   }
 
-static void mob_sound_event(TMOB *m,int event)
-  {
-    if (m->sounds[event] && m->vlajky & MOB_LIVE && ~m->vlastnosti[VLS_KOUZLA] & SPL_STONED)
-     if (event==MBS_WALK)
-     play_sample_at_sector(m->cislo_vzoru+16*6+event+monster_block,viewsector,m->sector,m-mobs+256,(m->vlajky & MOB_SAMPLE_LOOP)!=0);
-     else
-     play_sample_at_sector(m->cislo_vzoru+16*6+event+monster_block,viewsector,m->sector,0,0);
-  }
+static void mob_sound_event(TMOB *m, int event) {
+    if (m->sounds[event] && m->vlajky & MOB_LIVE
+            && ~m->vlastnosti[VLS_KOUZLA] & SPL_STONED) {
+        if (event == MBS_WALK) {
+            play_sample_at_sector(
+                    m->cislo_vzoru + 16 * 6 + event + monster_block, viewsector,
+                    m->sector, m - mobs + 256,
+                    (m->vlajky & MOB_SAMPLE_LOOP) != 0);
+        } else {
+            play_sample_at_sector(
+                    m->cislo_vzoru + 16 * 6 + event + monster_block, viewsector,
+                    m->sector, 0, 0);
+        }
+    }
+}
 
 void load_enemies(short *data,int size,int *grptr,TMOB *template,int32_t tsize)
   {
@@ -426,7 +433,7 @@ int mob_pocet_vychodu(int sector,int dir)
 
   if (map_sides[(sect<<2)+dir].flags & SD_MONST_IMPS) return 1;
   sect=map_sectors[sect].step_next[dir];
-  if (map_coord[sect].flags & MC_PLAYER && ~passable && MOB_PASSABLE) return 2;
+  if ((map_coord[sect].flags & MC_PLAYER) && (~passable & MOB_PASSABLE)) return 2;
   i=mob_map[sect];
   if (i==0) return 0;
   if (alone & MOB_BIG) return 1;
@@ -485,9 +492,9 @@ char je_mozne_videt(int sector1,int sector2,int flag)
               ly--;
               }
            else return 0;
-        if (x!=xs)
+        if (x!=xs) {
            if ((map_sides[(s<<2)+3].flags & flag)!=(unsigned)flag) s=map_sectors[s].step_next[3];
-        else return 0;
+        } else return 0;
         }
      }
   else
@@ -510,9 +517,9 @@ char je_mozne_videt(int sector1,int sector2,int flag)
               ly--;
               }
            else return 0;
-        if (x!=xs)
+        if (x!=xs) {
            if ((map_sides[(s<<2)+1].flags & flag)!=(unsigned)flag) s=map_sectors[s].step_next[1];
-        else return 0;
+        } else return 0;
         }
      }
   return s==sector2;
@@ -604,11 +611,13 @@ void stop_mob(TMOB *p)
   p->mode=MBA_NONE;
   num1=mob_map[p->sector];
   if (num1) q=&mobs[num1-MOB_START];else q=p;
-  if (p==q)
-     if (p->next)
+  if (p==q) {
+     if (p->next) {
         q=mobs+p->next-MOB_START;
-     else
+     } else {
         q=NULL;
+     }
+  }
   if (p->stay_strategy & MOB_BIG)
      {
      p->headx=128;
@@ -651,14 +660,16 @@ void stop_mob(TMOB *p)
      switch (p->dir)
         {
         case 0:
-        case 2:if (q->headx==128)
+        case 2:if (q->headx==128) {
                     if (p->headx<128) q->headx=128+MOB_DIST;else q->headx=128-MOB_DIST;
+                }
                p->headx=-q->headx;
                p->heady=mob_batt_y[p->dir];
                break;
         case 1:
-        case 3:if (q->heady==128)
+        case 3:if (q->heady==128) {
                     if (p->heady<128) q->heady=128+MOB_DIST;else q->heady=128-MOB_DIST;
+                }
                p->heady=-q->heady;
                p->headx=mob_batt_x[p->dir];break;
         }
@@ -781,16 +792,15 @@ static int jdi_po_ceste(int old,TMOB *p)
 
 void rozhodni_o_smeru(TMOB *p)
   {
-  int sect,dir,r,v,lv,c,alone,oldwalk,passable;
+  int sect,dir,r,v,c,alone,oldwalk,passable;
   int vdir=-1;
 
   alone=p->stay_strategy & MOB_BIG;
   passable=p->vlajky & MOB_PASSABLE;
   sect=p->sector;
   dir=p->dir;
-  lv=p->walk_data;
   if (mob_paths[p-mobs]!=NULL) c=jdi_po_ceste(-1,p);else c=-1;
-  if (c!=-1)
+  if (c!=-1) {
     if (!mob_check_next_sector(sect,c,alone,passable))
      {
      p->headx=mob_go_x[c];
@@ -802,6 +812,7 @@ void rozhodni_o_smeru(TMOB *p)
      {
      if (mob_path_ptr[p-mobs]-mob_paths[p-mobs]>1) mob_path_ptr[p-mobs]-=2;
      }
+  }
   if (p->vlajky & MOB_IN_BATTLE)
      {
      stop_mob(p);
@@ -896,8 +907,9 @@ int get_view(TMOB *p,int dirmob,int action,int curdir)
      xs=p->headx-p->locx;
      ys=p->heady-p->locy;
 	 if (!(game_extras & EX_WALKDIAGONAL) || p->stay_strategy & MOB_BIG)
-	   if (ys!=0 && xs!=0)
+	   if (ys!=0 && xs!=0) {
 		  if (p->dir==1 || p->dir==3) xs=0;else ys=0;
+	   }
      if (xs) dirmob=(xs<0)?3:1;
      if (ys) dirmob=(ys<0)?0:2;
      pos=(2+dirmob-curdir)&0x3;
@@ -1144,18 +1156,19 @@ void mob_check(int num,TMOB *p)
   sect=p->sector;
   q=p->stay_strategy & MOB_BIG;
   z=p->vlajky & MOB_PASSABLE;
-  if (p->locy<64)
+  if (p->locy<64) {
      if (mob_check_next_sector(sect,0,q,z)) otoc_moba(p);
      else mob_step_next(num,sect,0,&p->locy);
-  else if (p->locx>191)
+  } else if (p->locx>191) {
      if (mob_check_next_sector(sect,1,q,z)) otoc_moba(p);
      else mob_step_next(num,sect,1,&p->locx);
-  else if (p->locy>191)
+  } else if (p->locy>191) {
      if (mob_check_next_sector(sect,2,q,z)) otoc_moba(p);
      else mob_step_next(num,sect,2,&p->locy);
-  else if (p->locx<64)
+  } else if (p->locx<64) {
      if (mob_check_next_sector(sect,3,q,z)) otoc_moba(p);
      else mob_step_next(num,sect,3,&p->locx);
+  }
   if (battle && p->mode!=MBA_FLEE)
      {
      mob_sound_event(p,MBS_WALK);
@@ -1225,6 +1238,7 @@ static int drop_inventory(TMOB *p)
            }
         push_item(p->sector,pl,c);
         }
+  return 0;
   }
 
 
@@ -1551,9 +1565,9 @@ void mobs_live(int num)
         ys=p->heady-p->locy;
 		if (!(game_extras & EX_WALKDIAGONAL) || p->stay_strategy & MOB_BIG)
 		  {
-		  if (ys!=0 && xs!=0)
+		  if (ys!=0 && xs!=0) {
 			 if (p->dir==1 || p->dir==3) xs=0;else ys=0;
-		  }
+		  }}
         if (xs>spd) xs=spd;
         else if (xs<-spd) xs=-spd;
         if (ys>spd) ys=spd;
@@ -1605,8 +1619,8 @@ void calc_mobs()
   for(i=0;i<MAX_MOBS;i++) if (mobs[i].vlajky & MOB_LIVE) mobs_live(i);
   if (folow_mode)
      {
-     viewsector=mobs[folow_mob].sector;
-     viewdir=mobs[folow_mob].dir;
+     viewsector=mobs[(uint8_t)folow_mob].sector;
+     viewdir=mobs[(uint8_t)folow_mob].dir;
      }
   }
 
@@ -1650,12 +1664,19 @@ void check_all_mobs_battle() //kontroluje zda je nekdo v battle
 
 int q_kolik_je_potvor(int sector)
   {
-  if (mob_map[sector])
-     if (mobs[mob_map[sector]-MOB_START].next) return 2;
-     else if (mobs[mob_map[sector]-MOB_START].stay_strategy & MOB_BIG) return 2;
-     else return 1;
-  return 0;
-  }
+    if (mob_map[sector]) {
+        if (mobs[mob_map[sector] - MOB_START].next) {
+            return 2;
+        }
+        else if (mobs[mob_map[sector] - MOB_START].stay_strategy & MOB_BIG) {
+            return 2;
+        }
+        else {
+            return 1;
+        }
+    }
+    return 0;
+}
 
 void najdi_cestu(word start,word konec,int flag,word **cesta, int iamcnt)
   {
@@ -1670,7 +1691,7 @@ void najdi_cestu(word start,word konec,int flag,word **cesta, int iamcnt)
   ok_flags[start>>3]|=1<<(start & 0x7);
   for(*stk_free++=start;stk_free!=stk_cur;stk_cur++)
      {
-     char i;word s,d=0xFFFF,ss;
+     uint8_t i;word s,d=0xFFFF,ss;
      s=(ss=Lo(*stk_cur))<<2;
      for(i=0;i<4;i++) if (!(map_sides[s+i].flags & flag))
         {
@@ -1741,7 +1762,7 @@ void sirit_zvuk(word start)
   ok_flags[start>>3]|=1<<(start & 0x7);
   for(*stk_free++=start;stk_free!=stk_cur;stk_cur++)
      {
-     char i;word s,d,ss;
+     uint8_t i;word s,d,ss;
      s=(ss=Lo(*stk_cur))<<2;
      for(i=0;i<4;i++) if (!(map_sides[s+i].flags & SD_SOUND_IMPS))
         {
@@ -1895,13 +1916,13 @@ char akce_moba_zac(TMOB *m)
 
            if (p->used && p->lives && p->sektor==sect)
               {
-              if ((m->vlajky & MOB_CASTING && get_spell_track(m->casting))|| m->stay_strategy & MOB_ROGUE)
+              if (((m->vlajky & MOB_CASTING) && get_spell_track(m->casting))|| m->stay_strategy & MOB_ROGUE)
                     {stop_all_mobs_on_sector(m->sector);smeruj_moba(m,0);}
               else stop_mob(m);
               viewsector=sect;
               viewdir=m->dir+2 &3;
               m->csektor=sect;
-              if (m->vlajky & MOB_CASTING && rnd(100)<=m->vlastnosti[VLS_SMAGIE]) m->mode=MBA_SPELL;else m->mode=MBA_ATTACK;
+              if ((m->vlajky & MOB_CASTING)&& rnd(100)<=(unsigned int)m->vlastnosti[VLS_SMAGIE]) m->mode=MBA_SPELL;else m->mode=MBA_ATTACK;
               bott_draw(1);
               return 0;
               }
@@ -1927,7 +1948,7 @@ char akce_moba_zac(TMOB *m)
   sect=m->sector;
   i=q_vidis_postavu(m->sector,m->dir,m,&j,1);
   h=postavy+i;
-  if (i>-1)
+  if (i>-1) {
      if (((m->vlajky & MOB_CASTING && get_spell_track(m->casting))|| m->stay_strategy & MOB_ROGUE) &&
         (map_coord[m->sector].x==map_coord[h->sektor].x || map_coord[m->sector].y==map_coord[h->sektor].y)
         && track_mob(m->sector,m->dir))
@@ -1960,6 +1981,7 @@ char akce_moba_zac(TMOB *m)
          else
            return 1;
          }
+  }
   rozhodni_o_smeru(m);
   if (m->dir & 1)m->headx=mob_go_x[m->dir];else m->heady=mob_go_y[m->dir];
 //  m->headx=mob_go_x[m->dir];

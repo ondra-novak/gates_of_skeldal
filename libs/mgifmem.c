@@ -30,7 +30,7 @@ static int nextgroup;
 static int bitsize,init_bitsize;
 char old_value=0;
 
-void do_clear_code()
+void do_clear_code(void)
   {
   int i;
 
@@ -45,7 +45,7 @@ void do_clear_code()
      }
   }
 
-void reinit_lzw()
+void reinit_lzw(void)
   {
   do_clear_code();
   }
@@ -63,7 +63,7 @@ void init_lzw_compressor(int dic_size)
   }
 
 
-void done_lzw_compressor()
+void done_lzw_compressor(void)
   {
   free(compress_dic);
   compress_dic=NULL;
@@ -90,7 +90,7 @@ void *open_mgif(void *mgif) //vraci ukazatel na prvni frame
   return c;
   }
 
-void close_mgif()           //dealokuje buffery pro prehravani
+void close_mgif(void)           //dealokuje buffery pro prehravani
   {
   done_lzw_compressor();
   free(lzw_buffer);
@@ -180,8 +180,8 @@ int fast_expand_code(DOUBLE_S *compress_dic, int code,uint8_t **target, uint8_t 
         *old_value = w;
         **target = out;
         (*target)++;
-        return code;
     }
+    return out;
 /*
   _asm
     {
@@ -237,16 +237,16 @@ void lzw_decode(void *source,char *target)
   //int group,chr;
   int old_first;
   register int mask=0xff;
-
+  uint8_t old_value;
 
   for(i=0;i<LZW_MAX_CODES;i++) compress_dic[i].first=0;
   clear:
-  uint8_t old_value=0;
+  old_value=0;
   nextgroup=free_code;
   bitsize=init_bitsize;
   mask=(1<<bitsize)-1;
   code=input_code(source,&bitpos,bitsize,mask);
-  uint8_t *t = target;
+  uint8_t *t = (uint8_t *)target;
   old_first=fast_expand_code(compress_dic,code,&t,&old_value);
   old=code;
   while ((code=input_code(source,&bitpos,bitsize,mask))!=end_code)

@@ -32,8 +32,8 @@ void draw_floor_ceil(int celx,int cely,char f_c,void *txtr);
 void show_cel2(int celx,int cely,void *stena,int xofs,int yofs,char rev);
   //zobrazi primou stenu ktera lezi pred nebo napravo od pozorovatele
 void show_cel(int celx,int cely,void *stena,int xofs,int yofs,char rev);
-  void turn_left();
-void turn_right();
+  void turn_left(void);
+void turn_right(void);
 void zooming_backward(word *background);
 void zooming_forward(word *background);
 void OutBuffer2nd(void);
@@ -41,7 +41,7 @@ void CopyBuffer2nd(void);
 void report_mode(int);
 void draw_item(int celx,int cely,int posx,int posy,short *pic,int index);
 void draw_item2(int celx,int cely,int xpos,int ypos,void *texture,int index);
-//void textmode_effekt();
+//void textmode_effekt(void);
 //#pragma aux textmode_effekt modify[eax ebx ecx edx edi];
 
 

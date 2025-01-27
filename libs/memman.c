@@ -96,7 +96,8 @@ void *getmem(int32_t size)
 void *load_file(char *filename)
   {
   FILE *f;
-  int32_t size,*p;
+  int32_t *p;
+  size_t size;
 
   if (mman_action!=NULL) mman_action(MMA_READ);
   SEND_LOG("(LOAD) Loading file '%s'",filename,0);
@@ -268,7 +269,6 @@ THANDLE_DATA *get_handle(int handle)
 void heap_error(size_t size) //heap system
   {
   int i,j;
-  char swaped=0;
   uint32_t maxcounter=0;
   THANDLE_DATA *sh;
   char repeat=0,did=0;
@@ -290,7 +290,7 @@ void heap_error(size_t size) //heap system
 
            h=((THANDLE_DATA *)_handles[i]+j);
            c=bk_global_counter-h->counter;
-           if (h->status==BK_PRESENT && ~h->flags & BK_LOCKED)
+           if (h->status==BK_PRESENT && ~h->flags & BK_LOCKED) {
               if (last_free!=NULL)
                  {
                  d=(char *)h->blockdata-last_free;
@@ -303,6 +303,7 @@ void heap_error(size_t size) //heap system
                  did=1;
                  num=i*BK_MINOR_HANDLES+j;
                  }
+           }
            }
          }
   if (lastblock==sh)
@@ -324,7 +325,6 @@ void heap_error(size_t size) //heap system
            {
            free(sh->blockdata);
            sh->status=BK_SWAPED;
-           swaped=1;
            }
         }
      else
@@ -373,7 +373,7 @@ THANDLE_DATA *zneplatnit_block(int handle)
   return h;
   }
 
-void init_manager(char *filename,char */*swap is not supported*/) // filename= Jmeno datoveho souboru nebo NULL pak
+void init_manager(char *filename,char *swap_is_not_supported) // filename= Jmeno datoveho souboru nebo NULL pak
                                   // se pouzije DOS
                                             // swp je cesta do TEMP adresare
   {
@@ -537,7 +537,8 @@ void *ablock(int handle)
            if (h->src_file[0]!=0)
               {
               if (mman_action!=NULL) mman_action(MMA_READ);
-              strcpy(c,mman_pathlist[h->path]);strcat(c,h->src_file);
+              strcpy(c,mman_pathlist[h->path]);
+              strcat(c,h->src_file);
               c[strlen(mman_pathlist[h->path])+12]='\0';
               p=load_file(c);
               s=last_load_size;
@@ -668,12 +669,12 @@ int apreload_sort(const void *val1,const void *val2)
 
 void apreload_start(void (*percent)(int cur,int max))
   {
-  word *p;
+  short *p;
   int i;
   int c,z;
 
   swap_status=0;
-  p=NewArr(word,max_sign);
+  p=NewArr(short,max_sign);
   for(i=0;i<max_sign;i++) p[i]=i;
   qsort(p,max_sign,sizeof(word),apreload_sort);
   for(i=0,c=0;i<max_sign;i++) if (apr_sign[p[i]]==0x7f7f7f7f)p[i]=-1;else c++;
@@ -733,7 +734,7 @@ void close_manager()
 //------------------------------------------------------------
 /*static void block()
   {
-/*  static MEMINFO inf;
+  static MEMINFO inf;
   void *c;
   static counter=0;
 
@@ -801,7 +802,7 @@ void display_status()
 void *grealloc(void *p,int32_t size)
   {
   void *q;
-  int32_t scop;
+
 
   if (!size)
      {
