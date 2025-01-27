@@ -4,6 +4,9 @@
 #include "event.h"
 #include "devices.h"
 #include "bmouse.h"
+
+#include "memman.h"
+
 #include <stdio.h>
 
 char visible=0;
@@ -74,6 +77,7 @@ void update_mysky(void)
   if (x.event)
      {
      ms_last_event=x;
+     x.event = 0;
      }
   if(!visible) move_ms_cursor(x.x-h_x,x.y-h_y,0);
   }

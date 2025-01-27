@@ -520,7 +520,7 @@ void zacatek_kola()
   int i;
   THUMAN *p;
 
-  SEND_LOG("(BATTLE) Start round",0,0);
+  SEND_LOG("(BATTLE) Start round");
   build_player_map();
   cislo_kola++;
   autostart_round=0;
@@ -581,7 +581,7 @@ void konec_kola()
   int i;THUMAN *h;TMOB *m;
   int j;
 
-  SEND_LOG("(BATTLE) End round",0,0);
+  SEND_LOG("(BATTLE) End round");
   prekvapeni=0;
   for(i=0,h=postavy;i<POCET_POSTAV;i++,h++)
      if (h->used)
@@ -1162,7 +1162,7 @@ void jadro_souboje(EVENT_MSG *msg,void **unused) //!!!! Jadro souboje
            if(nxt==-255)
               {
               int i;
-              SEND_LOG("(BATTLE) Ending round...",nxt,mobs[nxt].name);
+              SEND_LOG("(BATTLE) Ending round...(nxt=%d,mob=%s)",nxt,mobs[nxt].name);
               delete_from_timer(TM_SCENE);
               add_to_timer(TM_SCENE,gamespeed,-1,refresh_scene);
               for(i=0;i<MAX_MOBS;i++)
@@ -1272,7 +1272,7 @@ void jadro_souboje(EVENT_MSG *msg,void **unused) //!!!! Jadro souboje
            int i;
            THUMAN *p;
 
-           SEND_LOG("(BATTLE) Leaving battle",0,0);
+           SEND_LOG("(BATTLE) Leaving battle");
            prekvapeni=0;
            unwire_proc();
            wire_main_functs();
@@ -2023,7 +2023,7 @@ void start_battle()
   disable_click_map();
   if (!running_battle)
      {
-     SEND_LOG("(BATTLE) Battle started (monster: %s)",attack_mob!=NULL?attack_mob->name:"(NULL)",0);
+     SEND_LOG("(BATTLE) Battle started (monster: %s)",attack_mob!=NULL?attack_mob->name:"(NULL)");
      poloz_vsechny_predmety();
      zacatek_kola();
      running_battle=1;
@@ -2368,7 +2368,7 @@ char player_check_death(THUMAN *p, char afterround)
      if (p->level>1) p->exp=level_map[p->level-2];
      p->kondice=0;
      p->mana=0;
-     SEND_LOG("(GAME) Character '%s' died. R.I.P.",p->jmeno,0);
+     SEND_LOG("(GAME) Character '%s' died. R.I.P.",p->jmeno);
      if (numplayers(p->sektor,0)==0) map_coord[p->sektor].flags &=~MC_PLAYER;
      mp=map_sectors[p->sektor].sector_type;
      if (mp==S_VODA || mp==S_LAVA || mp==S_VIR) p->sektor=0;

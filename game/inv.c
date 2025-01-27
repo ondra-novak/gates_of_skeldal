@@ -1103,7 +1103,7 @@ void real_regeneration()
   if (sleep_ticks>MAX_SLEEP) sleep_ticks=MAX_SLEEP;
   tick_tack(1);
   TimerEvents(viewsector,viewdir,game_time);
-  SEND_LOG("(GAME) Tick Tack, Game time: %d",game_time,0);
+  SEND_LOG("(GAME) Tick Tack, Game time: %d",game_time);
   GlobEvent(MAGLOB_ONROUND,viewsector,viewdir);
   bott_draw(0);
   }
@@ -2263,7 +2263,7 @@ void build_fly_map()
      if (!counter)
        SEND_LOG("(FLY) Fly_map was reduced - capacity: %d flies in game / was: %d",fly_count,fly_map_size);
      else
-       SEND_LOG("(FLY) Fly_map was expanded - capacity: %d flies in game ",fly_count,fly_map_size);
+       SEND_LOG("(FLY) Fly_map was expanded - capacity: %d flies in game / was: %d",fly_count,fly_map_size);
      counter=1000;
      fly_map_size=fly_count;
      }
@@ -2416,26 +2416,70 @@ static void shop_mouse_event(EVENT_MSG *msg,void **unused)
         }
      }
   }
+
+static __inline void copy_data(char **src, void *target, int size) {
+    memcpy(target, *src, size);
+    (*src)+=size;
+}
+
+static char * load_TSHOP(char *binary, TSHOP *target) {
+    copy_data(&binary, target->keeper, 16);
+    copy_data(&binary, target->picture, 13);
+    copy_data(&binary, &target->koef, 4);
+    copy_data(&binary, &target->products, 4);
+    copy_data(&binary, &target->shop_id, 4);
+    copy_data(&binary, &target->list_size, 4);
+    copy_data(&binary, &target->spec_max, 2);
+    copy_data(&binary, &target->list, 4);
+    return binary;
+}
+
+static char * load_TPRODUCT(char *binary, TPRODUCT *target) {
+    copy_data(&binary, &target->item, 2);
+    copy_data(&binary, &target->cena, 4);
+    copy_data(&binary, &target->trade_flags, 2);
+    copy_data(&binary, &target->pocet, 4);
+    copy_data(&binary, &target->max_pocet, 4);
+    return binary;
+}
+
 static void rebuild_shops(void)
   {
   char *c=(char *)shop_hacek;
   int i;
 
-  SEND_LOG("(SHOP) Rebuilding shops....",0,0);
+  SEND_LOG("(SHOP) Rebuilding shops....");
   if (shop_list!=NULL) free(shop_list);
   shop_list=NewArr(TSHOP *,max_shops);
   c+=4;
-  for(i=0;i<max_shops;i++)
-     {
-     TSHOP *p;
+  char *d = c;
+  size_t reqsize  = 0;
+  for(i=0;i<max_shops;i++) {
+      TSHOP s;
+      d = load_TSHOP(d, &s);
+      reqsize += sizeof(TSHOP);
+      for (int j = 0; j < s.products; ++j) {
+          TPRODUCT p;
+          d = load_TPRODUCT(d, &p);
+          reqsize += sizeof(TPRODUCT);
+      }
+  }
+  char *newhacek = getmem(reqsize);
+  TPRODUCT *products = (TPRODUCT *)(newhacek+max_shops*sizeof(TSHOP));
+  TSHOP *shops = (TSHOP *)newhacek;
+  for(i=0;i<max_shops;i++) {
+      c = load_TSHOP(c, shops+i);
+      shops[i].list = products;
+      for (int j = 0; j < shops[i].products; ++j) {
+          c = load_TPRODUCT(c, products);
+          products++;
+      }
+      shop_list[i] = shops+i;
+      SEND_LOG("(SHOP) Shop found: '%s', products %d",shops[i].keeper,shops[i].products);
+  }
+  free(shop_hacek);
+  shop_hacek = newhacek;
 
-     shop_list[i]=(TSHOP *)c;
-     p=shop_list[i];
-     c+=sizeof(TSHOP);
-     p->list=(TPRODUCT *)c;
-     c+=p->products*sizeof(TPRODUCT);
-     SEND_LOG("(SHOP) Shop found: '%s'",p->keeper,0);
-     }
   }
 
 void load_shops(void)
@@ -2844,7 +2888,7 @@ void enter_shop(int shopid)
   {
   int i;
 
-  SEND_LOG("(SHOP) Entering shop...",0,0);
+  SEND_LOG("(SHOP) Entering shop...");
   for(i=0;i<POCET_POSTAV;i++) if (isdemon(postavy+i)) unaffect_demon(i);
   for(i=0;i<POCET_POSTAV && postavy[i].sektor!=viewsector;i++);
   if (i==POCET_POSTAV) return; //nesmysl, nemelo by nikdy nastat.
@@ -2922,7 +2966,7 @@ char shop_change_player(int id, int xa, int ya,int xr,int yr)
 char _exit_shop(int id, int xa, int ya,int xr,int yr)
   {
   xr,yr,xa,ya,id;
-  SEND_LOG("(SHOP) Exiting shop...",0,0);
+  SEND_LOG("(SHOP) Exiting shop...");
   if (cur_owner==-1)
      {
      free(picked_item);
@@ -2941,7 +2985,7 @@ static void reroll_shop(TSHOP *p)
   int poc_spec=0;
   TPRODUCT *pr;
 
-  SEND_LOG("(SHOP) Shops reroll: '%s' ",p->keeper,0);
+  SEND_LOG("(SHOP) Shops reroll: '%s' ",p->keeper);
   pr=p->list;
   for(i=0;i<p->list_size;i++,pr++)
      {
@@ -2973,7 +3017,7 @@ char save_shops()
   TMPFILE_WR *f;
   int res=0;
 
-  SEND_LOG("(SHOP) Saving shops...",0,0);
+  SEND_LOG("(SHOP) Saving shops...");
   if (max_shops==0 || shop_hacek==NULL) return 0;
   f = temp_storage_create(_SHOP_ST);
   if (f==NULL) return 1;
@@ -2991,7 +3035,7 @@ char load_saved_shops()
   int res=0;
   int i=0,j=0;
 
-  SEND_LOG("(SHOP) Loading saved shops...",0,0);
+  SEND_LOG("(SHOP) Loading saved shops...");
   f=temp_storage_open(_SHOP_ST);
   if (f==NULL) return 0;
   temp_storage_read(&i,1*sizeof(max_shops),f);

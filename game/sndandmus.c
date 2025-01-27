@@ -340,7 +340,7 @@ void recalc_volumes(int sector,int side)
   if (sector>=mapsize) return;
 
   side;
-  SEND_LOG("(SOUND) %s","Recalculating volumes",0);
+  SEND_LOG("(SOUND) %s","Recalculating volumes");
   newx=map_coord[sector].x;
   newy=map_coord[sector].y;
 //  layer=map_coord[sector].layer;
@@ -580,7 +580,7 @@ void mute_all_tracks(char all)
 void kill_all_sounds()
   {
   int i;
-  SEND_LOG("(SOUND) Killing sound tracks...",0,0);
+  SEND_LOG("(SOUND) Killing sound tracks...");
   for (i=0;i<CHANNELS;i++) release_channel(i);
   for (i=0;i<32;i++) if (locks[i]!=0) aunlock(locks[i]);
   }

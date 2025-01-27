@@ -15,14 +15,15 @@ void SetWheelMapping(char up, char down) { //todo
 
 }
 
-static MS_EVENT ms_event  = {};
-
 
 
 void get_ms_event(MS_EVENT *event) {
-    *event = ms_event;
+    *event = get_sdl_global_context().getMsEvent();
 }
 
 void ShareCPU() {
+    if (q_is_mastertask()) {
+        std::this_thread::sleep_for(std::chrono::milliseconds(10));
+    }
 
 }

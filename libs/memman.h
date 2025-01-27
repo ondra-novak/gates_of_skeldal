@@ -3,8 +3,15 @@
 
 #include <stdio.h>
 
+
 #ifndef _MEMMAN_H_
 #define _MEMMAN_H_
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+
 #define freemem(size) free(size);
 //#define malloc(size) getmem(size)
 #define New(typ) (typ *)getmem(sizeof(typ))
@@ -110,12 +117,19 @@ void display_status(void);    //zobrazi na display status memmanageru
 #ifdef LOGFILE
 char *get_time_str(void);
 int q_current_task(void);
+void send_log_impl(int task, const char *format, ...) __attribute__((format(printf, 2, 3)));
 #define OPEN_LOG(log) memcpy(stderr,fopen(log,"w"),sizeof(FILE));
-#define SEND_LOG(format,parm1,parm2) fprintf(stderr,"%-2d %s "format"\n",q_current_task(void),get_time_str(void),parm1,parm2),fflush(stderr)
+#define SEND_LOG(...) send_log_impl(q_current_task(), __VA_ARGS__)
 #define CLOSE_LOG(void) fclose(logfile);
 #else
 #define OPEN_LOG(log)
-#define SEND_LOG(format,parm1,parm2)
+#define SEND_LOG(...)
 #define CLOSE_LOG(void)
 #endif
+
+#ifdef __cplusplus
+}
+#endif
+
+
 #endif

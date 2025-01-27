@@ -99,6 +99,18 @@ extern char *otevri_zavoru;
 //extern int curtask;
 //extern char *task_info;
 
+///copies message
+static inline EVENT_MSG clone_message(EVENT_MSG *msg) {
+    EVENT_MSG out;
+    out.msg = msg->msg;
+    va_copy(out.data, msg->data);
+    return out;
+}
+///destroys copied message
+static inline void destroy_message(EVENT_MSG *msg) {
+    va_end(msg->data);
+}
+
 void init_events(void);
  // inicalizuje zakladni strom udalosto
 void send_message(int message,...);

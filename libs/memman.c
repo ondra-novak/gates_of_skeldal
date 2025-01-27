@@ -38,7 +38,7 @@ int32_t last_load_size;
 void standard_mem_error(size_t size)
   {
   char buff[256];
-  SEND_LOG("(ERROR) Memory allocation error detected, %u bytes missing",size,0);
+  SEND_LOG("(ERROR) Memory allocation error detected, %lu bytes missing",size);
   DXCloseMode();
   sprintf(buff,"Memory allocation error\n Application can't allocate %lu bytes of memory (%xh)\n",size,memman_handle);
   display_error(buff);
@@ -48,7 +48,7 @@ void standard_mem_error(size_t size)
 void load_error(char *filename)
   {
   char buff[256];
-  SEND_LOG("(ERROR) Load error detected, system can't load file: %s",filename,0);
+  SEND_LOG("(ERROR) Load error detected, system can't load file: %s",filename);
   #ifdef LOGFILE
  //   bonz_table();
   #endif
@@ -100,7 +100,7 @@ void *load_file(char *filename)
   size_t size;
 
   if (mman_action!=NULL) mman_action(MMA_READ);
-  SEND_LOG("(LOAD) Loading file '%s'",filename,0);
+  SEND_LOG("(LOAD) Loading file '%s'",filename);
   f=fopen(filename, "rb");
   if (f==NULL) {
       load_error(filename);
@@ -139,10 +139,10 @@ uint32_t bk_global_counter=0;
 char *swap_path;
 
 #ifdef LOGFILE
-static void bonz_table()
+void bonz_table()
   {
   int i;
-  if (bmf==-1) return;
+  if (bmf==NULL) return;
   for(i=0;i<nmtab_size;i++)
     {
     fprintf(stderr,"%-12.12s %12d\n",nametable[i].name,nametable[i].seek);
@@ -164,9 +164,9 @@ static int test_file_exist_DOS(int group,char *filename)
 
 void load_grp_table()
   {
-  int32_t i;
+  int32_t i = 0;;
 
-  SEND_LOG("(LOAD) Loading Group Table",0,0);
+  SEND_LOG("(LOAD) Loading Group Table");
   fseek(bmf,4,SEEK_SET);
   fread(&i,4,1,bmf);
   grptable=(int32_t *)getmem(i+4);
@@ -174,7 +174,7 @@ void load_grp_table()
   fread(grptable,i,1,bmf);
   grptabsiz=i;
   for(i=0;i<(grptabsiz>>3);i++) grptable[i*2+1]=(grptable[i*2+1]-grptabsiz)>>4;
-  SEND_LOG("(LOAD) Group Table Loaded",0,0);
+  SEND_LOG("(LOAD) Group Table Loaded");
   }
 
 void load_file_table()
@@ -182,16 +182,17 @@ void load_file_table()
   int strsize;
   void *p;
 
-  SEND_LOG("(LOAD) Loading File Table",0,0);
+  SEND_LOG("(LOAD) Loading File Table");
   fseek(bmf,grptabsiz,SEEK_SET);
   fseek(bmf,12,SEEK_CUR);
   fread(&strsize,4,1,bmf);
   strsize-=grptabsiz;
   fseek(bmf,grptabsiz,SEEK_SET);
-  p=getmem(strsize);memcpy(&nametable,&p,4);
+  p=getmem(strsize);
+  nametable = p;
   fread(nametable,1,strsize,bmf);
   nmtab_size=strsize/sizeof(*nametable);
-  SEND_LOG("(LOAD) File Table Loaded",0,0);
+  SEND_LOG("(LOAD) File Table Loaded");
   }
 
 
@@ -232,7 +233,7 @@ int swap_block(THANDLE_DATA *h)
   fseek(swap,0,SEEK_END);
   wsize=ftell(swap);
   fseek(swap,pos,SEEK_SET);
-  SEND_LOG("(SWAP) Swaping block '%-.12hs'",h->src_file,0);
+  SEND_LOG("(SWAP) Swaping block '%-.12s'",h->src_file);
   wsize=fwrite(h->blockdata,1,h->size,swap);
   swap_status=1;
   if ((unsigned)wsize==h->size)
@@ -244,7 +245,7 @@ int swap_block(THANDLE_DATA *h)
      }
   else
      {
-     SEND_LOG("(SWAP) Swap failed!",0,0);
+     SEND_LOG("(SWAP) Swap failed!");
      swap_error();
      }
   swap_free_block(pos,h->size);
@@ -350,10 +351,10 @@ THANDLE_DATA *kill_block(int handle)
   h=get_handle(handle);if (h->status==BK_NOT_USED) return h;
   if (h->flags & BK_LOCKED)
      {
-     SEND_LOG("(ERROR) Unable to kill block! It is LOCKED! '%-.12hs' (%04X)",h->src_file,handle);
+     SEND_LOG("(ERROR) Unable to kill block! It is LOCKED! '%-.12s' (%04X)",h->src_file,handle);
      return NULL;
      }
-  SEND_LOG("(KILL) Killing block '%-.12hs' (%04X)",h->src_file,handle);
+  SEND_LOG("(KILL) Killing block '%-.12s' (%04X)",h->src_file,handle);
   if (h->status==BK_SAME_AS) return h;
   if (h->status==BK_PRESENT) free(h->blockdata);
   if (h->flags & BK_HSWAP) swap_free_block(h->seekpos,h->size);
@@ -405,7 +406,7 @@ void *load_swaped_block(THANDLE_DATA *h)
 
   if (mman_action!=NULL) mman_action(MMA_SWAP_READ);
   i=getmem(h->size);
-  SEND_LOG("(LOAD)(SWAP) Loading block from swap named '%-.12hs'",h->src_file,0);
+  SEND_LOG("(LOAD)(SWAP) Loading block from swap named '%-.12s'",h->src_file);
   fseek(swap,h->seekpos,SEEK_SET);
   fread(i,1,h->size,swap);
   h->status=BK_PRESENT;
@@ -451,7 +452,7 @@ THANDLE_DATA *def_handle(int handle,char *filename,void *decompress,char path)
   if (i==handle) return h;
   if (kill_block(handle)==NULL)
      {
-     SEND_LOG("(ERROR) File/Block can't be registred, handle is already in use '%-.12hs' handle %04X",filename,handle);
+     SEND_LOG("(ERROR) File/Block can't be registred, handle is already in use '%-.12s' handle %04X",filename,handle);
      return NULL;
      }
   if (i!=-1 && i!=handle)
@@ -466,8 +467,8 @@ THANDLE_DATA *def_handle(int handle,char *filename,void *decompress,char path)
   h->loadproc=decompress;
   if (filename[0])
       h->seekpos=get_file_entry(path,h->src_file);
-  SEND_LOG("(REGISTER) File/Block registred '%-.12hs' handle %04X",h->src_file,handle);
-  SEND_LOG("(REGISTER) Seekpos=%d",h->seekpos,0);
+  SEND_LOG("(REGISTER) File/Block registred '%-.12s' handle %04X",h->src_file,handle);
+  SEND_LOG("(REGISTER) Seekpos=%d",h->seekpos);
   h->flags=0;
   h->path=path;
   if (h->status!=BK_DIRLIST) h->status=BK_NOT_LOADED;
@@ -498,7 +499,7 @@ void *afile(char *filename,int group,int32_t *blocksize)
      }
   else if (mman_pathlist!=NULL)
      {
-     SEND_LOG("(LOAD) Afile is loading file '%s' from disk",d,group);
+     SEND_LOG("(LOAD) Afile is loading file '%s' from disk (group %d)",d,group);
      c=alloca(strlen(filename)+strlen(mman_pathlist[group])+2);
      c=strcat(strcpy(c,mman_pathlist[group]),filename);
      p=load_file(c);
@@ -531,7 +532,7 @@ void *ablock(int handle)
         void *p;int32_t s;
         char c[200];
 
-        SEND_LOG("(LOAD) Loading file as block '%-.12hs' %04X",h->src_file,handle);
+        SEND_LOG("(LOAD) Loading file as block '%-.12s' %04X",h->src_file,handle);
         if (h->seekpos==0)
            {
            if (h->src_file[0]!=0)
@@ -704,7 +705,7 @@ void undef_handle(int handle)
   if (h->status!=BK_NOT_USED)
      {
      if (kill_block(handle)==NULL) return;
-     SEND_LOG("(REGISTER) File/Block unregistred %04X (%-.12hs)",handle,h->src_file);
+     SEND_LOG("(REGISTER) File/Block unregistred %04X (%-.12s)",handle,h->src_file);
      }
   h->src_file[0]=0;
   h->seekpos=0;
@@ -840,7 +841,7 @@ char add_patch_file(char *filename)
 	int32_t poc;
 	int i,cc=0;
 	TNAMETABLE p;
-	SEND_LOG("Adding patch: %s",filename,0);
+	SEND_LOG("Adding patch: %s",filename);
 	if (!patch) return 2;
 	if (!bmf) return 3;
 	patch=fopen(filename,"rb");

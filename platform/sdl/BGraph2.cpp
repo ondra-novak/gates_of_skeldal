@@ -26,9 +26,10 @@ char DXInit64(char inwindow,int zoom,int monitor, int refresh) {
     get_sdl_global_context().init_screen(mode, "Skeldal"); //todo allow change
     screen_buffer = std::make_unique<uint16_t[]>(screen_pitch*480);
     buffer2nd = std::make_unique<uint16_t[]>(screen_pitch*480);
+    std::fill(screen_buffer.get(), screen_buffer.get()+screen_pitch*480,0);
     render_target = screen_buffer.get();
 
-    return 0;
+    return 1;
 }
 
 void DXCloseMode() {
@@ -77,7 +78,7 @@ void StripBlt(void *data, unsigned int startline, uint32_t width) {
     while (width--)
     {
       memcpy(start,data,640*2);
-      data=(void *)(reinterpret_cast<char *>(data)+get_sdl_global_context().get_surface_pitch());
+      data=(void *)(reinterpret_cast<short *>(data)+GetScreenPitch());
       start=start+GetScreenPitch();
     }
 

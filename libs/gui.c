@@ -610,42 +610,58 @@ void do_it_events(EVENT_MSG *msg,void **user_data)
   if (msg->msg==E_MOUSE)
      {
      *oz=1;
+     EVENT_MSG fwmsg = clone_message(msg);
+     fwmsg.msg = msg->msg;
+     va_copy(fwmsg.data, msg->data);
      msev=get_mouse(msg);
      aktivate_window(msev);
-       if (o_aktual==NULL)
-        if (o_start!=NULL && (msev->tl1 || msev->tl2 || msev->tl3))
-           {
-           o_aktual=o_start;
-           while (o_aktual!=NULL && (!o_aktual->enabled || !mouse_in_object(msev,o_aktual,waktual) || o_aktual->call_event==empty3)) o_aktual=o_aktual->next;
-           if (o_aktual==NULL) return;
-           msg2.msg=E_GET_FOCUS;
-           o_aktual->call_event(&msg2,o_aktual);
-           o_aktual->on_enter();
-           o_aktual->call_event(msg,o_aktual);
-           }
-        else return;
-        else
-           {
-        if (o_aktual->enabled) b=mouse_in_object(msev,o_aktual,waktual);else b=0;
-        if (b)
-          o_aktual->call_event(msg,o_aktual);
-        if ((msev->tl1 || msev->tl2 || msev->tl3)&& !b)
-          {
-          o_aktual->on_exit();
-          if (f_cancel_event) return;
-          msg2.msg=E_LOST_FOCUS;
-          o_aktual->call_event(&msg2,o_aktual);
-          p=o_start;
-          while (p!=NULL && (!p->enabled || !mouse_in_object(msev,p,waktual) || p->call_event==empty3))
-             p=p->next;
-          if (p!=NULL) o_aktual=p;
-          msg2.msg=E_GET_FOCUS;
-          o_aktual->call_event(&msg2,o_aktual);
-          o_aktual->on_enter();
-          if (p!=NULL) o_aktual->call_event(msg,o_aktual);
-          }
-           }
-     }
+        if (o_aktual == NULL) {
+            if (o_start != NULL && (msev->tl1 || msev->tl2 || msev->tl3)) {
+                o_aktual = o_start;
+                while (o_aktual != NULL
+                        && (!o_aktual->enabled
+                                || !mouse_in_object(msev, o_aktual, waktual)
+                                || o_aktual->call_event == empty3))
+                    o_aktual = o_aktual->next;
+                if (o_aktual != NULL) {
+                    msg2.msg = E_GET_FOCUS;
+                    o_aktual->call_event(&msg2, o_aktual);
+                    o_aktual->on_enter();
+                    o_aktual->call_event(&fwmsg, o_aktual);
+                }
+            }
+        } else {
+            if (o_aktual->enabled) {
+                b = mouse_in_object(msev, o_aktual, waktual);
+            } else {
+                b = 0;
+            }
+            if (b) {
+                o_aktual->call_event(&fwmsg, o_aktual);
+            }
+            if ((msev->tl1 || msev->tl2 || msev->tl3) && !b) {
+                o_aktual->on_exit();
+                if (f_cancel_event)
+                    return;
+                msg2.msg = E_LOST_FOCUS;
+                o_aktual->call_event(&msg2, o_aktual);
+                p = o_start;
+                while (p != NULL
+                        && (!p->enabled || !mouse_in_object(msev, p, waktual)
+                                || p->call_event == empty3))
+                    p = p->next;
+                if (p != NULL) {
+                    o_aktual = p;
+                }
+                msg2.msg = E_GET_FOCUS;
+                o_aktual->call_event(&msg2, o_aktual);
+                o_aktual->on_enter();
+                if (p != NULL)
+                    o_aktual->call_event(msg, o_aktual);
+            }
+        }
+        destroy_message(&fwmsg);
+    }
   if (msg->msg==E_KEYBOARD)
       {
      *oz=1;
@@ -689,20 +705,23 @@ void do_it_events(EVENT_MSG *msg,void **user_data)
   if (msg->msg==E_GUI)
      {
      OBJREC *o;
+
+     EVENT_MSG msg2 = clone_message(msg);
+
      int control = va_arg(msg->data, int);
      msg->msg = va_arg(msg->data, int);
      o=find_object(waktual,control);
 
-     EVENT_MSG msg2;
+
 
      if (o!=NULL)
         {
-        msg2.msg=msg->msg;
-        va_copy(msg2.data,msg->data);
-        o->call_event(&msg2,o);
-        o->on_event(msg,o_aktual);
-        va_end(msg2.data);
+         EVENT_MSG msg3 = clone_message(msg);
+         o->call_event(&msg2,o);
+         o->on_event(&msg3,o_aktual);
+         destroy_message(&msg3);
         }
+     destroy_message(&msg2);
 
      }
   if (msg->msg==E_CHANGE)

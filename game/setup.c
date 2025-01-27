@@ -97,7 +97,7 @@ static void wire_setup()
   mute_all_tracks(0);
   cur_mode=MD_SETUP;
   send_message(E_ADD,E_KEYBOARD,setup_keyboard);
-  SEND_LOG("(GAME) Starting setup",0,0);
+  SEND_LOG("(GAME) Starting setup");
   }
 
 static void unwire_setup()
@@ -113,7 +113,7 @@ static void unwire_setup()
   send_message(E_DONE,E_KEYBOARD,setup_keyboard);
   wire_proc();
   cancel_render=1;
-  SEND_LOG("(GAME) Setup closed",0,0);
+  SEND_LOG("(GAME) Setup closed");
   }
 
 char exit_setup(int id,int xa,int ya,int xr,int yr)

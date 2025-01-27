@@ -16,7 +16,7 @@ include_directories(platform libs)
 
 
 include_directories( ${SDL2_INCLUDE_DIRS})
-add_compile_options(-funsigned-char)
+SET(CMAKE_C_FLAGS  "${CMAKE_C_FLAGS} -funsigned-char")
 enable_testing()
 add_subdirectory(libs)
 add_subdirectory(platform)

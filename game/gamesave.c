@@ -84,7 +84,7 @@ static int unable_open_temp(char *c)
   concat(e,d,c);
   closemode();
   display_error(e);
-  SEND_LOG("(SAVELOAD) Open temp error detected (%s)",c,0);
+  SEND_LOG("(SAVELOAD) Open temp error detected (%s)",c);
   exit(1);
   }
 
@@ -95,7 +95,7 @@ static void unable_write_temp(char *c)
   concat(e,d,c);
   closemode();
   display_error(e);
-  SEND_LOG("(SAVELOAD) Open temp error detected (%s)",c,0);
+  SEND_LOG("(SAVELOAD) Open temp error detected (%s)",c);
   exit(1);
   }
 
@@ -348,7 +348,7 @@ int save_map_state() //uklada stav mapy pro savegame (neuklada aktualni pozici);
   restore_sound_names();
   strcpy(sta,level_fname);
   fsta=temp_storage_create(sta);if (fsta==NULL) unable_open_temp(sta);
-  SEND_LOG("(SAVELOAD) Saving map state for current map",0,0);
+  SEND_LOG("(SAVELOAD) Saving map state for current map");
   if (load_org_map(level_fname,&org_sides,&org_sectors,NULL,NULL)) goto err;
   siz=(mapsize+7)/8;
   bf=(char *)getmem(siz);
@@ -400,7 +400,7 @@ int save_map_state() //uklada stav mapy pro savegame (neuklada aktualni pozici);
   save_enemy_paths(fsta);
   res=0;
   err:
-  SEND_LOG("(SAVELOAD) State of current map saved (err:%d)",res,0);
+  SEND_LOG("(SAVELOAD) State of current map saved (err:%d)",res);
   temp_storage_close_wr(fsta);
   free(org_sectors);
   free(org_sides);
@@ -430,7 +430,7 @@ int load_map_state() //obnovuje stav mapy; nutno volat po zavolani load_map;
     if (ver>STATE_CUR_VER) goto err;
     if (!temp_storage_read(&i,sizeof(mapsize)*1,fsta)) goto err;
     if (mapsize!=i) goto err;
-    SEND_LOG("(SAVELOAD) Loading map state for current map",0,0);
+    SEND_LOG("(SAVELOAD) Loading map state for current map");
     temp_storage_read(&siz,1*sizeof(siz),fsta);
     bf=(char *)getmem(siz);
     if (!temp_storage_read(bf,siz*1,fsta)) goto err;
@@ -483,7 +483,7 @@ int load_map_state() //obnovuje stav mapy; nutno volat po zavolani load_map;
   res|=load_all_fly(fsta);
   res|=load_enemy_paths(fsta);
   err:
-  SEND_LOG("(SAVELOAD) State of current map loaded (err:%d)",res,0);
+  SEND_LOG("(SAVELOAD) State of current map loaded (err:%d)",res);
   temp_storage_close_rd(fsta);
   free(bf);
   return res;
@@ -493,7 +493,7 @@ void restore_current_map() //pouze obnovuje ulozeny stav aktualni mapy
   {
   int i;
 
-  SEND_LOG("(SAVELOAD) Restore map...",0,0);
+  SEND_LOG("(SAVELOAD) Restore map...");
   kill_all_sounds();
   for(i=0;i<mapsize;i++) map_coord[i].flags&=~0x7f; //vynuluj flags_info
   free(map_sides);        //uvolni informace o stenach
@@ -530,7 +530,7 @@ int pack_status_file(FILE *f,const char *status_name)
   char *buffer,*c;
   unsigned char name_len;
 
-  SEND_LOG("(SAVELOAD) Packing status file '%s'",status_name,0);
+  SEND_LOG("(SAVELOAD) Packing status file '%s'",status_name);
   fsz = temp_storage_find(status_name);
   if (fsz < 0) return 2;
   name_len = (unsigned char)strlen(status_name);
@@ -561,7 +561,7 @@ int unpack_status_file(FILE *f)
   fread(&namelen, 1,1, f);
   if (namelen == 0) return -1;
   fread(name, 1, namelen, f);
-  SEND_LOG("(SAVELOAD) Unpacking status file '%s'",name,0);
+  SEND_LOG("(SAVELOAD) Unpacking status file '%s'",name);
   fread(&fsz,1,4,f);
   buffer=(char *)getmem(fsz);
   if (fread(buffer,1,fsz,f)!=(unsigned)fsz) return 1;
@@ -602,7 +602,7 @@ int save_basic_info()
   char res=0;
   THUMAN *h;
 
-  SEND_LOG("(SAVELOAD) Saving basic info for game (file:%s)",_GAME_ST ,0);
+  SEND_LOG("(SAVELOAD) Saving basic info for game (file:%s)",_GAME_ST );
   f=temp_storage_create(_GAME_ST);
   if (f==NULL) return 1;
   s.viewsector=viewsector;
@@ -646,7 +646,7 @@ int save_basic_info()
      temp_storage_write(h->demon_save,sizeof(THUMAN)*1,f);       //ulozeni polozek s demony
   res|=save_dialog_info(f);
   temp_storage_close_wr(f);
-  SEND_LOG("(SAVELOAD) Done... Result: %d",res,0);
+  SEND_LOG("(SAVELOAD) Done... Result: %d",res);
   return res;
   }
 
@@ -659,7 +659,7 @@ int load_basic_info()
   TITEM *itg;
   THUMAN *h;
 
-  SEND_LOG("(SAVELOAD) Loading basic info for game (file:%s)",_GAME_ST,0);
+  SEND_LOG("(SAVELOAD) Loading basic info for game (file:%s)",_GAME_ST);
   f=temp_storage_open(_GAME_ST);
   if (f==NULL) return 1;
   res|=(temp_storage_read(&s,1*sizeof(s),f)!=sizeof(s));
@@ -726,7 +726,7 @@ int load_basic_info()
      }
   else load_another=0;
   for(i=0;i<POCET_POSTAV;i++) postavy[i].dostal=0;
-  SEND_LOG("(SAVELOAD) Done... Result: %d",res,0);
+  SEND_LOG("(SAVELOAD) Done... Result: %d",res);
   return res;
   }
 
@@ -766,7 +766,7 @@ int save_game(int slotnum,char *gamename)
   FILE *svf;
   int r;
 
-  SEND_LOG("(SAVELOAD) Saving game slot %d",slotnum,0);
+  SEND_LOG("(SAVELOAD) Saving game slot %d",slotnum);
   save_map_state();
   concat(sn,pathtable[SR_SAVES],_SLOT_SAV);
   MakeSaveGameDir(pathtable[SR_SAVES]);
@@ -793,7 +793,7 @@ int save_game(int slotnum,char *gamename)
 	open_story_file();
 	fclose(svf);
   }
-  SEND_LOG("(SAVELOAD) Game saved.... Result %d",r,0);
+  SEND_LOG("(SAVELOAD) Game saved.... Result %d",r);
   disable_intro();
   return r;
   }
@@ -806,7 +806,7 @@ int load_game(int slotnum)
   FILE *svf;
   int r,t;
 
-  SEND_LOG("(SAVELOAD) Loading game slot %d",slotnum,0);
+  SEND_LOG("(SAVELOAD) Loading game slot %d",slotnum);
   if (battle) konec_kola();
   battle=0;
   close_story_file();
@@ -822,7 +822,7 @@ int load_game(int slotnum)
   open_story_file();
   if (r>0)
      {
-     SEND_LOG("(ERROR) Error detected during unpacking game... Loading stopped (result:%d)",r,0);
+     SEND_LOG("(ERROR) Error detected during unpacking game... Loading stopped (result:%d)",r);
      return r;
      }
   load_book();
@@ -838,7 +838,7 @@ int load_game(int slotnum)
            norefresh=1;
            }
   for(t=0;t<POCET_POSTAV;t++) postavy[t].zvolene_akce=NULL;
-  SEND_LOG("(SAVELOAD) Game loaded.... Result %d",r,0);
+  SEND_LOG("(SAVELOAD) Game loaded.... Result %d",r);
 //  if (GetKeyState(VK_CONTROL) & 0x80) correct_level();
   return r;
   }
@@ -1422,7 +1422,7 @@ void open_story_file()
   {
 
   story=temp_storage_append(STORY_BOOK);
-  SEND_LOG("(STORY) Story temp file is opened....",0,0);
+  SEND_LOG("(STORY) Story temp file is opened....");
   }
 
 
@@ -1437,7 +1437,7 @@ void close_story_file()
   {
   if (story!=NULL)  temp_storage_close_wr(story);
   story=NULL;
-  SEND_LOG("(STORY) Story temp file is closed...",0,0);
+  SEND_LOG("(STORY) Story temp file is closed...");
   }
 
 static int load_map_state_partial(char *level_fname,int mapsize) //obnovuje stav mapy; castecne

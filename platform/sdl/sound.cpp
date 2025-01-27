@@ -74,5 +74,10 @@ void DoneVideoSound(void *buffer) {
 
 }
 
+const char *device_name(int )
+  {
+  return "SDL sound device";
+  }
+
 
 

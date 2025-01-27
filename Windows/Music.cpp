@@ -42,7 +42,7 @@ HRESULT MusicPlayer::InitBuffer(IDirectSound8 *ds8, int *linvoltable)
   wfex.nAvgBytesPerSec=wfex.nSamplesPerSec*wfex.nBlockAlign;
   wfex.wFormatTag=WAVE_FORMAT_PCM;
   wfex.nChannels=2;
-    
+
   DSBUFFERDESC desc;
   desc.dwSize=sizeof(desc);
   desc.dwBufferBytes=BUFFER_SIZE;
@@ -70,7 +70,7 @@ HRESULT MusicPlayer::Play()
   memset(ptr,0,size);
   _ds8Buffer->Unlock(ptr,size,NULL,NULL);
   _ds8Buffer->SetVolume(_linvoltable[_volume]);
-  HRESULT res=_ds8Buffer->Play(0,0,DSBPLAY_LOOPING);    
+  HRESULT res=_ds8Buffer->Play(0,0,DSBPLAY_LOOPING);
   _crossfadebytes=0;
   _minorpos=0;
   return res;
@@ -80,7 +80,7 @@ class AutoCloseCriticalSection
 {
   LPCRITICAL_SECTION lcrit;
 public:
-  AutoCloseCriticalSection(LPCRITICAL_SECTION l):lcrit(l) 
+  AutoCloseCriticalSection(LPCRITICAL_SECTION l):lcrit(l)
   {
     EnterCriticalSection(lcrit);
   }
@@ -91,15 +91,15 @@ public:
 };
 
 int MusicPlayer::Open(int samplerate, int numchannels, int bitspersamp, int bufferlenms, int prebufferms)
-{  
-  AutoCloseCriticalSection lsect(&_lock);  
+{
+  AutoCloseCriticalSection lsect(&_lock);
   if (numchannels<1 || numchannels>2) return -1;
   if (bitspersamp!=8 && bitspersamp!=16) return -1;
   _stereo=numchannels==2;
   _bit16=bitspersamp==16;
   _speed=samplerate*1024/44100;
   if (_speed<128) return -1;
-  _opened=true;  
+  _opened=true;
   return 0;
 }
 
@@ -139,12 +139,12 @@ void MusicPlayer::Close()
   {
     DWORD status;
     _ds8Buffer->GetStatus(&status);
-    _ds8Buffer->Play(0,0,DSBPLAY_LOOPING);    
+    _ds8Buffer->Play(0,0,DSBPLAY_LOOPING);
     EnterCriticalSection(&_lock);
-    if ((status & DSBSTATUS_PLAYING)==0) 
-      _ds8Buffer->Stop();    
+    if ((status & DSBSTATUS_PLAYING)==0)
+      _ds8Buffer->Stop();
   }
-  
+
   if (_crossfadebytes==0)
   {
     DWORD xfadepos=GetSafeXFadePos();
@@ -168,16 +168,16 @@ void MusicPlayer::Close()
       _ds8Buffer->Unlock(ptr[0],sz[0],ptr[1],sz[1]);
     }
     _crossfadebytes=xfadesz;
-    _lastWritePos=xfadepos;    
+    _lastWritePos=xfadepos;
   }
   _opened=false;
   LeaveCriticalSection(&_lock);
 }
 
 int MusicPlayer::Write(const char *buf, int len)
-{  
+{
   EnterCriticalSection(&_lock);
-  if (!_opened) 
+  if (!_opened)
   {
     LeaveCriticalSection(&_lock);
     return 1;
@@ -192,7 +192,7 @@ int MusicPlayer::Write(const char *buf, int len)
   while (len>0)
   {
     short sample[2];
-    
+
     if (_bit16)
       if (_stereo)
       {
@@ -215,7 +215,7 @@ int MusicPlayer::Write(const char *buf, int len)
         sample[0]=(*buf)*256;
         sample[1]=(*buf)*256;
       }
-    while (remainspace<4) 
+    while (remainspace<4)
     {
       if (stage<1)
       {
@@ -245,7 +245,7 @@ int MusicPlayer::Write(const char *buf, int len)
         stage=0;
         remainspace=locksz[stage];
         wrtptr=lockptr[stage];
-      }        
+      }
     }
     if (_crossfadebytes)
     {
@@ -261,7 +261,7 @@ int MusicPlayer::Write(const char *buf, int len)
       if (_crossfadebytes<4) _crossfadebytes=0;else _crossfadebytes-=4;
     }
     else
-      memcpy(wrtptr,sample,4);
+      wrtptr = sample;
     wrtptr=(void *)((char *)wrtptr+4);
     remainspace-=4;
     _minorpos+=_speed;
@@ -305,9 +305,9 @@ void MusicPlayer::SetVolume(int volume)
 {
   if (volume<0) return;
   _ds8Buffer->SetVolume(_linvoltable[volume]);
-  if (volume==0) 
+  if (volume==0)
     Pause(1);
-  else 
+  else
     Pause(0);
 }
 
@@ -333,7 +333,7 @@ void MusDecoder::AttachOutput(IWAOutput *o)
 bool MusDecoder::Play(const char *filename)
 {
   DWORD res=0;
-  if (filename[0]=='?') 
+  if (filename[0]=='?')
   {
     if (_output->Open(44100,1,8,-1,-1)<0)
     {
@@ -447,7 +447,7 @@ UINT MusDecoder::SilentWritterThread()
   }
   _playing=false;
   return 0;
-  
+
 }
 
 WinAmpDecoder::WinAmpDecoder()
@@ -477,7 +477,7 @@ bool WinAmpDecoder::Play(const char *filename)
   {
     _currPlugin=0;
     return false;
-  }  
+  }
   int playtm=_currPlugin->GetOutputTime();
   int nexttm=playtm;
   int c=0;
@@ -489,7 +489,7 @@ bool WinAmpDecoder::Play(const char *filename)
 
 void WinAmpDecoder::Stop()
 {
-  if (_currPlugin==0) return;  
+  if (_currPlugin==0) return;
   _currPlugin->Stop();
   _currPlugin->AttachOutput(0);
   _currPlugin=0;
@@ -502,6 +502,6 @@ bool WinAmpDecoder::IsPlaying()
 }
 
 void WinAmpDecoder::SetVolume(int volume, int main)
-{  
+{
   _currPlugin->SetVolume(volume);
 }

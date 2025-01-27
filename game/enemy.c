@@ -1249,7 +1249,7 @@ void mob_check_death(int num,TMOB *p)
   mob_dostal=0;
   bott_draw(0);
   if (p->lives>0) return;
-  SEND_LOG("(GAME) Monster killed ... '%s'",p->name,0);
+  SEND_LOG("(GAME) Monster killed ... '%s'",p->name);
   sect=p->sector;
   p->vlajky&=~MOB_IN_BATTLE & ~MOB_LIVE;
   free_path(num);

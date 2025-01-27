@@ -248,7 +248,7 @@ void message_keyboard(EVENT_MSG *msg,void **user_ptr)
 
      case E_DONE:c = *user_ptr;
                  free(c);
-                 user_ptr = NULL;
+                 *user_ptr = NULL;
                  break;
      case E_KEYBOARD:
                  {
@@ -274,7 +274,6 @@ void message_keyboard(EVENT_MSG *msg,void **user_ptr)
 
 int message(int butts,char def,char canc,char *keys,...)
   {
-  char **texty;
   int id;
   void *clksav;int clksav2;
 
@@ -284,8 +283,13 @@ int message(int butts,char def,char canc,char *keys,...)
   unwire_proc();
   save_click_map(&clksav,&clksav2);
   change_click_map(NULL,0);
-  texty=(char **)(&keys+1);
-  open_message_win(butts+1,texty);
+  va_list args;
+  va_start(args, keys);
+  char **texts = (char **)alloca((butts+1)*sizeof(char *));
+  for (int i = 0; i < butts+1; ++i) {
+      texts[i] = va_arg(args,char *);
+  }
+  open_message_win(butts+1,texts);
   send_message(E_ADD,E_KEYBOARD,message_keyboard,keys);
   escape();
   id=o_aktual->id;
@@ -1393,7 +1397,7 @@ int load_string_list_ex(TSTR_LIST *list,char *filename)
         if (j==';') while ((j=temp_storage_getc(f))!='\n' && j!=EOF);
         if (j=='\n') lin++;
         }
-       while (j=='\n');
+       while (j=='\n' || j == '\r');
        temp_storage_ungetc(f);
      j=temp_storage_scanf(f,"%d",&i);
      if (j==EOF)
@@ -1414,7 +1418,12 @@ int load_string_list_ex(TSTR_LIST *list,char *filename)
         enc_close(f);
         return lin;
         }
-     p=strchr(c,'\n');if (p!=NULL) *p=0;
+
+     p=strchr(c,0);
+     while (p > c && isspace(p[-1])) {
+         --p;
+         *p = 0;
+     }
      for(p=c;*p;p++) *p=*p=='|'?'\n':*p;
      if (str_replace(list,i,c)==NULL)
         {

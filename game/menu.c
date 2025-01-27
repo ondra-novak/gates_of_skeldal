@@ -365,9 +365,8 @@ int enter_menu(char open)
 
 char *get_next_title(signed char control,char *filename)
   {
-/*
-    static TMPFILE_RD *titles=NULL;
-  static ENCFILE fl;
+
+  static TMPFILE_RD *titles=NULL;
   static char buffer[81];
   char *path,*c;
 
@@ -389,13 +388,12 @@ char *get_next_title(signed char control,char *filename)
                 }
               }
             return (char *)titles;
-     case 0:if (titles!=NULL)fgets(buffer,80,titles);
+     case 0:if (titles!=NULL)temp_storage_gets(buffer,80,titles);
             c=strchr(buffer,'\n');if (c!=NULL) *c=0;
             return buffer;
-     case -1:if (titles!=NULL)enc_close(&fl);
+     case -1:if (titles!=NULL)enc_close(titles);
             break;
      }
-     */
   return NULL;
   }
 

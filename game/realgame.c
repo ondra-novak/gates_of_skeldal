@@ -230,7 +230,7 @@ int load_map(char *filename)
   if (level_fname!=NULL) free(level_fname);
   level_fname=(char *)getmem(strlen(filename)+1);
   strcpy(level_fname,filename);
-  SEND_LOG("(GAME) Loading map: '%s'",level_fname,0);
+  SEND_LOG("(GAME) Loading map: '%s'",level_fname);
   strupr(level_fname);
   mob_template=NULL;
   mob_size=0;
@@ -303,13 +303,13 @@ int load_map(char *filename)
                   back_color=RGB888(mglob.fade_r,mglob.fade_g,mglob.fade_b);
                   break;
          case A_MAPITEM:
-                  SEND_LOG("(GAME) Loading items...",0,0);
+                  SEND_LOG("(GAME) Loading items...");
                   load_item_map(temp,size);
                   free(temp);
                   break;
          case A_MAPMOBS:
                   if (snd_load==0) create_sound_table_old();
-                  SEND_LOG("(GAME) Loading enemies...",0,0);
+                  SEND_LOG("(GAME) Loading enemies...");
                   if (mob_template==NULL)
                     {
                     int32_t h;char *p;
@@ -324,12 +324,12 @@ int load_map(char *filename)
                     {
                     load_enemies(temp,size,&ofsts,mob_template,mob_size);
                     free(mob_template);
-                    SEND_LOG("(GAME) Loading enemies from map template...",0,0);
+                    SEND_LOG("(GAME) Loading enemies from map template...");
                     }
                   free(temp);
                   break;
          case A_MAPMACR:
-                  SEND_LOG("(GAME) Loading multiactions...",0,0);
+                  SEND_LOG("(GAME) Loading multiactions...");
                   load_macros(size,temp);
                   break;
          case A_MAPVYK:
@@ -413,7 +413,7 @@ void leave_current_map()
   {
   int i;
   TFLY *p;
-  SEND_LOG("(GAME) Leaving current map ... start",0,0);
+  SEND_LOG("(GAME) Leaving current map ... start");
   add_leaving_place(viewsector);
   kill_all_sounds();
   restore_sound_names();
@@ -1411,7 +1411,7 @@ void real_krok(EVENT_MSG *msg,void **data)
   if (msg->msg==E_INIT || msg->msg==E_DONE) return;
   check_all_mobs();
   calc_game();msg;data;
-  SEND_LOG("(GAME) STEP",0,0);
+  SEND_LOG("(GAME) STEP");
   }
 
 void do_halucinace()

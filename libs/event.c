@@ -232,15 +232,16 @@ void enter_event(T_EVENT_ROOT **tree,EVENT_MSG *msg)
            va_end(cpy.data);
            p->calls--;
            p->nezavora=1;
-           if (msg->msg==-2)
+           if (cpy.msg==-2)
               {
               p->proc=NULL;
-              msg->msg=ev;
+              cpy.msg=ev;
               }
            s=p->next;
            if (!p->calls && p->proc==NULL)
               force_delete_curr(tree,r,p);
-           if (msg->msg==-1) break;
+           if (cpy.msg==-1)
+               break;
            }
 /*        if (p->next!=s)
            if (r->list!=p)

@@ -92,7 +92,7 @@ TMA_LOADLEV loadlevel;
 
 typedef struct inis
   {
-  char heslo[25];
+  char heslo[50];
   char parmtype;
   }INIS;
 
@@ -321,29 +321,29 @@ int set_video(int mode)
   {
   case 1:er=initmode256(cur_xlat);
               if (banking) report_mode(5); else report_mode(2);
-              SEND_LOG("(GAME) Video changed to 256 colors %s",banking?"Bank":"LFB",0);
+
                break;
   case 2:er=initmode32();
               if (banking) report_mode(4); else report_mode(1);
-              SEND_LOG("(GAME) Video changed to HIcolor %s",banking?"Bank":"LFB",0);
+
                break;
   case 0:er=initmode_lo(cur_xlat);
               report_mode(3);
-              SEND_LOG("(GAME) Video changed to 256 VGA comp. ",0,0);
+
                break;
   case 3: free(cur_xlat);cur_xlat=create_blw_palette16();
                er=initmode16(cur_xlat);
-              SEND_LOG("(GAME) Video changed to 16 grayscale",0,0);
+
               report_mode(3);
                break;
   case 4:er=init_empty_mode();
              report_mode(3);
-              SEND_LOG("(GAME) Video changed to <empty>",0,0);
+
               break;
   case 5:free(cur_xlat);cur_xlat=create_hixlat();
               er=initmode64(cur_xlat);
               if (banking) report_mode(7); else report_mode(6);
-              SEND_LOG("(GAME) Video changed to HIcolor64 %s",banking?"Bank":"LFB",0);
+
               break;
 
   default:er=-1;
@@ -542,18 +542,18 @@ void music_init(void)
 //  char *path;
 /*  if (sound_detection)
      {
-     SEND_LOG("(SOUND) SOUND_DETECT Detecting sound card",0,0);
+
      if (sound_detect(&snd_devnum,&snd_parm1,&snd_parm2,&snd_parm3)) snd_devnum=DEV_NOSOUND;
      }*/
   SEND_LOG("(SOUND) SOUND_SET Setting Sound: Device '%s' Port: %3X",device_name(snd_devnum),snd_parm1);
   SEND_LOG("(SOUND) SOUND_SET Setting Sound: IRQ: %X DMA: %X",snd_parm2,snd_parm3);
   set_mixing_device(snd_devnum,snd_mixing,snd_parm1,snd_parm2,snd_parm3);
-  SEND_LOG("(SOUND) SOUND_INIT Starting mixing",0,0);
+
   start_mixing();
   set_snd_effect(SND_GFX,init_gfx_vol);
   set_snd_effect(SND_MUSIC,init_music_vol);
 //  path=plugins_path;
-  SEND_LOG("(SOUND) SOUND_DONE Sound Engine should work now",0,0);
+
 
   }
 
@@ -608,22 +608,24 @@ void *timming(EVENT_MSG *msg,void **data)
         p=q->next;
         q->zavora=1;
         q->counter=q->count_max;
-        if (q->calls!=-1)
+        if (q->calls!=-1) {
            if (--q->calls<1)
               {
               for(p=&timer_tree;p->next!=q;p=p->next);
               p->next=q->next;
               #ifdef LOGFILE
-              if (q->next==NULL)
-                 SEND_LOG("(TIMER) Self remove for timer id: %d, next-><NULL>",q->id,0);
-              else
+              if (q->next==NULL)  {
+
+              } else {
                  SEND_LOG("(TIMER) Self remove for timer id: %d, next->%d",q->id,q->next->id);
+              }
               #endif
               free(q);
               q=p;
               }
            //else
              // q->counter=1;
+        }
         }
      else {
         q->counter=1;
@@ -632,7 +634,7 @@ void *timming(EVENT_MSG *msg,void **data)
      if (q->next!=p && q!=p)
         {
         THE_TIMER *z;
-        SEND_LOG("(TIMER) Timer integrity corrupted",0,0);
+
         z=&timer_tree;while(z->next!=p && z->next!=NULL) z=z->next;
         if (z->next==NULL) return NULL;
         }
@@ -655,10 +657,11 @@ void delete_from_timer(int id)
               if (q->zavora)
                  {
                  #ifdef LOGFILE
-                 if (q->next==NULL)
-                    SEND_LOG("(TIMER) Removing timer id: %d, next-><NULL>",id,0);
-                 else
+                 if (q->next==NULL) {
+
+                 }else {
                     SEND_LOG("(TIMER) Removing timer id: %d, next->%d",id,q->next->id);
+                 }
                  #endif
                  p->next=q->next;
                  free(q);
@@ -666,7 +669,7 @@ void delete_from_timer(int id)
                  }
               else
                  {
-                 SEND_LOG("(TIMER) Can't remove timer! id: %d. Currently in use.",id,0);
+
                  q->calls=-2;
                  q->counter=1;
                  }
@@ -757,7 +760,7 @@ void do_timer(void)
 void done_skeldal(void)
   {
 
-  SEND_LOG("(GAME) Video returned to textmode",0,0);
+
   close_manager();
   close_story_file();
   purge_temps(1);
@@ -766,7 +769,7 @@ void done_skeldal(void)
   if (texty!=NULL) release_list(texty);texty=NULL;
   if (cur_config!=NULL) release_list(cur_config);cur_config=NULL;
   kill_timer();
-  SEND_LOG("NORMAL TERMINATING--------------------------",0,0);
+
   }
 
 
@@ -878,11 +881,11 @@ void error_exception(EVENT_MSG *msg,void **unused)
   if (msg->msg==E_PRGERROR)
      {
      unused;
-     SEND_LOG("(ERROR) Runtime error detected ... Game terminator lunched.",0,0);
-     SEND_LOG("(ERROR) Log: Now dump of useful informations:",0,0);
-     SEND_LOG("(ERROR) Log: Map name '%s'",level_fname==NULL?"<NULL>":level_fname,0);
+
+
+
      SEND_LOG("(ERROR) Log: Sector %d Direction %d",viewsector,viewdir);
-     SEND_LOG("(ERROR) Log: Last 'memman' handle: %x",memman_handle,0);
+
      SEND_LOG("(ERROR) Log: Battle: %d Select_player %d",battle,select_player);
      closemode();
      printf("Program zp�sobil b�hovou chybu a bude ukon�en\n"
@@ -899,7 +902,7 @@ void error_exception(EVENT_MSG *msg,void **unused)
 void swap_error_exception(void)
   {
   closemode();
-  SEND_LOG("(ERROR) Disk is full ...",0,0);
+
   puts("Program jiz nema kam odkladat, protoze disk s odkladacim souborem byl \n"
        "zaplnen. Uvolnete prosim nejake misto na odkladacim disku, nebo zmente \n"
        "adresar odkladani na jednotku, kde je vice mista");
@@ -970,78 +973,78 @@ void init_skeldal(void)
   int verr;
 
   boldcz=LoadDefaultFont();
-SEND_LOG("(INIT) Reading texts.",0,0);
+
   cti_texty();
   timer_tree.next=NULL;
-SEND_LOG("(INIT) Setting random seed.",0,0);
+
   srand(clock());
-SEND_LOG("(INIT) Creating 256 color palette.",0,0);
+
   cur_xlat=create_special_palette();
-SEND_LOG("(INIT) Init message system - event handler",0,0);
+
   init_events();
-SEND_LOG("(INIT) Setting videomode.",0,0);
+
   verr=set_video(vmode);
   if (verr)
      {
      exit(ERR_GENERAL);
      }
-SEND_LOG("(INIT) Initializing engine.",0,0);
+
   general_engine_init();
   atexit(done_skeldal);
-/*SEND_LOG("(INIT) Loading DOS error handler.",0,0);
+/*
   install_dos_error(device_error,(char *)getmem(4096)+4096);*/
   swap_error=swap_error_exception;
-  snprintf(d,sizeof(d),"%s%s",pathtable[SR_DATA],"skeldal.ddl");
-SEND_LOG("(INIT) Initializing memory manager",0,0);
+  snprintf(d,sizeof(d),"%s%s",pathtable[SR_DATA],"SKELDAL.DDL");
+
   init_manager(d,c);
 SEND_LOG("(GAME) Memory manager initialized. Using DDL: '%s' Temp dir: '%s'",d,c);
 	texty_knihy=find_map_path("kniha.txt");
-SEND_LOG("(INIT) Installing GUI",0,0);
+
   install_gui();
-SEND_LOG("(INIT) Attaching patch.",0,0);
+
   if (patch_file!=NULL) patch_error(add_patch_file(patch_file));
-SEND_LOG("(INIT) Registring basic data.",0,0);
+
   register_basic_data();
-SEND_LOG("(INIT) Timer event handler.",0,0);
+
   send_message(E_DONE,E_WATCH,timer);
   send_message(E_DONE,E_IDLE,redraw_desktop_call);
   send_message(E_ADD,E_TIMER,timming);
-SEND_LOG("(INIT) User timer.",0,0);
+
   send_message(E_ADD,E_WATCH,user_timer);
-SEND_LOG("(INIT) Mouse clicking maps.",0,0);
+
   send_message(E_ADD,E_MOUSE,ms_clicker);
-SEND_LOG("(INIT) Global keyboard event handler.",0,0);
+
   send_message(E_ADD,E_KEYBOARD,global_kbd);
-SEND_LOG("(INIT) Error exception event handler.",0,0);
+
   send_message(E_ADD,E_PRGERROR,error_exception);
-SEND_LOG("(INIT) Wizard handler.",0,0);
+
   if (debug_enabled) install_wizard();
-SEND_LOG("(INIT) Background music timer.",0,0);
+
   add_to_timer(TM_BACK_MUSIC,5,-1,back_music);
-SEND_LOG("(INIT) Creating game window.",0,0);
+
   add_game_window();
-SEND_LOG("(INIT) Music.",0,0);
+
   music_init();
-SEND_LOG("(INIT) Mouse interrupt handler.",0,0);
+
   if ((verr=init_mysky())!=0)
      {
      closemode();
      puts(texty[174-verr]);
      SEND_LOG("(ERROR) %s (%d)",texty[174-verr],verr);
-     SEND_LOG("(ERROR) Mouse not found, shutting down.",0,0);
+
      exit(0);
      }
-SEND_LOG("(INIT) Mouse initialized.",0,0);
+
 //  hranice_mysky(0,0,639,479);
-SEND_LOG("(INIT) Loading mouse cursor.",0,0);
+
   mouse_set_default(H_MS_DEFAULT);
   ukaz_mysku();
   set_end_of_song_callback(end_of_song_callback, NULL);
-SEND_LOG("(INIT) Loading spells.",0,0);
+
   kouzla_init();
-SEND_LOG("(INIT) Loading items.",0,0);
+
   load_items();
-SEND_LOG("(INIT) Loading shops.",0,0);
+
   load_shops();
   SetWheelMapping('H','P');
   }
@@ -1049,7 +1052,7 @@ SEND_LOG("(INIT) Loading shops.",0,0);
 void wire_main_functs();
 void unwire_main_functs(void)
   {
-  SEND_LOG("(SYS) Wire main functions",0,0);
+
   delete_from_timer(TM_FLY);
   delete_from_timer(TM_SCENE);
   delete_from_timer(TM_REGEN);
@@ -1063,7 +1066,7 @@ void unwire_main_functs(void)
 
 void wire_main_functs(void)
   {
-  SEND_LOG("(SYS) unWire main functions",0,0);
+
   add_to_timer(TM_SCENE,gamespeed,-1,refresh_scene);
   add_to_timer(TM_FLY,gamespeed,-1,calc_fly);
   add_to_timer(TM_REGEN,500,-1,real_regeneration);
@@ -1080,9 +1083,9 @@ void wire_main_functs(void)
 
 void init_game(void)
   {
-  SEND_LOG("(INIT) Inventory.",0,0);
+
   init_inventory();
-  SEND_LOG("(INIT) Characters.",0,0);
+
   reg_grafiku_postav();
   build_all_players();
   }
@@ -1135,14 +1138,14 @@ void enter_game(void)
   cancel_pass=0;
   autosave();
   set_game_click_map();
-  SEND_LOG("(GAME) --------- Waiting for E_CLOSE_MAP ------------\n",0,0);
+
   send_message(E_ADD,E_RELOADMAP,reload_map_handler);
   {
       EVENT_MSG *msg = task_wait_event(E_CLOSE_MAP);
       end = va_arg(msg->data, int);
   }
   send_message(E_DONE,E_RELOADMAP,reload_map_handler);
-  SEND_LOG("(GAME) --------- E_CLOSE_MAP triggered, leaving map------------\n",0,0);
+
   unwire_main_functs();
   delete_from_timer(TM_FAST_TIMER);
   cancel_pass=1;
@@ -1174,7 +1177,7 @@ static int do_config_skeldal(int num,int numdata,char *txt)
             sound_detection=0;
             break;
      case 6:snd_mixing=numdata;break;
-     case 7:strncpy(default_map,txt,20);default_map[19]='\0';SEND_LOG("(GAME) Start map sets as '%s'",default_map,0);break;
+     case 7:strncpy(default_map,txt,20);default_map[19]='\0';break;
      case 8:gamespeed=numdata;break;
      case 9:level_preload=numdata;break;
 //     case 10:system(txt);break;
@@ -1262,9 +1265,9 @@ static void configure(char *filename)
      puts(s);
      exit(1);
      }
-  SEND_LOG("(GAME) Configuring game...",0,0);
+
   process_ini(cur_config,config_skeldal);
-  SEND_LOG("(GAME) Done config.",0,0);
+
   }
 
 static int update_config(void)
@@ -1277,7 +1280,7 @@ static int update_config(void)
   add_field_num(&cur_config,sinit[9].heslo,level_preload);
   add_field_num(&cur_config,sinit[13].heslo,autosave_enabled);
   save_config(cur_config,CONFIG_NAME);
-  SEND_LOG("(GAME) Config. file was saved",0,0);
+
   return 0;
   }
 
@@ -1423,7 +1426,7 @@ static void game_big_circle(char enforced)
   int err;
   int r;
   char s[13];
-  SEND_LOG("\n(GAME) --------- Entering big loop ------------",0,0);
+
   purge_playlist();
   s[12]=0;strncpy(s,loadlevel.name,12);
   err=load_map(s);
@@ -1469,16 +1472,16 @@ static void game_big_circle(char enforced)
     for(r=0;r<mapsize*4;r++) call_macro(r,MC_STARTLEV);
     recalc_volumes(viewsector,viewdir);
     loadlevel.name[0]=0;
-    SEND_LOG("\n(GAME) --------- Entering game ------------",0,0);
+
     enter_game();
-    SEND_LOG("(GAME) --------- Leaving game ------------\n",0,0);
+
     leave_current_map();
     s[12]=0;strncpy(s,loadlevel.name,12);
     if (s[0]!=0)err=load_map(s);
     memset(GlobEventList,0,sizeof(GlobEventList));
 
     }
-  SEND_LOG("(GAME) --------- Leaving big loop ------------\n",0,0);
+
  }
 
 extern THUMAN postavy_2[];
@@ -1646,16 +1649,14 @@ int main(int argc,char *argv[])
 
   if (argc>=3) rm=!strcmp(argv[1],"12345678");else rm=0;
 
-  //OPEN_LOG("syslog");
-  OPEN_LOG("con");
-  SEND_LOG("START --------------------------",0,0);
+
   argv;
   c=getcwd(NULL,0);
   pathtable[SR_SAVES]=getmem(strlen(c)+2);
   strcpy(pathtable[SR_SAVES],c);
   strcat(pathtable[SR_SAVES],PATH_SEPARATOR);
   free(c);
-  SEND_LOG("(GAME) Save directory sets to '%s'",pathtable[SR_SAVES],0);
+
 //  set_verify(0);
   mman_pathlist=pathtable;
   zoom_speed(1);
@@ -1672,7 +1673,7 @@ int main(int argc,char *argv[])
 
 	adventure=argv[1];
     cur_config=NULL;
-    SEND_LOG("(GAME) Starting new adventure: %s",adventure,0);
+
     configure(adventure);
     release_list(cur_config);
     cur_config=config;
@@ -1680,25 +1681,25 @@ int main(int argc,char *argv[])
 #ifdef LOGFILE
      {
      int i;
-     for(i=0;i<(sizeof(pathtable)/4);i++) SEND_LOG("(GAME) LOG: Using directory '%s' as '%s'",pathtable[i],sinit[i+CESTY_POS].heslo);
+     for(i=0;i<(int)(sizeof(pathtable)/sizeof(*pathtable));i++) SEND_LOG("(GAME) LOG: Using directory '%s' as '%s'",pathtable[i],sinit[i+CESTY_POS].heslo);
      }
 #endif
   start_check();
   purge_temps(1);
 //  textmode_effekt();
   clrscr();
-  SEND_LOG("\n(GAME) Init----------------",0,0);
+
   init_skeldal();
 
   //add_task(32768,check_number_1phase,argv[0]);
-  SEND_LOG("(INIT) Starting game thread.",0,0);
+
   if (argc>=3 && rm)
      {
      add_task(65536,start_from_mapedit,argc,argv);
      }
   else
      add_task(65536,start);
-  SEND_LOG("(INIT) Main thread goes to sleep.",0,0);
+
 /*  position(200,200);
   set_font(H_FBIG,RGB(200,200,200));
   outtext("Ahoj lidi");

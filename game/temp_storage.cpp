@@ -4,6 +4,7 @@
 #include <string>
 #include <string_view>
 #include <vector>
+#include <iostream>
 
 extern "C" {
 #include "temp_storage.h"
@@ -16,7 +17,6 @@ typedef struct _temp_storage_file_wr {
 typedef struct _temp_storage_file_rd {
     std::basic_string_view<uint8_t> _data;
     int skp = 0;
-    int scan_ret = 0;
 } TMPFILE_RD;
 
 using FileSystem = std::map<std::string, std::vector<uint8_t>, std::less<> >;
@@ -26,7 +26,11 @@ static FileSystem temp_fsystem;
 void temp_storage_store(const char *name, const void *data, int32_t size) {
     auto b = reinterpret_cast<const uint8_t *>(data);
     auto e = b+size;
-    temp_fsystem[std::string(name)] = {b,e};
+    auto &v =temp_fsystem[std::string(name)];
+    v.clear();
+    v.resize(size+1);
+    std::copy(b,e, v.begin());
+    v[size] = 0;
 }
 
 int32_t temp_storage_find(const char *name) {
@@ -89,7 +93,7 @@ uint32_t temp_storage_read(void *data, uint32_t size, TMPFILE_RD *f) {
     auto p = d.substr(0,size);
     d = d.substr(p.size());
     auto b = reinterpret_cast<uint8_t *>(data);
-    std::copy(d.begin(), d.end(), b);
+    std::copy(p.begin(), p.end(), b);
     return p.size();
 }
 
@@ -106,7 +110,7 @@ void temp_storage_delete(const char *name) {
 
 int temp_storage_getc(TMPFILE_RD *f) {
     if (f->_data.empty()) return -1;
-    int r = f->_data[0];
+    int r = static_cast<uint8_t>(f->_data[0]);
     f->_data = f->_data.substr(1);
     return r;
 }
@@ -114,7 +118,7 @@ int temp_storage_getc(TMPFILE_RD *f) {
 char *temp_storage_gets(char *buff, size_t sz, TMPFILE_RD *f) {
     auto &d =f->_data;
     auto pos = d.find('\n');
-    if (pos > d.size()) pos = d.size();
+    if (pos > d.size()) pos = d.size(); else ++pos;
     if (pos == 0) return NULL;
     if (pos > sz - 1) pos = sz - 1;
     temp_storage_read(buff, pos, f);
@@ -123,23 +127,25 @@ char *temp_storage_gets(char *buff, size_t sz, TMPFILE_RD *f) {
 }
 
 
-void temp_storage_internal_begin_scanf(TMPFILE_RD *f, const char *format, ...) {
+int temp_storage_internal_begin_scanf(TMPFILE_RD *f, const char *format, ...) {
     if (f->_data.empty()) {
-        f->scan_ret = -1;
+        return -1;
     }
     va_list lst;
     va_start(lst, format);
-    f->scan_ret =  vsscanf(reinterpret_cast<const char *>(f->_data.data()), format, lst);
+    int scan_ret =  vsscanf(reinterpret_cast<const char *>(f->_data.data()), format, lst);
     va_end(lst);
+    return scan_ret;
 }
 
 int *temp_storage_internal_skip_ptr(TMPFILE_RD *f) {
+    f->skp = 0;
     return &f->skp;
 }
 
-int temp_storage_internal_end_scanf(TMPFILE_RD *f) {
+int temp_storage_internal_end_scanf(TMPFILE_RD *f, int r) {
     temp_storage_skip(f, f->skp);
-    return f->scan_ret;
+    return r;
 }
 
 void temp_storage_ungetc(TMPFILE_RD *f) {

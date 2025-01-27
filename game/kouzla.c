@@ -190,10 +190,10 @@ static void play_anim(va_list args) //tasked animation
 
   if (running_anm)
      {
-     SEND_LOG("(ERROR)(ANIM) Animation's mutex is already in use!",0,0);
+     SEND_LOG("(ERROR)(ANIM) Animation's mutex is already in use!");
      return;
      }
-  SEND_LOG("(ANIM) Running animation number %xh",block,0);
+
   anim_render_buffer=getmem(ANIM_SIZE);
   mgif_install_proc(animace_kouzla);
   running_anm=1;
@@ -202,7 +202,7 @@ static void play_anim(va_list args) //tasked animation
   alock(block);
   anm=open_mgif(ablock(block));
   c=0;
-  SEND_LOG("(ANIM) Buffer is now ready...",0,0);
+  SEND_LOG("(ANIM) Buffer is now ready...");
   while (anm!=NULL)
      {
      task_wait_event(E_KOUZLO_ANM);
@@ -215,7 +215,7 @@ static void play_anim(va_list args) //tasked animation
   close_mgif();
   running_anm=0;
   free(anim_render_buffer);
-  SEND_LOG("(ANIM) Closing animation %xh",block,0);
+
   aunlock(block);
   }
 
@@ -617,7 +617,7 @@ static void unaffect_after_demon(int cil)
   char a;
   TKOUZLO *spl;
 
-  SEND_LOG("(SPELLS) Unaffecting after demon...",0,0);
+  SEND_LOG("(SPELLS) Unaffecting after demon...");
   do
      {
      a=0;
@@ -657,7 +657,7 @@ void spell_end(int num,int ccil,int owner)
         unaffect_after_demon(ccil);
         zmena_demona(cil,owner,0);
         _flag_map[num]&=~SPL_DEMON;
-        SEND_LOG("(SPELLS) Spell 'Demon' has ended...",0,0);
+        SEND_LOG("(SPELLS) Spell 'Demon' has ended...");
         }
      postavy[cil].stare_vls[VLS_KOUZLA]&=~_flag_map[num];
      if (cil>=0 && cil<POCET_POSTAV)
@@ -682,7 +682,7 @@ void spell_end(int num,int ccil,int owner)
   l=_flag_map[num];
   _flag_map[num]=0;
   if (l>0xffff) spell_end_global();
-  SEND_LOG("(SPELLS) Spell ID %d ends.",num,0);
+
   }
 
 static void spell_demon(int num,TKOUZLO *spl,int cil,int demon)
@@ -1394,7 +1394,7 @@ void call_spell(int i)
   unsigned char ext=0;
   int cil;
 
-  SEND_LOG("(SPELLS) Calculating spell ID: %d",i,0);
+
   p=spell_table[i];
   if (p==NULL) return;
   cil=p->cil;
@@ -1485,7 +1485,7 @@ int add_spell(int num,int cil,int owner,char noanim)
   int accnum;
   char time_acc=1;
 
-  SEND_LOG("(SPELLS) Casting spell number %d",num,0);
+
   alock(H_KOUZLA);
   q=(TKOUZLO *)ablock(H_KOUZLA)+num;
   accnum=q->accnum;
@@ -1500,7 +1500,7 @@ int add_spell(int num,int cil,int owner,char noanim)
   if (i==MAX_SPELLS) i=nl;
   if (i==-1)
      {
-     SEND_LOG("(ERROR) Too many spells in game!",0,0);
+     SEND_LOG("(ERROR) Too many spells in game!");
      return -1;
      }
   if (spell_table[i]!=NULL)
@@ -1636,7 +1636,7 @@ void cast(int num,THUMAN *p,int owner, char backfire)
 
   SEND_LOG("(SPELLS) Cast num %d cil %d",num2,cil);
   k=((TKOUZLO *)ablock(H_KOUZLA))+num2;
-  SEND_LOG("(SPELLS) Cast spell name %s",k->spellname,0);
+
 
   if (cil>0 && k->cil!=C_postava_jinde)
         {
@@ -1711,7 +1711,7 @@ void cast(int num,THUMAN *p,int owner, char backfire)
   if (p->mana>p->mana_battery)
      {
      if (p->mana_battery>=0)p->mana=p->mana_battery;
-     else SEND_LOG("(ERROR) Mana battery error on character %d",p-postavy,0);
+     else
      p->mana_battery=32767;
      }
 end:
@@ -1821,7 +1821,7 @@ void area_cast(int num,int sector,int owner,char noanim)
 
 void kouzla_init()
   {
-  SEND_LOG("(SPELLS) Init...",0,0);
+  SEND_LOG("(SPELLS) Init...");
   send_message(E_ADD,E_KOUZLO_ANM,kouzla_anm);
   send_message(E_ADD,E_KOUZLO_KOLO,kouzla_kola);
   memset(spell_table,0,sizeof(spell_table));
@@ -1837,7 +1837,7 @@ void reinit_kouzla_full()
   {
   int i;
 
-  SEND_LOG("(SPELLS) Reinit...",0,0);
+  SEND_LOG("(SPELLS) Reinit...");
   for(i=0;i<MAX_SPELLS;i++) if (spell_table[i]!=NULL) free(spell_table[i]);
   for(i=0;i<MAX_SPELLS;i++) if (vls_table[i]!=NULL) free(vls_table[i]);
   memset(spell_table,0,sizeof(spell_table));
@@ -1854,7 +1854,7 @@ void remove_all_mob_spells()
   int i;
   char a;
 
-  SEND_LOG("(SPELLS) Removing spells from enemies...",0,0);
+  SEND_LOG("(SPELLS) Removing spells from enemies...");
   do
      {
      a=0;
@@ -1882,7 +1882,7 @@ int save_spells(TMPFILE_WR *f)
   {
   int i,s;
 
-  SEND_LOG("(SPELLS) Saving spell table...",0,0);
+  SEND_LOG("(SPELLS) Saving spell table...");
   for(i=0,s=0;i<MAX_SPELLS;i++)
      if (spell_table[i]!=NULL) s++;
   temp_storage_write(&s,1*sizeof(s),f);
@@ -1902,7 +1902,7 @@ int load_spells(TMPFILE_RD *f)
 
   int i,s;
 
-  SEND_LOG("(SPELLS) Loading saved spell table...",0,0);
+  SEND_LOG("(SPELLS) Loading saved spell table...");
   reinit_kouzla_full();
   res|=(temp_storage_read(&s,1*sizeof(s),f)!=sizeof(s));
   for(i=0;i<s && !res;i++)
@@ -1926,7 +1926,7 @@ void unaffect()
   int i;
   char a;
 
-  SEND_LOG("(WIZARD) Unaffect / dispel_magic",0,0);
+  SEND_LOG("(WIZARD) Unaffect / dispel_magic");
   do
      {
      a=0;
@@ -1948,7 +1948,7 @@ void unaffect()
 
      }
   while(a);
-  SEND_LOG("(WIZARD) Unaffect... done",0,0);
+  SEND_LOG("(WIZARD) Unaffect... done");
   }
 
 void unaffect_demon(int cil)
@@ -1959,7 +1959,7 @@ void unaffect_demon(int cil)
 
 
   cil++;
-  SEND_LOG("(SPELLS) Demon returns to astral spaces...",0,0);
+  SEND_LOG("(SPELLS) Demon returns to astral spaces...");
   for(i=0;spl=spell_table[i],i<MAX_SPELLS;i++) if (spl!=NULL && _flag_map[i] & SPL_DEMON && spl->cil==cil)
      {
      while (spell_table[i]!=NULL)

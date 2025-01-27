@@ -34,7 +34,7 @@ int mix_back_sound(int synchro);
 int open_backsound(char *filename);
 void change_music(const char *filename);
 int get_timer_value(void);
-char *device_name(int device);
+const char *device_name(int device);
 void force_music_volume(int volume);
 
 void set_backsnd_freq(int freq);

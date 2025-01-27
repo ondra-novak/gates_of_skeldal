@@ -216,7 +216,7 @@ static void error(char *text)
   sprintf(buff,"%s v odstavci %d\r\nLocal_pgf=%d / DIALOG : %d / SENTENCE : %d\r\n",text,last_pgf+local_pgf,local_pgf,local_pgf/128,last_pgf);
 //  MessageBox(NULL,buff,NULL,MB_OK|MB_ICONSTOP|MB_SYSTEMMODAL);
   SEND_LOG("(DIALOGS) Dialog error detected at %d:%d",local_pgf/128,last_pgf);
-  SEND_LOG("(DIALOGS) Error description: %s",text,0);
+  SEND_LOG("(DIALOGS) Error description: %s",text);
   }
 
 static void show_dialog_picture()
@@ -906,7 +906,7 @@ static void exit_dialog()
      norefresh=0;
      }
   starting_shop=-1;
-  SEND_LOG("(DIALOGS) Exiting dialog...",0,0);
+  SEND_LOG("(DIALOGS) Exiting dialog...");
   }
 
 
@@ -955,7 +955,7 @@ char join_character(int i)
   THUMAN *s=postavy_2+i;
   int j;
 
-  SEND_LOG("(DIALOGS) Joining character '%s'",s->jmeno,0);
+  SEND_LOG("(DIALOGS) Joining character '%s'",s->jmeno);
   for(j=0,h=postavy;j<POCET_POSTAV;j++,h++) if (!h->used)
      {
      memcpy(h,s,sizeof(THUMAN));
@@ -966,7 +966,7 @@ char join_character(int i)
      bott_draw(1);
      return 0;
      }
-  SEND_LOG("(DIALOGS) Join failed - no room for new character",0,0);
+  SEND_LOG("(DIALOGS) Join failed - no room for new character");
   return 1;
   }
 
@@ -1335,7 +1335,7 @@ void call_dialog(int entr,int mob)
   curcolor=0;
   create_back_pic();
   bar32(0,SCREEN_OFFLINE,639,SCREEN_OFFLINE+359);
-  SEND_LOG("(DIALOGS) Starting dialog...",0,0);
+  SEND_LOG("(DIALOGS) Starting dialog...");
   for(i=0;i<POCET_POSTAV;i++) if (isdemon(postavy+i)) unaffect_demon(i);
   mute_all_tracks(0);
   dialog_mob=mob;
@@ -1367,7 +1367,7 @@ char save_dialog_info(TMPFILE_WR *f)
   char *c,res=0;
   T_PARAGRAPH *q;
 
-  SEND_LOG("(DIALOGS)(SAVELOAD) Saving dialogs info...",0,0);
+  SEND_LOG("(DIALOGS)(SAVELOAD) Saving dialogs info...");
   p=ablock(H_DIALOGY_DAT);
   pgf_pocet=*p;
   temp_storage_write(&pgf_pocet,1*4,f);
@@ -1387,7 +1387,7 @@ char save_dialog_info(TMPFILE_WR *f)
      free(c);
      }
   temp_storage_write(_flag_map,1*sizeof(_flag_map),f);
-  SEND_LOG("(DIALOGS)(SAVELOAD) Done...",0,0);
+  SEND_LOG("(DIALOGS)(SAVELOAD) Done...");
   return res;
   }
 
@@ -1399,7 +1399,7 @@ char load_dialog_info(TMPFILE_RD *f)
   char *c,res=0;
   T_PARAGRAPH *q;
 
-  SEND_LOG("(DIALOGS)(SAVELOAD) Loading dialogs info...",0,0);
+  SEND_LOG("(DIALOGS)(SAVELOAD) Loading dialogs info...");
   p=ablock(H_DIALOGY_DAT);
   aswap(H_DIALOGY_DAT);
   temp_storage_read(&pgf_pocet,1*4,f);
@@ -1425,6 +1425,6 @@ char load_dialog_info(TMPFILE_RD *f)
      free(c);
      }
   res|=(temp_storage_read(_flag_map,1*sizeof(_flag_map),f)!=sizeof(_flag_map));
-  SEND_LOG("(DIALOGS)(SAVELOAD) Done...",0,0);
+  SEND_LOG("(DIALOGS)(SAVELOAD) Done...");
   return res;
   }
