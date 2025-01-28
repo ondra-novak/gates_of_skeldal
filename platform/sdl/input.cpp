@@ -1,14 +1,25 @@
 #include "global_context.h"
 #include "input.h"
+#include "../platform.h"
 
 char get_control_key_state() {
-    return 0;   //todo
+    return get_sdl_global_context().get_control_key_state()?1:0;
 }
 char get_shift_key_state() {
-    return 0;   //todo
+    return get_sdl_global_context().get_shift_key_state()?1:0;
+}
+char get_capslock_state() {
+    return get_sdl_global_context().get_capslock_state()?1:0;
 }
 uint32_t _bios_keybrd(int mode) {
-    return 0;
+    if (mode == _KEYBRD_READY) {
+        return get_sdl_global_context().is_keyboard_ready()?1:0;
+    } else if (mode == _KEYBRD_READ) {
+        return get_sdl_global_context().pop_keyboard_code();
+    } else {
+        return 0;
+    }
+
 }
 
 void SetWheelMapping(char up, char down) { //todo

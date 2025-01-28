@@ -36,6 +36,7 @@ void SetWheelMapping(char up, char down);
 
 char get_control_key_state(void);
 char get_shift_key_state(void);
+char get_capslock_state(void);
 void display_error(const char *text);
 
 int stricmp(const char *a, const char *b);

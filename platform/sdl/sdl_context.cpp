@@ -1,9 +1,11 @@
 #include "sdl_context.h"
+#include "keyboard_map.h"
 
 #include <atomic>
 #include <cassert>
 #include "../platform.h"
 
+#include <iostream>
 #include <stdexcept>
 void SDLContext::SDL_Deleter::operator ()(SDL_Window* window) {
     SDL_DestroyWindow(window);
@@ -83,13 +85,20 @@ void SDLContext::init_screen(DisplayMode mode, const char *title) {
                 throw std::runtime_error(buff);
             }
             _renderer.reset(renderer);
-            // Vytvoření textury pro zobrazení backbufferu
             SDL_Texture *texture = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_RGB565, SDL_TEXTUREACCESS_STREAMING, 640, 480);
             if (!texture) {
                 snprintf(buff, sizeof(buff), "Chyba při vytváření textury: %s\n", SDL_GetError());
                 throw std::runtime_error(buff);
             }
             _texture.reset(texture);
+            texture = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_RGB565, SDL_TEXTUREACCESS_STREAMING, 640, 480);
+            if (!texture) {
+                snprintf(buff, sizeof(buff), "Chyba při vytváření textury: %s\n", SDL_GetError());
+                throw std::runtime_error(buff);
+            }
+            _texture2.reset(texture);
+            _visible_texture = _texture.get();
+            _hidden_texture = _texture.get();
         } catch (...) {
             e = std::current_exception();
             err = true;
@@ -99,6 +108,7 @@ void SDLContext::init_screen(DisplayMode mode, const char *title) {
         SDL_ShowCursor(SDL_DISABLE);
         if (!err) event_loop(stp);
         _texture.reset();
+        _texture2.reset();
         _renderer.reset();
         _window.reset();
     });
@@ -139,9 +149,19 @@ void SDLContext::event_loop(std::stop_token stp) {
         }
 
         if (e.type == SDL_KEYDOWN) {
+            _key_capslock = e.key.keysym.mod & KMOD_CAPS;
+            _key_shift =e.key.keysym.mod & KMOD_SHIFT;
+            _key_control  =e.key.keysym.mod & KMOD_CTRL;
             if (e.key.keysym.sym == SDLK_RETURN && (e.key.keysym.mod & KMOD_ALT)) {
                 _fullscreen_mode = !_fullscreen_mode;
                 SDL_SetWindowFullscreen(_window.get(), _fullscreen_mode ? SDL_WINDOW_FULLSCREEN_DESKTOP : 0);
+            } else {
+                auto code =sdl_keycode_map.get_bios_code(e.key.keysym.scancode,
+                        e.key.keysym.mod & KMOD_SHIFT, e.key.keysym.mod & KMOD_CTRL);
+                if (code) {
+                    std::lock_guard _(_mx);
+                    _keyboard_queue.push(code);
+                }
             }
         } else if (e.type == SDL_MOUSEMOTION) {
             int mouseX = e.motion.x;
@@ -233,34 +253,112 @@ void SDLContext::present_rect(uint16_t *pixels, unsigned int pitch,
                   static_cast<int>(y),
                   static_cast<int>(xs),
                   static_cast<int>(ys)};
-    std::vector<short> data;
-    data.resize(xs*ys);
-    auto iter = data.begin();
-    for (unsigned int yp = 0; yp <ys; ++yp) {
-       iter = std::copy(beg, beg+xs,iter );
-       beg+=pitch;
-    }
+
     std::lock_guard _(_mx);
+    signal_push();
+    push_update_msg(r, beg, pitch);
+}
+
+std::uint16_t SDLContext::pop_keyboard_code()  {
+    std::lock_guard _(_mx);
+    std::uint16_t out = _keyboard_queue.front();
+    _keyboard_queue.pop();
+    return out;
+}
+
+bool SDLContext::is_keyboard_ready() const {
+    std::lock_guard _(_mx);
+    return !_keyboard_queue.empty();
+}
+
+void SDLContext::signal_push() {
     if (_display_update_queue.empty()) {
         SDL_Event event;
         event.type = _update_request_event;
         SDL_PushEvent(&event);
     }
-    _display_update_queue.push_back({std::move(r), std::move(data)});
-
-
 
 }
 
 void SDLContext::update_screen() {
     {
         std::lock_guard _(_mx);
-        for (const UpdateMsg &msg:_display_update_queue) {
-            SDL_UpdateTexture(_texture.get(), &msg.rc, msg.data.data(), msg.rc.w*2);
+        QueueIter iter = _display_update_queue.data();
+        QueueIter end = iter + _display_update_queue.size();
+        while (iter != end) {
+            DisplayRequest req;
+            pop_item(iter, req);
+            switch (req) {
+                case DisplayRequest::update: {
+                    SDL_Rect r;
+                    pop_item(iter, r);
+                    std::string_view data = pop_data(iter, r.w*r.h*2);
+                    SDL_UpdateTexture(_texture.get(), &r, data.data(), r.w*2);
+                }
+                break;
+                case DisplayRequest::swap_render_buffers: {
+                    std::swap(_texture,_texture2);
+                }
+                break;
+                case DisplayRequest::swap_visible_buffers: {
+                    std::swap(_visible_texture,_hidden_texture);
+                }
+                break;
+            }
         }
         _display_update_queue.clear();
     }
     SDL_RenderClear(_renderer.get());
-    SDL_RenderCopy(_renderer.get(), _texture.get(), NULL, NULL);
+    SDL_RenderCopy(_renderer.get(), _visible_texture, NULL, NULL);
     SDL_RenderPresent(_renderer.get());
 }
+
+template<typename T>
+requires(std::is_trivially_copy_constructible_v<T>)
+void  SDLContext::push_item(const T &item) {
+    auto b = reinterpret_cast<const char *>(&item);
+    auto e = b + sizeof(T);
+    auto sz = _display_update_queue.size();
+    _display_update_queue.resize(sz + sizeof(T));
+    std::copy(b, e, _display_update_queue.begin()+sz);
+}
+
+void SDLContext::push_item(const std::string_view &item) {
+    auto sz = _display_update_queue.size();
+    _display_update_queue.resize(sz + item.size());
+    std::copy(item.begin(), item.end(),  _display_update_queue.begin()+sz);
+}
+
+void SDLContext::push_update_msg(const SDL_Rect &rc, const uint16_t *data, int pitch) {
+    push_item(DisplayRequest::update);
+    push_item(rc);
+    for (int yp = 0; yp < rc.h; ++yp) {
+        push_item(std::string_view(reinterpret_cast<const char *>(data), rc.w*2));
+        data += pitch;
+    }
+}
+
+template<typename T>
+requires(std::is_trivially_copy_constructible_v<T>)
+void SDLContext::pop_item(QueueIter &iter, T &item) {
+    std::copy(iter, iter+sizeof(T), reinterpret_cast<char *>(&item));
+    iter += sizeof(T);
+}
+std::string_view SDLContext::pop_data(QueueIter &iter, std::size_t size) {
+    const char *c = iter;
+    iter += size;
+    return std::string_view(c, size);
+}
+
+void SDLContext::swap_render_buffers() {
+    std::lock_guard _(_mx);
+    signal_push();
+    push_item(DisplayRequest::swap_render_buffers);
+}
+
+void SDLContext::swap_display_buffers() {
+    std::lock_guard _(_mx);
+    signal_push();
+    push_item(DisplayRequest::swap_render_buffers);
+}
+
