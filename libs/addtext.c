@@ -68,13 +68,13 @@ void save_stringtable(char *filename,char *backup_name)
   int num,rd;
   int oldnum=-1,i;
 
-  fb=fopen(backup_name,"rt");
+  fb=fopen_icase(backup_name,"rt");
   if (fb==NULL)
      {
      puts("Cannot open backup file for reading.");
      exit(1);
      }
-  fo=fopen(filename,"wt");
+  fo=fopen_icase(filename,"wt");
   if (fo==NULL)
      {
      puts("Cannot open target file for writting.");

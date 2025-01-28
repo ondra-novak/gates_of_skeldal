@@ -1318,14 +1318,14 @@ void check_global_fletna(THE_TIMER *t)
 
 //---------------------------------------
 
-char *find_map_path(char *filename)
+char *find_map_path(const char *filename)
 	{
 	char *p1,*p;
 
 	if (pathtable[SR_MAP2]!=NULL)
 		{
 		concat(p1,pathtable[SR_MAP2],filename);
-		if (!access(p1,0)) goto found;
+		if (check_file_exists(p1)) goto found;
 		}
 	concat(p1,pathtable[SR_MAP],filename);
 	found:
@@ -1353,7 +1353,7 @@ TMPFILE_RD *enc_open(char *filename)
   int size;
   char *encdata;
 
-  f=fopen(filename,"r");
+  f=fopen_icase(filename,"r");
   if (f!=NULL) {
       encdata = load_file_to_string(f, &size);
       fclose(f);
@@ -1364,7 +1364,7 @@ TMPFILE_RD *enc_open(char *filename)
       c=strrchr(enc,'.');
       if (c==NULL) c=strchr(enc,0);
       strcpy(c,".ENC");
-      f=fopen(enc,"rb");
+      f=fopen_icase(enc,"rb");
       if (f==NULL) return NULL;
       encdata = load_file_to_string(f, &size);
       fclose(f);

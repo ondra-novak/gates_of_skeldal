@@ -416,7 +416,7 @@ int open_backsound(char *filename)
      lastname[127]=0;
      strncpy(lastname,filename,127);
      }
-  bsnd=fopen(lastname,"rb");
+  bsnd=fopen_icase(lastname,"rb");
   if (bsnd==NULL)
      {
      clear_buffer=32;

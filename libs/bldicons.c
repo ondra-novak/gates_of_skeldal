@@ -24,7 +24,7 @@ void ReadScript(char *script)
   int j=0;
   char *pcx;
   unsigned short *wpcx;
-  scr=fopen(script,"rt");
+  scr=fopen_icase(script,"rt");
   if (scr==NULL) Error("Nemohu otevrit soubor: %s",script);
   i=fscanf(scr,"%s",szBuff);
   while (i!=EOF)
@@ -36,7 +36,7 @@ void ReadScript(char *script)
       {
       sprintf(szBuff,IKNNAME,icount++);
       printf("Sestavuji soubor %s\n",szBuff);
-      trg=fopen(szBuff,"wb");
+      trg=fopen_icase(szBuff,"wb");
       if (trg==NULL) Error("Nelze zapisovat do souboru %s",szBuff);
       }
     if (!fwrite(pcx,PCXSIZE,1,trg)) Error("Chyba nastala pri zapisu do souboru %s",szBuff);

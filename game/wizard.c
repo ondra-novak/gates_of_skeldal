@@ -219,7 +219,7 @@ static char purge_map()
   if (buffer[0]==0) return 0;
   strupr(buffer);
   concat(c,pathtable[SR_TEMP],buffer);
-  if (strcmp(buffer,ALL) && access(c,0))
+  if (strcmp(buffer,ALL) && check_file_exists_ex(c))
      {
      wzputs("Soubor nenalezen!");
      return 0;

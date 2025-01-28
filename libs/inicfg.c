@@ -13,7 +13,7 @@ TSTR_LIST read_config(const char *filename)
   TSTR_LIST ls;
   char buff[256];
 
-  f=fopen(filename,"r");
+  f=fopen_icase(filename,"r");
   if (f==NULL) return NULL;
   ls=create_list(256);
   while (!feof(f))
@@ -112,7 +112,7 @@ int save_config(TSTR_LIST ls,const char *filename)
   {
   int i,cnt,err=0;
   FILE *f;
-  f=fopen(filename,"w");
+  f=fopen_icase(filename,"w");
   if (f==NULL) return -1;
   cnt=str_count(ls);
   for(i=0;i<cnt && !err;i++) if (ls[i]!=NULL)

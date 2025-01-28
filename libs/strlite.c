@@ -208,7 +208,7 @@ int load_string_list(TSTR_LIST *list,const char *filename)
   int i,j,lin=0;
   FILE *f;
 
-  f=fopen(filename,"r");
+  f=fopen_icase(filename,"r");
   if (*list==NULL) *list=create_list(256);
   if (f==NULL) return -1;
   do

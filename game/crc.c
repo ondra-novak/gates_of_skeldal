@@ -13,7 +13,7 @@ FILE *f;
 main()
   {
   int i;
-  f=fopen("CRC.C","rb");
+  f=fopen_icase("CRC.C","rb");
   memset(data,0,sizeof(data));
   delka=fread(data,1,sizeof(data),f);
   fclose(f);

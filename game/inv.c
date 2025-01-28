@@ -17,6 +17,8 @@
 #include "engine1.h"
 #include <pcx.h>
 #include "globals.h"
+
+#include <assert.h>
 #include <stddef.h>
 
 #define neprezbrojit() (battle && (battle_mode!=MD_PREZBROJIT || select_player!=human_selected-postavy))
@@ -58,10 +60,12 @@ int item_in_cursor=0;
 void (*inv_redraw)();
 
 TSHOP *cur_shop;
-TSHOP **shop_list=NULL;int max_shops=0; //shop_list=prima spojeni s obchody
+TSHOP **shop_list=NULL;
+int max_shops=0; //shop_list=prima spojeni s obchody
 void *shop_hacek=NULL; //hacek za ktery visi cely shop strom (free(shop_hacek) - odalokuje shopy)
                        //hacek lze ulozit do savegame -> ulozi se cely stav obchodu
 int32_t shop_hacek_size=0; //toto je jeho delka
+static TSHOP_ALL_STATE shop_all_state;
 
 #define ico_extract(icnnum) (((char*)ablock(ikon_libs+(icnnum)/IT_LIB_SIZE))+IT_ICONE_SIZE*((icnnum)%IT_LIB_SIZE))
 
@@ -177,7 +181,7 @@ void load_items()
         }
     } while (1);
 	name=find_map_path(ITEM_FILE);
-  f=fopen(name,"rb");free(name);
+  f=fopen_icase(name,"rb");free(name);
   if (f==NULL)
      {
         closemode();
@@ -209,6 +213,11 @@ void load_items()
         case SV_ITLIST:
            glob_items=p;
            it_count_orgn=item_count=size/sizeof(TITEM);
+           for (int i = 0; i < it_count_orgn; ++i) {
+               if (glob_items[i].cena_high != 0) {
+                   SEND_LOG("(ITEMS) Over-priced item %i %s %d > 65535", i, glob_items[i].jmeno, glob_items[i].cena + 65536*glob_items[i].cena_high);
+               }
+           }
            break;
         case SV_SNDLIST:
            hs=hl_ptr;
@@ -311,7 +320,7 @@ short duplic_item(short item)
   return i+1;
   }
 
-short create_unique_item(TITEM *it)
+short create_unique_item(const TITEM *it)
   {
   int i;
 
@@ -1769,11 +1778,11 @@ static char MakeItemCombinations(short *itm1, short *itm2)
   FILE *table;
 
   concat(fname,pathtable[SR_MAP],"COMBITEM.DAT");
-  table=fopen(fname,"r");
+  table=fopen_icase(fname,"r");
   if (table==0 && pathtable[SR_MAP2][0])
   {
       concat(fname,pathtable[SR_MAP2],fname);
-      table=fopen(fname,"r");
+      table=fopen_icase(fname,"r");
   }
   if (table==0) return 0;
   cnt=fscanf(table,"%d %d -> %d %d",&src1,&src2,&trg1,&trg2);
@@ -2456,32 +2465,43 @@ static void rebuild_shops(void)
   c+=4;
   char *d = c;
   size_t reqsize  = 0;
+  size_t products = 0;
   for(i=0;i<max_shops;i++) {
       TSHOP s;
       d = load_TSHOP(d, &s);
-      reqsize += sizeof(TSHOP);
+      reqsize += sizeof(TSHOP)+sizeof(TSHOP *); //shop and its state + pointer to it
       for (int j = 0; j < s.products; ++j) {
           TPRODUCT p;
           d = load_TPRODUCT(d, &p);
-          reqsize += sizeof(TPRODUCT);
+          reqsize += sizeof(TPRODUCT) + sizeof(int32_t);    //each product one state
+          ++products;
       }
   }
-  char *newhacek = getmem(reqsize);
-  TPRODUCT *products = (TPRODUCT *)(newhacek+max_shops*sizeof(TSHOP));
-  TSHOP *shops = (TSHOP *)newhacek;
+  SEND_LOG("(SHOP) Loaded total %d shops, %lu products, %lu bytes total memory", max_shops, products, reqsize);
+  void *newhacek = getmem(reqsize);
+  shop_list = (TSHOP **)newhacek;
+  TSHOP *shop_iter = (TSHOP *)(shop_list+max_shops);
+  TPRODUCT *prod_iter = (TPRODUCT *)(shop_iter+max_shops);
+  shop_all_state.first_product = prod_iter;
+  shop_all_state.count_states = products;
+  shop_all_state.first_state = (int32_t *)(prod_iter+products);
+  int32_t *state_iter = shop_all_state.first_state;
+
   for(i=0;i<max_shops;i++) {
-      c = load_TSHOP(c, shops+i);
-      shops[i].list = products;
-      for (int j = 0; j < shops[i].products; ++j) {
-          c = load_TPRODUCT(c, products);
-          products++;
+      shop_list[i] = shop_iter;
+      c = load_TSHOP(c, shop_iter);
+      shop_iter->list = prod_iter;
+      for (int j = 0; j < shop_iter->products; ++j) {
+          c = load_TPRODUCT(c, prod_iter);
+          *state_iter += prod_iter->pocet;
+          ++prod_iter;
+          ++state_iter;
       }
-      shop_list[i] = shops+i;
-      SEND_LOG("(SHOP) Shop found: '%s', products %d",shops[i].keeper,shops[i].products);
+      ++shop_iter;
+      SEND_LOG("(SHOP) Shop found: '%s', products %d",shop_list[i]->keeper,shop_list[i]->products);
   }
   free(shop_hacek);
   shop_hacek = newhacek;
-
   }
 
 void load_shops(void)
@@ -2507,10 +2527,16 @@ void load_shops(void)
   rebuild_shops();
   }
 
+static int32_t *get_product_count(const TPRODUCT *p) {
+    int32_t index = p - shop_all_state.first_product;
+    assert(index >= 0 && index < (int32_t)shop_all_state.count_states);
+    return shop_all_state.first_state + index;
+}
+
 static void rebuild_keepers_items()
   {
   int i;
-  TPRODUCT *p;
+  const TPRODUCT *p;
   int remain;
   char c;
 
@@ -2521,7 +2547,7 @@ static void rebuild_keepers_items()
      remain=cur_shop->list_size-top_item;
      p=cur_shop->list+top_item;
      for(i=0;i<8 && remain>0;remain--,p++)
-        if (p->trade_flags & SHP_SELL && p->pocet)
+        if (p->trade_flags & SHP_SELL && *get_product_count(p))
            {
            shp_item_pos[i]=p-cur_shop->list;
            shp_item_map[i++]=p->item+1;
@@ -2538,7 +2564,7 @@ static int make_offer(int i)
   i--;
   for(j=0;j<cur_shop->list_size;j++)
      {
-     TPRODUCT *p=cur_shop->list+j;
+     const TPRODUCT *p=cur_shop->list+j;
      if (p->item==i && p->trade_flags & SHP_BUY) return p->cena-(p->cena*cur_shop->koef/100);
      }
   return 0;
@@ -2550,19 +2576,19 @@ static int get_sell_price(int i) //cislo predmetu
   i--;
   for(j=0;j<cur_shop->list_size;j++)
      {
-     TPRODUCT *p=cur_shop->list+j;
-     if (p->item==i && p->trade_flags & SHP_SELL && p->pocet>0) return p->cena+(p->cena*cur_shop->koef/100);
+     const TPRODUCT *p=cur_shop->list+j;
+     if (p->item==i && p->trade_flags & SHP_SELL && *get_product_count(p)>0) return p->cena+(p->cena*cur_shop->koef/100);
      }
   return 0;
   }
 
-static TPRODUCT *find_sell_product(int i) //cislo predmetu
+static const TPRODUCT *find_sell_product(int i) //cislo predmetu
   {
   int j;
   i--;
   for(j=0;j<cur_shop->list_size;j++)
      {
-     TPRODUCT *p=cur_shop->list+j;
+     const TPRODUCT *p=cur_shop->list+j;
      if (p->item==i) return p;
      }
   return NULL;
@@ -2575,10 +2601,10 @@ static void sell_item(int i)
   i--;
   for(j=0;j<cur_shop->list_size;j++)
      {
-     TPRODUCT *p=cur_shop->list+j;
+     const TPRODUCT *p=cur_shop->list+j;
      if (p->item==i)
         {
-        p->pocet--;
+         (*get_product_count(p))--;
         return;
         }
      }
@@ -2590,10 +2616,10 @@ static void buy_item(int i)
   i--;
   for(j=0;j<cur_shop->list_size;j++)
      {
-     TPRODUCT *p=cur_shop->list+j;
+     const TPRODUCT *p=cur_shop->list+j;
      if (p->item==i)
         {
-        p->pocet++;
+         (*get_product_count(p))++;
         return;
         }
      }
@@ -2641,20 +2667,20 @@ static void redraw_shop()
 
 static void block_next()
   {
-  TPRODUCT *p=cur_shop->list+top_item;
+  const TPRODUCT *p=cur_shop->list+top_item;
   int remain=cur_shop->list_size-top_item;
   int i,j;
 
   if (remain<8) return;
   j=top_item;
-  for(i=0;i<8 && remain>0;j++,remain--,p++) if (p->pocet && p->trade_flags & SHP_SELL) i++;
+  for(i=0;i<8 && remain>0;j++,remain--,p++) if (*get_product_count(p) && p->trade_flags & SHP_SELL) i++;
   if (i!=8 || !remain) return;
   top_item=j;
   }
 
 static void block_back()
   {
-  TPRODUCT *p=cur_shop->list+top_item;
+  const TPRODUCT *p=cur_shop->list+top_item;
   int i,j;
 
 
@@ -2662,7 +2688,7 @@ static void block_back()
   else
      {
      j=top_item;
-     for(i=0;i<8 && j>0;j--,p--) if (p->pocet && p->trade_flags & SHP_SELL) i++;
+     for(i=0;i<8 && j>0;j--,p--) if (*get_product_count(p) && p->trade_flags & SHP_SELL) i++;
      if (i==8) top_item=j; else top_item=0;
      }
   return;
@@ -2744,7 +2770,7 @@ char shop_keeper_click(int id, int xa, int ya, int xr, int yr) {
                 wire_shop();
             } else {
                 int p;
-                TPRODUCT *pp;
+                const TPRODUCT *pp;
 
                 pp = find_sell_product(z);
                 sprintf(c, texty[102], price);
@@ -2753,7 +2779,7 @@ char shop_keeper_click(int id, int xa, int ya, int xr, int yr) {
                 if (p == 2)
                     price = -1;
                 if (p == 1)
-                    price = smlouvat(price, pp->cena, pp->pocet, money, 0);
+                    price = smlouvat(price, pp->cena, *get_product_count(pp), money, 0);
                 if (price >= 0) {
                     play_sample_at_channel(H_SND_OBCHOD, 1, 100);
                     buy_item(z);
@@ -2777,7 +2803,7 @@ char shop_bag_click(int id,int xa,int ya,int xr,int yr)
   {
   char s[200],p;
   int price,z;
-  TPRODUCT *pp;
+  const TPRODUCT *pp;
   if (cur_owner>-1)
      {
      id=bag_click(id,xa,ya,xr,yr);
@@ -2809,13 +2835,13 @@ char shop_bag_click(int id,int xa,int ya,int xr,int yr)
   if (price>money)
      {
      p=message(2,0,0,"",texty[104],texty[230],texty[78]);
-     if (!p) price=smlouvat(price,pp->cena,pp->pocet,money,1);else price=-1;
+     if (!p) price=smlouvat(price,pp->cena,*get_product_count(pp),money,1);else price=-1;
      }
   else
      {
      sprintf(s,texty[101],price);
      p=message(3,0,1,texty[118],s,texty[77],texty[230],texty[78]);
-     if (p==1) price=smlouvat(price,pp->cena,pp->pocet,money,1);else
+     if (p==1) price=smlouvat(price,pp->cena,*get_product_count(pp),money,1);else
      if (p==2) price=-1;
      }
   if (price>=0)
@@ -2978,16 +3004,16 @@ static void reroll_shop(TSHOP *p)
   {
   int i,j,r;
   int poc_spec=0;
-  TPRODUCT *pr;
+  const TPRODUCT *pr;
 
   SEND_LOG("(SHOP) Shops reroll: '%s' ",p->keeper);
   pr=p->list;
   for(i=0;i<p->list_size;i++,pr++)
      {
-     if (pr->trade_flags & SHP_AUTOADD && pr->pocet<pr->max_pocet) pr->pocet++;
+     if (pr->trade_flags & SHP_AUTOADD && *get_product_count(pr)<pr->max_pocet) (*get_product_count(pr))++;
      if (pr->trade_flags & SHP_SPECIAL)
         {
-        poc_spec++;if (pr->pocet>0)  pr->pocet=0;
+        poc_spec++;if (*get_product_count(pr)>0)  *get_product_count(pr)=0;
         }
      }
   pr=p->list;
@@ -2997,7 +3023,9 @@ static void reroll_shop(TSHOP *p)
      r=rnd(poc_spec)+1;
      for(j=0;i<r;j++) if (pr[j].trade_flags & SHP_SPECIAL) i++;
      j--;
-     pr[j].pocet=rnd(pr[j].max_pocet)+1;
+     const TPRODUCT *sel = pr+j;
+     int maxp = MAX(sel->max_pocet,1);
+     *get_product_count(pr+j)=rnd(maxp)+1;
      }
   }
 
@@ -3009,39 +3037,23 @@ void reroll_all_shops()
 
 char save_shops()
   {
-  TMPFILE_WR *f;
-  int res=0;
 
   SEND_LOG("(SHOP) Saving shops...");
-  if (max_shops==0 || shop_hacek==NULL) return 0;
-  f = temp_storage_create(_SHOP_ST);
-  if (f==NULL) return 1;
-  temp_storage_write(&max_shops,1*sizeof(max_shops),f);
-  temp_storage_write(&shop_hacek_size,1*sizeof(shop_hacek_size),f);
-  temp_storage_write(shop_hacek,1*shop_hacek_size,f);
-  temp_storage_close_wr(f);
-  return res;
+  if (shop_all_state.count_states == 0) {
+      temp_storage_delete(_SHOP_ST);
+      return 0;
+  }
+  temp_storage_store(_SHOP_ST, shop_all_state.first_state, shop_all_state.count_states*sizeof(*shop_all_state.first_state));
+  return 0;
   }
 
 
 char load_saved_shops()
   {
-  TMPFILE_RD *f;
-  int res=0;
-  int i=0,j=0;
-
   SEND_LOG("(SHOP) Loading saved shops...");
-  f=temp_storage_open(_SHOP_ST);
-  if (f==NULL) return 0;
-  temp_storage_read(&i,1*sizeof(max_shops),f);
-  temp_storage_read(&j,1*sizeof(shop_hacek_size),f);
-  if (i!=max_shops || j!=shop_hacek_size)
-     {
-      temp_storage_close_rd(f);
-     return 0;
-     }
-  res=(temp_storage_read(shop_hacek,1*shop_hacek_size,f)!=(unsigned)shop_hacek_size);
-  temp_storage_close_rd(f);
-  rebuild_shops();
-  return res;
+  int32_t sz = temp_storage_find(_SHOP_ST);
+  int32_t needsz = shop_all_state.count_states*(sizeof(*shop_all_state.first_state));
+  if (sz != needsz) return 0;
+  temp_storage_retrieve(_SHOP_ST, shop_all_state.first_state, sz);
+  return 0;
   }

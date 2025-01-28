@@ -21,7 +21,7 @@
 
 #include <assert.h>
 #include <sys/stat.h>
-#define STATE_CUR_VER 1
+#define STATE_CUR_VER 2
 
 #define _GAME_ST "_GAME.TMP"
 #define _GLOBAL_ST "_GLOBEV.TMP"
@@ -110,7 +110,7 @@ int load_org_map(char *filename,TSTENA **sides,TSECTOR **sectors,TMAP_EDIT_INFO 
   char *c;
 
 	c=find_map_path(filename);
-	f=fopen(c,"rb");free(c);
+	f=fopen_icase(c,"rb");free(c);
   if (f==NULL) return -1;
   do
      {
@@ -163,7 +163,7 @@ void save_daction(TMPFILE_WR *f,int count,D_ACTION *ptr)
 
 void load_daction(TMPFILE_RD *fsta)
   {
-  int i,j;
+  uint16_t i,j;
   i=0;
   while (d_action!=NULL) //vymaz pripadne delaited actions
      {
@@ -184,30 +184,30 @@ void load_daction(TMPFILE_RD *fsta)
 
 void save_items(TMPFILE_WR *f)
   {
-  int i,j;
+  int32_t i,j;
   short *c;
 
   for(i=0;i<mapsize*4;i++)
      if (map_items[i]!=NULL)
         {
         for(j=1,c=map_items[i];*c;c++,j++);
-        temp_storage_write(&i,2,f);
-        temp_storage_write(&j,2,f);
+        temp_storage_write(&i,sizeof(i),f);
+        temp_storage_write(&j,sizeof(j),f);
         temp_storage_write(map_items[i],2*j,f);
         }
   i=-1;
-  temp_storage_write(&i,2,f);
+  temp_storage_write(&i,sizeof(i),f);
   }
 
 void restore_items(TMPFILE_RD *f)
   {
-  short i,j;
+  int32_t i,j;
 
   for(i=0;i<mapsize*4;i++) if (map_items[i]!=NULL) free(map_items[i]);
   memset(map_items,0,mapsize*16);
-  while(temp_storage_read(&i,1*2,f) && i!=-1)
+  while(temp_storage_read(&i,sizeof(i),f) && i!=-1)
      {
-     temp_storage_read(&j,1*2,f);
+     temp_storage_read(&j,sizeof(j),f);
      map_items[i]=(short *)getmem(j*2);
      temp_storage_read(map_items[i],2*j,f);
      }
@@ -283,27 +283,33 @@ int load_vyklenky(TMPFILE_RD *fsta)
 void save_all_fly(TMPFILE_WR *fsta)
   {
   LETICI_VEC *f;
+  int32_t sz = 1;
 
   f=letici_veci;
-  temp_storage_write(&f,1*sizeof(f),fsta);
   while (f!=NULL)
      {
      short *c;
-     temp_storage_write(f,1*sizeof(*f),fsta);
+
+     sz = sizeof(*f);
+     temp_storage_write(&sz,sizeof(sz),fsta);
+     temp_storage_write(f,sz,fsta);
      c=f->items;
      if (c!=NULL) do temp_storage_write(c,1*2,fsta); while (*c++);
      f=f->next;
      }
+  sz = 0;
+  temp_storage_write(&sz,sizeof(sz),fsta);
   }
 
 int load_all_fly(TMPFILE_RD *fsta)
   {
-  LETICI_VEC *f=NULL,*n,*p;
-  p=letici_veci;
-  while (p!=NULL) {stop_fly(letici_veci,0);p=p->next;}
-  temp_storage_read(&f,1*sizeof(f),fsta);
-  p=letici_veci;
-  while (f!=NULL)
+  LETICI_VEC *n;
+  int32_t sz;
+
+  destroy_all_fly();
+
+  temp_storage_read(&sz,sizeof(sz),fsta);
+  while (sz == sizeof(LETICI_VEC))
      {
      short items[100],*c;
      n=New(LETICI_VEC);
@@ -311,21 +317,17 @@ int load_all_fly(TMPFILE_RD *fsta)
      if (temp_storage_read(n,1*sizeof(*n),fsta)!=sizeof(*n))
         {
         free(n);
-        if (p!=NULL) p->next=NULL;
         return -2;
         }
      if (n->items!=NULL)
         {
         do
-            temp_storage_read(c,1*2,fsta);
+            temp_storage_read(c,2,fsta);
         while (*c++);
         n->items=NewArr(short,c-items);
         memcpy(n->items,items,(c-items)*sizeof(short));
         }
-     if (p==NULL) p=letici_veci=n;else p->next=n;
-     p=n;
-     f=n->next;
-     n->next=NULL;
+     add_fly(n);
      }
   return 0;
   }
@@ -338,14 +340,13 @@ int save_map_state() //uklada stav mapy pro savegame (neuklada aktualni pozici);
   char sta[200];
   char *bf = NULL;
   TMPFILE_WR *fsta;
-  int i;
+  int32_t i;
   int32_t siz;
  TSTENA *org_sides;
  TSECTOR *org_sectors;
   short res=-1;
   unsigned char ver=0;
 
-  restore_sound_names();
   strcpy(sta,level_fname);
   fsta=temp_storage_create(sta);if (fsta==NULL) unable_open_temp(sta);
   SEND_LOG("(SAVELOAD) Saving map state for current map");
@@ -367,32 +368,32 @@ int save_map_state() //uklada stav mapy pro savegame (neuklada aktualni pozici);
   for(i=0;i<mapsize*4;i++)  //save changed sides
      if (memcmp(map_sides+i,org_sides+i,sizeof(TSTENA)))
         {
-         temp_storage_write(&i,1*2,fsta);
+         temp_storage_write(&i,sizeof(i),fsta);
          temp_storage_write(map_sides+i,1*sizeof(TSTENA),fsta);
         }
   i=-1;
-  temp_storage_write(&i,1*2,fsta);
+  temp_storage_write(&i,sizeof(i),fsta);
   for(i=0;i<mapsize;i++)   //save changed sectors
      if (memcmp(map_sectors+i,org_sectors+i,sizeof(TSECTOR)))
         {
-         temp_storage_write(&i,1*2,fsta);
+         temp_storage_write(&i,sizeof(i),fsta);
          temp_storage_write(map_sectors+i,1*sizeof(TSECTOR),fsta);
         }
   i=-1;
-  temp_storage_write(&i,1*2,fsta);
+  temp_storage_write(&i,sizeof(i),fsta);
   for(i=0;i<MAX_MOBS;i++) if (mobs[i].vlajky & MOB_LIVE)
      {
-      temp_storage_write(&i,1*2,fsta);
-      temp_storage_write(mobs+i,1*sizeof(TMOB),fsta); //save_mobmap
+      temp_storage_write(&i,sizeof(i),fsta);
+      temp_storage_write(mobs+i,sizeof(TMOB),fsta); //save_mobmap
      }
   i=-1;
-  temp_storage_write(&i,1*2,fsta);
+  temp_storage_write(&i,sizeof(i),fsta);
   i=mapsize*4;
-  temp_storage_write(&i,1*sizeof(i),fsta); //save flag maps //<-------------------------
-  temp_storage_write(flag_map,1*i,fsta);
+  temp_storage_write(&i,sizeof(i),fsta); //save flag maps //<-------------------------
+  temp_storage_write(flag_map,i,fsta);
   save_daction(fsta,0,d_action); //save dactions//<-------------------------
-  temp_storage_write(&macro_block_size,1*sizeof(macro_block_size),fsta);
-  if (macro_block_size)temp_storage_write(macro_block,1*macro_block_size,fsta);//save_macros
+  temp_storage_write(&macro_state_block.count,1*sizeof(macro_state_block.count),fsta);
+  if (macro_state_block.count)temp_storage_write(macro_state_block.states,1*macro_state_block.count,fsta);//save_macros
   if (save_codelocks(fsta)) goto err;
   save_items(fsta);
   save_vyklenky(fsta);
@@ -418,7 +419,7 @@ int load_map_state() //obnovuje stav mapy; nutno volat po zavolani load_map;
   char sta[200];
   char *bf = NULL;
   TMPFILE_RD *fsta;
-  int i;
+  int32_t i;
   int32_t siz;
   short res=-2;
   unsigned char ver=0;
@@ -440,9 +441,9 @@ int load_map_state() //obnovuje stav mapy; nutno volat po zavolani load_map;
     for (i=0;i<mapsize;i++)
       if ((bf[i>>3]>>(i & 7)) & 1) map_coord[i].flags|=MC_DISCLOSED;
   load_map_description(fsta);
-  while (temp_storage_read(&i,1*2,fsta) && i<=mapsize*4)
+  while (temp_storage_read(&i,sizeof(i),fsta) && i > 0 && i<=mapsize*4)
      if (temp_storage_read(map_sides+i,1*sizeof(TSTENA),fsta)!=sizeof(TSTENA)) goto err;
-  while (temp_storage_read(&i,1*2,fsta) && i<=mapsize)
+  while (temp_storage_read(&i,sizeof(i),fsta) && i >0 && i<=mapsize)
      if (temp_storage_read(map_sectors+i,1*sizeof(TSECTOR),fsta)!=sizeof(TSECTOR)) goto err;
   if (reset_mobiles)  //reloads mobiles if flag present
     {
@@ -459,22 +460,23 @@ int load_map_state() //obnovuje stav mapy; nutno volat po zavolani load_map;
   else
     {
     for(i=0;i<MAX_MOBS;(mobs[i].vlajky &=~MOB_LIVE),i++);
-    while (temp_storage_read(&i,1*2,fsta) && i<=MAX_MOBS)
+    while (temp_storage_read(&i,sizeof(i),fsta) && i>=0 && i<=MAX_MOBS)
        if (temp_storage_read(mobs+i,1*sizeof(TMOB),fsta)!=sizeof(TMOB)) goto err;
     }
   for(i=0;i<MAX_MOBS;i++) mobs[i].vlajky &=~MOB_IN_BATTLE;
   refresh_mob_map();
-  temp_storage_read(&i,1*sizeof(i),fsta);
-  temp_storage_read(flag_map,1*i,fsta);
+  temp_storage_read(&i,sizeof(i),fsta);
+  temp_storage_read(flag_map,i,fsta);
   load_daction(fsta);
-  temp_storage_read(&i,1*sizeof(macro_block_size),fsta);
-  if (macro_block_size && i==macro_block_size) {
-      temp_storage_read(macro_block,1*macro_block_size,fsta);
+  size_t stsz;
+  temp_storage_read(&stsz,sizeof(macro_state_block.count),fsta);
+  if (macro_state_block.count == stsz) {
+      temp_storage_read(macro_state_block.states,macro_state_block.count,fsta);
   }
   else
      {
-     temp_storage_skip(fsta,i);
-     SEND_LOG("(ERROR) Multiaction: Sizes mismatch %d != %d",i,macro_block_size);
+     temp_storage_skip(fsta,stsz);
+     SEND_LOG("(ERROR) Multiaction: Sizes mismatch %lu != %lu",stsz,macro_state_block.count);
      }
   if (load_codelocks(fsta)) goto err;
   restore_items(fsta);
@@ -503,76 +505,26 @@ void restore_current_map() //pouze obnovuje ulozeny stav aktualni mapy
   load_map_state(); //nahrej ulozenou mapu
   for(i=1;i<mapsize*4;i++) call_macro(i,MC_STARTLEV);
   }
-/*
-_inline unsigned char rotate(unsigned char c)
-  {
-	  return (c >> 1) | (c << 7);
 
-  __asm
-    {
-    mov al,c
-    rol al,1;
-    }
-  }
-*/
-//#pragma aux rotate parm [al] value [al]="rol al,1";
-
-/* errors
-     -1 end of file
-      1 disk error
-      2 internal error
-      3 checksum error
- */
-int pack_status_file(FILE *f,const char *status_name)
-  {
-  char rcheck=0;
-  int32_t fsz;
-  char *buffer,*c;
-  unsigned char name_len;
-
-  SEND_LOG("(SAVELOAD) Packing status file '%s'",status_name);
-  fsz = temp_storage_find(status_name);
-  if (fsz < 0) return 2;
-  name_len = (unsigned char)strlen(status_name);
-  uint32_t extra = 1+name_len+4;
-  c=buffer=getmem(fsz+extra);
-  *c = name_len;
-  ++c;
-  memcpy(c,status_name, name_len);
-  c += name_len;
-  memcpy(c,&fsz,4);
-
-  temp_storage_retrieve(status_name, c, fsz);
-
-  fsz+=extra;
-  rcheck=(fwrite(buffer,1,fsz,f)!=(unsigned)fsz);
-  free(buffer);
-  return rcheck;
-  }
-
-int unpack_status_file(FILE *f)
-  {
-  char rcheck=0;
-  uint32_t fsz;
-  char *buffer;
-  unsigned char namelen = 0;
-  char name[256];
-
-  fread(&namelen, 1,1, f);
-  if (namelen == 0) return -1;
-  fread(name, 1, namelen, f);
-  SEND_LOG("(SAVELOAD) Unpacking status file '%s'",name);
-  fread(&fsz,1,4,f);
-  buffer=(char *)getmem(fsz);
-  if (fread(buffer,1,fsz,f)!=(unsigned)fsz) return 1;
-  temp_storage_store(name, buffer, fsz);
-  free(buffer);
-  return rcheck;
-  }
-
+static void add_status_file(FILE *f, const char *name, size_t sz, void *data) {
+    size_t name_size = strlen(name);
+    uint8_t name_size_b;
+    if (name_size > 255) name_size_b = 255; else name_size_b = (uint8_t)name_size;
+    fwrite(&name_size_b,1,1,f);
+    fwrite(name, 1, name_size_b, f);
+    uint32_t data_size = sz;
+    fwrite(&data_size,1,sizeof(data_size),f);
+    fwrite(data, 1,data_size, f);
+}
 
 static void pack_status_file_cb(const char *name, void *ctx) {
-    pack_status_file((FILE *)ctx, name);
+    FILE *f = ctx;
+    int32_t sz = temp_storage_find(name);
+    assert(sz > 0);
+    void *data = getmem(sz);
+    temp_storage_retrieve(name, data, sz);
+    add_status_file(f, name, sz, data);
+    free(data);
 }
 
 int pack_all_status(FILE *f)
@@ -583,14 +535,54 @@ int pack_all_status(FILE *f)
     return 0;
   }
 
+
+typedef enum enum_all_status_callback_result_t {
+
+    enum_status_cont_skip,       //continue, skip this block
+    enum_status_cont_read,       //continue, i read this block
+    enum_status_skip_stop,       //stop, skip this block
+    enum_status_read_stop,       //stop, don't skip i read this block
+    enum_status_error            //error
+
+} ENUM_ALL_STATUS_CALLBACK_RESULT;
+
+//return 1 success, 0 stopped, -1 error
+static int enum_all_status(FILE *f, ENUM_ALL_STATUS_CALLBACK_RESULT (*cb)(FILE *, const char *, size_t , void *), void *ctx) {
+    while(1) {
+        uint8_t name_size_b;
+        if (fread(&name_size_b, 1,1,f)==0) return 1;
+        char *name = (char *)alloca(name_size_b+1);
+        if (fread(name, 1, name_size_b, f) != name_size_b) return -1;
+        name[name_size_b] = 0;
+        uint32_t data_size;
+        if (fread(&data_size,1,sizeof(uint32_t),f) != sizeof(uint32_t)) return -1;
+        ENUM_ALL_STATUS_CALLBACK_RESULT st = cb(f, name, data_size, ctx);
+        switch (st) {
+            case enum_status_error: return 0;
+            case enum_status_cont_skip: fseek(f, data_size, SEEK_CUR);break;
+            case enum_status_cont_read: break;
+            case enum_status_skip_stop: fseek(f, data_size, SEEK_CUR);return 0;
+            case enum_status_read_stop: return 0;
+        }
+    }
+}
+
+static ENUM_ALL_STATUS_CALLBACK_RESULT unpack_status_callback(FILE *f, const char *name, size_t datasize, void *) {
+    void *buff = getmem(datasize);
+    if (fread(buff, 1, datasize, f) != datasize) {
+        free(buff);
+        return enum_status_error;;
+    }
+    temp_storage_store(name, buff, datasize);
+    free(buff);
+    return enum_status_cont_read;
+}
+
 int unpack_all_status(FILE *f)
   {
-  int i;
-
-  i=0;
-  while (!i) i=unpack_status_file(f);
-  if (i==-1) i=0;
-  return i;
+    int r = enum_all_status(f, &unpack_status_callback, NULL);
+    if (r) return 0;
+    return -1;
   }
 
 int save_basic_info()
@@ -778,7 +770,7 @@ int save_game(int slotnum,char *gamename)
   if ((r=save_basic_info())!=0) return r;
   save_book();
   save_global_events();
-  svf=fopen(ssn,"wb");
+  svf=fopen_icase(ssn,"wb");
   if (svf==NULL)
   {
 	char buff[256];
@@ -814,7 +806,7 @@ int load_game(int slotnum)
   concat(sn,pathtable[SR_SAVES],_SLOT_SAV);
   ssn=alloca(strlen(sn)+3);
   sprintf(ssn,sn,slotnum);
-  svf=fopen(ssn,"rb");
+  svf=fopen_icase(ssn,"rb");
   if (svf==NULL) return 1;
   fseek(svf,SAVE_NAME_SIZE,SEEK_CUR);
   r=unpack_all_status(svf);
@@ -843,43 +835,55 @@ int load_game(int slotnum)
   return r;
   }
 
+typedef struct load_specific_file_callback_data_t {
+    const char *name;
+    size_t size;
+    void *data;
+
+} LOAD_SPECIFIC_FILE_CALLBACK_DATA;
+
+static ENUM_ALL_STATUS_CALLBACK_RESULT load_specific_file_callback(FILE *f, const char *name, size_t datasize, void *ctx) {
+    LOAD_SPECIFIC_FILE_CALLBACK_DATA *me = ctx;
+    if (stricmp(name, me->name) == 0) {
+        void *d = getmem(datasize);
+        if (fread(d, 1, datasize, f) != datasize) {
+            free(d);
+            return enum_status_error;
+        }
+        me->size = datasize;
+        me->data = d;
+        return enum_status_read_stop;
+    } else {
+        return enum_status_cont_skip;
+    }
+
+}
+
 static void load_specific_file(int slot_num,char *filename,void **out,int32_t *size) //call it in task!
   {
   FILE *slot;
   char *c,*d;
-  int32_t siz;
-  char fname[12];
-  char succes=0;
 
   concat(c,pathtable[SR_SAVES],_SLOT_SAV);
   d=alloca(strlen(c)+2);
   sprintf(d,c,slot_num);
-  slot=fopen(d,"rb");
+  slot=fopen_icase(d,"rb");
   if (slot==NULL)
      {
      *out=NULL;
      return;
      }
   fseek(slot,SAVE_NAME_SIZE,SEEK_CUR);
-  fread(fname,1,12,slot);
-  while(fname[0] && !succes)
-     {
-     task_sleep();
-     if (task_quitmsg()) break;
-     fread(&siz,1,4,slot);
-     if (!strncmp(fname,filename,12)) succes=1; else
-           {
-           fseek(slot,siz,SEEK_CUR);
-           fread(fname,1,12,slot);
-           }
-     }
-  if (succes)
-     {
-     *out=getmem(siz);
-     fread(*out,1,siz,slot);
-     *size=siz;
-     }
-  else *out=NULL;
+
+  LOAD_SPECIFIC_FILE_CALLBACK_DATA ctx;
+  ctx.name = filename;
+
+  *out = NULL;
+  *size = 0;
+  if (enum_all_status(slot, &load_specific_file_callback, &ctx) == 0){
+      *out = ctx.data;
+      *size = ctx.size;
+  }
   fclose(slot);
   }
 
@@ -913,7 +917,7 @@ void read_slot_list()
      {
      FILE *f;
      sprintf(name,mask,i);
-     f=fopen(name,"rb");
+     f=fopen_icase(name,"rb");
      if (f!=NULL)
         {
         fread(slotname,1,SAVE_NAME_SIZE,f);

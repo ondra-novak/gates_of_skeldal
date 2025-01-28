@@ -33,8 +33,8 @@ void open_files(char *src,char *tgr)
     if (c>d) d=strchr(tgr,0);
     strcpy(d,".ENC");
     }
-  source=fopen(src,"rb");
-  target=fopen(tgr,"wb");
+  source=fopen_icase(src,"rb");
+  target=fopen_icase(tgr,"wb");
   }
 
 void close_files()

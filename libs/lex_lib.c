@@ -24,7 +24,7 @@ void error_extend(char *file,int seek)
   FILE *f;
   int c,i=0,ls=0,ls0=0,ls1=0,ls2=0;
 
-  f=fopen(file,"r");
+  f=fopen_icase(file,"r");
   if (f==NULL) return;
   c=getc(f);
   while (c!=EOF && ls2<seek)
@@ -153,7 +153,7 @@ void xlat_text(FILE *source,FILE *target)
      if (count  && lastcom)
      {
      char c[255];
-     sprintf(c,"Nespr vn˜ po‡et parametr– u p©¡kazu '%s'",cm);
+     sprintf(c,"Nesprï¿½vnï¿½ poï¿½et parametrï¿½ u pï¿½ï¿½kazu '%s'",cm);
      error(c,ftell(source));
      }
      else
@@ -249,7 +249,7 @@ void open_include(char *name)
   FILE *inc;
   char *p;
 
-  inc=fopen(name,"r");
+  inc=fopen_icase(name,"r");
   if (inc==NULL)
      {
      char s[256];
@@ -273,7 +273,7 @@ main(int argc,char *argv[])
      puts("Program vyzaduje dva parametry: LEX_LIB source_file target_file");
      exit(0);
      }
-  target_file=fopen(argv[2],"w");
+  target_file=fopen_icase(argv[2],"w");
   open_include(argv[1]);
   fclose(target_file);
   }

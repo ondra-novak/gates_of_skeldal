@@ -26,7 +26,7 @@
 typedef unsigned short SND_FIND_TABLE[2];
 typedef struct snd_info
   {
-  TMA_SOUND *data;              //4
+  const TMA_SOUND *data;              //4
   short xpos,ypos,side;         //10
   word volume,block;            //14
   }SND_INFO;
@@ -241,7 +241,7 @@ void wav_load(void **p,int32_t *s)
      }*/
   }
 
-void play_effekt(int x,int y,int xd,int yd,int side,int sided,TMA_SOUND *p)
+void play_effekt(int x,int y,int xd,int yd,int side,int sided,const TMA_SOUND *p)
   {
   int chan;
   int blockid;
@@ -264,74 +264,31 @@ void play_effekt(int x,int y,int xd,int yd,int side,int sided,TMA_SOUND *p)
      if (rnd(100)>50) set_channel_volume(chan,rnd(vol),vol);
      else set_channel_volume(chan,vol,rnd(vol));
      }
-  else
+  else {
      if (calcul_volume(chan,x-xd,y-yd,/*side-*/sided,p->volume)) return;
-  if (p->filename[0]==1) memcpy(&blockid,&p->filename[1],4);
-  else
-     {
-     blockid=find_handle(p->filename,wav_load);
-     if (blockid==-1)
-        {
-        def_handle(end_ptr,p->filename,wav_load,SR_ZVUKY);
-        blockid=end_ptr++;
-        if (level_preload) apreload(blockid);
-       }
-     memcpy(&p->filename[1],&blockid,4);
-     p->filename[0]=1;
-     }
-  alock(blockid);
-  s=ablock(blockid);
-  s+=p->offset+sizeof(struct t_wave)+4;
-  play_sample(chan,s,p->end_loop-p->offset,p->start_loop-p->offset,p->freq,1+(p->bit16 & 1));
-  playings[chan].data=p;
-  playings[chan].xpos=xd;
-  playings[chan].ypos=yd;
-  playings[chan].side=sided;
-  playings[chan].volume=p->volume;
-  playings[chan].block=blockid;
-  chan_state[chan]=p->soundid;
-  track_state[p->soundid]=chan;
   }
 
-void restore_sound_name(TMA_SOUND *p)
-  {
-  int blockid;
-  THANDLE_DATA *h;
+    blockid = find_handle(p->filename, wav_load);
+    if (blockid == -1) {
+        def_handle(end_ptr, p->filename, wav_load, SR_ZVUKY);
+        blockid = end_ptr++;
+        if (level_preload)
+            apreload(blockid);
+    }
 
-  if (p->filename[0]==1)
-     {
-      memcpy(&blockid,&p->filename[1],4);
-     do
-        {
-        h=get_handle(blockid);
-        if (h->status==BK_SAME_AS) blockid=h->seekpos;else blockid=-1;
-        }
-     while (blockid!=-1);
-     strncpy(p->filename,h->src_file,12);
-     }
+      alock(blockid);
+      s=ablock(blockid);
+      s+=p->offset+sizeof(struct t_wave)+4;
+      play_sample(chan,s,p->end_loop-p->offset,p->start_loop-p->offset,p->freq,1+(p->bit16 & 1));
+      playings[chan].data=p;
+      playings[chan].xpos=xd;
+      playings[chan].ypos=yd;
+      playings[chan].side=sided;
+      playings[chan].volume=p->volume;
+      playings[chan].block=blockid;
+      chan_state[chan]=p->soundid;
+      track_state[p->soundid]=chan;
   }
-
-void restore_sound_names()
-  {
-  int i;
-
-  for(i=0;i<mapsize*4;i++)
-     if (macros[i]!=NULL)
-        {
-        int *r,mcsiz;
-        TMULTI_ACTION *z;
-
-        r=macros[i];
-        while ((mcsiz=*r)!=0)
-           {
-           r++;
-           z=(TMULTI_ACTION *)r;
-           if (z->general.action==MA_SOUND) restore_sound_name(&z->sound);
-           r=(int *)((char *)r+mcsiz);
-           }
-        }
-  }
-
 void recalc_volumes(int sector,int side)
   {
   int i;
@@ -441,9 +398,9 @@ const char *get_next_music_from_playlist()
   while (step);
   playing_track=i;
   snprintf(d,sizeof(d),"%s%s",pathtable[SR_MUSIC],cur_playlist[i]+1);
-  if (access(d,0) == -1) {
+  if (!check_file_exists(d)) {
       snprintf(d,sizeof(d),"%s%s",pathtable[SR_ORGMUSIC],cur_playlist[i]+1);
-      if (access(d,0) == -1) {
+      if (!check_file_exists(d)) {
           return NULL;
       }
   }

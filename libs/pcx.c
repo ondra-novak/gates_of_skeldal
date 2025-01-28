@@ -5,6 +5,8 @@
 /*#include "..\types.h"*/
 #include "pcx.h"
 #include "memman.h"
+
+#include <stdarg.h>
 /*#include "..\bgraph.h"*/
 
 #define SHADE_STEPS 5
@@ -95,7 +97,8 @@ int load_pcx(char *pcx,int32_t fsize,int conv_type,char **buffer, ... )
   {
   unsigned short paleta2[256];
   char *paleta1;
-  char *ptr1;unsigned short *ptr2;
+  char *ptr1;
+  unsigned short *ptr2;
   char *ptr3;
   int i;
   PCXHEADER pcxdata;
@@ -145,10 +148,14 @@ int load_pcx(char *pcx,int32_t fsize,int conv_type,char **buffer, ... )
      }
   if (conv_type==A_FADE_PAL)
      {
-     int *i,tr,tg,tb;
+     int tr,tg,tb;
 
-     i=(int *)&buffer;i++;
-     tr=*i++;tg=*i++;tb=*i++;
+     va_list lst;
+     va_start(lst, buffer);
+     tr=va_arg(lst,int);
+     tg=va_arg(lst,int);
+     tb=va_arg(lst,int);
+     va_end(lst);
      palette_shadow(paleta1,(unsigned short (*)[256])ptr1,tr,tg,tb);
      ptr1+=SHADE_PAL;
      }
@@ -178,7 +185,7 @@ int open_pcx(char *filename,int type,char **buffer,...)
   char *src;
   int32_t fsize;
 
-  pcx=fopen(filename,"rb");
+  pcx=fopen_icase(filename,"rb");
   if (pcx==NULL) return -1;
   fseek(pcx,0,SEEK_END);
   fsize=ftell(pcx);

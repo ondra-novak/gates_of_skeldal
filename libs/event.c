@@ -77,7 +77,7 @@ T_EVENT_ROOT *add_event_message(T_EVENT_ROOT **tree,int msg)
      r1->next=r;
      }
   r->event_msg=msg;
-  //r->used=0;
+  r->used=0;
   r->list=NULL;
   return r;
   }

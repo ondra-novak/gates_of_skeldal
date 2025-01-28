@@ -29,6 +29,8 @@ void temp_storage_store(const char *name, const void *data, int32_t size) {
     auto &v =temp_fsystem[std::string(name)];
     v.clear();
     v.resize(size+1);
+    v[size] = 0;
+    v.resize(size);
     std::copy(b,e, v.begin());
     v[size] = 0;
 }
@@ -61,6 +63,8 @@ void temp_storage_clear() {
 TMPFILE_RD* temp_storage_open(const char *name) {
     auto iter = temp_fsystem.find(std::string_view(name));
     if (iter == temp_fsystem.end()) return NULL;
+    iter->second.push_back(0);      //put extra zero at the end
+    iter->second.resize(iter->second.size()-1);
     return new TMPFILE_RD{std::basic_string_view<uint8_t>(iter->second.data(), iter->second.size())};
 }
 

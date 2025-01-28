@@ -15,7 +15,7 @@ int load_file(char *filename)
   {
   int32_t size;
 
-  bmp=fopen(filename,"rb");
+  bmp=fopen_icase(filename,"rb");
   if (!bmp) return -1;
   fseek(bmp,0,SEEK_END);
   size=ftell(bmp);
@@ -80,7 +80,7 @@ void conv_hicolor()
 
 int save_file_hi(char *newname)
   {
-  bmp=fopen(newname,"wb");
+  bmp=fopen_icase(newname,"wb");
   if (!bmp) return -1;
   fwrite(&xsize,1,2,bmp);
   fwrite(&ysize,1,2,bmp);
@@ -172,7 +172,7 @@ void conv_256color()
 
 int save_file_256(char *newname)
   {
-  bmp=fopen(newname,"wb");
+  bmp=fopen_icase(newname,"wb");
   if (!bmp) return -1;
   fwrite(&xsize,1,2,bmp);
   fwrite(&ysize,1,2,bmp);

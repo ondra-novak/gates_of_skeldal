@@ -226,7 +226,7 @@ int load_map(char *filename)
   if (level_preload) show_loading_picture("LOADING.HI");
   change_music("?");
   zobraz_mysku();
-  f=fopen(c,"rb");
+  f=fopen_icase(c,"rb");
   if (level_fname!=NULL) free(level_fname);
   level_fname=(char *)getmem(strlen(filename)+1);
   strcpy(level_fname,filename);
@@ -315,8 +315,8 @@ int load_map(char *filename)
                     int32_t h;char *p;
 
                     alock(H_ENEMY);
-                    p=ablock(H_ENEMY);p+=8;
-                    h=get_handle_size(H_ENEMY)-8;
+                    p=ablock(H_ENEMY);
+                    h=get_handle_size(H_ENEMY);
                     load_enemies(temp,size,&ofsts,(TMOB *)p,h);
                     aunlock(H_ENEMY);
                     }
@@ -416,7 +416,6 @@ void leave_current_map()
   SEND_LOG("(GAME) Leaving current map ... start");
   add_leaving_place(viewsector);
   kill_all_sounds();
-  restore_sound_names();
   remove_all_mob_spells();
   regen_all_mobs();
   if (save_map) save_map_state(); //do tempu se zabali status mapy
@@ -443,7 +442,6 @@ void leave_current_map()
   if (macro_block!=NULL)
      {
      free(macro_block);
-     free(macros);
      macros=NULL;
      macro_block=NULL;
      macro_block_size=0;
@@ -676,6 +674,15 @@ void calc_fly()
      }
 
   }
+
+void destroy_all_fly() {
+    while (letici_veci) {
+        TFLY *f = letici_veci;
+        letici_veci = f->next;
+        if (f->items) free(f->items);
+        free(f);
+    }
+}
 
 extern int32_t sound_side_flags;
 

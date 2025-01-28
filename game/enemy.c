@@ -108,7 +108,8 @@ void smeruj_moba(TMOB *m,int smer)
 
 void save_enemy_paths(TMPFILE_WR *f)
   {
-  int i,s;
+  short i;
+  int s;
   word *w;
 
   for(i=0;i<MAX_MOBS;i++) if (mob_paths[i]!=NULL)
@@ -119,8 +120,8 @@ void save_enemy_paths(TMPFILE_WR *f)
     temp_storage_write(&s,1*sizeof(s),f);
     temp_storage_write(mob_path_ptr[i],s*2,f);
     }
-  s=-1;
-  temp_storage_write(&s,1*2,f);
+  i=-1;
+  temp_storage_write(&i,1*2,f);
   }
 
 int load_enemy_paths(TMPFILE_RD *f)

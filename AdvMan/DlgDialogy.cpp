@@ -72,7 +72,7 @@ int DlgDialogy::GetDialogID(const char *name)
 {
   Pathname dialogPath=_dlgpath;
   dialogPath.SetFilename(name);
-  FILE *f=fopen(dialogPath,"r");
+  FILE *f=fopen_icase(dialogPath,"r");
   if (f==0) return -1;  
   int id;
   char dialog[40];
@@ -90,7 +90,7 @@ int DlgDialogy::GetDialogID(const char *name)
 
 void DlgDialogy::LoadDialogyDlg()
 { 
-  FILE *f=fopen(_dlgpath,"r");
+  FILE *f=fopen_icase(_dlgpath,"r");
   if (f==0) return;
 
   int p=0;
@@ -149,7 +149,7 @@ void DlgDialogy::OnEdit()
 
 void DlgDialogy::OnOK() 
 {
-  FILE *f=fopen(_dlgpath,"w");
+  FILE *f=fopen_icase(_dlgpath,"w");
   if (f==0) 
   {
     AfxMessageBox(IDS_UNABLETOSAVEDIALOGYDLG,MB_ICONEXCLAMATION);
@@ -236,9 +236,9 @@ void DlgDialogy::OnAdd()
 	dlgName.SetFiletitle(nw.vJmeno);
 	dlgName.SetExtension(".dlg");
 	wList.SetItemText(p,1,dlgName.GetFilename());
-	if (_access(dlgName,0)!=0)
+	if (_check_file_exists(dlgName)!=0)
 	{
-	  FILE *f=fopen(dlgName,"w");
+	  FILE *f=fopen_icase(dlgName,"w");
 	  fprintf(f,"DIALOG(%d)\n",nw.vCislo);
 	  fprintf(f,"{\nPICTURE (\"SCREEN\")\nDESC (\"Popis\")\nSTANDARD (1)\n}\n\nSENTENCE (1,0)\n{\n\n}");
 	  fclose(f);

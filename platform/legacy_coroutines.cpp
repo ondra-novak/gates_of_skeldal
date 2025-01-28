@@ -41,7 +41,14 @@ struct MsgQueue {
 
 static std::queue<MsgQueue> msg_queue;
 
-void flush_message_queue();
+static void flush_message_queue();
+
+static void task_after_wakeup(TaskInfo *info) {
+    info->wake_up_msg = -1;
+    info->_wake_up_after = {};
+
+}
+
 
 static void switch_to_task(TaskInfo *task) {
     if (task == current_task_inst) return;
@@ -52,6 +59,7 @@ static void switch_to_task(TaskInfo *task) {
         resume_master_flag.notify_all();
         me->resume_flag.wait(false);
         me->resume_flag = false;
+        task_after_wakeup(me);
     } else if (current_task_inst == NULL) {
         if (task->exited) return ;
         current_task_inst = task;
@@ -68,6 +76,7 @@ static void switch_to_task(TaskInfo *task) {
         task->resume_flag.notify_all();
         me->resume_flag.wait(false);
         me->resume_flag = false;
+        task_after_wakeup(me);
     }
 }
 
@@ -91,7 +100,7 @@ static void clean_up_current_task() {
     resume_master_flag.notify_all();
 }
 
-void flush_message_queue() {
+static void flush_message_queue() {
     while (!msg_queue.empty()) {
         auto m = msg_queue.front();
         msg_queue.pop();

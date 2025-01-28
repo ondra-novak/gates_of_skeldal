@@ -176,7 +176,7 @@ void read_palette(char *filename,void *paleta)
   FILE *f;
   int32_t l;
 
-  f=fopen(filename,"rb");
+  f=fopen_icase(filename,"rb");
   if (f==NULL) return;
   fseek(f,0,SEEK_END);
   l=ftell(f);
@@ -203,7 +203,7 @@ int save_pcx(char *filename,int x1,int y1,int x2,int y2)
   head.hdpi=x2-x1+1;
   head.vdpi=y2-y1+1;
   head.mplanes=1;
-  f=fopen(filename,"wb");
+  f=fopen_icase(filename,"wb");
   if (f==NULL) return -1;
   fwrite(&head,1,sizeof(head),f);
   for(y=y1;y<=y2;y++)

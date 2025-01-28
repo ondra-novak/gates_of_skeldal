@@ -19,5 +19,5 @@ main()
 
   err_stack=malloc(16384);
   install_dos_error(err_proc,(char *)err_stack+16384);
-  f=fopen("a:\test","r");
+  f=fopen_icase("a:\test","r");
   }

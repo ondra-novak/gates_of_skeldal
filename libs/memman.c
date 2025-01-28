@@ -101,7 +101,7 @@ void *load_file(char *filename)
 
   if (mman_action!=NULL) mman_action(MMA_READ);
   SEND_LOG("(LOAD) Loading file '%s'",filename);
-  f=fopen(filename, "rb");
+  f=fopen_icase(filename, "rb");
   if (f==NULL) {
       load_error(filename);
       return NULL;
@@ -157,7 +157,7 @@ static int test_file_exist_DOS(int group,char *filename)
      f=alloca(strlen(mman_pathlist[group])+strlen(filename)+1);
      strcpy(f,mman_pathlist[group]);
      strcat(f,filename);
-     if (access(f,0)) return 0;
+     if (!check_file_exists(f)) return 0;
      return 1;
   }
 
@@ -381,7 +381,7 @@ void init_manager(char *filename,char *swap_is_not_supported) // filename= Jmeno
   memset(_handles,0,sizeof(_handles));
   if (filename!=NULL)
      {
-     bmf=fopen(filename,"rb");
+     bmf=fopen_icase(filename,"rb");
      if (bmf)
         {
         main_file_name=(char *)getmem(strlen(filename)+1);
@@ -412,7 +412,7 @@ void *load_swaped_block(THANDLE_DATA *h)
   }
 
 
-int find_same(char *name,void *decomp)
+int find_same(const char *name,void *decomp)
   {
   THANDLE_DATA *p;
   int i,j;
@@ -429,7 +429,7 @@ int find_same(char *name,void *decomp)
   return -1;
   }
 
-int find_handle(char *name,void *decomp)
+int find_handle(const char *name,void *decomp)
   {
   return find_same(name,decomp);
   }
@@ -440,7 +440,7 @@ int test_file_exist(int group,char *filename)
   return 1;
   }
 
-THANDLE_DATA *def_handle(int handle,char *filename,void *decompress,char path)
+THANDLE_DATA *def_handle(int handle,const char *filename,void *decompress,char path)
   {
   THANDLE_DATA *h;
   int i;
@@ -842,7 +842,7 @@ char add_patch_file(char *filename)
 	SEND_LOG("Adding patch: %s",filename);
 	if (!patch) return 2;
 	if (!bmf) return 3;
-	patch=fopen(filename,"rb");
+	patch=fopen_icase(filename,"rb");
 	if (!patch) return 1;
 	fseek(patch,4,SEEK_SET);
 	fread(&l,1,4,patch);

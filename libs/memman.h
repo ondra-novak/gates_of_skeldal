@@ -75,7 +75,7 @@ void *getmem(int32_t size);        //alokace pameti pres memman. alokovat pomoci
 void *grealloc(void *m,int32_t size); //realokace pameti pres memman
 void *load_file(char *filename); //obycejne natahne soubor do pameti a vrati ukazatel.
 void init_manager(char *filename,char *swp); //inicializuje manager. Jmeno filename i swapname nejsou povinne (musi byt NULL kdyz nejsou pouzity)
-THANDLE_DATA *def_handle(int handle,char *filename,void *decompress,char path); //deklaruje rukojet. promenna decompress je ukazatel na funkci ktera upravi data pred vracenim ukazatele
+THANDLE_DATA *def_handle(int handle,const char *filename,void *decompress,char path); //deklaruje rukojet. promenna decompress je ukazatel na funkci ktera upravi data pred vracenim ukazatele
 void *ablock(int handle);             //vraci ukazatel bloku spojeneho s handlem
 void alock(int handle);               //zamyka blok
 void aunlock(int handle);             //odmyka blok
@@ -87,7 +87,7 @@ void close_manager(void);                 //uzavre manager a uvolni veskerou pam
 void undef_handle(int handle);        //uvolni hadle k dalsimu pouziti
 THANDLE_DATA *zneplatnit_block(int handle); //zneplatni data bloku
 THANDLE_DATA *get_handle(int handle); //vraci informace o rukojeti
-int find_handle(char *name,void *decomp);   //hleda mezi rukojeti stejnou definici
+int find_handle(const char *name,void *decomp);   //hleda mezi rukojeti stejnou definici
 int test_file_exist(int group,char *filename); //testuje zda soubor existuje v ramci mmanageru
 void *afile(char *filename,int group,int32_t *blocksize); //nahraje do pameti soubor registrovany v ramci mmanageru
 int32_t get_handle_size(int handle);
@@ -118,7 +118,7 @@ void display_status(void);    //zobrazi na display status memmanageru
 char *get_time_str(void);
 int q_current_task(void);
 void send_log_impl(int task, const char *format, ...) __attribute__((format(printf, 2, 3)));
-#define OPEN_LOG(log) memcpy(stderr,fopen(log,"w"),sizeof(FILE));
+#define OPEN_LOG(log) memcpy(stderr,fopen_icase(log,"w"),sizeof(FILE));
 #define SEND_LOG(...) send_log_impl(q_current_task(), __VA_ARGS__)
 #define CLOSE_LOG(void) fclose(logfile);
 #else

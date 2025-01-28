@@ -166,7 +166,7 @@ void save_font(char *filename,word bufsiz)
   {
   FILE *f;
 
-  f=fopen(filename,"wb");
+  f=fopen_icase(filename,"wb");
   fwrite(char_table,sizeof(char_table),1,f);
   fwrite(font_buffer,bufsiz,1,f);
   fclose(f);

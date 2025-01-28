@@ -168,7 +168,7 @@ TDREGISTERS registred[]=
     {H_IDESKA,"ideska.pcx",pcx_8bit_decomp,SR_BGRAFIKA},
     {H_IMRIZ1,"imriz1.pcx",pcx_8bit_decomp,SR_BGRAFIKA},
     {H_RAMECEK,"ramecek.pcx",pcx_8bit_decomp,SR_BGRAFIKA},
-    {H_ENEMY,"enemy.dat",NULL,SR_MAP},
+    {H_ENEMY,"enemy.dat",load_mob_legacy_format,SR_MAP},
     {H_BATTLE_BAR,"souboje.pcx",pcx_8bit_decomp,SR_BGRAFIKA},
     {H_BATTLE_MASK,"m_souboj.pcx",pcx_8bit_decomp,SR_BGRAFIKA},
     {H_MZASAH1,"mzasah1.pcx",pcx_8bit_decomp,SR_BGRAFIKA},
@@ -442,6 +442,37 @@ void hi_8bit_correct(void **p,int32_t *s)
   }
 }
 
+
+void load_mob_legacy_format(void **p, int32_t *s) {
+    const int sz = 376;
+    int count = *s / sz;;
+    char *c = *p;
+    TMOB *out = getmem(count * sizeof(TMOB));
+
+    memset(out, 0 , sizeof(TMOB)*count);
+    c+=8;
+    for (int i = 0; i < count ; i++) {
+        TMOB *m = out+i;
+        char *d = (char *)m;
+        size_t ofs = 0;
+        size_t nx = offsetof(TMOB,experience);
+        memcpy(d, c, nx);
+        c+=nx-2; //first padding 2
+        d+=nx;
+        ofs=nx;
+        nx = offsetof(TMOB, dialog_flags);
+        memcpy(d, c, nx - ofs);
+        c+=nx - ofs -1; //second padding 1
+        d+=nx;
+        ofs=nx;
+        nx = sizeof(TMOB);
+        memcpy(d, c, nx - ofs); //last padding 1
+        c+=nx - ofs - 1;
+    }
+    free(*p);
+    *p =out;
+    *s = count * sizeof(TMOB);
+}
 
 void set_background(void **p,int32_t *s)
   {
@@ -1243,7 +1274,7 @@ static void config_skeldal(const char *line)
 
      strcpy(s,"Chyba v INI souboru: Neznama promenna - ");
      strncat(s,line,i);
-     SEND_LOG("(ERROR) %s",s,NULL);
+     SEND_LOG("(ERROR) %s",s);
      }
   else
      {
@@ -1252,7 +1283,7 @@ static void config_skeldal(const char *line)
         char s[256];
 
         sprintf(s,"Chyba v INI souboru: Ocekava se ciselna hodnota\n%s\n",line);
-        SEND_LOG("(ERROR) %s",s,NULL);
+        SEND_LOG("(ERROR) %s",s);
         }
      do_config_skeldal(i,ndata,data);
      }
@@ -1260,14 +1291,14 @@ static void config_skeldal(const char *line)
 
 static void configure(char *filename)
   {
-  SEND_LOG("(GAME) Reading config. file '%s'",filename,NULL);
+  SEND_LOG("(GAME) Reading config. file '%s'",filename);
   cur_config=read_config(filename);
   if (cur_config==NULL)
      {
      char s[256];
 
      sprintf(s,"\nNemohu precist konfiguracni soubor \"%s\".\n",filename);
-     SEND_LOG("(ERROR) %s",s,NULL);
+     SEND_LOG("(ERROR) %s",s);
      puts(s);
      exit(1);
      }
@@ -1278,7 +1309,7 @@ static void configure(char *filename)
 
 static int update_config(void)
   {
-  SEND_LOG("(GAME) Updating config. file '%s'",CONFIG_NAME,NULL);
+  SEND_LOG("(GAME) Updating config. file '%s'",CONFIG_NAME);
   add_field_num(&cur_config,sinit[1].heslo,zoom_speed(-1));
   add_field_num(&cur_config,sinit[2].heslo,turn_speed(-1));
   if (check_snd_effect(SND_MUSIC)) add_field_num(&cur_config,sinit[3].heslo,get_snd_effect(SND_MUSIC));
@@ -1478,6 +1509,7 @@ static void game_big_circle(char enforced)
     for(r=0;r<mapsize*4;r++) call_macro(r,MC_STARTLEV);
     recalc_volumes(viewsector,viewdir);
     loadlevel.name[0]=0;
+    reroll_all_shops();
 
     enter_game();
 

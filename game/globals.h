@@ -630,6 +630,7 @@ void hi_8bit_correct(void **p,int32_t *s);
 void pcx_8bit_nopal(void **p,int32_t *s);
 void set_background(void **p,int32_t *s);
 void wav_load(void **p,int32_t *s);
+void load_mob_legacy_format(void **p, int32_t *s);
 void wire_main_functs(void);
 void ukaz_kompas(char mode);
 void *timming(EVENT_MSG *msg,void **data);
@@ -886,7 +887,8 @@ typedef struct titem
   char unused;
   short sound;                  //cislo zvuku
   short v_letu[16];             //192
-  int cena;
+  unsigned short cena;
+  unsigned short cena_high;
   char weapon_attack;           //relativni handle k souboru s animaci utok
   char hitpos;                  //pozice zasahu animace
   char shiftup;
@@ -978,7 +980,7 @@ void destroy_items(short *items);  //nici predmety v mysi
 void do_items_specs(void); //vola specialni akci predmetu v mysi
 short duplic_item(short item); //duplikuje vec a vraci id cislo klonu
 int advance_vls(int id);
-short create_unique_item(TITEM *it);//vytvari jedinecnou vec pro hru (jako duplikat niceho :-))
+short create_unique_item(const TITEM *it);//vytvari jedinecnou vec pro hru (jako duplikat niceho :-))
 int calculate_weight(THUMAN *p);
 int weigth_defect(THUMAN *p);
 
@@ -1009,9 +1011,14 @@ typedef struct tshop
   int shop_id;
   int list_size;
   short spec_max;     //maximalni pocet specialnich predmetu
-  TPRODUCT *list;
+  const TPRODUCT *list;
   }TSHOP;
 
+typedef struct tshop_all_state {
+    const TPRODUCT *first_product;
+    int32_t *first_state;
+    size_t count_states;
+} TSHOP_ALL_STATE;
 
 void enter_shop(int shopid);
 void load_shops(void);
@@ -1158,28 +1165,28 @@ typedef struct tma_sound
 
 typedef struct tma_text
   {
-    uint8_t action,flags,eflags,pflags;
-  int32_t textindex;
+    uint8_t action,flags,eflags,pflags; //4
+  int32_t textindex;                    //8
   }TMA_TEXT;
 
 typedef struct tma_send_action
   {
-    uint8_t action,flags,eflags,change_bits;
-  unsigned short sector,side,s_action;
-  char delay;
+    uint8_t action,flags,eflags,change_bits; //4
+  unsigned short sector,side,s_action;       //10
+  char delay;                                //11
   }TMA_SEND_ACTION;
 
 typedef struct tma_fireball
   {
-    uint8_t action,flags,eflags;
-  short xpos,ypos,zpos,speed,item;
+    uint8_t action,flags,eflags;            //3 + padding = 4
+    short xpos,ypos,zpos,speed,item;        //14
   }TMA_FIREBALL;
 
 typedef struct tma_loadlev
   {
-    uint8_t action,flags,eflags;
-  short start_pos;
-  char dir;
+    uint8_t action,flags,eflags;            //3+padding
+  short start_pos;                          //6
+  char dir;                                 //7
   char name[13];
   }TMA_LOADLEV;
 
@@ -1187,7 +1194,7 @@ typedef struct tma_loadlev
 
 typedef struct tma_dropitm
   {
-    uint8_t action,flags,eflags;
+    uint8_t action,flags,eflags;            //3+padding
   short item;
   }TMA_DROPITM;
 
@@ -1201,19 +1208,19 @@ typedef struct tma_codelock
 
 typedef struct tma_cancelaction
   {
-    uint8_t action,flags,eflags,pflags;
+    uint8_t action,flags,eflags,pflags;     //4
   short sector,dir;
   }TMA_ACTN;
 
 typedef struct tma_swapsectors
   {
-    uint8_t action,flags,eflags,pflags;
+    uint8_t action,flags,eflags,pflags;     //4
   short sector1,sector2;
   }TMA_SWAPS;
 
 typedef struct tma_wound
   {
-    uint8_t action,flags,eflags,pflags;
+    uint8_t action,flags,eflags,pflags;     //4
   short minor,major;
   }TMA_WOUND;
 
@@ -1221,20 +1228,20 @@ typedef struct tma_wound
 
 typedef struct tma_lock
   {
-    uint8_t action,flags,eflags;
+    uint8_t action,flags,eflags;            //3+padding
   short key_id;
   short thieflevel;
   }TMA_LOCK;
 
 typedef struct tma_two_parms
   {
-    uint8_t action,flags,eflags;
+    uint8_t action,flags,eflags;            //3+padding
   short parm1,parm2;
   }TMA_TWOP;
 
 typedef struct tma_create_unique
   {
-    uint8_t action,flags,eflags;
+    uint8_t action,flags,eflags;            //3+padding
   TITEM item;
   }TMA_UNIQUE;
 
@@ -1267,21 +1274,32 @@ typedef union tmulti_action
   struct tma_sound sound;
   struct tma_text text;
   struct tma_send_action send_a;
-  struct tma_fireball fireball;
-  struct tma_loadlev loadlev;
-  struct tma_dropitm dropi;
+  struct tma_fireball fireball;         //p
+  struct tma_loadlev loadlev;           //p
+  struct tma_dropitm dropi;             //p
   struct tma_codelock clock;
   struct tma_cancelaction cactn;
-  struct tma_lock lock;
+  struct tma_lock lock;                 //p
   struct tma_swapsectors swaps;
   struct tma_wound wound;
-  struct tma_two_parms twop;
-  struct tma_create_unique uniq;
+  struct tma_two_parms twop;            //p
+  struct tma_create_unique uniq;        //p
   struct tma_globe globe;
   struct tma_ifsec ifsec;
   }TMULTI_ACTION;
 
-extern int **macros;                  //tabulka maker
+typedef struct tmulti_action_record_t {
+    const TMULTI_ACTION *action_list;
+    size_t count;
+} TMULTI_ACTION_RECORD;
+
+typedef struct tmulti_action_states_t {
+    uint8_t *states;
+    size_t count;
+} TMULTI_ACTION_STATE;
+
+extern TMULTI_ACTION_RECORD *macros;                  //tabulka maker
+extern TMULTI_ACTION_STATE  macro_state_block;
 extern void *macro_block;          //alokovany blok maker (pri unloadu free!)
 extern int macro_block_size;       //velikost bloku;
 
@@ -1346,6 +1364,7 @@ void draw_fly_items(int celx,int cely,int sector,int side);
 void add_fly(LETICI_VEC *p);
 void build_fly_map(void);
 void destroy_fly_map(void);
+void destroy_all_fly();
 void stop_fly(LETICI_VEC *p,char zvuk);
 
 
@@ -1381,12 +1400,11 @@ extern char **sound_table;
 
 void init_tracks(void);
 void recalc_volumes(int sector,int side);
-void play_effekt(int x,int y,int xd,int yd,int side,int sided,TMA_SOUND *p);
+void play_effekt(int x,int y,int xd,int yd,int side,int sided,const TMA_SOUND *p);
 void create_playlist(char *playlist);
 const char *get_next_music_from_playlist(void);
 const char * end_of_song_callback(void *ctx);
 void purge_playlist(void);
-void restore_sound_names(void);
 void play_sample_at_sector(int sample,int sector1,int sector2,int track, char loop);
 void play_sample_at_channel(int sample,int channel,int vol);
 void stop_track(int track);
@@ -1439,7 +1457,7 @@ typedef struct tmob
   char name[30];           //jmeno moba
   short casting;
   short adjusting[6*16];     //volba stredu pro animace
-  word sector,dir;        //pozice
+  unsigned short sector,dir;        //pozice
   char locx,locy;         //presna pozice
   char headx,heady;        //pozice kam mob miri
   short anim_counter;        //citac animaci
@@ -1452,7 +1470,7 @@ typedef struct tmob
   short dosah;             //okam�ik za��tku souboje
   char stay_strategy;      //chovani moba ve statickem modu (nepronasleduje)
   char walk_data;           //cislo potrebne pro pohyb moba v bludisti
-  word bonus;              //bonus za zabiti
+  unsigned short bonus;              //bonus za zabiti
   char flee_num;             //pravdepodobnost uteku
   char anim_counts[6];     //pocet animacnich policek pro kazdy pohyb
   char mobs_name[7];       //zaklad jmena souboru pro moba
@@ -1464,14 +1482,14 @@ typedef struct tmob
   short next;              //Cislo dalsiho moba, ktery stoji na jeho pozici
   char actions;            //pocet akci ktere muze potvora provest v kole
   char hit_pos;           //animacni pozice, kdy potvora zasahne
-  word sounds[4];          //zvuky z listu
+  unsigned short sounds[4];          //zvuky z listu
   signed char palette;           // pocet pouzitelnych palet / cislo palety
   char mode;              //akce potvory
   short dialog;           //cislo dialogu, -1 kdyz neni;
   char dialog_flags;      //vlajky mapovane do dialogu;
-  word money;             //penize
-  word specproc;          //specproc
-  word dostal;             //pocet zivotu, ktere mu byly ubrany poslednim zasahem
+  unsigned short money;             //penize
+  unsigned short specproc;          //specproc
+  unsigned short dostal;             //pocet zivotu, ktere mu byly ubrany poslednim zasahem
   char user_data;         //data uzivatelem definovane - treba pro spec.
   }TMOB;
 
@@ -1644,7 +1662,7 @@ void check_global_fletna(THE_TIMER *t);
 void fletna_glob_add_note(uint8_t note);
 
 
-char *find_map_path(char *filename); //vyhledava jmeno mapy v alternativnich cestach.
+ char *find_map_path(const char *filename); //vyhledava jmeno mapy v alternativnich cestach.
 				//Vysledny retezec je nutne uvolnit (free) !
 TMPFILE_RD *enc_open(char *filename); //dekoduje a otevira TXT soubor (ENC)
 void enc_close(TMPFILE_RD *fil);
@@ -1695,7 +1713,7 @@ void wire_global_map(void);
 void wire_automap_file(char *mapfile);
 char set_select_mode(char mode);
 
-void macro_load_another_map(TMA_LOADLEV *);
+void macro_load_another_map(const TMA_LOADLEV *);
 
 void PodporaStitu(THUMAN *h, short *vlastnosti);
 

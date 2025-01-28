@@ -657,7 +657,7 @@ void do_it_events(EVENT_MSG *msg,void **user_data)
                 o_aktual->call_event(&msg2, o_aktual);
                 o_aktual->on_enter();
                 if (p != NULL)
-                    o_aktual->call_event(msg, o_aktual);
+                    o_aktual->call_event(&fwmsg, o_aktual);
             }
         }
         destroy_message(&fwmsg);

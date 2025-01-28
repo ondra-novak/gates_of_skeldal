@@ -134,7 +134,7 @@ void DlgOpen::OnOK()
       name.Format(_T("IKONY%02d.LIB"),i);
       _selected=_umisteni+name;
     }
-    while (_taccess( _selected,0)==0);
+    while (_tcheck_file_exists( _selected)==0);
   }
   else
   {

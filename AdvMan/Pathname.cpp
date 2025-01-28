@@ -496,7 +496,7 @@ bool Pathname::CreateFolder(void *security_descriptor)
   char *buff=(char *)alloca(len);
   for (int i=1;GetPart(i,buff,len,-1);i++)
   {
-    if (begpart==-1 && _access(buff,0)!=0) begpart=i;
+    if (begpart==-1 && _check_file_exists(buff)!=0) begpart=i;
     if (begpart!=-1)
     {
       if (begpart==-1) begpart=i;

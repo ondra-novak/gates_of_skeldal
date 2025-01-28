@@ -36,7 +36,7 @@ char global_name[256];
 void init(char *filename )
   {
   pgm=program;
-  source=fopen(filename,"r");
+  source=fopen_icase(filename,"r");
   cur_spell=0;
   if (source==NULL)
      {
@@ -116,7 +116,7 @@ int build_tables()
 
 void save_tab(char *name)
   {
-  target=fopen(name,"wb");
+  target=fopen_icase(name,"wb");
   if (target==NULL)
      {
      printf("SAVE: Chyba pri ukladani souboru %s \n",name);

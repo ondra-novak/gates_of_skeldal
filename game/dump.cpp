@@ -1,3 +1,4 @@
+#include <platform.h>
 #include <iostream>
 #include <filesystem>
 #include <regex>
@@ -50,7 +51,7 @@ void save_dump(const uint16_t *screen_addr,
     }
     sprintf(c, "dump%04d.bmp", ++dump_counter);
     SEND_LOG("(DUMP) Saving screen shot named '%s'", c);
-    f = fopen(c, "wb");
+    f = fopen_icase(c, "wb");
     fputc('B', f);
     fputc('M', f);
     i = width * height * 3 + 0x36;

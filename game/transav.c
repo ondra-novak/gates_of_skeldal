@@ -197,7 +197,7 @@ static void load_specific_file(char *slotname,char *filename,void **out,int32_t 
   char fname[12];
   char succes=0;
 
-  slot=fopen(slotname,"rb");
+  slot=fopen_icase(slotname,"rb");
   if (slot==NULL)
      {
      *out=NULL;
@@ -459,7 +459,7 @@ char *scan_saves(char *text,char *path,char mustexists)
       {
       sprintf(szBuff,"%sSLOT%02d.SAV",path,i);
       cprintf("%d. ",(i+1)%10);
-      f=fopen(szBuff,"rb");
+      f=fopen_icase(szBuff,"rb");
       if (f!=NULL)
         {
         fread(szBuff,1,34,f);szBuff[34]=0;
@@ -492,7 +492,7 @@ int tracemap(char *name)
   int type;
   int32_t  size,s;
 
-  f=fopen(name,"rb");
+  f=fopen_icase(name,"rb");
   if (f==NULL) return -1;
   do
     {
@@ -545,7 +545,7 @@ void save_savegame(char *soubor)
   void *p;
   int s;
 
-  f=fopen(soubor,"wb");
+  f=fopen_icase(soubor,"wb");
   strcpy(szBuff,"TRANSAV");
   fwrite(szBuff,SAVE_NAME_SIZE,1,f);
   strcpy(szBuff,"_GAME.TMP");

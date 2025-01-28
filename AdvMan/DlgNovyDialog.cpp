@@ -109,7 +109,7 @@ void DlgNovyDialog::DialogRules()
   CString name;
   wJmeno.GetWindowText(name);
   dlgSource.SetFiletitle(name);
-  wCislo.EnableWindow(access(dlgSource,0)==-1);
+  wCislo.EnableWindow(check_file_exists(dlgSource)==-1);
 } 
 
 void DlgNovyDialog::OnEditchangeJmeno() 

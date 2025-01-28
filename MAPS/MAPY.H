@@ -180,7 +180,8 @@ typedef struct titem
   char  fly_flags;             //158 fly_flags
   word sound;                //    Rezevovano
   short v_letu[16];            //192 cisla obrazku vyjadrujici letici predmet
-  int cena;
+  short cena_low;
+  short cena_high;
   char animace;
   char hitpos;
   char shiftup;              //posunuti ve vyklenku
@@ -282,41 +283,41 @@ void load_item_map(void *data,int size);
 #define MAGLOB_LEAVEMAP 0 // v urcitou nastavenou hodinu a minutu dene
 #define MAGLOB_STARTSLEEP 1 // postavy maji jit spat.
 #define MAGLOB_ENDSLEEP 2 // postavy se probouzi
-#define MAGLOB_CLICKSAVE 3  // pøed otevøením SAVE dialogu
-#define MAGLOB_AFTERSAVE 4  // po uložení hry
-#define MAGLOB_BEFOREMAGIC 5 // pøed vyvoláním kouzla
-#define MAGLOB_AFTERMAGIC 6 //po vyvolání kouzla
-#define MAGLOB_BEFOREMAPOPEN 7 //pøed otevøením mapy
-#define MAGLOB_AFTERMAPOPEN 8 //po uzavøení mapy
-#define MAGLOB_BEFOREBATTLE 9 //pøed spuštìním souboje
-#define MAGLOB_AFTERBATTLE 10 //po ukonèení souboje
-#define MAGLOB_BEFOREBOOK 11 //pred otevøením knihy
-#define MAGLOB_AFTERBOOK 12 //po uzavøení knihy
-#define MAGLOB_ONROUND 13 //pøi každém kole nebo po 10s
-#define MAGLOB_ONDEADMAN 14 //pøi umrtí muže
-#define MAGLOB_ONDEADWOMAN 15 //pøi umrtí ženy
-#define MAGLOB_ONDEADALL 16 //pøi umrtí všech postav
-#define MAGLOB_ONHITMAN 17 //pøi zásahu muže
-#define MAGLOB_ONHITWOMAN 18 //pøi zásahu ženy
-#define MAGLOB_ONNEWRUNE 19 //pøi nalezení nové runy
-#define MAGLOB_ONPICKITEM 20 //pøi sebrání pøedmìtu (pro speciální pøedmìty)
-#define MAGLOB_ONSTEP 21 //pøi kroku (pøed animaci)
-#define MAGLOB_ONTURN 22 //pøi otoèení (pøed animaci)
-#define MAGLOB_ALARM 23 //pøi spuštìní alarmu
+#define MAGLOB_CLICKSAVE 3  // pï¿½ed otevï¿½enï¿½m SAVE dialogu
+#define MAGLOB_AFTERSAVE 4  // po uloï¿½enï¿½ hry
+#define MAGLOB_BEFOREMAGIC 5 // pï¿½ed vyvolï¿½nï¿½m kouzla
+#define MAGLOB_AFTERMAGIC 6 //po vyvolï¿½nï¿½ kouzla
+#define MAGLOB_BEFOREMAPOPEN 7 //pï¿½ed otevï¿½enï¿½m mapy
+#define MAGLOB_AFTERMAPOPEN 8 //po uzavï¿½enï¿½ mapy
+#define MAGLOB_BEFOREBATTLE 9 //pï¿½ed spuï¿½tï¿½nï¿½m souboje
+#define MAGLOB_AFTERBATTLE 10 //po ukonï¿½enï¿½ souboje
+#define MAGLOB_BEFOREBOOK 11 //pred otevï¿½enï¿½m knihy
+#define MAGLOB_AFTERBOOK 12 //po uzavï¿½enï¿½ knihy
+#define MAGLOB_ONROUND 13 //pï¿½i kaï¿½dï¿½m kole nebo po 10s
+#define MAGLOB_ONDEADMAN 14 //pï¿½i umrtï¿½ muï¿½e
+#define MAGLOB_ONDEADWOMAN 15 //pï¿½i umrtï¿½ ï¿½eny
+#define MAGLOB_ONDEADALL 16 //pï¿½i umrtï¿½ vï¿½ech postav
+#define MAGLOB_ONHITMAN 17 //pï¿½i zï¿½sahu muï¿½e
+#define MAGLOB_ONHITWOMAN 18 //pï¿½i zï¿½sahu ï¿½eny
+#define MAGLOB_ONNEWRUNE 19 //pï¿½i nalezenï¿½ novï¿½ runy
+#define MAGLOB_ONPICKITEM 20 //pï¿½i sebrï¿½nï¿½ pï¿½edmï¿½tu (pro speciï¿½lnï¿½ pï¿½edmï¿½ty)
+#define MAGLOB_ONSTEP 21 //pï¿½i kroku (pï¿½ed animaci)
+#define MAGLOB_ONTURN 22 //pï¿½i otoï¿½enï¿½ (pï¿½ed animaci)
+#define MAGLOB_ALARM 23 //pï¿½i spuï¿½tï¿½nï¿½ alarmu
 #define MAGLOB_ONFIREMAGIC 24
 #define MAGLOB_ONWATERMAGIC 25
 #define MAGLOB_ONGROUNDMAGIC 26
 #define MAGLOB_ONAIRMAGIC 27
 #define MAGLOB_ONMINDMAGIC 28
-#define MAGLOB_ONSPELLID1 29  //pøi jednom konrétním kouzle
-#define MAGLOB_ONSPELLID2 30  //pøi jednom konrétním kouzle
-#define MAGLOB_ONSPELLID3 31  //pøi jednom konrétním kouzle
-#define MAGLOB_ONSPELLID4 32  //pøi jednom konrétním kouzle
-#define MAGLOB_ONSPELLID5 33  //pøi jednom konrétním kouzle
-#define MAGLOB_ONSPELLID6 34  //pøi jednom konrétním kouzle
-#define MAGLOB_ONSPELLID7 35  //pøi jednom konrétním kouzle
-#define MAGLOB_ONSPELLID8 36  //pøi jednom konrétním kouzle
-#define MAGLOB_ONSPELLID9 37  //pøi jednom konrétním kouzle
+#define MAGLOB_ONSPELLID1 29  //pï¿½i jednom konrï¿½tnï¿½m kouzle
+#define MAGLOB_ONSPELLID2 30  //pï¿½i jednom konrï¿½tnï¿½m kouzle
+#define MAGLOB_ONSPELLID3 31  //pï¿½i jednom konrï¿½tnï¿½m kouzle
+#define MAGLOB_ONSPELLID4 32  //pï¿½i jednom konrï¿½tnï¿½m kouzle
+#define MAGLOB_ONSPELLID5 33  //pï¿½i jednom konrï¿½tnï¿½m kouzle
+#define MAGLOB_ONSPELLID6 34  //pï¿½i jednom konrï¿½tnï¿½m kouzle
+#define MAGLOB_ONSPELLID7 35  //pï¿½i jednom konrï¿½tnï¿½m kouzle
+#define MAGLOB_ONSPELLID8 36  //pï¿½i jednom konrï¿½tnï¿½m kouzle
+#define MAGLOB_ONSPELLID9 37  //pï¿½i jednom konrï¿½tnï¿½m kouzle
 #define MAGLOB_ONTIMER1 38  //cas - pocet hernich sekund od nastaveni
 #define MAGLOB_ONTIMER2 39  //cas - pocet hernich sekund od nastaveni
 #define MAGLOB_ONTIMER3 40  //cas - pocet hernich sekund od nastaveni
@@ -330,7 +331,7 @@ void load_item_map(void *data,int size);
 #define MAGLOB_ONFLUTE7 48  //zahrani urcite melodie
 #define MAGLOB_ONFLUTE8 49  //zahrani urcite melodie
 
-#define MAGLOB_NEXTID 50 //musí být poslední
+#define MAGLOB_NEXTID 50 //musï¿½ bï¿½t poslednï¿½
 
 
 
@@ -457,7 +458,7 @@ typedef struct tma_uniq
   }TMA_UNIQ;
 
 typedef struct tma_globe
-  { 
+  {
   char action,flags,eflags,event; //event - MAGLOB_XXXX
   unsigned short sector;	  //sektor of action target, when event occured
   unsigned char side;		  //side of action target, when event occured
@@ -541,8 +542,8 @@ typedef struct tmob
   short lives;              //pocet zivotu potvory
   short cislo_vzoru;         //informace urcujici ze ktereho vzoru byl mob vytvoren
   short speed;             //rychlost pohybu
-  short dohled;            //kam dohl‚dne
-  short dosah;             //okam‘ik za‡ tku souboje
+  short dohled;            //kam dohlï¿½dne
+  short dosah;             //okamï¿½ik zaï¿½ï¿½tku souboje
   char stay_strategy;      //chovani moba ve statickem modu (nepronasleduje)
   char walk_data;           //cislo potrebne pro pohyb moba v bludisti
   word bonus;              //bonus za zabiti

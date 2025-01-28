@@ -249,7 +249,7 @@ void proved_d(char *code,char *text)
 main()
   {
   char code,text[300];
-  dlg=fopen("test.txt","r");
+  dlg=fopen_icase("test.txt","r");
   read_pargh();
   proved_goto(1);
   proved_d(&code,text);

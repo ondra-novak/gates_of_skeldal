@@ -249,7 +249,7 @@ static char test_kriterii(void)
                     hodn=temp_storage_find(text);
 /*                char c[200];
                 sprintf(c,"%s.TMP",text);
-                hodn=!access(c,0);*/
+                hodn=!check_file_exists(c);*/
                 }
               break;
         }
@@ -329,7 +329,7 @@ static char proved_prikaz()
                 cti_retezec(20,prikaz,1,1);
                 fclose(glbm);
 								s=find_map_path(prikaz);
-                if ((glbm=fopen(s,"r"))==NULL) error(s);
+                if ((glbm=fopen_icase(s,"r"))==NULL) error(s);
 								free(s);
                 return 0;
                 }
@@ -375,7 +375,7 @@ static void do_script(void)
 
 	s=find_map_path(GLOBMAP);
   linecounter=0;
-  glbm=fopen(s,"r");
+  glbm=fopen_icase(s,"r");
 	free(s);
   if (glbm==NULL) error("Chyb� uveden� soubor...");
   ODD=cti_oddelovac();

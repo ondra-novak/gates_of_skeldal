@@ -23,7 +23,7 @@ main(int argc,char **argv)
      close_manager();
      return 1;
      }
-  f=fopen(argv[3],"wb");
+  f=fopen_icase(argv[3],"wb");
   fwrite(z,1,s,f);
   fclose(f);
   puts("File successfuly expanded");

@@ -326,7 +326,7 @@ void CColEditDlg::OnInsert()
   if (fdlg.DoModal()==IDOK)
   {
 	TCHAR buff[256];
-	FILE *f=_tfopen(fdlg.GetPathName(),_T("r"));
+	FILE *f=_tfopen_icase(fdlg.GetPathName(),_T("r"));
 	_fgetts(buff,256,f);
 	bool ok=false;
 	if (_tcscmp(buff,_T("JASC-PAL\n"))==0)
