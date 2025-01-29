@@ -85,6 +85,7 @@
 
 #define get_string(t) texty[t]
 static __inline unsigned int rnd(unsigned int max) {
+    if (max == 0) return 0;
     return rand() % max;
 }
 

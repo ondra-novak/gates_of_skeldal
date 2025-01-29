@@ -68,7 +68,7 @@ void *PrepareVideoSound(int mixfreq, int buffsize) {
     return 0;
 }
 char LoadNextVideoFrame(void *buffer, char *data, int size, short *xlat, short *accnums, int32_t *writepos) {
-    std::this_thread::sleep_for(std::chrono::milliseconds(50));
+    std::this_thread::sleep_for(std::chrono::milliseconds(20));
     return 1;
 
 }

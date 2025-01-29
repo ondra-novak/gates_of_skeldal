@@ -745,7 +745,7 @@ void spell_hit(int cil,int min,int max,int owner)
 
      cil--;
      h=&postavy[cil];
-     vysl=min+rnd(max-min);
+     vysl=min+rnd(max-min+1);
      if (vysl<0)
       {
       h->lives-=vysl>h->vlastnosti[VLS_MAXHIT]?h->vlastnosti[VLS_MAXHIT]:vysl;
