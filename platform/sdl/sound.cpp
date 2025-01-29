@@ -1,6 +1,7 @@
 #include "../platform.h"
 #include <zvuk.h>
 
+#include <thread>
 void set_mixing_device(int mix_dev,int mix_freq,...) {
 
 }
@@ -67,7 +68,8 @@ void *PrepareVideoSound(int mixfreq, int buffsize) {
     return 0;
 }
 char LoadNextVideoFrame(void *buffer, char *data, int size, short *xlat, short *accnums, int32_t *writepos) {
-    return 0;
+    std::this_thread::sleep_for(std::chrono::milliseconds(50));
+    return 1;
 
 }
 void DoneVideoSound(void *buffer) {

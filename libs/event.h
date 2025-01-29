@@ -35,26 +35,29 @@
 #define TASK_RUNNING 0
 #define TASK_TERMINATING 1
 
-#define TASK_EVENT_WAITING 2
+
 
 
 //#define shift_msg(msgg,tg) ((tg.msg=*(int32_t *)msgg->data),(tg.data=(void *)((int32_t *)msgg->data+1)))
 
-#define EVENT_BUFF_SIZE 16
 
-typedef void (*EV_PROC)(void *,void *) ;
+
+
+
 
 #define PROC_GROUP (EV_PROC )1
 
-//typedef struct event_list
-//  {
-//  int32_t *table; //tabulka udalosti
-//  EV_PROC *procs;  //co se ma pri danne udalosti stat
-//  void *(*user_data); //ukazatel na uzivatelska data
-//  char *zavora; //1 znamena ze udalost je povolena
-// int32_t max_events; // maximalni pocet udalosti, na ktere je system rezervova
-//  int32_t count; //aktualni pocet udalosti
-//  }EVENT_LIST;
+
+typedef struct event_msg
+  {
+    ///message ID
+  int32_t msg;
+    ///message data
+  va_list data;
+  }EVENT_MSG;
+
+  typedef void (*EV_PROC)(const EVENT_MSG *,void **) ;
+
 
 /* event procedura ma dva parametry
 
@@ -86,12 +89,6 @@ typedef struct t_event_root
   struct t_event_root *next;
   T_EVENT_POINT *list;
   }T_EVENT_ROOT;
-
-typedef struct event_msg
-  {
-  int32_t msg;
-  va_list data;
-  }EVENT_MSG;
 
 extern char exit_wait; // 1 - opousti aktivni cekaci event;
 extern char freeze_on_exit; //1 - po opusteni udalosti cela cesta uzamcena

@@ -39,8 +39,6 @@
 char exit_wait=0;
 T_EVENT_ROOT *ev_tree=NULL;
 char freeze_on_exit=0;
-int32_t ev_buff_msg[EVENT_BUFF_SIZE]={0};
-void *ev_buff_dta[EVENT_BUFF_SIZE]={NULL};
 int ev_poz=0;
 char *otevri_zavoru;
 
@@ -188,22 +186,7 @@ void force_delete_curr (T_EVENT_ROOT **tree,T_EVENT_ROOT *r, T_EVENT_POINT *p)
      }
   }
 
-/*
-static void unsuspend_task(EVENT_MSG *msg)
-  {
-  int i;
-  int nt;
 
-  nt=nexttask;
-  for(i=1;i<taskcount;i++) if (tasklist_sp[i]!=NULL && task_info[i] & TASK_EVENT_WAITING && tasklist_events[i]==msg->msg)
-     {
-     nexttask=i;
-     task_info[nexttask]&=~TASK_EVENT_WAITING;
-     task_sleep(msg->data);
-     }
-  nexttask=nt;
-  }
-*/
 void enter_event(T_EVENT_ROOT **tree,EVENT_MSG *msg)
   {
   T_EVENT_ROOT *r;
@@ -282,14 +265,14 @@ static int call_proc(EVENT_MSG *msg, void *ctx) {
     return 0;
 }
 
-T_EVENT_POINT *install_event(T_EVENT_ROOT **tree,int32_t ev_num,EV_PROC proc,void *procdata,char end)
+T_EVENT_POINT *install_event(T_EVENT_ROOT **tree, EVENT_MSG *msg, EV_PROC proc,char end)
 //instaluje novou udalost;
   {
   void *user=NULL;
   T_EVENT_POINT *p;
-  call_proc_context ctx = {proc, &user};
-
-  send_message_to(call_proc,&ctx, E_INIT, procdata);
+  int ev_num = msg->msg;
+  msg->msg = E_INIT;
+  proc(msg, &user);
   p=add_event(tree,ev_num,proc,end);
   p->user_data=user;
   return p;
@@ -322,11 +305,10 @@ void tree_basics(T_EVENT_ROOT **ev_tree,EVENT_MSG *msg)
      T_EVENT_POINT *r;
      shift_message(msg);
      EV_PROC proc = va_arg(msg->data, EV_PROC);
-     void *procdata = va_arg(msg->data, void *);
      find_event_msg_proc(*ev_tree,msg->msg,proc,r);
      assert(r==NULL);
      if (r==NULL)
-        install_event(ev_tree,msg->msg,proc,procdata,msg->msg==E_ADDEND);
+        install_event(ev_tree,msg,proc,msg->msg==E_ADDEND);
      return;
      }
   if (msg->msg==E_INIT)
@@ -542,122 +524,3 @@ T_EVENT_ROOT *gate_basics(EVENT_MSG *msg, void **user_data)
       tree_basics((T_EVENT_ROOT **)user_data,msg);
   return p;
   }
-/*
-int create_task()
-  {
-  int i;
-
-  for(i=1;i<taskcount;i++)
-     if (tasklist_sp[i]==NULL) break;
-  if (i>=taskcount)
-     {
-     taskcount++;
-     tasklist_sp=grealloc(tasklist_sp,taskcount*4);
-     tasklist_low=grealloc(tasklist_low,taskcount*4);
-     tasklist_top=grealloc(tasklist_top,taskcount*4);
-     task_info=grealloc(task_info,taskcount);
-     tasklist_events=grealloc(tasklist_events,taskcount*sizeof(int));
-     }
-  return i;
-  }
-*/
-void task_terminating();
-/*
-int32_t getflags();
-#pragma aux getflags = \
-  "pushfd"\
-  "pop  eax"\
-  ;*/
-/*
-int add_task(int stack,void *name,...)
-  {
-  int task,i;
-  int32_t *sp,*spp;
-
-  task=create_task();
-  if (task==-1)
-     {
-     send_message(E_MEMERROR);
-     return -1;
-     }
-  sp=malloc(stack);
-  if (sp==NULL)
-     {
-     send_message(E_MEMERROR);
-     return -1;
-     }
-  spp=(int32_t *)((char *)sp+stack-17*4);
-  memset(sp,0,stack);
-  memcpy(spp,&name,17*4);
-  *spp=(int32_t )task_terminating;
-  spp--;*spp=(int32_t)name;
-  for(i=0;i<9;i++)
-     {
-     spp--;
-     *spp=0;
-     if (i==5) *spp=(int32_t)((char *)sp+stack);
-     }
-  tasklist_low[task]=(void *)sp;
-  tasklist_top[task]=(void *)((char *)sp+stack);
-  tasklist_sp[task]=(void *)spp;
-  task_info[task]=TASK_RUNNING;
-  return task;
-  }
-
-void term_task(int id_num)
-  {
-  task_info[id_num]=TASK_TERMINATING;
-  return;
-  }
-
-char is_running(int id_num)
-  {
-  return tasklist_sp[id_num]!=NULL;
-  }
-
-static void suspend_task(int id_num,int msg)
-  {
-  task_info[id_num]|=TASK_EVENT_WAITING;
-  tasklist_events[id_num]=msg;
-  }
-
-void shut_down_task(int id_num)
-  {
-  free(tasklist_low[id_num]);
-  tasklist_sp[id_num]=0;
-  if (nexttask==id_num) nexttask=0;
-  }
-*/
-/*void raise_error(int error_number)
-  {
-  longjmp(jmpenv,error_number);
-  }
-*/
-/*static void unsuspend_task_by_event(EVENT_MSG *msg,int **idnum)
-  {
-  if (msg->msg==E_INIT)
-     {
-     *idnum=New(int);
-     **idnum=*(int *)msg->data;
-     }
-  else
-     {
-     int nt=nexttask;
-
-     nexttask=**idnum;
-     free(*idnum);
-     *idnum=NULL;
-     task_info[nexttask]&=~TASK_EVENT_WAITING;
-     task_sleep(msg->data);
-     msg->msg=-2;
-     nexttask=nt;
-     }
-  }
-*/
-/*void *task_wait_event(int32_t event_number)
-  {
-  if (!curtask) return NULL;
-  suspend_task(curtask,event_number);
-  return task_sleep();
-  }
-*/

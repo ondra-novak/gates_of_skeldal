@@ -631,6 +631,7 @@ void pcx_8bit_nopal(void **p,int32_t *s);
 void set_background(void **p,int32_t *s);
 void wav_load(void **p,int32_t *s);
 void load_mob_legacy_format(void **p, int32_t *s);
+void load_spells_legacy_format(void **p, int32_t *s);
 void wire_main_functs(void);
 void ukaz_kompas(char mode);
 void *timming(EVENT_MSG *msg,void **data);

@@ -27,7 +27,7 @@ typedef struct mgif_header
     word ver;
     int32_t frames;
     word snd_chans;
-    int snd_freq;
+    int32_t snd_freq;
     short ampl_table[256];
     short reserved[32];
     }MGIF_HEADER_T;

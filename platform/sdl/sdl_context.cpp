@@ -80,7 +80,7 @@ void SDLContext::init_screen(DisplayMode mode, const char *title) {
             }
 
             _window.reset(window);
-            SDL_Renderer *renderer = SDL_CreateRenderer(_window.get(), -1, SDL_RENDERER_SOFTWARE);
+            SDL_Renderer *renderer = SDL_CreateRenderer(_window.get(), -1, 0);
             if (!renderer) {
                 snprintf(buff,sizeof(buff), "Chyba při vytváření rendereru: %s\n", SDL_GetError());
                 throw std::runtime_error(buff);
@@ -178,13 +178,14 @@ void SDLContext::event_loop(std::stop_token stp) {
             int button = e.button.button;
             int up =  e.type == SDL_MOUSEBUTTONUP?1:0;
             ms_event.event = 1;
-            ms_event.event_type = (1<<(2*button-1+up));
+            int shift = 0;
             switch (button) {
                 default: break;
-                case 1: ms_event.tl1 = !up; break;
-                case 2: ms_event.tl3 = !up; break;
-                case 3: ms_event.tl2 = !up; break;
+                case 1: ms_event.tl1 = !up; shift = 1; break;
+                case 2: ms_event.tl3 = !up; shift = 5; break;
+                case 3: ms_event.tl2 = !up; shift = 3; break;
             }
+            ms_event.event_type = (1<<(shift+up));
         }
 
     }

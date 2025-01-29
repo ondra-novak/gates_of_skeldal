@@ -106,7 +106,7 @@
 
 static inline word _impl_get_word(unsigned char **c) {
     word r = (*c)[0] + 256* (*c)[1];
-    c+=2;
+    (*c)+=2;
     return r;
 }
 #define GET_WORD(c) _impl_get_word(&c)
@@ -135,15 +135,16 @@ static TTELEPLOCATION TelepLocation;
 typedef struct tkouzlo
   {
   word num,um,mge;
-  word pc;
-  short owner,accnum;     //accnum = akumulacni cislo, owner = kdo kouzlo seslal
-  int start;
-  short cil;    //kladna cisla jsou postavy zaporna potvory (0 je bez urceni postavy)
+  word pc;  //8
+  short owner,accnum;     //accnum = akumulacni cislo, owner = kdo kouzlo seslal //4
+  int start;  //4
+  short cil;  //2  //kladna cisla jsou postavy zaporna potvory (0 je bez urceni postavy)
   char povaha;
+  char traceon;    //jinak noanim - neprehravaji se animace a zvuky
+  //paddding 1 byte
   word backfire; //backfire / 1 = demon , 0 = bez demona
   word wait;   //wait - cekani pocet animaci
   word delay;  //delay - cekani pocet kol
-  char traceon;    //jinak noanim - neprehravaji se animace a zvuky
   char spellname[28];
   word teleport_target;
   }TKOUZLO;
@@ -183,6 +184,30 @@ static void animace_kouzla(int act,void *data, int ssize)
      }
   }
 
+
+void load_spells_legacy_format(void **p, int32_t *s) {
+    TKOUZLO *k = (*p);
+    TKOUZLO *end = (TKOUZLO *)((char *)(*p) + k->start);
+    ++k;
+    int count = 1;
+    while (k < end) {
+        ++count;
+        TKOUZLO *end2 = (TKOUZLO *)((char *)(*p) + k->start);
+        if (end2 < end) end = end2;
+        ++k;
+    }
+    SEND_LOG("(SPELL) Loading spell table: count %d", count);
+    k = (*p);
+    for (int i = 0; i < count; ++i) {
+        char *b = (char *)k;
+        char traceon = k->spellname[-1];    //traceon was there;
+        size_t bofs = offsetof(TKOUZLO, traceon);
+        size_t eofs = offsetof(TKOUZLO, spellname)-1;
+        memmove(b+bofs+1, b+bofs, eofs-bofs);\
+        k->traceon = traceon;
+        ++k;
+    }
+}
 
 
 static void play_anim(va_list args) //tasked animation

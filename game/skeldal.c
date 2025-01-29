@@ -177,7 +177,7 @@ TDREGISTERS registred[]=
     {H_PZASAH,"pzasah.pcx",pcx_8bit_decomp,SR_BGRAFIKA},
     {H_BATTLE_CLICK,"souboje2.pcx",pcx_8bit_decomp,SR_BGRAFIKA},
     {H_SIPKY_END,"sipky.pcx",pcx_8bit_decomp,SR_BGRAFIKA},
-    {H_KOUZLA,"kouzla.dat",NULL,SR_MAP},
+    {H_KOUZLA,"kouzla.dat",load_spells_legacy_format,SR_MAP},
     {H_LEBKA,"death.pcx",pcx_8bit_decomp,SR_BGRAFIKA},
     {H_KOSTRA,"bones.pcx",pcx_fade_decomp,SR_BGRAFIKA},
     {H_RUNEHOLE,"runehole.pcx",pcx_8bit_decomp,SR_BGRAFIKA},
@@ -473,6 +473,7 @@ void load_mob_legacy_format(void **p, int32_t *s) {
     *p =out;
     *s = count * sizeof(TMOB);
 }
+
 
 void set_background(void **p,int32_t *s)
   {
