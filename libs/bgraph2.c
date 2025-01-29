@@ -509,7 +509,17 @@ void show_ms_cursor(integer x,integer y)
 void hide_ms_cursor()
   {
   put_picture(mscuroldx,mscuroldy,mssavebuffer);
+
   }
+
+void redraw_ms_cursor_on_screen(void) {
+    if (mssavebuffer) {
+      integer xs=*(integer *)mssavebuffer;
+      integer ys=*((integer *)mssavebuffer+1);
+      showview(mscuroldx,mscuroldy,xs,ys);
+    }
+}
+
 
 void *register_ms_cursor(void *cursor)
   {

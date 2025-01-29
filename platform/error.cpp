@@ -1,3 +1,4 @@
+#include <cassert>
 #include <cstdarg>
 #include <cstdint>
 #include <iostream>
@@ -8,7 +9,9 @@ extern "C" {
 
 
 void display_error(const char *text) {
+    char failed_because_error = 0;
     std::cerr << "ERROR:" << text << std::endl;
+    assert(failed_because_error);
 }
 
 

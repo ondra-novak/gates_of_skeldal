@@ -147,12 +147,9 @@ char is_running(int id_num) {
     return id_num < 0 || task_list.find(id_num) != task_list.end();
 }
 void unsuspend_task(EVENT_MSG *msg) {
+    if (current_task_inst) return;
     msg_queue.push({msg, current_task_inst});
-    if (current_task_inst) {
-        switch_to_task(NULL);
-    } else {
-        flush_message_queue();
-    }
+    flush_message_queue();
 
 }
 void task_sleep(void) {

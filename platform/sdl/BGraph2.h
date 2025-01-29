@@ -33,7 +33,8 @@ void DxZoomWalk(void *handle, int ypos, int *points,float phase, void *lodka);
 void DxDoneWalk(void *handle);
 
 void *DxPrepareTurn(int ypos);
-void DxTurn(void *handle, char right, int ypos,int border, float phase, void *lodka);
+//phase > 0 right, phase < 0 left
+void DxTurn(void *handle, int ypos,int border, float phase, void *lodka);
 void DxDoneTurn(void *handle);
 void DxTurnLeftRight(char right, float phase, int border, int ypos, int *last);
 

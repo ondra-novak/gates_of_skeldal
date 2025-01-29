@@ -1600,6 +1600,7 @@ void step_zoom(char smer)
   anim_sipky(0,255);
   hide_ms_at(385);
   ukaz_mysku();
+  redraw_ms_cursor_on_screen();
   if (set_halucination) do_halucinace();
   if (loadlevel.name[0])
      {
@@ -1624,17 +1625,12 @@ void step_zoom(char smer)
   if (!cancel_pass)
      {
      render_scene(viewsector,viewdir);
-    if (smer==2)
-       {
-       OutBuffer2nd();
-       if (!nopass) shift_zoom(smer);
-       }
-    else
-       {
-       shift_zoom(smer);
-       OutBuffer2nd();
-       if (nopass) shift_zoom(smer+2);
-       }
+     OutBuffer2nd();
+     sort_groups();
+     bott_draw(0);
+     other_draw();
+     shift_zoom(smer);
+    if (smer==0 && nopass) shift_zoom(smer+2);
     if (battle || (game_extras & EX_ALWAYS_MINIMAP)) draw_medium_map();
     sort_groups();
     bott_draw(0);
@@ -1672,6 +1668,9 @@ void turn_zoom(int smer)
                  viewdir=(viewdir+smer)&3;
                  render_scene(viewsector,viewdir);
                  hide_ms_at(387);
+                 OutBuffer2nd();
+                 other_draw();
+                 bott_draw(0);
                  if (smer==1)
                     {
                     anim_sipky(H_SIPKY_SV,1);
@@ -1685,9 +1684,7 @@ void turn_zoom(int smer)
                     turn_right();
                     }
   chod_s_postavama(0);
-  OutBuffer2nd();
   if (battle || (game_extras & EX_ALWAYS_MINIMAP)) draw_medium_map();
-  other_draw();
   update_mysky();
   ukaz_mysku();
   showview(0,0,0,0);

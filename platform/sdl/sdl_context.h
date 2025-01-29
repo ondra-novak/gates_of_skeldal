@@ -29,6 +29,9 @@ public:
     void present_rect(uint16_t *pixels, unsigned int pitch, unsigned int x, unsigned int y, unsigned int xs,unsigned ys);
     void swap_render_buffers();
     void swap_display_buffers();
+    void show_blend_transition(const SDL_Rect &wrkarea, const SDL_Rect &prev, const SDL_Rect &next, float phase);
+    void show_slide_transition(const SDL_Rect &visible_from, const SDL_Rect &visible_where,
+                               const SDL_Rect &hidden_from, const SDL_Rect &hidden_where);
 
     MS_EVENT getMsEvent()  {
         std::lock_guard _(_mx);
@@ -60,15 +63,27 @@ protected:
         void operator()(SDL_Texture *);
     };
 
-    struct UpdateMsg {
-        SDL_Rect rc;
-        std::vector<short> data;
+    struct BlendTransitionReq {
+        SDL_Rect wrkarea;
+        SDL_Rect prev;
+        SDL_Rect next;
+        float phase;
+    };
+
+    struct SlideTransitionReq {
+        SDL_Rect visible_from;
+        SDL_Rect visible_where;
+        SDL_Rect hidden_from;
+        SDL_Rect hidden_where;
+
     };
 
     enum class DisplayRequest {
         update,
         swap_render_buffers,
         swap_visible_buffers,
+        blend_transition,
+        slide_transition
     };
 
 
@@ -102,6 +117,7 @@ protected:
     void event_loop(std::stop_token stp);
     void update_screen();
 
+
     template<typename T>
     requires(std::is_trivially_copy_constructible_v<T>)
     void push_item(const T &item);
@@ -113,6 +129,13 @@ protected:
     requires(std::is_trivially_copy_constructible_v<T>)
     void pop_item(QueueIter &iter, T &item);
     std::string_view pop_data(QueueIter &iter, std::size_t size);
+
+    SDL_Rect get_window_aspect_rect() const;
+    static SDL_Rect to_window_rect(const SDL_Rect &winrc, const SDL_Rect &source_rect) ;
+    static SDL_Point to_window_point(const SDL_Rect &win_rec, const SDL_Point &pt) ;
+    static SDL_Point to_source_point(const SDL_Rect &win_rec, const SDL_Point &win_pt) ;
+    static SDL_Rect transition_rect(const SDL_Rect &beg, const SDL_Rect &end, float phase);
+    static int transition_int(int beg, int end, float phase);
 
     void signal_push();
 

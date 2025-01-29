@@ -116,6 +116,7 @@ void show_ms_cursor(integer x,integer y);
 void *register_ms_cursor(void *cursor);
 void move_ms_cursor(integer newx,integer newy,char nodraw);
 void hide_ms_cursor(void);
+void redraw_ms_cursor_on_screen(void);
 int text_height(char *text);
 int text_width(char *text);
 void set_aligned_position(int x,int y,char alignx, char aligny,char *text);

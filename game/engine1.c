@@ -456,7 +456,7 @@ static void zooming_forward_backward(word *background,char back)
     {
     int32_t tmp=get_timer_value();
     void *buffer=DxPrepareWalk(SCREEN_OFFLINE);
-    int tpoints[4]={90,31,90+460,31+259};
+    int tpoints[4]={90,31,90+460,31+270};
 
     int maxtime=5*zoom_speed(-1);
     int curtime;
@@ -467,7 +467,7 @@ static void zooming_forward_backward(word *background,char back)
       curtime=get_timer_value()-tmp;
       phase=(curtime)*(1.0f/(float)maxtime);
       //phase=(float)sin(3.14159265*0.5f*phase);
-      if (back) phase=1.0-phase;
+      if (back) phase=-phase;
       DxZoomWalk(buffer, SCREEN_OFFLINE, tpoints,phase, NULL);
       do_events();
       }
@@ -532,7 +532,7 @@ static void turn_left_right(char right)
       curtime=get_timer_value()-tmp;
       phase=(curtime)*(1.0f/(float)maxtime);
       //phase=(float)sin(3.14159265*0.5f*phase);
-      DxTurn(buffer,right,SCREEN_OFFLINE,90,phase,NULL);
+      DxTurn(buffer,SCREEN_OFFLINE,90,right?-phase:phase,NULL);
       do_events();
       }
     while (curtime<maxtime);

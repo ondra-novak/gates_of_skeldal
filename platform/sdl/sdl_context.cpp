@@ -5,6 +5,7 @@
 #include <cassert>
 #include "../platform.h"
 
+#include <cmath>
 #include <iostream>
 #include <stdexcept>
 void SDLContext::SDL_Deleter::operator ()(SDL_Window* window) {
@@ -79,7 +80,7 @@ void SDLContext::init_screen(DisplayMode mode, const char *title) {
             }
 
             _window.reset(window);
-            SDL_Renderer *renderer = SDL_CreateRenderer(_window.get(), -1, 0);
+            SDL_Renderer *renderer = SDL_CreateRenderer(_window.get(), -1, SDL_RENDERER_SOFTWARE);
             if (!renderer) {
                 snprintf(buff,sizeof(buff), "Chyba při vytváření rendereru: %s\n", SDL_GetError());
                 throw std::runtime_error(buff);
@@ -90,15 +91,17 @@ void SDLContext::init_screen(DisplayMode mode, const char *title) {
                 snprintf(buff, sizeof(buff), "Chyba při vytváření textury: %s\n", SDL_GetError());
                 throw std::runtime_error(buff);
             }
+            SDL_SetTextureBlendMode(texture, SDL_BLENDMODE_BLEND);
             _texture.reset(texture);
             texture = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_RGB565, SDL_TEXTUREACCESS_STREAMING, 640, 480);
             if (!texture) {
                 snprintf(buff, sizeof(buff), "Chyba při vytváření textury: %s\n", SDL_GetError());
                 throw std::runtime_error(buff);
             }
+            SDL_SetTextureBlendMode(texture, SDL_BLENDMODE_BLEND);
             _texture2.reset(texture);
             _visible_texture = _texture.get();
-            _hidden_texture = _texture.get();
+            _hidden_texture = _texture2.get();
         } catch (...) {
             e = std::current_exception();
             err = true;
@@ -164,17 +167,13 @@ void SDLContext::event_loop(std::stop_token stp) {
                 }
             }
         } else if (e.type == SDL_MOUSEMOTION) {
-            int mouseX = e.motion.x;
-            int mouseY = e.motion.y;
-            int windowWidth;
-            int windowHeight;
-            SDL_GetWindowSize(_window.get(), &windowWidth, &windowHeight);
-            float normalizedX = (float)mouseX / windowWidth;
-            float normalizedY = (float)mouseY / windowHeight;
+            SDL_Point mspt(e.motion.x, e.motion.y);
+            SDL_Rect winrc = get_window_aspect_rect();
+            SDL_Point srcpt = to_source_point(winrc, mspt);
             ms_event.event = 1;
             ms_event.event_type = 1;
-            ms_event.x = (int16_t)(640*normalizedX);
-            ms_event.y = (int16_t)(480*normalizedY);
+            ms_event.x = srcpt.x;
+            ms_event.y = srcpt.y;
         } else if (e.type == SDL_MOUSEBUTTONDOWN || e.type == SDL_MOUSEBUTTONUP) {
             int button = e.button.button;
             int up =  e.type == SDL_MOUSEBUTTONUP?1:0;
@@ -183,65 +182,14 @@ void SDLContext::event_loop(std::stop_token stp) {
             switch (button) {
                 default: break;
                 case 1: ms_event.tl1 = !up; break;
-                case 2: ms_event.tl2 = !up; break;
-                case 3: ms_event.tl3 = !up; break;
+                case 2: ms_event.tl3 = !up; break;
+                case 3: ms_event.tl2 = !up; break;
             }
         }
 
     }
 }
 
-
-/*
-void SDLContext::pool_events() {
-    SDL_RenderClear(_renderer.get());
-    SDL_RenderCopy(_renderer.get(), _texture.get(), NULL, NULL);
-    SDL_RenderPresent(_renderer.get());
-    ms_event.event = 0;
-    SDL_Event e;
-    while (true) {
-       if (SDL_WaitEvent(&e)) {
-           if (e.type == SDL_QUIT) {
-               _quit_requested = true;
-               return;
-           if (e.type == SDL_KEYDOWN) {
-               if (e.key.keysym.sym == SDLK_RETURN && (e.key.keysym.mod & KMOD_ALT)) {
-                   _fullscreen_mode = !_fullscreen_mode;
-                   SDL_SetWindowFullscreen(_window.get(), _fullscreen_mode ? SDL_WINDOW_FULLSCREEN_DESKTOP : 0);
-               }
-           } else if (e.type == SDL_MOUSEMOTION) {
-               std::lock_guard _(_mx);
-               int mouseX = e.motion.x;
-               int mouseY = e.motion.y;
-               int windowWidth;
-               int windowHeight;
-               SDL_GetWindowSize(_window.get(), &windowWidth, &windowHeight);
-               float normalizedX = (float)mouseX / windowWidth;
-               float normalizedY = (float)mouseY / windowHeight;
-               ms_event.event = 1;
-               ms_event.event_type = 1;
-               ms_event.x = (int16_t)(640*normalizedX);
-               ms_event.y = (int16_t)(480*normalizedY);
-           } else if (e.type == SDL_MOUSEBUTTONDOWN || e.type == SDL_MOUSEBUTTONUP) {
-               std::lock_guard _(_mx);
-               int button = e.button.button;
-               int up =  e.type == SDL_MOUSEBUTTONUP?1:0;
-               ms_event.event = 1;
-               ms_event.event_type = (1<<(2*button-1+up));
-               switch (button) {
-                   default: break;
-                   case 1: ms_event.tl1 = !up; break;
-                   case 2: ms_event.tl2 = !up; break;
-                   case 3: ms_event.tl3 = !up; break;
-               }
-           }
-
-       } else {
-           throw std::runtime_error("SDL_WaitEvent error");
-       }
-    }
-    charge_timer();
-}*/
 
 
 void SDLContext::present_rect(uint16_t *pixels, unsigned int pitch,
@@ -271,6 +219,15 @@ bool SDLContext::is_keyboard_ready() const {
     return !_keyboard_queue.empty();
 }
 
+void SDLContext::show_slide_transition(const SDL_Rect &visible_from,
+        const SDL_Rect &visible_where, const SDL_Rect &hidden_from,
+        const SDL_Rect &hidden_where) {
+    std::lock_guard _(_mx);
+    signal_push();
+    push_item(DisplayRequest::slide_transition);
+    push_item(SlideTransitionReq{visible_from, visible_where,hidden_from, hidden_where});
+}
+
 void SDLContext::signal_push() {
     if (_display_update_queue.empty()) {
         SDL_Event event;
@@ -281,8 +238,11 @@ void SDLContext::signal_push() {
 }
 
 void SDLContext::update_screen() {
+    std::optional<BlendTransitionReq> blend_transition;
+    std::optional<SlideTransitionReq> slide_transition;
     {
         std::lock_guard _(_mx);
+        if (_display_update_queue.empty()) return;
         QueueIter iter = _display_update_queue.data();
         QueueIter end = iter + _display_update_queue.size();
         while (iter != end) {
@@ -302,14 +262,63 @@ void SDLContext::update_screen() {
                 break;
                 case DisplayRequest::swap_visible_buffers: {
                     std::swap(_visible_texture,_hidden_texture);
+                    blend_transition.reset();
+                    slide_transition.reset();
                 }
+                break;
+                case DisplayRequest::blend_transition:
+                    blend_transition.emplace();
+                     pop_item(iter, *blend_transition);
+                break;
+                case DisplayRequest::slide_transition:
+                    slide_transition.emplace();
+                     pop_item(iter, *slide_transition);
                 break;
             }
         }
         _display_update_queue.clear();
+
     }
+    SDL_Rect winrc = get_window_aspect_rect();
     SDL_RenderClear(_renderer.get());
-    SDL_RenderCopy(_renderer.get(), _visible_texture, NULL, NULL);
+    if (slide_transition) {
+        SDL_SetTextureAlphaMod(_hidden_texture, 255);
+        SDL_SetTextureAlphaMod(_visible_texture, 255);
+        SDL_RenderCopy(_renderer.get(), _hidden_texture, NULL, &winrc);
+        SDL_Rect visible_where_win = to_window_rect(winrc, slide_transition->visible_where);
+        SDL_Rect hidden_where_win = to_window_rect(winrc, slide_transition->hidden_where);
+        SDL_RenderCopy(_renderer.get(), _visible_texture, &slide_transition->visible_from, &visible_where_win);
+        SDL_RenderCopy(_renderer.get(), _hidden_texture, &slide_transition->hidden_from, &hidden_where_win);
+    }
+    else if (blend_transition) {
+        SDL_SetTextureAlphaMod(_hidden_texture, 255);
+        SDL_RenderCopy(_renderer.get(), _hidden_texture, NULL, &winrc);
+        if (blend_transition->phase >= 0) {
+            float f = blend_transition->phase;
+            SDL_SetTextureAlphaMod(_visible_texture, 255);
+            SDL_Rect wrkarea = to_window_rect(winrc, blend_transition->wrkarea);
+            SDL_Rect src1 = transition_rect(blend_transition->prev, blend_transition->next, f);
+            SDL_RenderCopy(_renderer.get(), _visible_texture, &src1, &wrkarea);
+            if (SDL_SetTextureAlphaMod(_hidden_texture, (uint8_t)(255.0f*(f)))!= -1) {
+                SDL_Rect trgnxt = to_window_rect(winrc, blend_transition->next);
+                SDL_Rect trgwin = transition_rect(trgnxt, wrkarea, f);
+                SDL_RenderCopy(_renderer.get(), _hidden_texture, &blend_transition->wrkarea, &trgwin);
+            }
+        } else {
+            float f = blend_transition->phase;
+            SDL_Rect wrkarea = to_window_rect(winrc, blend_transition->wrkarea);
+            SDL_Rect src1 = transition_rect(blend_transition->prev, blend_transition->next, 1+f);
+            SDL_RenderCopy(_renderer.get(), _hidden_texture, &src1, &wrkarea);
+            if (SDL_SetTextureAlphaMod(_visible_texture, (uint8_t)(255.0f*(1+f))) != -1) {
+                SDL_Rect trgnxt = to_window_rect(winrc, blend_transition->next);
+                SDL_Rect trgwin = transition_rect(trgnxt, wrkarea, 1+f);
+                SDL_RenderCopy(_renderer.get(), _visible_texture, &blend_transition->wrkarea, &trgwin);
+            }
+        }
+    } else {
+        SDL_SetTextureAlphaMod(_visible_texture, 255);
+        SDL_RenderCopy(_renderer.get(), _visible_texture, NULL, &winrc);
+    }
     SDL_RenderPresent(_renderer.get());
 }
 
@@ -359,6 +368,76 @@ void SDLContext::swap_render_buffers() {
 void SDLContext::swap_display_buffers() {
     std::lock_guard _(_mx);
     signal_push();
-    push_item(DisplayRequest::swap_render_buffers);
+    push_item(DisplayRequest::swap_visible_buffers);
 }
 
+void SDLContext::show_blend_transition(const SDL_Rect &wrkarea, const SDL_Rect &prev,
+        const SDL_Rect &next, float phase) {
+    std::lock_guard _(_mx);
+    signal_push();
+    push_item(DisplayRequest::blend_transition);
+    push_item(BlendTransitionReq{wrkarea, prev, next, phase});
+}
+
+SDL_Rect SDLContext::get_window_aspect_rect() const {
+    SDL_Rect w;
+    int ww;
+    int wh;
+    SDL_GetWindowSizeInPixels(_window.get(), &ww, &wh);
+    int apw  = wh * 4 / 3;
+    int aph =  ww * 3 / 4;
+    int fw;
+    int fh;
+    if (apw > ww) {
+        fw = ww;
+        fh = aph;
+    } else {
+        fw = apw;
+        fh = wh;
+    }
+    w.h = fh;
+    w.w = fw;
+    w.x = (ww - fw)/2;
+    w.y = (wh - fh)/2;
+    return w;
+}
+
+SDL_Point SDLContext::to_window_point(const SDL_Rect &winrc, const SDL_Point &pt) {
+    return {
+        pt.x * winrc.w / 640 + winrc.x,
+        pt.y * winrc.h / 480 + winrc.y,
+    };
+}
+
+SDL_Point SDLContext::to_source_point(const SDL_Rect &winrc, const SDL_Point &win_pt)  {
+    return {
+        (win_pt.x - winrc.x) * 640 / winrc.w,
+        (win_pt.y - winrc.y) * 480 / winrc.h,
+    };
+}
+
+int SDLContext::transition_int(int beg, int end, float phase) {
+    int w = end - beg;
+    return beg + static_cast<int>(std::round(w * phase));
+}
+
+SDL_Rect SDLContext::transition_rect(const SDL_Rect &beg, const SDL_Rect &end, float phase) {
+    SDL_Rect out;
+    out.x = transition_int(beg.x, end.x, phase);
+    out.y = transition_int(beg.y, end.y, phase);
+    out.w = transition_int(beg.w, end.w, phase);
+    out.h = transition_int(beg.h, end.h, phase);
+    return out;
+}
+
+
+SDL_Rect SDLContext::to_window_rect(const SDL_Rect &winrc, const SDL_Rect &source_rect) {
+    SDL_Point pt1(source_rect.x, source_rect.y);
+    SDL_Point pt2(source_rect.x+source_rect.w, source_rect.y+source_rect.h);
+    SDL_Point wpt1(to_window_point(winrc, pt1));
+    SDL_Point wpt2(to_window_point(winrc, pt2));
+    return {wpt1.x, wpt1.y, wpt2.x - wpt1.x, wpt2.y - wpt1.y};
+
+
+
+}

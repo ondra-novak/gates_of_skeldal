@@ -2393,6 +2393,7 @@ static void shop_mouse_event(EVENT_MSG *msg,void **unused)
      int x,y;
      char cc=1;
      static int last_pos=-1;
+     EVENT_MSG msgc = clone_message(msg);
 
      ms=get_mouse(msg);
      x=ms->x-(BUYBOX_X+SHP_ICPLCX);
@@ -2422,10 +2423,12 @@ static void shop_mouse_event(EVENT_MSG *msg,void **unused)
         }
         if (cc)
         {
-        inv_item_info_box(msg,unused);
+        inv_item_info_box(&msgc,unused);
         last_pos=-1;
         }
+        destroy_message(&msgc);
      }
+
   }
 
 static __inline void copy_data(char **src, void *target, int size) {
