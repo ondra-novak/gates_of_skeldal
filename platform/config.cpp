@@ -1,6 +1,7 @@
 #include "config.h"
 #include "platform.h"
 #include <fstream>
+#include <iostream>
 #include <map>
 #include <string>
 #include <string_view>
@@ -50,7 +51,7 @@ void parseIniStream(std::istream& input, Callback &&callback) {
 }
 
 
-const INI_CONFIG* ini_open(const char *filename) {
+INI_CONFIG* ini_open(const char *filename) {
     INI_CONFIG *c = new INI_CONFIG;
 
     std::fstream input(filename);
@@ -167,4 +168,29 @@ int ini_get_boolean(const INI_CONFIG_SECTION *section, const char *key,
         return r>=0?r:defval;
     }
     return defval;
+}
+
+void ini_replace_key( INI_CONFIG_SECTION *section, const char *key, const char *value) {
+    auto s = reinterpret_cast<INI_CONFIG::Section *>(section);
+    (*s)[std::string(key)] = std::string(value);
+}
+
+INI_CONFIG_SECTION* ini_create_section(INI_CONFIG *cfg, const char *section_name) {
+    auto &sect = cfg->data[std::string(section_name)];
+    return reinterpret_cast<INI_CONFIG_SECTION *>(&sect);
+}
+
+ INI_CONFIG* ini_create_empty(void) {
+    INI_CONFIG *c = new INI_CONFIG;
+    return c;
+}
+
+void ini_store_to_file(const INI_CONFIG *config, const char *filename) {
+    std::ofstream out(filename,std::ios::out|std::ios::trunc);
+    for (const auto &[sname, s]: config->data) {
+        out << '[' << sname << ']' << std::endl;
+        for (const auto &[k,v]: s) {
+            out << k << '=' << v << std::endl;
+        }
+    }
 }

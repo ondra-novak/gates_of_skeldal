@@ -7,9 +7,9 @@ typedef struct ini_config_tag INI_CONFIG;
 typedef struct ini_config_section_tag INI_CONFIG_SECTION;
 
 ///Opens config, returns handle
-const INI_CONFIG *ini_open(const char *filename);
+INI_CONFIG *ini_open(const char *filename);
 ///closes the config and frees memory
-void ini_close(const INI_CONFIG *config);
+void ini_close(INI_CONFIG *config);
 
 ///Opens section
 /**
@@ -54,6 +54,15 @@ double ini_get_value_double(const char *value, int *conv_ok);
  */
 int ini_get_value_boolean(const char *value);
 
+INI_CONFIG_SECTION* ini_create_section(INI_CONFIG *cfg, const char *section_name);
+
+INI_CONFIG *ini_create_empty(void);
+
+void ini_store_to_file(const INI_CONFIG *cfg, const char *filename);
+
+
+///Replace existing key with different value
+void ini_replace_key(INI_CONFIG_SECTION *section, const char *key, const char *value);
 
 ///retrieve string from ini
 /**

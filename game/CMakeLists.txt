@@ -32,6 +32,7 @@ setup.c
 chargen.c   
 sndandmus.c  
 specproc.c
+advconfig.c
 temp_storage.cpp
 ${CMAKE_BINARY_DIR}/default_font.cpp
 )
@@ -39,7 +40,6 @@ ${CMAKE_BINARY_DIR}/default_font.cpp
 add_executable(skeldal  ${files})
 target_link_libraries(skeldal 
     skeldal_libs 
-    skeldal_platform_libs
-    skeldal_linux
+    skeldal_platform
     skeldal_sdl
      ${SDL2_LIBRARIES} pthread)

@@ -1,6 +1,6 @@
 #include "timer.h"
 #include <chrono>
-#include "../platform.h"
+#include "platform.h"
 
 #include <thread>
 int get_timer_value() {
