@@ -52,20 +52,24 @@ void SDLContext::generateCRTTexture(SDL_Renderer* renderer, SDL_Texture** textur
 
     // Vytvoř novou texturu ve správné velikosti
     *texture = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_RGBA8888, SDL_TEXTUREACCESS_STREAMING, width, height);
-    SDL_SetTextureBlendMode(*texture, SDL_BLENDMODE_BLEND);
+    SDL_SetTextureBlendMode(*texture, SDL_BLENDMODE_MUL);
+
 
     // Zamkni texturu pro přímý přístup k pixelům
     void* pixels;
     int pitch;
     SDL_LockTexture(*texture, nullptr, &pixels, &pitch);
 
+    bool wider_lines = height > 1024;
+
     // Vyplň texturu patternem (liché řádky tmavší)
     Uint32* pixelArray = (Uint32*)pixels;
-    Uint32 darkPixel = 0x00000080; // Černá s částečnou průhledností
-    Uint32 transparentPixel = 0x00000000;
+    Uint32 darkPixel = wider_lines?0x808080FF:0xC0C0C0FF; // Černá s částečnou průhledností
+    Uint32 transparentPixel = wider_lines ?0xFFFFFFE0:0xFFFFFFC0;
+    int step = wider_lines ?3:2;
 
     for (int y = 0; y < height; y++) {
-        Uint32 color = (y % 3 == 0) ? darkPixel : transparentPixel;
+        Uint32 color = (y % step == 0) ? darkPixel : transparentPixel;
         for (int x = 0; x < width; x++) {
             pixelArray[y * (pitch / 4) + x] = color;
         }
@@ -354,7 +358,7 @@ void SDLContext::update_screen() {
         SDL_SetTextureAlphaMod(_visible_texture, 255);
         SDL_RenderCopy(_renderer.get(), _visible_texture, NULL, &winrc);
     }
-    if (winrc.w > 1280 && winrc.h > 960) {
+    if (winrc.h > 900) {
         if (!_crt_effect) {
             SDL_Texture *txt;
             generateCRTTexture(_renderer.get(), &txt, 128, std::min<int>(1440, winrc.h));
