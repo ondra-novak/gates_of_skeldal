@@ -1,11 +1,11 @@
-#include <platform.h>
+#include <platform/platform.h>
 #include <stdio.h>
 #include <malloc.h>
 #include <stdlib.h>
 #include <string.h>
 #include <ctype.h>
-#include <strlite.h>
-#include <inicfg.h>
+#include <libs/strlite.h>
+#include <libs/inicfg.h>
 
 TSTR_LIST read_config(const char *filename)
   {

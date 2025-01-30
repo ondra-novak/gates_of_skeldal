@@ -1,4 +1,4 @@
-#include <platform.h>
+#include <platform/platform.h>
 #include "strlite.c"
 
 #include "devices.h"

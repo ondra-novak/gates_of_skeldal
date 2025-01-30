@@ -12,8 +12,8 @@
 
 extern "C"
   {
-#include <strlite.h>
-#include <inicfg.h>
+#include <libs/strlite.h>
+#include <libs/inicfg.h>
   }
 
 static HWND handles[5];

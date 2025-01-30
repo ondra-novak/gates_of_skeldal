@@ -3,8 +3,8 @@
 #define SKELDAL_GAME_ADVCONFIG_H_
 
 
-#include <strlite.h>
-#include <config.h>
+#include <libs/strlite.h>
+#include <platform/config.h>
 
 
 void adv_patch_config(INI_CONFIG *srcconfig, TSTR_LIST lst);

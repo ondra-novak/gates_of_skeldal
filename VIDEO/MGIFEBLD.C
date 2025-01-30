@@ -1,24 +1,24 @@
-#include <types.h>
+#include <libs/types.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <mem.h>
 #include <malloc.h>
-#include <memman.h>
-#include <event.h>
-#include <bmouse.h>
-#include <gui.h>
-#include <basicobj.h>
-#include <zvuk.h>
-#include <bgraph.h>
-#include <mgifmem.h>
-#include <strlite.h>
+#include <libs/memman.h>
+#include <libs/event.h>
+#include <libs/bmouse.h>
+#include <libs/gui.h>
+#include <libs/basicobj.h>
+#include <libs/zvuk.h>
+#include <libs/bgraph.h>
+#include <libs/mgifmem.h>
+#include <libs/strlite.h>
 #include <strlists.h>
 #include "lzw.h"
 #include "mgifeobj.h"
 #include "mgifedit.h"
 #include "mgifeact.h"
 #include "mgifebld.h"
-#include <wav.h>
+#include <libs/wav.h>
 #include <time.h>
 
 
@@ -360,7 +360,7 @@ char build_solo(int smp)
 static void error_message(int smp)
   {
   char *c;
-  char *msg="Nastala chyba p©i pr ci se stopou:";
+  char *msg="Nastala chyba pï¿½i prï¿½ci se stopou:";
   if (smp_prg[smp].user_name!=NULL)
      {
      concat(c,msg,smp_prg[smp].user_name);
@@ -369,7 +369,7 @@ static void error_message(int smp)
     {
     concat(c,msg,smp_prg[smp].sample_name);
     }
-  msg_box(PRG_HEADER,'\x1',msg,"Pokra‡ovat",NULL);
+  msg_box(PRG_HEADER,'\x1',msg,"Pokraï¿½ovat",NULL);
   }
 
 char build_all_samples()
@@ -393,7 +393,7 @@ char build_all_samples()
         return 0;
         }
      }
-  set_value(0,20,"Ukl d m zvukovou stopu...");
+  set_value(0,20,"Uklï¿½dï¿½m zvukovou stopu...");
   save_all();
   destroy_all();
   exit_wait=0;

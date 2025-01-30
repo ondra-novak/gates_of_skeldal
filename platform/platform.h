@@ -7,7 +7,7 @@
 
 #define BGSWITCHBIT 0x0020
 
-#define SKELDALINI "wskeldal.ini"
+#define SKELDALINI "skeldal.ini"
 
 #ifdef __cplusplus
 extern "C"
@@ -26,6 +26,21 @@ uint32_t _bios_keybrd(int mode);
 #define RGB888(r,g,b) ((unsigned short)((((r)<<8)&0xF800) | (((g)<<3) & 0x7C0) | ((b)>>3)))
 #define RGB555(r,g,b) ((unsigned short)(((r)<<11) | ((g)<<6) | (b)))
 
+
+///build pathname from parts
+/**
+ * @param nparts count of parts (must be > 0)
+ * @param part first part
+ * @return complete path - statically allocated buffer
+ */
+const char * build_pathname(size_t nparts, const char *part1, ...);
+///creates directories recursively
+/**
+ * @param path path
+ * @retval 1 success
+ * @retval 0 failure
+ */
+char create_directories(const char *path);
 
 
 

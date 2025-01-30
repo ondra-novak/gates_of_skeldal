@@ -1,23 +1,24 @@
-#include <platform.h>
+#include <platform/platform.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <malloc.h>
 #include <math.h>
-#include <bios.h>
-#include <mem.h>
-#include <types.h>
-#include <event.h>
-#include <memman.h>
-#include <devices.h>
-#include <bmouse.h>
-#include <bgraph.h>
-#include <zvuk.h>
-#include <strlite.h>
-#include "engine1.h"
-#include <pcx.h>
-#include "globals.h"
-#include "inicfg.h"
 
+
+#include <libs/types.h>
+#include <libs/event.h>
+#include <libs/memman.h>
+#include <libs/devices.h>
+#include <libs/bmouse.h>
+#include <libs/bgraph.h>
+#include <libs/zvuk.h>
+#include <libs/strlite.h>
+#include "engine1.h"
+#include <libs/pcx.h>
+#include "globals.h"
+#include <libs/inicfg.h>
+
+#include <string.h>
 
 
 #define A_OPEN_DOOR 1
@@ -141,16 +142,15 @@ void preload_objects(int ofsts)
   {
   int i;
   char lodka=1;
-  char c[200];
 
   for(i=1;i<mapsize;i++) if (map_sectors[i].sector_type==S_LODKA) break;
   if (i==mapsize) lodka=0;
-  sprintf(c,"%sLOADING.MUS",pathtable[SR_WORK]);
+//  const char *c = build_pathname(2, pathname[SR_DATA], "LOADING.MUS");
 //  change_music(c);
   trans_bar(0,460,640,20,0);
   position(0,460);
   set_font(H_FBOLD,RGB555(0,31,0));
-  sprintf(c,texty[TX_LOAD],mglob.mapname);
+  const char *c = concat2(texty[TX_LOAD], mglob.mapname);
   outtext(c);
   for(i=0;i<ofsts;i++)
      {
@@ -165,7 +165,7 @@ void preload_objects(int ofsts)
   */
   }
 
-int load_level_texts(char *filename)
+int load_level_texts(const char *filename)
   {
   int err;
 
@@ -174,20 +174,25 @@ int load_level_texts(char *filename)
   return err;
   }
 
-char *pripona(char *filename,char *pripona)
+char *change_extension_support(char *buffer, const char *filename,char *new_extension)
   {
-  char *buff;
-  char *c;
+    strcpy(buffer, filename);
+    char *sep = buffer;
+    char *c = buffer;
+    while (*c) {
+        if (*c == '/' || *c == '\\') {
+            sep = c;
+        }
+        ++c;
+    }
 
-  buff=getmem(strlen(filename)+strlen(pripona)+2);
-  strcpy(buff,filename);
-  c=strrchr(buff,PATH_SEPARATOR_CHR);
-  if (c==NULL) c=buff;
-  c=strchr(c,'.');
-  if (c!=NULL) *c=0;
-  strcat(buff,pripona);
-  return buff;
+    char *dot = strchr(sep, '.');
+    if (dot == NULL) strcat(buffer, new_extension);
+    else strcpy(dot, new_extension);
+    return buffer;
   }
+
+#define set_file_extension(filename, extension) change_extension_support((char *)alloca(strlen(filename)+strlen(extension)), (filename), (extension))
 
 void show_loading_picture(char *filename)
   {
@@ -214,19 +219,18 @@ int load_map(char *filename)
   int32_t size,r;
   char nmapend=1;
   int ofsts=START_HANDLE;
-  char *c,*d;
   char snd_load=0;
   void *mob_template;
   int32_t mob_size;
   int suc;
 
   map_with_password=0;
-  c=find_map_path(filename);
+  const char *mpath = build_pathname(2, gpathtable[SR_MAP], filename);
   schovej_mysku();
   if (level_preload) show_loading_picture("LOADING.HI");
   change_music("?");
   zobraz_mysku();
-  f=fopen_icase(c,"rb");
+  f=fopen_icase(mpath,"rb");
   if (level_fname!=NULL) free(level_fname);
   level_fname=(char *)getmem(strlen(filename)+1);
   strcpy(level_fname,filename);
@@ -367,9 +371,8 @@ int load_map(char *filename)
   memset(minimap,0,sizeof(minimap));
   if (level_preload) preload_objects(ofsts);
   end_ptr=ofsts;
-  d=pripona(c,".TXT");
-	free(c);
-  suc=load_level_texts(d);free(d);
+  const char *tpath=set_file_extension(mpath,".txt");
+  suc=load_level_texts(tpath);
   if (!suc && level_texts!=NULL) create_playlist(level_texts[0]);
   init_tracks();
   change_music(get_next_music_from_playlist());

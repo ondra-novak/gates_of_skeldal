@@ -1,15 +1,16 @@
-#include <platform.h>
+#include <platform/platform.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <mem.h>
-#include <memman.h>
-#include <zvuk.h>
-#include <wav_mem.h>
-#include <event.h>
+
+#include <libs/memman.h>
+#include <libs/zvuk.h>
+#include <libs/wav_mem.h>
+#include <libs/event.h>
 #include "globals.h"
 #include <math.h>
-#include <strlite.h>
+#include <libs/strlite.h>
 
+#include <string.h>
 #include <unistd.h>
 #define PL_RANDOM 1
 #define PL_FORWARD 2
@@ -379,8 +380,6 @@ const char * end_of_song_callback(void *ctx) {
 const char *get_next_music_from_playlist()
   {
   int i,step;
-  static char d[MAX_FILESYSTEM_PATH];
-
   if (cur_playlist==NULL) return NULL;
   if (!remain_play)
      for(i=0;cur_playlist[i]!=NULL;remain_play++,i++) cur_playlist[i][0]=32;
@@ -397,12 +396,9 @@ const char *get_next_music_from_playlist()
      }
   while (step);
   playing_track=i;
-  snprintf(d,sizeof(d),"%s%s",pathtable[SR_MUSIC],cur_playlist[i]+1);
+  const char *d = build_pathname(2, gpathtable[SR_MUSIC], cur_playlist[i]+1);
   if (!check_file_exists(d)) {
-      snprintf(d,sizeof(d),"%s%s",pathtable[SR_ORGMUSIC],cur_playlist[i]+1);
-      if (!check_file_exists(d)) {
-          return NULL;
-      }
+     return NULL;
   }
   cur_playlist[i][0]=33;
   remain_play--;

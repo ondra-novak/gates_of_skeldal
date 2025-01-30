@@ -1,7 +1,7 @@
-#include <platform.h>
+#include <platform/platform.h>
 #include "types.h"
-#include <mgfplay.h>
-#include <bgraph.h>
+#include <libs/mgfplay.h>
+#include <libs/bgraph.h>
 
 #include <assert.h>
 

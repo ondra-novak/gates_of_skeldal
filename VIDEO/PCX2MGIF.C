@@ -63,11 +63,11 @@
 
 #include <stdio.h>
 #include <stdlib.h>
-#include <types.h>
-#include <bgraph.h>
-#include <memman.h>
+#include <libs/types.h>
+#include <libs/bgraph.h>
+#include <libs/memman.h>
 #include <mem.h>
-#include <pcx.h>
+#include <libs/pcx.h>
 #include "lzw.h"
 #include <math.h>
 #include <conio.h>
@@ -782,14 +782,14 @@ void script_compress(char *script_name)
   else strcpy(c,SND_NAME);
   if (scr==NULL)
      {
-     printf("Nemohu otev©¡t script: %s\n",script_name);
+     printf("Nemohu otevï¿½ï¿½t script: %s\n",script_name);
      exit(1);
      }
   snf=fopen(snd_name,"w");
   i=fscanf(scr,"%255s",name);
   if (i!=1)
      {
-     printf("Chyba ve script souboru: %s. Prvni mus¡ b˜t jm‚no c¡lov‚ho souboru.\n",scr);
+     printf("Chyba ve script souboru: %s. Prvni musï¿½ bï¿½t jmï¿½no cï¿½lovï¿½ho souboru.\n",scr);
      exit(1);
      }
   i=fscanf(scr,"%d",&speed);
@@ -860,7 +860,7 @@ main(int argc,char *argv[])
           "Nula udava ze se nezapisuji jen ty body, ktere se nemeni.\n\n"
           "Pozn1: Bezne neni nutne uvadet parametr colorq protoze stupen ztraty se \n"
           "voli podle vysledku predchoziho frame. Je dobre ho uvest pri velkych\n"
-          "vykyvech velikosti frame. Tak zhruba pri ñ10KB. Hodnoty parametru se \n"
+          "vykyvech velikosti frame. Tak zhruba pri ï¿½10KB. Hodnoty parametru se \n"
           "voli od 25000-35000, cim vyssi, tim vyssi stupen ztraty\n\n"
           "Pozn2: Pokud nektere parametry vynechas (treba znakem '-', nebo je na konci\n"
           "neuvedes, dosadi se default hodnoty. Ty jsou zvoleny tak, aby program\n"

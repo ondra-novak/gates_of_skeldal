@@ -1,4 +1,4 @@
-#include <platform.h>
+#include <platform/platform.h>
 #include <stdio.h>
 #include "types.h"
 #include "memman.h"

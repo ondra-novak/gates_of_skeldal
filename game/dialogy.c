@@ -1,22 +1,22 @@
-#include <platform.h>
+#include <platform/platform.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <malloc.h>
 #include <math.h>
-#include <bios.h>
-#include <mem.h>
-#include <types.h>
-#include <event.h>
+
+
+#include <libs/types.h>
+#include <libs/event.h>
 #include <ctype.h>
-#include <memman.h>
-#include <devices.h>
-#include <bmouse.h>
-#include <bgraph.h>
-#include <zvuk.h>
-#include <strlite.h>
-#include <mgifmem.h>
+#include <libs/memman.h>
+#include <libs/devices.h>
+#include <libs/bmouse.h>
+#include <libs/bgraph.h>
+#include <libs/zvuk.h>
+#include <libs/strlite.h>
+#include <libs/mgifmem.h>
 #include "engine1.h"
-#include <pcx.h>
+#include <libs/pcx.h>
 #include "globals.h"
 #include <stdarg.h>
 
@@ -156,14 +156,13 @@ static void dialog_anim(va_list args)
 
   void *anm;
   void *aptr;
-  char *ch;
   char hid;
   int spdc=0,cntr=rep,tm,tm2;
 
   int32_t scr_linelen2 = GetScreenPitch();
   loc_anim_render_buffer=PIC_Y*scr_linelen2+PIC_X;
   mgif_install_proc(animace_kouzla);
-  concat(ch,pathtable[SR_DIALOGS],block);
+  const char *ch = build_pathname(2,gpathtable[SR_DIALOGS], block);
   free(block);
   aptr=load_file(ch);
   do

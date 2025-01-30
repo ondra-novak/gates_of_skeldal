@@ -63,9 +63,9 @@
 
 #include <stdio.h>
 #include <stdlib.h>
-#include <types.h>
-#include <bgraph.h>
-#include <memman.h>
+#include <libs/types.h>
+#include <libs/bgraph.h>
+#include <libs/memman.h>
 #include <mem.h>
 #include "flc.h"
 #include "lzw.h"
@@ -624,7 +624,7 @@ main(int argc,char *argv[])
           "Nula udava ze se nezapisuji jen ty body, ktere se nemeni.\n\n"
           "Pozn: Bezne neni nutne uvadet parametr colorq protoze stupen ztraty se \n"
           "voli podle vysledku predchoziho frame. Je dobre ho uvest pri velkych\n"
-          "vykyvech velikosti frame. Tak zhruba pri ñ10KB. Hodnoty parametru se \n"
+          "vykyvech velikosti frame. Tak zhruba pri ï¿½10KB. Hodnoty parametru se \n"
           "voli od 25000-35000, cim vyssi, tim vyssi stupen ztraty");
      exit(0);
      }

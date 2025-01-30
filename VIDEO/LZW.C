@@ -1,7 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <mem.h>
-#include <memman.h>
+#include <libs/memman.h>
 
 
 #define LZW_MAX_CODES  4096

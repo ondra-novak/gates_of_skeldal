@@ -1,12 +1,12 @@
-#include <platform.h>
+#include <platform/platform.h>
 #include "strlite.h"
 #include <stdlib.h>
 #include <stdio.h>
-#include <mem.h>
 #include <malloc.h>
 #include "types.h"
 #include "memman.h"
 
+#include <string.h>
 TSTR_LIST create_list(int count)
   {
   TSTR_LIST p;

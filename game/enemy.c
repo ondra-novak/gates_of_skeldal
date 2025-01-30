@@ -1,18 +1,19 @@
-#include <platform.h>
+#include <platform/platform.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <malloc.h>
-#include <bios.h>
-#include <mem.h>
-#include <types.h>
-#include <event.h>
-#include <memman.h>
-#include <bgraph.h>
-#include <zvuk.h>
+
+
+#include <libs/types.h>
+#include <libs/event.h>
+#include <libs/memman.h>
+#include <libs/bgraph.h>
+#include <libs/zvuk.h>
 #include "engine1.h"
 #include "globals.h"
 #include "specproc.h"
 
+#include <string.h>
 #define MOB_ZNAKY "FLBLCH"
 #define MOB_START 1
 

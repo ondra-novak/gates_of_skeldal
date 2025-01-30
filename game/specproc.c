@@ -1,13 +1,13 @@
 //Toto je hlavni soubor specialnich procedur pro hru BRANY SKELDALU
-#include <platform.h>
+#include <platform/platform.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <event.h>
-#include <strlite.h>
-#include "bgraph.h"
+#include <libs/event.h>
+#include <libs/strlite.h>
+#include <libs/bgraph.h>
 #include "globals.h"
 #include "specproc.h"
-#include "bmouse.h"
+#include <libs/bmouse.h>
 #include <math.h>
 //#include "i86.h"
 

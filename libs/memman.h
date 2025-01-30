@@ -66,15 +66,16 @@ typedef handle_list *handle_groups[BK_MAJOR_HANDLES];
 #define BK_PRELOAD 8
 #define BK_HSWAP 16
 
-extern char **mman_pathlist;  //tento pointer musi byt naplnen ukazatelem na tabulku cest
+extern  char *const * mman_pathlist;  //tento pointer musi byt naplnen ukazatelem na tabulku cest
 extern void (*mem_error)(size_t);    //pokud neni NULL je tato funkce volana vzdy kdyz dojde pamet a system si s tim nevi rady
 extern void (*swap_error)(void);
 extern int memman_handle; //cislo handle naposled zpracovavaneho prikazem ablock
 extern char mman_patch;    //jednicka zapina moznost pouziti patchu
 void *getmem(int32_t size);        //alokace pameti pres memman. alokovat pomoci malloc lze ale hrozi nebezpeci ze vrati NULL
 void *grealloc(void *m,int32_t size); //realokace pameti pres memman
-void *load_file(char *filename); //obycejne natahne soubor do pameti a vrati ukazatel.
-void init_manager(char *filename,char *swp); //inicializuje manager. Jmeno filename i swapname nejsou povinne (musi byt NULL kdyz nejsou pouzity)
+void *load_file(const char *filename); //obycejne natahne soubor do pameti a vrati ukazatel.
+void init_manager(const char *filename,const char *swp); //inicializuje manager. Jmeno filename i swapname nejsou povinne (musi byt NULL kdyz nejsou pouzity)
+void def_mman_group_table( char *const * ); //define pointer to table of paths, for each group there is path
 THANDLE_DATA *def_handle(int handle,const char *filename,void *decompress,char path); //deklaruje rukojet. promenna decompress je ukazatel na funkci ktera upravi data pred vracenim ukazatele
 void *ablock(int handle);             //vraci ukazatel bloku spojeneho s handlem
 void alock(int handle);               //zamyka blok

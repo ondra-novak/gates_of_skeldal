@@ -1,21 +1,21 @@
-#include <platform.h>
+#include <platform/platform.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <malloc.h>
 #include <math.h>
-#include <bios.h>
-#include <mem.h>
-#include <types.h>
-#include <event.h>
-#include <memman.h>
-#include <devices.h>
-#include <bmouse.h>
-#include <bgraph.h>
-#include <zvuk.h>
-#include <strlite.h>
+
+
+#include <libs/types.h>
+#include <libs/event.h>
+#include <libs/memman.h>
+#include <libs/devices.h>
+#include <libs/bmouse.h>
+#include <libs/bgraph.h>
+#include <libs/zvuk.h>
+#include <libs/strlite.h>
 #include <stdarg.h>
 #include "engine1.h"
-#include <pcx.h>
+#include <libs/pcx.h>
 #include "globals.h"
 
 
@@ -368,21 +368,23 @@ char *get_next_title(signed char control,char *filename)
 
   static TMPFILE_RD *titles=NULL;
   static char buffer[81];
-  char *path,*c;
+  char *c;
+  const char *path;
 
   switch(control)
      {
-     case 1:concat(path,pathtable[SR_MAP],filename);
+     case 1:
+         path = local_strdup(build_pathname(2, gpathtable[SR_MAP],filename));
             titles=enc_open(path);
             if (titles==NULL)
               {
-              concat(path,pathtable[SR_DATA],filename);
-              titles=enc_open(path);
+                const char *path2 = local_strdup(build_pathname(2, gpathtable[SR_DATA],filename));
+              titles=enc_open(path2);
               if (titles==NULL)
                 {
 			    char popis[300];
                 closemode();
-                sprintf(popis,"Soubor nenalezen: %s%s nebo %s%s\n",pathtable[SR_MAP],filename,pathtable[SR_DATA],filename);
+                sprintf(popis,"Soubor nenalezen: %s nebo %s\n",path,path2);
 				display_error(popis);
                 exit(1);
                 }

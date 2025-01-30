@@ -1,26 +1,26 @@
-#include <platform.h>
-#include <bios.h>
+#include <platform/platform.h>
+
 #include <stdlib.h>
 #include <string.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <malloc.h>
-#include <mem.h>
-#include <pcx.h>
-#include <types.h>
-#include <bgraph.h>
-#include <event.h>
-#include <devices.h>
-#include <bmouse.h>
-#include <memman.h>
-#include <zvuk.h>
-#include <strlite.h>
+
+#include <libs/pcx.h>
+#include <libs/types.h>
+#include <libs/bgraph.h>
+#include <libs/event.h>
+#include <libs/devices.h>
+#include <libs/bmouse.h>
+#include <libs/memman.h>
+#include <libs/zvuk.h>
+#include <libs/strlite.h>
 #include <ctype.h>
-#include <gui.h>
-#include <basicobj.h>
+#include <libs/gui.h>
+#include <libs/basicobj.h>
 #include <time.h>
-#include <mgfplay.h>
-#include <wav.h>
+#include <libs/mgfplay.h>
+#include <libs/wav.h>
 #include <fcntl.h>
 #include "globals.h"
 #include "engine1.h"
@@ -1318,21 +1318,6 @@ void check_global_fletna(THE_TIMER *t)
 
 //---------------------------------------
 
-char *find_map_path(const char *filename)
-	{
-	char *p1,*p;
-
-	if (pathtable[SR_MAP2]!=NULL)
-		{
-		concat(p1,pathtable[SR_MAP2],filename);
-		if (check_file_exists(p1)) goto found;
-		}
-	concat(p1,pathtable[SR_MAP],filename);
-	found:
-	p=NewArr(char,strlen(p1)+1);
-	strcpy(p,p1);
-	return p;
-	}
 
 static char *load_file_to_string(FILE *f, int *size) {
     fseek(f,0, SEEK_END);
@@ -1345,7 +1330,7 @@ static char *load_file_to_string(FILE *f, int *size) {
     return c;
 }
 
-TMPFILE_RD *enc_open(char *filename)
+TMPFILE_RD *enc_open(const char *filename)
   {
   FILE *f;
   char *c,*enc;
@@ -1384,7 +1369,7 @@ void enc_close(TMPFILE_RD *fil)
   }
 
 
-int load_string_list_ex(TSTR_LIST *list,char *filename)
+int load_string_list_ex(TSTR_LIST *list,const char *filename)
   {
   char c[1024],*p;
   int i,j,lin=0;
@@ -1564,7 +1549,6 @@ typedef struct _hicolpal
 
 void show_jrc_logo(char *filename)
   {
-  char *s;
   char *pcx;word *pcxw;
   char bnk=1;
   int xp,yp,i;
@@ -1574,7 +1558,7 @@ void show_jrc_logo(char *filename)
   change_music("?");
   curcolor=0;bar32(0,0,639,479);
   showview(0,0,0,0);sleep_ms(1000);
-  concat(s,pathtable[SR_VIDEO],filename);
+  const char *s = build_pathname(2, gpathtable[SR_VIDEO],filename);
   if (open_pcx(s,A_8BIT,&pcx)) return;
   pcxw=(word *)pcx;
   xp=pcxw[0];

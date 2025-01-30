@@ -1,4 +1,4 @@
-#include <types.h>
+#include <libs/types.h>
 #include <stdio.h>
 #include <string.h>
 #include <malloc.h>
@@ -47,44 +47,44 @@ char pr_name=0,pr_type=0,pr_sound=0,pr_umist=0,pr_zbran=0,pr_hmotn=0,pr_popis=0;
 char grp_sort=0,pr_number=0,pr_cena=0;
 
 char _typy_zbrani[]=
-  "Me‡\0"
+  "Meï¿½\0"
   "Sekera\0"
   "Kladivo\0"
-  "H–l\0"
-  "D˜ka\0"
-  "St©eln \0"
-  "Ostatn¡\0";
+  "Hï¿½l\0"
+  "Dï¿½ka\0"
+  "Stï¿½elnï¿½\0"
+  "Ostatnï¿½\0";
 
 char _typy_veci[]=
-  "Nespecifikov no\0"
-  "Zbra¤ tv ©¡ v tv ©\0"
-  "Vrhac¡ zbra¤\0"
-  "St©eln  zbra¤\0"
+  "Nespecifikovï¿½no\0"
+  "Zbraï¿½ tvï¿½ï¿½ï¿½ v tvï¿½ï¿½\0"
+  "Vrhacï¿½ zbraï¿½\0"
+  "Stï¿½elnï¿½ zbraï¿½\0"
   "Zbroj\0"
-  "Svitek / H–lka\0"
+  "Svitek / Hï¿½lka\0"
   "Lektvar\0"
   "Voda\0"
-  "J¡dlo\0"
-  "Speci ln¡\0"
+  "Jï¿½dlo\0"
+  "Speciï¿½lnï¿½\0"
   "Runa\0"
-  "Pen¡ze\0"
+  "Penï¿½ze\0"
   "Svitek s textem\0"
   "Prach\0"
-  "Ostatn¡\0";
+  "Ostatnï¿½\0";
 
 char _umisteni_veci[]=
   "Nikam\0"
   "Zavazadlo\0"
-  "Na tˆlo (naho©e)\0"
-  "Na tˆlo (dole)\0"
+  "Na tï¿½lo (nahoï¿½e)\0"
+  "Na tï¿½lo (dole)\0"
   "Na hlavu\0"
   "Na nohy\0"
   "Kutna\0"
   "Na krk\0"
   "Do ruky\0"
-  "Obouru‡\0"
+  "Obouruï¿½\0"
   "Prsten\0"
-  "›¡p\0";
+  "ï¿½ï¿½p\0";
 
 
 long load_section(FILE *f,void **section, int *sct_type,long *sect_size)
@@ -149,14 +149,14 @@ char *find_str(char *sound,int number,long listsize)
 
 void print_polozka(int num,TITEM *t)
   {
-  if (pr_number) printf("%3d³",num);
-  if (pr_name) printf("%-32s³",t->jmeno);
-  if (pr_type) printf("%-20s³",find_str(_typy_veci,t->druh+1,sizeof(_typy_veci)));
-  if (pr_umist) printf("%-20s³",find_str(_umisteni_veci,t->umisteni+1,sizeof(_umisteni_veci)));
-  if (pr_zbran) printf("%-10s³",isweapon(t->druh)?find_str(_typy_zbrani,t->typ_zbrane+1,sizeof(_typy_zbrani)):" ");
-  if (pr_hmotn) printf("%6d³",t->hmotnost);
-  if (pr_cena) printf("%6d³",t->cena);
-  if (pr_sound) printf("%-12s³",find_str(sound,t->sound,listsize));
+  if (pr_number) printf("%3dï¿½",num);
+  if (pr_name) printf("%-32sï¿½",t->jmeno);
+  if (pr_type) printf("%-20sï¿½",find_str(_typy_veci,t->druh+1,sizeof(_typy_veci)));
+  if (pr_umist) printf("%-20sï¿½",find_str(_umisteni_veci,t->umisteni+1,sizeof(_umisteni_veci)));
+  if (pr_zbran) printf("%-10sï¿½",isweapon(t->druh)?find_str(_typy_zbrani,t->typ_zbrane+1,sizeof(_typy_zbrani)):" ");
+  if (pr_hmotn) printf("%6dï¿½",t->hmotnost);
+  if (pr_cena) printf("%6dï¿½",t->cena);
+  if (pr_sound) printf("%-12sï¿½",find_str(sound,t->sound,listsize));
   if (pr_popis) printf("%s",t->popis);
   puts("");
   }

@@ -1,13 +1,11 @@
-#include <platform.h>
+#include <platform/platform.h>
 #include <malloc.h>
-#include <mem.h>
 #include <stdio.h>
-/*#include "..\types.h"*/
 #include "pcx.h"
 #include "memman.h"
 
 #include <stdarg.h>
-/*#include "..\bgraph.h"*/
+#include <string.h>
 
 #define SHADE_STEPS 5
 #define SHADE_PAL (SHADE_STEPS*512*2)
@@ -179,7 +177,7 @@ int load_pcx(char *pcx,int32_t fsize,int conv_type,char **buffer, ... )
 
 }
 
-int open_pcx(char *filename,int type,char **buffer,...)
+int open_pcx(const char *filename,int type,char **buffer,...)
   {
   FILE *pcx;
   char *src;

@@ -3,8 +3,8 @@
 //#include <i86.h>
 //#include <dpmi.h>
 
-#include <mem.h>
-#include <bios.h>
+
+
 #include "zvuk.h"
 //#include "pcspeak.h"
 

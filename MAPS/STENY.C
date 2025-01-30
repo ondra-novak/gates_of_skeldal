@@ -3,17 +3,17 @@
 #include <stdlib.h>
 #include <string.h>
 #include <malloc.h>
-#include <memman.h>
-#include <types.h>
+#include <libs/memman.h>
+#include <libs/types.h>
 #include <mem.h>
-#include <bgraph.h>
-#include <event.h>
-#include <devices.h>
-#include <bmouse.h>
-#include <gui.h>
-#include <basicobj.h>
+#include <libs/bgraph.h>
+#include <libs/event.h>
+#include <libs/devices.h>
+#include <libs/bmouse.h>
+#include <libs/gui.h>
+#include <libs/basicobj.h>
 #include <strlists.h>
-#include <strlite.h>
+#include <libs/strlite.h>
 #include "steny.h"
 #include "globals.h"
 

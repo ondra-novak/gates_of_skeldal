@@ -1,8 +1,8 @@
 #include "types.h"
 #include <stdio.h>
 #include <stdlib.h>
-#include <mem.h>
-#include <bios.h>
+
+
 #include "memman.h"
 #include "bgraph.h"
 

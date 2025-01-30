@@ -1,4 +1,4 @@
-#include <types.h>
+#include <libs/types.h>
 #include <stdio.h>
 #include <math.h>
 #include "jpegmgif.h"

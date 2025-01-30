@@ -1,27 +1,27 @@
 #include <skeldal_win.h>
 #include <dos.h>
-#include <types.h>
+#include <libs/types.h>
 #include <mem.h>
 #include <malloc.h>
-#include <memman.h>
+#include <libs/memman.h>
 #include <stdio.h>
-#include <bgraph.h>
-#include <event.h>
-#include <devices.h>
-#include <bmouse.h>
-#include <gui.h>
-#include <strlite.h>
+#include <libs/bgraph.h>
+#include <libs/event.h>
+#include <libs/devices.h>
+#include <libs/bmouse.h>
+#include <libs/gui.h>
+#include <libs/strlite.h>
 #include <strlists.h>
-#include <wav.h>
-#include <zvuk.h>
+#include <libs/wav.h>
+#include <libs/zvuk.h>
 #include "mapy.h"
-#include <basicobj.h>
+#include <libs/basicobj.h>
 #include "globals.h"
 #include "edit_map.h"
 #include "save_map.h"
 #include "steny.h"
 #include "mob_edit.h"
-#include <pcx.h>
+#include <libs/pcx.h>
 
 
 

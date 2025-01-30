@@ -2,7 +2,7 @@
 //#include <vesa.h>
 #include <dpmi.h>
 #include <i86.h>
-#include <mem.h>
+
 #include <stdio.h>
 #include <malloc.h>
 #include <graph.h>
@@ -35,7 +35,7 @@ void position(word x,word y)
   writepos=getadr32(x,y);
   }
 
-void outtext(char *text)
+void outtext(const char *text)
   {
   byte pos;
 

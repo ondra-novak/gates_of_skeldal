@@ -1,8 +1,9 @@
 
-#include "types.h"
+#include <libs/types.h>
 #include "engine1.h"
 #include "temp_storage.h"
-
+#include <platform/config.h>
+#include <string.h>
 #include <stdint.h>
 #include <stdlib.h>
 
@@ -267,7 +268,11 @@ static __inline int rangrnd(int a, int b) {return rnd(b-a+1)+a;}
 
 
 #define concat(c,s1,s2) c=strcat(strcpy((char *)alloca(strlen(s1)+strlen(s2)+1),s1),s2)
-#define concat_r(c,s1,s2) strcat(strcpy((char *)alloca(strlen(s1)+strlen(s2)+1),s1),s2)
+#define local_strdup(c) strcpy((char *)strlen(c)+1, c)
+#define concat2(s1,s2) strcat(strcpy((char *)alloca(strlen(s1)+strlen(s2)+1),s1),s2)
+#define concat3(s1,s2,s3) strcat(strcat(strcpy((char *)alloca(strlen(s1)+strlen(s2)+strlen(s3)+1),s1),s2),s3)
+#define concat4(s1,s2,s3,s4) strcat(strcat(strcat(strcpy((char *)alloca(strlen(s1)+strlen(s2)+strlen(s3)+strlen(s4)+1),s1),s2),s3),s4)
+#define countof(array) (sizeof(array)/sizeof(array[0]))
 
 #define get_ap(vls) (((vls[VLS_POHYB])>0 && (vls[VLS_POHYB])<15)?1:(vls[VLS_POHYB])/15)
 
@@ -319,7 +324,26 @@ static __inline int rangrnd(int a, int b) {return rnd(b-a+1)+a;}
 #define MC_NOAUTOMAP   0x800 //nelze najit automapingem
 #define MC_NOSUMMON    0x1000 //nelze privolat hrace
 
-//adresare
+
+typedef enum skeldal_folders_tag {
+    SR_DATA,
+    SR_GRAFIKA,
+    SR_ZVUKY,
+    SR_FONT,
+    SR_MAP,
+    SR_MUSIC,
+    SR_BGRAFIKA,
+    SR_ITEMS,
+    SR_ENEMIES,
+    SR_VIDEO,
+    SR_DIALOGS,
+    SR_SAVES,
+    SR_WORK,
+    SR_CD,
+
+
+SR_COUNT} SKELDAL_FOLDERS_TAG;
+#if 0 //adresare
 #define SR_DATA 0
 #define SR_GRAFIKA 1
 #define SR_ZVUKY 2
@@ -336,6 +360,8 @@ static __inline int rangrnd(int a, int b) {return rnd(b-a+1)+a;}
 #define SR_CD 14
 #define SR_MAP2 15
 #define SR_ORGMUSIC 16
+#define SR_COUNT 17
+#endif
 
 //globalni cisla k casovacum
 #define TM_BACK_MUSIC 1
@@ -529,7 +555,7 @@ extern int viewsector;             //aktualni sektor vyhledu
 extern int viewdir;                //aktualni smer vyhledu
 extern THE_TIMER timer_tree;       //strom casovych udalosti
 extern D_ACTION *d_action;         //spojovy seznam zpozdenych akci
-extern char *pathtable[];          //tabulka adresaru
+extern char *gpathtable[SR_COUNT];          //tabulka adresaru
 extern char level_preload;         //informace o preloadingu
 extern char **texty;               //globalni tabulka textu
 extern char **level_texts;         //lokalni tabulka textu
@@ -665,7 +691,7 @@ void build_player_map(void); //je nutne volat po presunem postav
 int postavy_propadnout(int sector);
 void postavy_teleport_effect(int sector,int dir,int postava,char eff);
 void reg_grafiku_postav(void);
-void play_movie_seq(char *s,int y);
+void play_movie_seq(const char *s,int y);
 void check_postavy_teleport(void);  //je-li viewsector=teleport pak presune postavy
 
 //builder
@@ -1664,11 +1690,9 @@ void check_global_fletna(THE_TIMER *t);
 void fletna_glob_add_note(uint8_t note);
 
 
- char *find_map_path(const char *filename); //vyhledava jmeno mapy v alternativnich cestach.
-				//Vysledny retezec je nutne uvolnit (free) !
-TMPFILE_RD *enc_open(char *filename); //dekoduje a otevira TXT soubor (ENC)
+TMPFILE_RD *enc_open(const char *filename); //dekoduje a otevira TXT soubor (ENC)
 void enc_close(TMPFILE_RD *fil);
-int load_string_list_ex(char ***list,char *filename);
+int load_string_list_ex(char ***list,const char *filename);
 
 int smlouvat_nakup(int cena,int ponuka,int posledni,int puvod,int pocet);
 int smlouvat_prodej(int cena,int ponuka,int posledni,int puvod,int pocet);
@@ -1694,7 +1718,7 @@ char enter_generator(void);
 
 //kniha
 #define add_to_book(odst) add_text_to_book(texty_knihy,odst)
-void add_text_to_book(char *filename,int odst);
+void add_text_to_book(const char *filename,int odst);
 void write_book(int page);
 int count_pages(void);
 void save_book(void);

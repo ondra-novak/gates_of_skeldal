@@ -1,17 +1,18 @@
-#include <platform.h>
-#include <types.h>
+#include <platform/platform.h>
+#include <libs/types.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <mem.h>
-#include <bios.h>
-#include <memman.h>
-#include <bgraph.h>
-#include <event.h>
-#include <zvuk.h>
+
+
+#include <libs/memman.h>
+#include <libs/bgraph.h>
+#include <libs/event.h>
+#include <libs/zvuk.h>
 #include "math.h"
 #include "globals.h"
 #include "engine1.h"
 
+#include <string.h>
 #define CTVR 128
 
 t_points points;

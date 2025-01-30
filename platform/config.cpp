@@ -66,7 +66,7 @@ INI_CONFIG* ini_open(const char *filename) {
     return c;
 }
 
-void ini_close(const INI_CONFIG *config) {
+void ini_close(INI_CONFIG *config) {
     delete config;
 }
 

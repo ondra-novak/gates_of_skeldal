@@ -12,7 +12,7 @@ else()
     set(STANDARD_LIBRARIES "pthread")
 endif()
 
-include_directories(platform libs)
+include_directories(.)
 
 
 include_directories( ${SDL2_INCLUDE_DIRS})

@@ -1,34 +1,34 @@
-#include <platform.h>
+#include <platform/platform.h>
 #include <assert.h>
 #include <stdarg.h>
-#include <bios.h>
+
 #include <stdlib.h>
 #include <ctype.h>
 #include <string.h>
 #include <stdio.h>
 #include <malloc.h>
-#include <mem.h>
-#include <pcx.h>
-#include <types.h>
-#include <bgraph.h>
-#include <event.h>
-#include <devices.h>
-#include <bmouse.h>
-#include <memman.h>
-#include <zvuk.h>
-#include <strlite.h>
-#include <gui.h>
-#include <basicobj.h>
+
+#include <libs/pcx.h>
+#include <libs/types.h>
+#include <libs/bgraph.h>
+#include <libs/event.h>
+#include <libs/devices.h>
+#include <libs/bmouse.h>
+#include <libs/memman.h>
+#include <libs/zvuk.h>
+#include <libs/strlite.h>
+#include <libs/gui.h>
+#include <libs/basicobj.h>
 #include <time.h>
-#include <mgfplay.h>
-#include <doserr.h>
-#include <inicfg.h>
+#include <libs/mgfplay.h>
+#include <libs/inicfg.h>
 #include "globals.h"
 #include "engine1.h"
 #include "wizard.h"
 #include "version.h"
 #include "default_font.h"
 
+#include "advconfig.h"
 #include <unistd.h>
 #define CONFIG_NAME SKELDALINI
 
@@ -36,25 +36,7 @@
 #define INI_INT 2
 
 #define ERR_GENERAL 1
-char def_path[]="";
-char graph_path[]="graphics" PATH_SEPARATOR;
-char basc_graph[]="graphics" PATH_SEPARATOR "basic" PATH_SEPARATOR;
-char item_graph[]="graphics" PATH_SEPARATOR "items" PATH_SEPARATOR;
-char sample_path[]="samples" PATH_SEPARATOR;
-char font_path[]="font" PATH_SEPARATOR;
-char map_path[]="maps" PATH_SEPARATOR;
-char music_path[]="music" PATH_SEPARATOR;
-char org_music_path[]="music" PATH_SEPARATOR;
-char temp_path[]="?";
-char enemies_path[]="graphics" PATH_SEPARATOR "enemies" PATH_SEPARATOR;
-char video_path[]="video" PATH_SEPARATOR;
-char dialogs_path[]="graphics" PATH_SEPARATOR "dialogs" PATH_SEPARATOR;
-char saves_path[]="";
-char work_path[]="";
-char cd_path[]="";
-char map2_path[]="";
-char plugins_path[]="";
-char *pathtable[]={def_path,graph_path,sample_path,font_path,map_path,music_path,temp_path,basc_graph,item_graph,enemies_path,video_path,dialogs_path,saves_path,work_path,cd_path,map2_path,plugins_path,org_music_path};
+char *gpathtable[SR_COUNT];
 
 /*
 char *pathtable[]=
@@ -868,9 +850,9 @@ void reg_grafiku_postav(void)
 
 void cti_texty(void)
   {
-  char path[80];int err;
+  int err;
   texty=(TSTR_LIST)create_list(4);
-  sprintf(path,"%s%s",pathtable[SR_DATA],TEXTY);
+  const char *path = build_pathname(2,gpathtable[SR_DATA], TEXTY);
   if ((err=load_string_list_ex(&texty,path))!=0)
      {
 	 char buff[256];
@@ -1005,9 +987,8 @@ static void patch_error(int err)
 	showview(0,460,640,20);
 	}
 
-void init_skeldal(void)
+void init_skeldal(const INI_CONFIG *cfg)
   {
-  char c[MAX_FILESYSTEM_PATH],d[MAX_FILESYSTEM_PATH];
   int verr;
 
   boldcz=LoadDefaultFont();
@@ -1032,11 +1013,11 @@ void init_skeldal(void)
 /*
   install_dos_error(device_error,(char *)getmem(4096)+4096);*/
   swap_error=swap_error_exception;
-  snprintf(d,sizeof(d),"%s%s",pathtable[SR_DATA],"SKELDAL.DDL");
+  const char *ddlfile = local_strdup(build_pathname(2, gpathtable[SR_DATA],"SKELDAL.DDL"));
 
-  init_manager(d,c);
-SEND_LOG("(GAME) Memory manager initialized. Using DDL: '%s' Temp dir: '%s'",d,c);
-	texty_knihy=find_map_path("kniha.txt");
+  init_manager(ddlfile, NULL);
+  SEND_LOG("(GAME) Memory manager initialized. Using DDL: '%s'",ddlfile);
+  texty_knihy=strdup(build_pathname(2,gpathtable[SR_MAP],"kniha.txt"));
 
   install_gui();
 
@@ -1202,6 +1183,7 @@ void enter_game(void)
  parm[ebx] value [eax]
 */
 
+/*
 static int do_config_skeldal(int num,int numdata,char *txt)
   {
   switch (num)
@@ -1241,16 +1223,15 @@ static int do_config_skeldal(int num,int numdata,char *txt)
             break;
      case 26:refresh=numdata;break;
      default:num-=CESTY_POS;
-             mman_pathlist[num]=(char *)getmem(strlen(txt)+1);
-             strcpy(mman_pathlist[num],txt);
+             gpathtable[num] = strdup(txt);
              SEND_LOG("(GAME) Directory '%s' has been assigned to group nb. %d",txt,num);
              break;
 
      }
  return 0;
   }
-
-
+*/
+/*
 static void config_skeldal(const char *line)
   {
   int ndata=0,i,maxi;
@@ -1289,7 +1270,8 @@ static void config_skeldal(const char *line)
      do_config_skeldal(i,ndata,data);
      }
   }
-
+*/
+/*
 static void configure(char *filename)
   {
   SEND_LOG("(GAME) Reading config. file '%s'",filename);
@@ -1307,7 +1289,7 @@ static void configure(char *filename)
   process_ini(cur_config,config_skeldal);
 
   }
-
+*/
 static int update_config(void)
   {
   SEND_LOG("(GAME) Updating config. file '%s'",CONFIG_NAME);
@@ -1339,7 +1321,7 @@ void set_verify(char state);
                              "mov   ah,2eh"\
                              "int   21h"
 */
-void play_movie_seq(char *s,int y)
+void play_movie_seq(const char *s,int y)
   {
   int hic=full_video?SMD_HICOLOR+128:SMD_HICOLOR,cc=full_video?SMD_256+128:SMD_256;
   word *lbuffer=GetScreenAdr();
@@ -1364,10 +1346,9 @@ void play_movie_seq(char *s,int y)
 
 void play_anim(int anim_num)
   {
-     char *s;
      char *t,*z;
      TSTR_LIST titl=NULL;
-     concat(s,pathtable[SR_VIDEO],texty[anim_num]);
+     const char *s = build_pathname(2,gpathtable[SR_VIDEO], texty[anim_num]);
      if (snd_devnum==DEV_NOSOUND || titles_on)
       {
       concat(t,s,"   ");
@@ -1663,6 +1644,7 @@ static void start(va_list args)
   while (!exit_wait);
   }
 
+#if 0
 static void start_from_mapedit(va_list args)
 //#pragma aux start_from_mapedit parm[]
   {
@@ -1671,6 +1653,7 @@ static void start_from_mapedit(va_list args)
   new_game(argc-1,argv+1);
   exit_wait=1;
   }
+#endif
 
 void disable_intro(void)
   {
@@ -1679,64 +1662,42 @@ void disable_intro(void)
   }
 
 
+void new_configure(const INI_CONFIG *) {
+
+}
 
 int main(int argc,char *argv[])
   {
-  char *c,rm;
-
-
-
-  if (argc>=3) rm=!strcmp(argv[1],"12345678");else rm=0;
-
-
-  argv;
-  c=getcwd(NULL,0);
-  pathtable[SR_SAVES]=getmem(strlen(c)+2);
-  strcpy(pathtable[SR_SAVES],c);
-  strcat(pathtable[SR_SAVES],PATH_SEPARATOR);
-  free(c);
-
-//  set_verify(0);
-  mman_pathlist=pathtable;
+  def_mman_group_table(gpathtable);
   zoom_speed(1);
   turn_speed(1);
-  configure(CONFIG_NAME);
-  if ((argc>=2 ) && !rm )
-    {
-	char *adventure;
-    char **config=cur_config;
 
-    const char *music = mman_pathlist[SR_MUSIC];
-    mman_pathlist[SR_ORGMUSIC]=(char *)getmem(strlen(music)+1);
-    strcpy(mman_pathlist[SR_ORGMUSIC],music);
+  INI_CONFIG *cfg = ini_open(CONFIG_NAME);
+  if (cfg == NULL) {
+      fprintf(stderr, "Failed to open configuration file: %s\n", CONFIG_NAME);
+      return 1;
+  }
 
-	adventure=argv[1];
-    cur_config=NULL;
+  if (argc >= 2) {
+      TSTR_LIST adv_config=read_config(argv[1]);;
+      adv_patch_config(cfg, adv_config);
+      release_list(adv_config);
+  }
 
-    configure(adventure);
-    release_list(cur_config);
-    cur_config=config;
-    }
-#ifdef LOGFILE
-     {
-     int i;
-     for(i=0;i<(int)(sizeof(pathtable)/sizeof(*pathtable));i++) SEND_LOG("(GAME) LOG: Using directory '%s' as '%s'",pathtable[i],sinit[i+CESTY_POS].heslo);
-     }
-#endif
+  new_configure(cfg);
+
+
   start_check();
   purge_temps(1);
 //  textmode_effekt();
   clrscr();
 
-  init_skeldal();
+  init_skeldal(cfg);
+
 
   //add_task(32768,check_number_1phase,argv[0]);
 
-  if (argc>=3 && rm)
-     {
-     add_task(65536,start_from_mapedit,argc,argv);
-     }
-  else
+
      add_task(65536,start);
 
 /*  position(200,200);
@@ -1744,8 +1705,10 @@ int main(int argc,char *argv[])
   outtext("Ahoj lidi");
   showview(0,0,0,0);*/
   escape();
-  update_config();
   closemode();
+
+  ini_close(cfg);
+
   return 0;
   }
 

@@ -1,6 +1,5 @@
-#include <platform.h>
+#include <platform/platform.h>
 #include "types.h"
-#include <mem.h>
 #include <stdio.h>
 #include <malloc.h>
 #include <stdlib.h>
@@ -9,6 +8,7 @@
 //#include <i86.h>
 #include "swaper.c"
 #include <fcntl.h>
+#include <string.h>
 #include <sys/stat.h>
 #include <unistd.h>
 
@@ -20,7 +20,7 @@
 void bonz_table();
 
 #define NON_GETMEM_RESERVED (4*1024)
-char **mman_pathlist=NULL;
+char *const*  mman_pathlist=NULL;
 static char swap_status=0;
 
 static FILE *swap = NULL;
@@ -34,6 +34,9 @@ void (*mman_action)(int action)=NULL;
 
 int32_t last_load_size;
 
+void def_mman_group_table(char *const * p) {
+    mman_pathlist = p;
+}
 
 void standard_mem_error(size_t size)
   {
@@ -45,7 +48,7 @@ void standard_mem_error(size_t size)
   exit(1);
   }
 
-void load_error(char *filename)
+void load_error(const char *filename)
   {
   char buff[256];
   SEND_LOG("(ERROR) Load error detected, system can't load file: %s",filename);
@@ -93,7 +96,7 @@ void *getmem(int32_t size)
   }
 
 
-void *load_file(char *filename)
+void *load_file(const char *filename)
   {
   FILE *f;
   int32_t *p;
@@ -372,7 +375,7 @@ THANDLE_DATA *zneplatnit_block(int handle)
   return h;
   }
 
-void init_manager(char *filename,char *swap_is_not_supported) // filename= Jmeno datoveho souboru nebo NULL pak
+void init_manager(const char *filename,const char *swap_is_not_supported) // filename= Jmeno datoveho souboru nebo NULL pak
                                   // se pouzije DOS
                                             // swp je cesta do TEMP adresare
   {

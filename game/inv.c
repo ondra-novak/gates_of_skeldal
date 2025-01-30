@@ -1,25 +1,26 @@
-#include <platform.h>
+#include <platform/platform.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <malloc.h>
 #include <math.h>
-#include <bios.h>
-#include <mem.h>
-#include <types.h>
-#include <event.h>
-#include <memman.h>
-#include <devices.h>
-#include <bmouse.h>
-#include <bgraph.h>
-#include <zvuk.h>
-#include <gui.h>
-#include <basicobj.h>
+
+
+#include <libs/types.h>
+#include <libs/event.h>
+#include <libs/memman.h>
+#include <libs/devices.h>
+#include <libs/bmouse.h>
+#include <libs/bgraph.h>
+#include <libs/zvuk.h>
+#include <libs/gui.h>
+#include <libs/basicobj.h>
 #include "engine1.h"
-#include <pcx.h>
+#include <libs/pcx.h>
 #include "globals.h"
 
 #include <assert.h>
 #include <stddef.h>
+#include <string.h>
 
 #define neprezbrojit() (battle && (battle_mode!=MD_PREZBROJIT || select_player!=human_selected-postavy))
 
@@ -162,7 +163,7 @@ static void items_15to16_correct(void **p,int32_t *s)
 
 void load_items()
   {
-  char *name;
+  const char *name;
   FILE *f;
   int sect,i,hs;
   int32_t size;
@@ -180,8 +181,8 @@ void load_items()
             break;
         }
     } while (1);
-	name=find_map_path(ITEM_FILE);
-  f=fopen_icase(name,"rb");free(name);
+	name=build_pathname(2, gpathtable[SR_MAP],ITEM_FILE);
+  f=fopen_icase(name,"rb");
   if (f==NULL)
      {
         closemode();
@@ -589,10 +590,8 @@ void do_items_specs(void)
                         if (p->popis[0]==0) add_to_book(p->user_value);
                           else
                              {
-                             char *s;
-														 s=find_map_path(p->popis);
+                             const char *s = build_pathname(2, gpathtable[SR_MAP], p->popis);
                              add_text_to_book(s,p->user_value);
-														 free(s);
                              }
                         play_fx_at(FX_BOOK);
 						if (game_extras & EX_AUTOOPENBOOK) autoopenaction=1;
@@ -1767,7 +1766,6 @@ char uloz_sip(int id,int xa,int ya,int xr,int yr)
 static char MakeItemCombinations(short *itm1, short *itm2)
 {
   short i1=*itm1-1,i2=*itm2-1;
-  char *fname;
   int src1;
   int src2;
   int trg1;
@@ -1777,14 +1775,9 @@ static char MakeItemCombinations(short *itm1, short *itm2)
 
   FILE *table;
 
-  concat(fname,pathtable[SR_MAP],"COMBITEM.DAT");
+  const char *fname = build_pathname(2,gpathtable[SR_MAP],"COMBITEM.DAT");
   table=fopen_icase(fname,"r");
-  if (table==0 && pathtable[SR_MAP2][0])
-  {
-      concat(fname,pathtable[SR_MAP2],fname);
-      table=fopen_icase(fname,"r");
-  }
-  if (table==0) return 0;
+  if (table==NULL) return 0;
   cnt=fscanf(table,"%d %d -> %d %d",&src1,&src2,&trg1,&trg2);
   while(cnt>=3)
   {

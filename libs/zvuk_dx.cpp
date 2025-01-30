@@ -1,5 +1,5 @@
 #define INITGUID
-#include <platform.h>
+#include <platform/platform.h>
 #include <malloc.h>
 #include <debug.h>
 #include <stdio.h>
@@ -9,7 +9,7 @@
 #include "zvuk.h"
 #include <math.h>
 extern "C" {
-#include <memman.h>
+#include <libs/memman.h>
   }
 #define MAXCHANNELS 32
 #define TIMEIDLESTOPCHANNEL 250

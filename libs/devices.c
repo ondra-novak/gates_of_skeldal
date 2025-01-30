@@ -1,7 +1,6 @@
-#include <platform.h>
+#include <platform/platform.h>
 #include "types.h"
 #include <stdio.h>
-#include <bios.h>
 #include "event.h"
 #include "devices.h"
 #include <time.h>

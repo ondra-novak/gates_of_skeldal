@@ -1,5 +1,5 @@
 #include <stdio.h>
-#include <bios.h>
+
 #include <stdlib.h>
 #include <string.h>
 #include <ctype.h>
@@ -100,7 +100,7 @@ static char *transfer_text(char *source,char *target)
            if (source==NULL)
               {
               puts(orgn);
-              error("Chybn˜ rod nebo mal˜ po‡et tvar– od jednoho slova");
+              error("Chybnï¿½ rod nebo malï¿½ poï¿½et tvarï¿½ od jednoho slova");
               }
            source++;
            }
@@ -111,7 +111,7 @@ static char *transfer_text(char *source,char *target)
            if (source==NULL)
               {
               puts(orgn);
-              error("O‡ek v  se ']'");
+              error("Oï¿½ekï¿½vï¿½ se ']'");
               }
            }
         source++;
@@ -151,22 +151,22 @@ void read_names()
 
   do
     {
-    fprintf(stderr,"Budes zad vat mu‘sk  jm‚na, nebo ‘ensk : (M/Z)");gets(buff);
+    fprintf(stderr,"Budes zadï¿½vat muï¿½skï¿½ jmï¿½na, nebo ï¿½enskï¿½: (M/Z)");gets(buff);
     fm=toupper(buff[0]);
     }
   while (fm!='M'&& fm!='Z') ;
-  fprintf(stderr,"Nyn¡ je t©eba zadat nˆkolik jmen, posledn¡ odklepni ENTREM\n");
+  fprintf(stderr,"Nynï¿½ je tï¿½eba zadat nï¿½kolik jmen, poslednï¿½ odklepni ENTREM\n");
   i=0;
   do
     {
-    fprintf(stderr,"%d.jm‚no:",i+1);gets(buff);
+    fprintf(stderr,"%d.jmï¿½no:",i+1);gets(buff);
     if (buff[0]) strncpy(sn_nams[i],buff,31);
     i++;
     }
   while(i<SAVE_POSTS && buff[0]);
   do
     {
-    fprintf(stderr,"Bude¨ cht¡t vyhledat v¨echny texty (p¡smeno V) nebo jen ty ve kter˜ch se objevuj¡ jm‚na postav (p¡smeno P)");
+    fprintf(stderr,"Budeï¿½ chtï¿½t vyhledat vï¿½echny texty (pï¿½smeno V) nebo jen ty ve kterï¿½ch se objevujï¿½ jmï¿½na postav (pï¿½smeno P)");
     gets(buff);
     all_print=toupper(buff[0]);
     }

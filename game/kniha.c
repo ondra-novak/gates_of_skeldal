@@ -1,4 +1,4 @@
-#include <platform.h>
+#include <platform/platform.h>
 /*
 
  Popis jazyka pro psani textu do knihy
@@ -43,10 +43,10 @@
 #include <stdlib.h>
 #include <malloc.h>
 #include <string.h>
-#include <strlite.h>
-#include <bgraph.h>
-#include <memman.h>
-#include <event.h>
+#include <libs/strlite.h>
+#include <libs/bgraph.h>
+#include <libs/memman.h>
+#include <libs/event.h>
 #include "globals.h"
 
 #define XMAX 254
@@ -550,7 +550,7 @@ static void seek_section(TMPFILE_RD *txt,int sect_number)
   exit(1);
   }
 
-void add_text_to_book(char *filename,int odst)
+void add_text_to_book(const char *filename,int odst)
   {
   TMPFILE_RD *fl;
 

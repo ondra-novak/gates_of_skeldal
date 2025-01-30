@@ -1,17 +1,17 @@
-#include <types.h>
+#include <libs/types.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <mem.h>
 #include <malloc.h>
-#include <memman.h>
-#include <event.h>
-#include <bmouse.h>
-#include <gui.h>
-#include <basicobj.h>
-#include <zvuk.h>
-#include <bgraph.h>
-#include <mgifmem.h>
-#include <strlite.h>
+#include <libs/memman.h>
+#include <libs/event.h>
+#include <libs/bmouse.h>
+#include <libs/gui.h>
+#include <libs/basicobj.h>
+#include <libs/zvuk.h>
+#include <libs/bgraph.h>
+#include <libs/mgifmem.h>
+#include <libs/strlite.h>
 #include <strlists.h>
 #include "lzw.h"
 #include "mgifeobj.h"
@@ -172,7 +172,7 @@ void build_sample_list(void *list)
         }
      str_add(&ls,c);
      }
-  if (samples_total==0) str_add(&ls,"<‘ dn˜ zvuk>");
+  if (samples_total==0) str_add(&ls,"<ï¿½ï¿½dnï¿½ zvuk>");
   memcpy(list,&ls,sizeof(void **));
   }
 
@@ -831,15 +831,15 @@ void warn_size_mistmach(void)
      }
   if (size<total_frames)
      {
-     msg_box(PRG_HEADER,'\x1',"MGIFEDIT zjistil, ‘e film je del¨i, ne‘ stopy "
-        "ulo‘en‚ v souboru PRJ. Program tyto stopy dopln¡ na konci. Ke spr vn‚mu "
-        "um¡stˆn¡ pou‘ij funkci GInsert","Ok",NULL);
+     msg_box(PRG_HEADER,'\x1',"MGIFEDIT zjistil, ï¿½e film je delï¿½i, neï¿½ stopy "
+        "uloï¿½enï¿½ v souboru PRJ. Program tyto stopy doplnï¿½ na konci. Ke sprï¿½vnï¿½mu "
+        "umï¿½stï¿½nï¿½ pouï¿½ij funkci GInsert","Ok",NULL);
      for(i=0;i<samples_total;i++) track_dopln_na_konci(smp_prg+i);
      }
   if (sizeh>total_frames)
      {
-     msg_box(PRG_HEADER,'\x1',"MGIFEDIT zjistil,‘e film je krat¨¡, ne‘ stopy "
-        "ulo‘en‚ v souboru PRJ. Ke spr vn‚mu um¡stˆn¡ pou‘ij funkci GDelete","Ok",NULL);
+     msg_box(PRG_HEADER,'\x1',"MGIFEDIT zjistil,ï¿½e film je kratï¿½ï¿½, neï¿½ stopy "
+        "uloï¿½enï¿½ v souboru PRJ. Ke sprï¿½vnï¿½mu umï¿½stï¿½nï¿½ pouï¿½ij funkci GDelete","Ok",NULL);
      }
   }
 

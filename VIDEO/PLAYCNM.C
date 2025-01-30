@@ -1,13 +1,13 @@
-#include <types.h>
+#include <libs/types.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <bgraph.h>
+#include <libs/bgraph.h>
 #include <i86.h>
-#include <bios.h>
+
 #include "anipack.h"
 #include "cinema.h"
-#include <memman.h>
+#include <libs/memman.h>
 
 
 #define CINEMA ".cnm"

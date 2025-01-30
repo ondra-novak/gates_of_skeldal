@@ -1,5 +1,5 @@
 #include <skeldal_win.h>
-#include <memman.h>
+#include <libs/memman.h>
 #include "types.h"
 #include "event.h"
 #include <debug.h>

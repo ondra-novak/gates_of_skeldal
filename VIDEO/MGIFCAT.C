@@ -1,6 +1,6 @@
-#include <types.h>
+#include <libs/types.h>
 #include <stdio.h>
-#include <mgifmem.h>
+#include <libs/mgifmem.h>
 #include <mem.h>
 #include <malloc.h>
 #include <conio.h>

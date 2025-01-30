@@ -1,4 +1,6 @@
 #include "platform.h"
+
+#include <cstdarg>
 #include <filesystem>
 
 
@@ -61,4 +63,24 @@ char check_file_exists(const char *pathname) {
 FILE *fopen_icase(const char *pathname, const char *mode) {
     std::filesystem::path path = try_to_find_file(convert_pathname_to_path(pathname));
     return fopen(path.c_str(), mode);
+}
+
+static thread_local std::string build_pathname_buffer;
+
+const char * build_pathname(size_t nparts, const char *part1, ...) {
+    va_list lst;
+    va_start(lst, part1);
+
+    std::filesystem::path p = part1;
+    for (size_t i = 1; i < nparts; ++i) {
+        p = p / va_arg(lst, const char *);
+    }
+    build_pathname_buffer = p;
+    return build_pathname_buffer.c_str();
+}
+
+char create_directories(const char *path) {
+    std::filesystem::path p(path);
+    std::error_code ec;
+    return std::filesystem::create_directories(p, ec)?1:0;
 }

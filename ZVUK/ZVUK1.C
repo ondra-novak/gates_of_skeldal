@@ -4,7 +4,7 @@
 #include <dpmi.h>
 #include <conio.h>
 #include <mem.h>
-#include <bios.h>
+
 #include <dos.h>
 
 

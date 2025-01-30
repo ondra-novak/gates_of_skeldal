@@ -1,7 +1,7 @@
 #include "skeldal_win.h"
 #include "debug.h"
 #include "resource.h"
-#include <devices.h>
+#include <libs/devices.h>
 
 void DXMouseTransform(unsigned short *x, unsigned short *y);
 void DxLockBuffers(BOOL lock);

@@ -1,5 +1,5 @@
 #include "../platform.h"
-#include <zvuk.h>
+#include <libs/zvuk.h>
 
 #include <thread>
 void set_mixing_device(int mix_dev,int mix_freq,...) {

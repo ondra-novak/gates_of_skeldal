@@ -1,13 +1,8 @@
-#include <platform.h>
+#include <platform/platform.h>
 #include "types.h"
-//#include <vesa.h>
-//#include <dpmi.h>
-//#include <i86.h>
-#include <mem.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <malloc.h>
-//#include <graph.h>
 #include "bgraph.h"
 #include "memman.h"
 
@@ -55,7 +50,7 @@ void rel_position_x(word x)
   }
 
 
-void outtext(char *text)
+void outtext(const char *text)
   {
   byte pos;
 

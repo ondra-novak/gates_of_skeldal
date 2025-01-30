@@ -1,20 +1,20 @@
-#include <platform.h>
-#include <bios.h>
+#include <platform/platform.h>
+
 #include <stdlib.h>
 #include <string.h>
 #include <stdio.h>
 #include <malloc.h>
-#include <mem.h>
-#include <pcx.h>
-#include <types.h>
-#include <bgraph.h>
-#include <event.h>
-#include <strlite.h>
-#include <devices.h>
-#include <bmouse.h>
-#include <memman.h>
+
+#include <libs/pcx.h>
+#include <libs/types.h>
+#include <libs/bgraph.h>
+#include <libs/event.h>
+#include <libs/strlite.h>
+#include <libs/devices.h>
+#include <libs/bmouse.h>
+#include <libs/memman.h>
 #include <fcntl.h>
-#include <zvuk.h>
+#include <libs/zvuk.h>
 #include <stdarg.h>
 #include "globals.h"
 #include "temp_storage.h"
@@ -107,10 +107,10 @@ int load_org_map(char *filename,TSTENA **sides,TSECTOR **sectors,TMAP_EDIT_INFO 
   int sect;
   int32_t size,r;
   char nmapend=1;
-  char *c;
 
-	c=find_map_path(filename);
-	f=fopen_icase(c,"rb");free(c);
+
+	const char *c=build_pathname(2, gpathtable[SR_MAP],filename);
+	f=fopen_icase(c,"rb");
   if (f==NULL) return -1;
   do
      {
@@ -722,13 +722,6 @@ int load_basic_info()
   return res;
   }
 
-static void MakeSaveGameDir(const char *name)
-{
-  char *p=(char *)alloca(strlen(name)+1);
-  strcpy(p,name);
-  p[strlen(p)-1]=0;
-  mkdir(p,0666);
-}
 
 static int save_global_events()
 {
@@ -754,14 +747,14 @@ static int load_global_events()
 
 int save_game(int slotnum,char *gamename)
   {
-  char *sn,*ssn,*gn;
+  char *ssn,*gn;
   FILE *svf;
   int r;
 
   SEND_LOG("(SAVELOAD) Saving game slot %d",slotnum);
   save_map_state();
-  concat(sn,pathtable[SR_SAVES],_SLOT_SAV);
-  MakeSaveGameDir(pathtable[SR_SAVES]);
+  const char *sn = build_pathname(2,gpathtable[SR_SAVES],_SLOT_SAV);
+  create_directories(gpathtable[SR_SAVES]);
   ssn=alloca(strlen(sn)+3);
   sprintf(ssn,sn,slotnum);
   gn=alloca(SAVE_NAME_SIZE);
@@ -794,7 +787,7 @@ extern char running_battle;
 
 int load_game(int slotnum)
   {
-  char *sn,*ssn;
+  char *ssn;
   FILE *svf;
   int r,t;
 
@@ -803,7 +796,7 @@ int load_game(int slotnum)
   battle=0;
   close_story_file();
   purge_temps(0);
-  concat(sn,pathtable[SR_SAVES],_SLOT_SAV);
+  const char *sn = build_pathname(2, gpathtable[SR_SAVES], _SLOT_SAV);
   ssn=alloca(strlen(sn)+3);
   sprintf(ssn,sn,slotnum);
   svf=fopen_icase(ssn,"rb");
@@ -862,10 +855,10 @@ static ENUM_ALL_STATUS_CALLBACK_RESULT load_specific_file_callback(FILE *f, cons
 static void load_specific_file(int slot_num,char *filename,void **out,int32_t *size) //call it in task!
   {
   FILE *slot;
-  char *c,*d;
+  char *d;
 
-  concat(c,pathtable[SR_SAVES],_SLOT_SAV);
-  d=alloca(strlen(c)+2);
+  const char *c = build_pathname(2, gpathtable[SR_SAVES], _SLOT_SAV);
+  d=alloca(strlen(c)+6);
   sprintf(d,c,slot_num);
   slot=fopen_icase(d,"rb");
   if (slot==NULL)
@@ -908,10 +901,10 @@ static char load_mode;
 void read_slot_list()
   {
   int i;
-  char *mask,*name;
+  char *name;
   char slotname[SAVE_NAME_SIZE];
   if (slot_list==NULL) slot_list=create_list(SLOTS_MAX);
-  concat(mask,pathtable[SR_SAVES],_SLOT_SAV);
+  const char *mask = build_pathname(2, gpathtable[SR_SAVES],_SLOT_SAV);
   name=alloca(strlen(mask)+1);
   for(i=0;i<SLOTS_MAX;i++)
      {

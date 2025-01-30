@@ -1,13 +1,13 @@
 #include <stdio.h>
-#include <zvuk.h>
+#include <libs/zvuk.h>
 #include <conio.h>
 #include <mem.h>
 #include <stdlib.h>
-#include <bios.h>
+
 #include <dos.h>
 #include <i86.h>
-#include <strlite.h>
-#include <memman.h>
+#include <libs/strlite.h>
+#include <libs/memman.h>
 
 #define SCRADR 0xb8000
 #define SCRSIZE (80*25*2)
@@ -124,41 +124,41 @@ char pause=0;
 unsigned short *screen;
 
 TDIGIT digits[15]=
-  {   "ÛßÛ"
-      "Û Û"
-      "ßßß",
-      "  Û"
-      "  Û"
-      "  ß",
-      "ßßÛ"
-      "Ûßß"
-      "ßßß",
-      "ßßÛ"
-      "ßßÛ"
-      "ßßß",
-      "Û Û"
-      "ßßÛ"
-      "  ß",
-      "Ûßß"
-      "ßßÛ"
-      "ßßß",
-      "Ûßß"
-      "ÛßÛ"
-      "ßßß",
-      "ÛßÛ"
-      "ß Û"
-      "  ß",
-      "ÛßÛ"
-      "ÛßÛ"
-      "ßßß",
-      "ÛßÛ"
-      "ßßÛ"
-      "ßßß",
-      " Ü "
-      " Ü "
+  {   "ï¿½ï¿½ï¿½"
+      "ï¿½ ï¿½"
+      "ï¿½ï¿½ï¿½",
+      "  ï¿½"
+      "  ï¿½"
+      "  ï¿½",
+      "ï¿½ï¿½ï¿½"
+      "ï¿½ï¿½ï¿½"
+      "ï¿½ï¿½ï¿½",
+      "ï¿½ï¿½ï¿½"
+      "ï¿½ï¿½ï¿½"
+      "ï¿½ï¿½ï¿½",
+      "ï¿½ ï¿½"
+      "ï¿½ï¿½ï¿½"
+      "  ï¿½",
+      "ï¿½ï¿½ï¿½"
+      "ï¿½ï¿½ï¿½"
+      "ï¿½ï¿½ï¿½",
+      "ï¿½ï¿½ï¿½"
+      "ï¿½ï¿½ï¿½"
+      "ï¿½ï¿½ï¿½",
+      "ï¿½ï¿½ï¿½"
+      "ï¿½ ï¿½"
+      "  ï¿½",
+      "ï¿½ï¿½ï¿½"
+      "ï¿½ï¿½ï¿½"
+      "ï¿½ï¿½ï¿½",
+      "ï¿½ï¿½ï¿½"
+      "ï¿½ï¿½ï¿½"
+      "ï¿½ï¿½ï¿½",
+      " ï¿½ "
+      " ï¿½ "
       "   ",
       "   "
-      "ßßß"
+      "ï¿½ï¿½ï¿½"
       "   "
   };
 
@@ -567,8 +567,8 @@ void show_dir(int sel_file,int playing)
   color=3+(playing==sel_file?2:0);
   disp_str(1,17,"  ",color);
   disp_str(21,17,"  ",color);
-  disp_str(0,17,"È",color);
-  disp_str(23,17,"É",color);
+  disp_str(0,17,"ï¿½",color);
+  disp_str(23,17,"ï¿½",color);
   }
 void play_next(char **next)
   {

@@ -4,15 +4,15 @@
 #include <mem.h>
 #include <malloc.h>
 #include <stdlib.h>
-#include <types.h>
-#include <memman.h>
-#include <event.h>
-#include <devices.h>
-#include <bmouse.h>
-#include <bgraph.h>
-#include <gui.h>
-#include <basicobj.h>
-#include <strlite.h>
+#include <libs/types.h>
+#include <libs/memman.h>
+#include <libs/event.h>
+#include <libs/devices.h>
+#include <libs/bmouse.h>
+#include <libs/bgraph.h>
+#include <libs/gui.h>
+#include <libs/basicobj.h>
+#include <libs/strlite.h>
 #include <strlists.h>
 #include <direct.h>
 #include <fcntl.h>
@@ -39,7 +39,7 @@
 #define A_MAPITEM 0x800C //itemy
 #define A_MAPMACR 0x800D //Makra multiakce
 #define A_MAPFLY  0x800E //Letajici predmety
-#define A_MAPMOBS 0x800F //Potvory v bludi¨ti
+#define A_MAPMOBS 0x800F //Potvory v bludiï¿½ti
 #define A_MAPVYK  0x8010 //Vyklenky
 #define A_MOBS    0x8011 //Potvory definice
 #define A_MOBSND  0x8012 //Potvory zvuky
@@ -179,7 +179,7 @@ int load_map(char *filename)
   if (las)
      {
      if (check_sound_map())
-        msg_box("Upozornˆn¡!",'\x1',"Verze souboru SOUND.DAT neodpovid  verz¡m ostatn¡ch soubor–. To m–‘e zp–sobit poru¨en¡ integrity ukazatel– na zvukov‚ soubory!","Pokra‡ovat",NULL);
+        msg_box("Upozornï¿½nï¿½!",'\x1',"Verze souboru SOUND.DAT neodpovidï¿½ verzï¿½m ostatnï¿½ch souborï¿½. To mï¿½ï¿½e zpï¿½sobit poruï¿½enï¿½ integrity ukazatelï¿½ na zvukovï¿½ soubory!","Pokraï¿½ovat",NULL);
      load_all_shops();
      las=0;
      }
@@ -332,7 +332,7 @@ void backup_info(EVENT_MSG *msg)
      return;
      }
   c=(char *)msg->data;
-  strcpy(c,"Star˜ soubor byl ulo‘en v adres ©i backup\\...");
+  strcpy(c,"Starï¿½ soubor byl uloï¿½en v adresï¿½ï¿½i backup\\...");
   c=strchr(c,'\0');
   msg->data=(void *)c;
   msg->msg=-1;
@@ -633,10 +633,10 @@ int save_all_map(void)
   sprintf(info,"Chyba %02d na pozici %d:%d",-z,x,y);
   switch (z)
      {
-     case -1:msg_box(info,'\01',"Chyb¡ definice stˆny!","OK",NULL);break;
-     case -2:msg_box(info,'\01',"Chodba vede do neexistuj¡c¡ho sektoru!","OK",NULL);break;
-     case -3:msg_box(info,'\01',"Schody jsou ¨patnˆ spojen‚ se sousedn¡m¡ sektory!","OK",NULL);break;
-     case -4:msg_box(info,'\01',"Ud lost v neexistuj¡c¡m sektoru!","OK",NULL);break;
+     case -1:msg_box(info,'\01',"Chybï¿½ definice stï¿½ny!","OK",NULL);break;
+     case -2:msg_box(info,'\01',"Chodba vede do neexistujï¿½cï¿½ho sektoru!","OK",NULL);break;
+     case -3:msg_box(info,'\01',"Schody jsou ï¿½patnï¿½ spojenï¿½ se sousednï¿½mï¿½ sektory!","OK",NULL);break;
+     case -4:msg_box(info,'\01',"Udï¿½lost v neexistujï¿½cï¿½m sektoru!","OK",NULL);break;
      }
   if (!backup)
      {
@@ -649,7 +649,7 @@ int save_all_map(void)
      }
   if (save_map(filename))
      {
-     sprintf(info,"Nedok ‘u ulo‘it soubor %s.",filename);
+     sprintf(info,"Nedokï¿½ï¿½u uloï¿½it soubor %s.",filename);
      msg_box("Chyba I/O",'\01',info,"!Panika!",NULL);
      }
   else txt=pripona(filename,TXT);

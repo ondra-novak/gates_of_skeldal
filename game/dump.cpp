@@ -1,10 +1,10 @@
-#include <platform.h>
+#include <platform/platform.h>
 #include <iostream>
 #include <filesystem>
 #include <regex>
 #include <string>
 #include <optional>
-#include <memman.h>
+#include <libs/memman.h>
 
 int findMaxDumpNumber(const std::string &directoryPath) {
     namespace fs = std::filesystem;

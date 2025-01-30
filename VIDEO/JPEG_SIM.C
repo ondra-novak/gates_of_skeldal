@@ -1,7 +1,7 @@
-#include <types.h>
+#include <libs/types.h>
 #include <stdio.h>
 #include <math.h>
-#include <bgraph.h>
+#include <libs/bgraph.h>
 #include <mem.h>
 #include <conio.h>
 #include "flc.h"

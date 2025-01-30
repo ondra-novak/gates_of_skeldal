@@ -1,11 +1,11 @@
-#include <platform.h>
-#include <bgraph.h>
+#include <platform/platform.h>
+#include <libs/bgraph.h>
 #include <stdio.h>
 #include "types.h"
 #include "memman.h"
 #include "mem.h"
 #include "mgifmem.h"
-#include <zvuk.h>
+#include <libs/zvuk.h>
 
 static MGIF_HEADER_T *mgif_header;
 
@@ -186,7 +186,7 @@ void BigPlayProc(int act,void *data,int csize)
      }
   }
 
-void play_animation(char *filename,char mode,int posy,char sound)
+void play_animation(const char *filename,char mode,int posy,char sound)
   {
   size_t sz;
   void *mgf=map_file_to_memory(filename, &sz);

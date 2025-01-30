@@ -1,7 +1,7 @@
-#include <platform.h>
-#include "types.h"
+#include <platform/platform.h>
+#include <libs/types.h>
 #include "engine1.h"
-#include <bgraph.h>
+#include <libs/bgraph.h>
 
 #include <string.h>
 

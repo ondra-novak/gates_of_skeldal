@@ -1,10 +1,10 @@
-#include <types.h>
+#include <libs/types.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <dos.h>
 #include <mem.h>
-#include <memman.h>
-#include <bgraph.h>
+#include <libs/memman.h>
+#include <libs/bgraph.h>
 #include "flc.h"
 #include "anipack.h"
 #include <conio.h>

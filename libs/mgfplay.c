@@ -1,4 +1,4 @@
-#include <platform.h>
+#include <platform/platform.h>
 // MOTION GIF - LZW komprimovana animace v rozliseni 320x180 256 barev avsak
 // upravena pro prehravani v HICOLOR pro konkretni rezim (32768 barev)
 
@@ -65,17 +65,17 @@
 
 #include <stdio.h>
 #include <stdlib.h>
-#include <types.h>
-#include <bgraph.h>
-#include <memman.h>
-#include <mem.h>
-#include <zvuk.h>
-#include <bios.h>
+#include <libs/types.h>
+#include <libs/bgraph.h>
+#include <libs/memman.h>
+
+#include <libs/zvuk.h>
+
 //#include <vesa.h>
 //#include <i86.h>
 #include <io.h>
-#include <mgifmem.h>
-#include <strlite.h>
+#include <libs/mgifmem.h>
+#include <libs/strlite.h>
 //#include <sys\types.h>
 //#include <sys\stat.h>
 #include <fcntl.h>

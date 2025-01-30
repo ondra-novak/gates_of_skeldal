@@ -6,8 +6,8 @@
 #include <SHLOBJ.H>
 extern "C"
   {
-#include <strlite.h>
-#include <inicfg.h>
+#include <libs/strlite.h>
+#include <libs/inicfg.h>
   }
 #include <malloc.h>
 #include <stdio.h>

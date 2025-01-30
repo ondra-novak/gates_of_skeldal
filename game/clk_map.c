@@ -1,11 +1,11 @@
-#include <platform.h>
+#include <platform/platform.h>
 #include <stdio.h>
-#include <types.h>
-#include <event.h>
-#include <devices.h>
-#include <bgraph.h>
-#include <bmouse.h>
-#include <memman.h>
+#include <libs/types.h>
+#include <libs/event.h>
+#include <libs/devices.h>
+#include <libs/bgraph.h>
+#include <libs/bmouse.h>
+#include <libs/memman.h>
 #include "globals.h"
 #include "engine1.h"
 

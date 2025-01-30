@@ -1,25 +1,26 @@
-#include <platform.h>
+#include <platform/platform.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <malloc.h>
 #include <math.h>
-#include <bios.h>
-#include <mem.h>
-#include <types.h>
-#include <event.h>
-#include <memman.h>
-#include <devices.h>
-#include <bmouse.h>
-#include <bgraph.h>
-#include <zvuk.h>
-#include <strlite.h>
+
+
+#include <libs/types.h>
+#include <libs/event.h>
+#include <libs/memman.h>
+#include <libs/devices.h>
+#include <libs/bmouse.h>
+#include <libs/bgraph.h>
+#include <libs/zvuk.h>
+#include <libs/strlite.h>
 #include "engine1.h"
-#include <pcx.h>
+#include <libs/pcx.h>
 #include "globals.h"
 #include "specproc.h"
 #include "temp_storage.h"
 
 #include <assert.h>
+#include <string.h>
 TMULTI_ACTION_RECORD *macros;                  //tabulka make
 TMULTI_ACTION_STATE  macro_state_block;
 static const TMULTI_ACTION *first_macro;
@@ -566,11 +567,9 @@ static int ma_picki(const TMA_TWOP *i,int abs_pos)
 
 static void ma_wbook(const TMA_LOADLEV *l)
   {
-  char *s;
-	s=find_map_path(l->name);
+  const char *s = build_pathname(2, gpathtable[SR_MAP], l->name);
   add_text_to_book(s,l->start_pos);
   play_fx_at(FX_BOOK);
-	free(s);
   }
 
 static void ma_send_experience(int32_t what)
@@ -634,10 +633,10 @@ static void build_trig_group(char mode,int side)
 
 static int  ma_play_anim(const char *filename,char cls)
   {
-  char *a;
+
 
   unwire_main_functs();
-  concat(a,pathtable[SR_VIDEO],filename);
+  const char *a = build_pathname(2, gpathtable[SR_VIDEO],filename);
   curcolor=0;
   if (cls)
      {

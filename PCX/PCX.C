@@ -4,7 +4,7 @@
 #include <stdio.h>
 /*#include "..\types.h"*/
 #include "pcx.h"
-#include <memman.h>
+#include <libs/memman.h>
 /*#include "..\bgraph.h"*/
 
 

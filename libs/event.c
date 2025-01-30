@@ -1,19 +1,16 @@
-#include <platform.h>
+#include <platform/platform.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include "types.h"
 #include "event.h"
 #include "devices.h"
-#include <mem.h>
-//#include <dpmi.h>
 #include <malloc.h>
-#include <bios.h>
-//#include <i86.h>
 #include <time.h>
 #include "memman.h"
 #include <setjmp.h>
 #include <signal.h>
 #include <assert.h>
+#include <string.h>
 
 
 #define find_event_msg(where,what,res) \

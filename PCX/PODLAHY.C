@@ -3,9 +3,9 @@
 #include <malloc.h>
 #include <mem.h>
 #include <math.h>
-#include <types.h>
-#include <memman.h>
-#include <bgraph.h>
+#include <libs/types.h>
+#include <libs/memman.h>
+#include <libs/bgraph.h>
 #include "..\game\engine1.h"
 #include "pcx.h"
 
@@ -254,7 +254,7 @@ void help()
   {
   printf("ONS Podlahar (C)1997 \n"
          "\n"
-         "Pou‘it¡: PODLAHY <obrazek1.pcx> <obrazek2.pcx> <rv> <gv> <bv> \n"
+         "Pouï¿½itï¿½: PODLAHY <obrazek1.pcx> <obrazek2.pcx> <rv> <gv> <bv> \n"
          "\n"
          "<obrazek1.pcx> <obrazek2.pcx>\n"
          "        soubory s texturami ve formatu pcx. Textura musi mit velikost 500x320\n\n"

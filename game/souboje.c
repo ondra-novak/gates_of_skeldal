@@ -1,17 +1,18 @@
-#include <platform.h>
-#include <bios.h>
+#include <platform/platform.h>
+
 #include <stdio.h>
 #include <stdlib.h>
-#include <event.h>
-#include <zvuk.h>
-#include <bgraph.h>
-#include <bmouse.h>
-#include <mem.h>
+#include <libs/event.h>
+#include <libs/zvuk.h>
+#include <libs/bgraph.h>
+#include <libs/bmouse.h>
+
 #include <malloc.h>
-#include <memman.h>
+#include <libs/memman.h>
 #include <math.h>
 #include "globals.h"
 
+#include <string.h>
 #define PRG_COLOR RGB555(0,31,31)
 #define PRG_HELP_COLOR RGB555(31,31,0)
 

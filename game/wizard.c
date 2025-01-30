@@ -1,21 +1,21 @@
-#include <platform.h>
-#include <bios.h>
+#include <platform/platform.h>
+
 #include <stdlib.h>
 #include <ctype.h>
 #include <string.h>
 #include <stdio.h>
 #include <malloc.h>
-#include <mem.h>
-#include <types.h>
-#include <bgraph.h>
-#include <event.h>
-#include <devices.h>
-#include <bmouse.h>
-#include <memman.h>
-#include <zvuk.h>
-#include <strlite.h>
-#include <gui.h>
-#include <basicobj.h>
+
+#include <libs/types.h>
+#include <libs/bgraph.h>
+#include <libs/event.h>
+#include <libs/devices.h>
+#include <libs/bmouse.h>
+#include <libs/memman.h>
+#include <libs/zvuk.h>
+#include <libs/strlite.h>
+#include <libs/gui.h>
+#include <libs/basicobj.h>
 #include <time.h>
 #include <stdarg.h>
 #include "globals.h"

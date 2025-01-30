@@ -1,5 +1,5 @@
 #ifndef _MGIFEACT_H
-#include <mgifmem.h>
+#include <libs/mgifmem.h>
 
 #define _MGIFEACT_H
 

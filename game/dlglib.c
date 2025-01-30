@@ -15,15 +15,15 @@
  */
 
 
-#include <types.h>
+#include <libs/types.h>
 #include <ctype.h>
 #include <malloc.h>
 #include <stdlib.h>
 #include <string.h>
 #include <stdio.h>
-#include <strlite.h>
-#include <memman.h>
-#include <bgraph.h>
+#include <libs/strlite.h>
+#include <libs/memman.h>
+#include <libs/bgraph.h>
 
 FILE *dlg;
 int32_t *odstavce=NULL;

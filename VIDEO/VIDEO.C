@@ -1,8 +1,8 @@
-#include <types.h>
+#include <libs/types.h>
 #include <stdio.h>
-#include <pcx.h>
-#include <bgraph.h>
-#include <memman.h>
+#include <libs/pcx.h>
+#include <libs/bgraph.h>
+#include <libs/memman.h>
 #include <mem.h>
 #include "bitline.h"
 

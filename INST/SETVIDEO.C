@@ -1,13 +1,13 @@
-#include <types.h>
+#include <libs/types.h>
 #include <vesa.h>
 #include <mem.h>
 #include <stdio.h>
-#include <bgraph.h>
-#include <bmouse.h>
-#include <devices.h>
-#include <gui.h>
-#include <basicobj.h>
-#include <strlite.h>
+#include <libs/bgraph.h>
+#include <libs/bmouse.h>
+#include <libs/devices.h>
+#include <libs/gui.h>
+#include <libs/basicobj.h>
+#include <libs/strlite.h>
 #include <strlists.h>
 #include "setup.h"
 

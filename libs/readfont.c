@@ -1,6 +1,6 @@
-#include <platform.h>
+#include <platform/platform.h>
 #include <stdio.h>
-#include <mem.h>
+
 #include "types.h"
 #include "pcx.h"
 #include "memman.h"

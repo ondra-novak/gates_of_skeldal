@@ -1,9 +1,8 @@
-#include <platform.h>
+#include <platform/platform.h>
 // toto je include soubor, jenz je pouzit v knihovne GUI.C
 
 #include "types.h"
 #include <stdio.h>
-#include <mem.h>
 #include <malloc.h>
 #include <time.h>
 #include "memman.h"
@@ -14,6 +13,7 @@
 #include "gui.h"
 #include "basicobj.h"
 #include <stdarg.h>
+#include <string.h>
 
 #define MEMTEXT "Pam�t: "
 

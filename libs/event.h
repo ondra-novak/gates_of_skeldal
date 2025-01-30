@@ -133,7 +133,7 @@ static __inline void shift_message(EVENT_MSG *msg) {
 void do_events(void);
 void escape(void);
 
-#include <legacy_coroutines.h>
+#include <platform/legacy_coroutines.h>
 /*
 void *task_sleep(void *param);
 //#pragma aux task_sleep parm [eax] value [eax]

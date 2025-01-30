@@ -64,13 +64,13 @@
 
 #include <stdio.h>
 #include <stdlib.h>
-#include <types.h>
-#include <bgraph.h>
-#include <memman.h>
+#include <libs/types.h>
+#include <libs/bgraph.h>
+#include <libs/memman.h>
 #include <mem.h>
 #include "lzw.h"
-#include <zvuk.h>
-#include <bios.h>
+#include <libs/zvuk.h>
+
 #include <vesa.h>
 #include <i86.h>
 #include <io.h>

@@ -21,8 +21,8 @@
 
 extern "C"
 {
-#include <strlite.h>
-#include <inicfg.h>
+#include <libs/strlite.h>
+#include <libs/inicfg.h>
 }
 #include "Pathname.h"
 #include <malloc.h>

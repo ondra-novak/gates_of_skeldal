@@ -1,4 +1,4 @@
-#include <platform.h>
+#include <platform/platform.h>
 #include "types.h"
 #include "bgraph.h"
 #include <debug.h>

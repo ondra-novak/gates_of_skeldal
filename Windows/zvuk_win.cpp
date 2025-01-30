@@ -1,5 +1,5 @@
 #include <skeldal_win.h>
-#include <zvuk.h>
+#include <libs/zvuk.h>
 
 extern "C" 
   {

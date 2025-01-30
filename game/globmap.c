@@ -1,23 +1,24 @@
-#include <platform.h>
+#include <platform/platform.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <malloc.h>
 #include <math.h>
-#include <bios.h>
-#include <mem.h>
-#include <types.h>
-#include <event.h>
-#include <memman.h>
+
+
+#include <libs/types.h>
+#include <libs/event.h>
+#include <libs/memman.h>
 #include <ctype.h>
-#include <devices.h>
-#include <bmouse.h>
-#include <bgraph.h>
-#include <zvuk.h>
-#include <strlite.h>
+#include <libs/devices.h>
+#include <libs/bmouse.h>
+#include <libs/bgraph.h>
+#include <libs/zvuk.h>
+#include <libs/strlite.h>
 #include "engine1.h"
-#include <pcx.h>
+#include <libs/pcx.h>
 #include "globals.h"
 
+#include <string.h>
 #include <unistd.h>
 #define GLOBMAP "GLOBMAP.DAT"
 
@@ -164,7 +165,7 @@ static int cti_retezec(int znaku,char *text,char mezera,char upcase)
   return 0;
   }
 
-static void error(char *text)
+static void error(const char *text)
   {
   char popis[300];
 
@@ -325,12 +326,10 @@ static char proved_prikaz()
                 break;
         case OP_ESCAPE:
                 {
-                char *s;
                 cti_retezec(20,prikaz,1,1);
                 fclose(glbm);
-								s=find_map_path(prikaz);
+                const char *s = build_pathname(2, gpathtable[SR_MAP], prikaz);
                 if ((glbm=fopen_icase(s,"r"))==NULL) error(s);
-								free(s);
                 return 0;
                 }
         default:error(prikaz);
@@ -370,13 +369,12 @@ static void preskoc_prikaz(void)
 
 static void do_script(void)
   {
-  char *s;
+
   char vysledek;
 
-	s=find_map_path(GLOBMAP);
+	const char *s=build_pathname(2,gpathtable[SR_MAP], GLOBMAP);
   linecounter=0;
   glbm=fopen_icase(s,"r");
-	free(s);
   if (glbm==NULL) error("Chyb� uveden� soubor...");
   ODD=cti_oddelovac();
   do

@@ -1,19 +1,19 @@
-#include <platform.h>
+#include <platform/platform.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <bgraph.h>
+#include <libs/bgraph.h>
 #include <malloc.h>
-#include <memman.h>
-#include <mem.h>
-#include <mgifmem.h>
-#include <event.h>
-//#include <i86.h>
+#include <libs/memman.h>
+
+#include <libs/mgifmem.h>
+#include <libs/event.h>
 #include <math.h>
-#include <bmouse.h>
+#include <libs/bmouse.h>
 #include <stdarg.h>
 #include "engine1.h"
 #include "globals.h"
 
+#include <string.h>
 
 #define S_jmeno 128
 #define S_kouzlo 129

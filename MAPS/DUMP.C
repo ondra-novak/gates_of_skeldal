@@ -1,8 +1,8 @@
 #include <skeldal_win.h>
 #include <stdio.h>
-#include <bgraph.h>
+#include <libs/bgraph.h>
 #include <dos.h>
-#include <memman.h>
+#include <libs/memman.h>
 
 static int latest_version(char *wild,int numpos)
   {

@@ -1,7 +1,7 @@
 #include <string.h>
 #include <stdlib.h>
 #include <stdio.h>
-#include <bgraph.h>
+#include <libs/bgraph.h>
 
 #define ERR_PARM 1
 #define ERR_STR  2

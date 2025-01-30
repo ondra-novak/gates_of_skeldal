@@ -5,7 +5,7 @@
 #include <SDL2/SDL.h>
 #include <thread>
 #include <vector>
-#include <mouse.h>
+#include <libs/mouse.h>
 
 #include <queue>
 

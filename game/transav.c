@@ -1,9 +1,9 @@
 #include <stdio.h>
 #include <malloc.h>
 #include <graph.h>
-#include <mem.h>
+
 #include <conio.h>
-#include <bios.h>
+
 #define EVENT_MSG int32_t
 #include "globals.h"
 #include <memman.c>

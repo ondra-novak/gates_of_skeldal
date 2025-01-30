@@ -1,7 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
-#include <bgraph.h>
-#include <pcx.h>
+#include <libs/bgraph.h>
+#include <libs/pcx.h>
 #include <math.h>
 #include <conio.h>
 #include <mem.h>

@@ -1,8 +1,7 @@
-#include <platform.h>
+#include <platform/platform.h>
 //Gui system - object system + graphic
 #include "types.h"
 #include <stdio.h>
-#include <mem.h>
 #include <malloc.h>
 #include "memman.h"
 #include "event.h"
@@ -11,6 +10,7 @@
 #include "bgraph.h"
 #include "gui.h"
 
+#include <string.h>
 #define E_REDRAW_DESKTOP 2010
 #define E_REDRAW_WINDOW 2000
 
