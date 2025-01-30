@@ -567,7 +567,7 @@ static int enum_all_status(FILE *f, ENUM_ALL_STATUS_CALLBACK_RESULT (*cb)(FILE *
     }
 }
 
-static ENUM_ALL_STATUS_CALLBACK_RESULT unpack_status_callback(FILE *f, const char *name, size_t datasize, void *) {
+static ENUM_ALL_STATUS_CALLBACK_RESULT unpack_status_callback(FILE *f, const char *name, size_t datasize, void *_) {
     void *buff = getmem(datasize);
     if (fread(buff, 1, datasize, f) != datasize) {
         free(buff);

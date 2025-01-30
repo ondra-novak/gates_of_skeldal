@@ -200,7 +200,7 @@ void load_spells_legacy_format(void **p, int32_t *s) {
     k = (*p);
     for (int i = 0; i < count; ++i) {
         char *b = (char *)k;
-        char traceon = k->spellname[-1];    //traceon was there;
+        char traceon = *(k->spellname-1);    //traceon was there;
         size_t bofs = offsetof(TKOUZLO, traceon);
         size_t eofs = offsetof(TKOUZLO, spellname)-1;
         memmove(b+bofs+1, b+bofs, eofs-bofs);\

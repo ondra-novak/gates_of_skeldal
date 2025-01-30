@@ -454,7 +454,7 @@ static char select_xicht(int id,int xa,int ya,int xr,int yr)
   def_handle(H_XICHTY+cur_edited,s,pcx_8bit_decomp,SR_BGRAFIKA);
   sprintf(s,CHAR_NAME,k);
   def_handle(H_POSTAVY+cur_edited,s,pcx_8bit_decomp,SR_BGRAFIKA);
-  for(j=0;j<MAX_XICHTS;j++) if (postavy[j].used) disable[postavy[j].xicht]=1;
+  for(j=0;j<POCET_POSTAV;j++) if (postavy[j].used) disable[postavy[j].xicht]=1;
   error_text=NULL;
   bott_draw(1);
   redraw_generator(1);

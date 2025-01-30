@@ -94,6 +94,7 @@ protected:
     std::unique_ptr<SDL_Renderer, SDL_Deleter> _renderer;
     std::unique_ptr<SDL_Texture, SDL_Deleter> _texture;
     std::unique_ptr<SDL_Texture, SDL_Deleter> _texture2;
+    std::unique_ptr<SDL_Texture, SDL_Deleter> _crt_effect;
     SDL_Texture *_visible_texture;
     SDL_Texture *_hidden_texture;
 
@@ -136,7 +137,7 @@ protected:
     static SDL_Point to_source_point(const SDL_Rect &win_rec, const SDL_Point &win_pt) ;
     static SDL_Rect transition_rect(const SDL_Rect &beg, const SDL_Rect &end, float phase);
     static int transition_int(int beg, int end, float phase);
-
+    void generateCRTTexture(SDL_Renderer* renderer, SDL_Texture** texture, int width, int height);
     void signal_push();
 
 

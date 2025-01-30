@@ -48,6 +48,35 @@ SDLContext::SDLContext() {
 
 }
 
+void SDLContext::generateCRTTexture(SDL_Renderer* renderer, SDL_Texture** texture, int width, int height) {
+
+    // Vytvoř novou texturu ve správné velikosti
+    *texture = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_RGBA8888, SDL_TEXTUREACCESS_STREAMING, width, height);
+    SDL_SetTextureBlendMode(*texture, SDL_BLENDMODE_BLEND);
+
+    // Zamkni texturu pro přímý přístup k pixelům
+    void* pixels;
+    int pitch;
+    SDL_LockTexture(*texture, nullptr, &pixels, &pitch);
+
+    // Vyplň texturu patternem (liché řádky tmavší)
+    Uint32* pixelArray = (Uint32*)pixels;
+    Uint32 darkPixel = 0x00000080; // Černá s částečnou průhledností
+    Uint32 transparentPixel = 0x00000000;
+
+    for (int y = 0; y < height; y++) {
+        Uint32 color = (y % 3 == 0) ? darkPixel : transparentPixel;
+        for (int x = 0; x < width; x++) {
+            pixelArray[y * (pitch / 4) + x] = color;
+        }
+    }
+
+    // Odemkni texturu
+    SDL_UnlockTexture(*texture);
+}
+
+
+
 void SDLContext::init_screen(DisplayMode mode, const char *title) {
     char buff[256];
     static Uint32 update_request_event = SDL_RegisterEvents(1);
@@ -78,6 +107,7 @@ void SDLContext::init_screen(DisplayMode mode, const char *title) {
                 snprintf(buff, sizeof(buff), "SDL Error create window: %s\n", SDL_GetError());
                 throw std::runtime_error(buff);
             }
+            SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, "2");
 
             _window.reset(window);
             SDL_Renderer *renderer = SDL_CreateRenderer(_window.get(), -1, 0);
@@ -151,7 +181,11 @@ void SDLContext::event_loop(std::stop_token stp) {
             update_screen();
         }
 
-        if (e.type == SDL_KEYDOWN) {
+         if (e.type == SDL_WINDOWEVENT) {
+                if (e.window.event == SDL_WINDOWEVENT_SIZE_CHANGED) {
+                    _crt_effect.reset();
+                }
+         } else if (e.type == SDL_KEYDOWN) {
             _key_capslock = e.key.keysym.mod & KMOD_CAPS;
             _key_shift =e.key.keysym.mod & KMOD_SHIFT;
             _key_control  =e.key.keysym.mod & KMOD_CTRL;
@@ -320,6 +354,14 @@ void SDLContext::update_screen() {
         SDL_SetTextureAlphaMod(_visible_texture, 255);
         SDL_RenderCopy(_renderer.get(), _visible_texture, NULL, &winrc);
     }
+    if (winrc.w > 1280 && winrc.h > 960) {
+        if (!_crt_effect) {
+            SDL_Texture *txt;
+            generateCRTTexture(_renderer.get(), &txt, 128, std::min<int>(1440, winrc.h));
+            _crt_effect.reset(txt);
+        }
+    }
+    SDL_RenderCopy(_renderer.get(), _crt_effect.get(), NULL, &winrc);
     SDL_RenderPresent(_renderer.get());
 }
 
