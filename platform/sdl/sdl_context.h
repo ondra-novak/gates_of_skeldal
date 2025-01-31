@@ -14,16 +14,21 @@ public:
 
     SDLContext();
 
-    enum DisplayMode {
-        native_window,
-        double_window,
-        fullscreen
+    struct Config {
+        int window_width;
+        int window_height;
+        bool crt_filter;
+        int composer;
+        const char *scale_quality;
+        bool fullscreen;
+        int aspect_x;
+        int aspect_y;
     };
 
 
-    void init_screen(DisplayMode mode, const char *title);
+    void init_video(const Config &config, const char *title);
 
-    void close_screen();
+    void close_video();
 
 
     void present_rect(uint16_t *pixels, unsigned int pitch, unsigned int x, unsigned int y, unsigned int xs,unsigned ys);
@@ -89,6 +94,9 @@ protected:
 
     MS_EVENT ms_event;
     mutable std::mutex _mx;
+    int aspect_x = 4;
+    int aspect_y = 3;
+    bool crt_filter_enabled = false;
 
     std::unique_ptr<SDL_Window, SDL_Deleter> _window;
     std::unique_ptr<SDL_Renderer, SDL_Deleter> _renderer;

@@ -10,11 +10,9 @@ word *screen;
 word curcolor,charcolors[7] = {0x0000,RGB555(0,31,0),RGB555(0,28,0),RGB555(0,24,0),RGB555(0,20,0),0x0000,0x0000};
 word *curfont,*writepos,writeposx;
 byte fontdsize=0;
-byte *palmem=NULL,*xlatmem=NULL;
 void (*showview)(word,word,word,word);
 char line480=0;
 int32_t screen_buffer_size=0;
-char banking=0;
 char screenstate=0;
 char __skip_change_line_test=0;
 char no_restore_mode=0;
@@ -289,10 +287,10 @@ void switchvesabank(word bank)
   }
 
 */
-int initmode_dx(char inwindow, char zoom, char monitor, int refresh)
+int initmode(const INI_CONFIG_SECTION *display_config, const char *app_name)
   {
-  if (!DXInit64(inwindow,zoom,monitor,refresh)) return -1;
-  showview=showview_dx;
+    if (!game_display_init(display_config, app_name)) return -1;
+  showview=game_display_update_rect;
   screenstate=1;
   return 0;
   }
@@ -400,25 +398,12 @@ void closemode()
   {
   if (screenstate)
      {
-     palmem=NULL;
-     DXCloseMode();
+     game_display_close();
      }
   screenstate=0;
 
   }
 
-void showview_dx(word x,word y,word xs,word ys)
-  {
-//  register longint a;
-
-  if (x>DxGetResX() || y>DxGetResY()) return;
-  if (xs==0) xs=DxGetResX();
-  if (ys==0) ys=DxGetResY();
-  xs+=2;ys+=2;
-  if (x+xs>DxGetResX()) xs=DxGetResX()-x;
-  if (y+ys>DxGetResY()) ys=DxGetResY()-y;
-  DXCopyRects64(x,y,xs,ys);
-  }
 /*
 static void showview64b(word x,word y,word xs,word ys)
   {
@@ -593,70 +578,6 @@ void set_aligned_position(int x,int y,char alignx,char aligny,char *text)
   position(x,y);
   }
 
-/*void pal_optimize()
-  {
-  int32_t *stattable;
-  word *c;
-  char *d;
-  int i;
-  int32_t maxr,maxg,maxb,max;
-  int j;
-
-  if (palmem==NULL) return;
-  stattable=(int32_t *)getmem(32768*sizeof(int32_t));
-  memset(stattable,0,32768*sizeof(int32_t));
-  c=screen;
-  for(i=0;i<screen_buffer_size;i++,c++)
-     stattable[*c & 0x7fff]++;
-  for(j=0;j<256;j++)
-     {
-     max=0;
-     for (i=0;i<32768;i++)
-        if (stattable[i]>max)
-           {
-           *((word *)xlatmem+j)=i;
-           max=stattable[i];
-           }
-     stattable[*((word *)xlatmem+j)]=-1;
-     }
-  d=palmem;
-  c=(word *)xlatmem;
-  for(i=0;i<256;i++)
-     {
-     j=*c++;
-     *d++=((j>>9)& 0x3e);
-     *d++=((j>>4)& 0x3e);
-     *d++=(j & 0x1f)<<1;
-     }
-  setpal((void *)palmem);
-  memset(xlatmem,0,65536);
-  for(j=0;j<32768;j++)
-     {
-     int r1,g1,b1;
-     int r2,g2,b2,dif;
-     char *c;
-     maxr=maxg=maxb=999999999;
-     r1=(j>>9)& 0x3e;g1=(j>>4)& 0x3e;b1=(j & 0x1f)<<1;
-     c=palmem;
-        for(i=0;i<256;i++)
-        {
-        r2=abs(r1-*c++);
-        g2=abs(g1-*c++);
-        b2=abs(b1-*c++);
-        dif=r2+b2+g2;
-        if (dif<=maxb)
-           {
-           if (dif<maxb) xlatmem[j*2]=i;
-           else xlatmem[j*2]=xlatmem[j*2+1];
-           xlatmem[j*2+1]=i;
-           maxb=dif;
-           }
-        }
-     }
-  showview(0,0,0,0);
-  free(stattable);
-  }
-*/
 void rectangle(int x1,int y1,int x2,int y2,int color)
   {
   curcolor=color;
@@ -666,135 +587,3 @@ void rectangle(int x1,int y1,int x2,int y2,int color)
   ver_line32(x2,y1,y2);
   }
 
-void *create_special_palette()
-  {
-  char *c;
-  int i,j,k;
-  void *z;
-
-  z=c=getmem(3*256+2*32768);
-  for(i=0;i<6;i++)
-     for(j=0;j<7;j++)
-        for(k=0;k<6;k++)
-     {*c++=12*i;*c++=10*j;*c++=12*k;}
-  c=z;
-  c+=768;
-  for(i=0;i<32;i++)
-     for(j=0;j<32;j++)
-        for(k=0;k<32;k++)
-           {
-           *c++=((i+3)/6)*42+((j+3)/5)*6+((k+3)/6);
-           *c++=(i*2/12)*42+(j/5)*6+(k*2/12);
-           }
-  return z;
-  }
-void *create_special_palette2()
-  {
-  char *c;
-  int i,j,k;
-  void *z;
-
-  z=c=getmem(3*256+2*32768);
-  for(i=0;i<64;i++)
-     {
-     *c++=0;*c++=i;*c++=0;
-     }
-  for(j=0;j<24;j++)
-     for(k=0;k<8;k++)
-     {*c++=j*64/24;*c++=0;*c++=k*8;}
-  c=z;
-  c+=768;
-  for(i=0;i<32;i++)
-     for(j=0;j<32;j++)
-        for(k=0;k<32;k++)
-           {
-           *c++=64+(i*24/32)*8+k/4;
-           *c++=j*2;
-           }
-  return z;
-  }
-
-
-void *create_blw_palette16()
-  {
-  char *c;
-  int i,j,k;
-  void *z;
-  uint8_t pal_colors[]={0,1,2,3,4,5,20,7,56,57,58,59,60,61,62,63};
-  uint8_t carnat[]={0,1,3,2,4,5,7,6,12,13,15,14,8,9,11,10};
-
-  z=c=getmem(3*256+2*32768);
-  for(i=0;i<16;i++)
-     {
-     j=pal_colors[carnat[i]]*3;k=i*4+3;
-     c[j]=k;c[j+1]=k;c[j+2]=k;
-     }
-  c+=768;
-  for(i=0;i<32;i++)
-     for(j=0;j<32;j++)
-        for(k=0;k<32;k++)
-           {
-           int u=(i*3+j*5+k*2)/10;
-           c[0]=carnat[u/2];
-           c[1]=carnat[(u+1)/2];
-           c+=2;
-           }
-  return z;
-  }
-/*
-void showview16(word x,word y,word xs,word ys)
-  {
-  int x1,x2;
-  if (x>640 || y>480) return;
-  if (xs==0) xs=640;
-  if (ys==0) ys=480;
-  if (x+xs>640) xs=640-x;
-  if (y+ys>480) ys=480-y;
-  if (xs>550 && ys>400)
-     {
-     redraw16(screen,lbuffer,xlatmem);
-     return;
-     }
-  x1=x & ~0x7;
-  x2=(x+xs+7) & ~0x7;
-  redrawbox16((x2-x1)/8,ys,screen+x1+640*y,(char *)lbuffer+x1/8+80*y,xlatmem);
-  }
-
-void init16colors();
-#pragma aux init16colors modify [eax]=\
-  "mov  eax,12h"\
-  "int  10h"\
-
-int initmode16(void *palette)
-  {
-  palette;
-  init16colors();
-  lbuffer=(word *)0xa0000;
-  screen=lbuffer;
-  linelen=640*2;
-  showview=showview16;
-  screen=(void *)malloc(screen_buffer_size);
-  palmem=(char *)palette;
-  xlatmem=palmem+768;
-  setpal((void *)palmem);
-  banking=0;
-  screenstate=1;
-  return 0;
-  }
-
-void empty_show_view(int x,int y,int xs,int ys)
-  {
-  x,y,xs,ys;
-  }
-
-
-int init_empty_mode()
-  {
-  screen=(void *)malloc(screen_buffer_size);
-  showview=empty_show_view;
-  banking=1;
-  lbuffer=NULL;
-  screenstate=1;
-  return 0;
-  }
-*/

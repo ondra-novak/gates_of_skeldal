@@ -1,4 +1,5 @@
 #include <stdint.h>
+#include "../config.h"
 
 #ifndef __BGRAPH_DX_WRAPPER_
 #define __BGRAPH_DX_WRAPPER_
@@ -17,16 +18,11 @@ void RedirectScreen(uint16_t *newaddr);
 void RestoreScreen(void);
 void RedirectScreenBufferSecond(void);
 
+char game_display_init(const INI_CONFIG_SECTION *display_section, const char *title);
+void game_display_close(void);
+void game_display_update_rect(unsigned short x,unsigned short y,unsigned short xs,unsigned short ys);
 
-//inicializuje a otevira rezim 640x480x16b v DX - otevre okno, pripravi vse pro beh hry
-//Vraci 1 pri uspechu
-char DXInit64(char inwindow,int zoom,int monitor, int refresh);
 
-//uzavre rezim grafiky
-void DXCloseMode(void);
-
-//void DXCopyRects32(unsigned short x,unsigned short y,unsigned short xs,unsigned short ys);
-void DXCopyRects64(unsigned short x,unsigned short y,unsigned short xs,unsigned short ys);
 
 void *DxPrepareWalk(int ypos);
 void DxZoomWalk(void *handle, int ypos, int *points,float phase, void *lodka);

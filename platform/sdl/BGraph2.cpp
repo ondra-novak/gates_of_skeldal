@@ -1,4 +1,5 @@
 #include "BGraph2.h"
+#include "../platform.h"
 
 #include "sdl_context.h"
 #include "global_context.h"
@@ -9,33 +10,49 @@ static std::unique_ptr<uint16_t[]> buffer2nd;
 static uint16_t *render_target;
 static uint16_t screen_pitch = 640;
 
-char DXInit64(char inwindow,int zoom,int monitor, int refresh) {
+char game_display_init(const INI_CONFIG_SECTION *display_section, const char *title) {
 
-    SDLContext::DisplayMode mode;
-    if (inwindow) {
-        if (zoom) {
-            mode = SDLContext::double_window;
-        } else {
-            mode = SDLContext::native_window;
-        }
-    } else {
-        mode = SDLContext::fullscreen;
+    SDLContext::Config cfg  = {};
+    const char *aspect_str;
+
+    aspect_str = ini_get_string(display_section, "aspect_ratio", "4:3");
+    if (sscanf(aspect_str, "%d:%d",&cfg.aspect_x, &cfg.aspect_y) != 2) {
+        cfg.aspect_x = cfg.aspect_y = 0;
     }
+    cfg.fullscreen = ini_get_boolean(display_section, "fullscreen", 1) == 1;
+    const char *comp = ini_get_string(display_section, "composer", "auto");
+    if (stricmp(comp, "hardware") == 0 || stricmp(comp, "hw") == 0) {
+        cfg.composer = SDL_RENDERER_ACCELERATED;
+    } else if (stricmp(comp, "software") == 0 || stricmp(comp, "sw") == 0) {
+        cfg.composer = SDL_RENDERER_SOFTWARE;
+    } else {
+        cfg.composer = 0;
+    }
+    cfg.scale_quality = ini_get_string(display_section, "scale_quality", "auto");
+    cfg.window_height = ini_get_int(display_section, "window_height", 480);
+    cfg.window_width = ini_get_int(display_section, "window_width", 640);
+    cfg.crt_filter = ini_get_boolean(display_section, "crt_filter", 1) == 1;
+
+
+
+
+
+
 
     screen_pitch = 640;
-    get_sdl_global_context().init_screen(mode, "Skeldal"); //todo allow change
+    get_sdl_global_context().init_video(cfg, title);
     screen_buffer = std::make_unique<uint16_t[]>(screen_pitch*480);
     buffer2nd = std::make_unique<uint16_t[]>(screen_pitch*480);
     std::fill(screen_buffer.get(), screen_buffer.get()+screen_pitch*480,0);
     render_target = screen_buffer.get();
 
     return 1;
+
 }
 
-void DXCloseMode() {
-    get_sdl_global_context().close_screen();
+void game_display_close(void) {
+    get_sdl_global_context().close_video();
 }
-
 
 uint16_t *GetScreenAdr() {
     return render_target;
@@ -84,10 +101,25 @@ void StripBlt(void *data, unsigned int startline, uint32_t width) {
 
 }
 
-void DXCopyRects64(unsigned short x,unsigned short y,unsigned short xs,unsigned short ys) {
+static void DXCopyRects64(unsigned short x,unsigned short y,unsigned short xs,unsigned short ys) {
     get_sdl_global_context().present_rect(screen_buffer.get(), screen_pitch, x,y,xs,ys);
 
 }
+
+
+void game_display_update_rect(unsigned short x,unsigned short y,unsigned short xs,unsigned short ys)
+  {
+
+  if (x>DxGetResX() || y>DxGetResY()) return;
+  if (xs==0) xs=DxGetResX();
+  if (ys==0) ys=DxGetResY();
+  if (x+xs>DxGetResX()) xs=DxGetResX()-x;
+  if (y+ys>DxGetResY()) ys=DxGetResY()-y;
+  DXCopyRects64(x,y,xs,ys);
+  }
+
+
+
 
 void *DxPrepareWalk(int ypos) {
     auto &sdl = get_sdl_global_context();

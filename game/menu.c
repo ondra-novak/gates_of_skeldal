@@ -374,11 +374,13 @@ char *get_next_title(signed char control,char *filename)
   switch(control)
      {
      case 1:
-         path = local_strdup(build_pathname(2, gpathtable[SR_MAP],filename));
+         path = build_pathname(2, gpathtable[SR_MAP],filename);
+         path = local_strdup(path);
             titles=enc_open(path);
             if (titles==NULL)
               {
-                const char *path2 = local_strdup(build_pathname(2, gpathtable[SR_DATA],filename));
+                const char *path2 = build_pathname(2, gpathtable[SR_DATA],filename);
+                path2 = local_strdup(path2);
               titles=enc_open(path2);
               if (titles==NULL)
                 {

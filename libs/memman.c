@@ -20,7 +20,7 @@
 void bonz_table();
 
 #define NON_GETMEM_RESERVED (4*1024)
-char *const*  mman_pathlist=NULL;
+static const char **  mman_pathlist=NULL;
 static char swap_status=0;
 
 static FILE *swap = NULL;
@@ -34,7 +34,7 @@ void (*mman_action)(int action)=NULL;
 
 int32_t last_load_size;
 
-void def_mman_group_table(char *const * p) {
+void def_mman_group_table(const char ** p) {
     mman_pathlist = p;
 }
 
@@ -42,7 +42,6 @@ void standard_mem_error(size_t size)
   {
   char buff[256];
   SEND_LOG("(ERROR) Memory allocation error detected, %lu bytes missing",size);
-  DXCloseMode();
   sprintf(buff,"Memory allocation error\n Application can't allocate %lu bytes of memory (%xh)\n",size,memman_handle);
   display_error(buff);
   exit(1);
@@ -52,10 +51,6 @@ void load_error(const char *filename)
   {
   char buff[256];
   SEND_LOG("(ERROR) Load error detected, system can't load file: %s",filename);
-  #ifdef LOGFILE
- //   bonz_table();
-  #endif
-  DXCloseMode();
   sprintf(buff,"Load error while loading file: %s", filename);
   display_error(buff);
   exit(1);
@@ -64,7 +59,6 @@ void load_error(const char *filename)
 void standard_swap_error()
   {
   char buff[256];
-  DXCloseMode();
   sprintf(buff,"Swap error. Maybe disk is full");
   display_error(buff);
   exit(1);
@@ -531,7 +525,6 @@ void *ablock(int handle)
   if (h->status==BK_NOT_LOADED)
      {
         void *p;int32_t s;
-        char c[200];
 
         SEND_LOG("(LOAD) Loading file as block '%-.12s' %04X",h->src_file,handle);
         if (h->seekpos==0)
@@ -539,10 +532,8 @@ void *ablock(int handle)
            if (h->src_file[0]!=0)
               {
               if (mman_action!=NULL) mman_action(MMA_READ);
-              strcpy(c,mman_pathlist[h->path]);
-              strcat(c,h->src_file);
-              c[strlen(mman_pathlist[h->path])+12]='\0';
-              p=load_file(c);
+              const char *name = build_pathname(2,mman_pathlist[h->path], h->src_file);
+              p=load_file(name);
               s=last_load_size;
               }
            else

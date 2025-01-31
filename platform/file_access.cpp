@@ -2,6 +2,7 @@
 
 #include <cstdarg>
 #include <filesystem>
+#include "../libs/logfile.h"
 
 
 std::filesystem::path break_and_compose_path(const std::string_view &pathname, char sep) {
@@ -67,6 +68,8 @@ FILE *fopen_icase(const char *pathname, const char *mode) {
 
 static thread_local std::string build_pathname_buffer;
 
+
+
 const char * build_pathname(size_t nparts, const char *part1, ...) {
     va_list lst;
     va_start(lst, part1);
@@ -76,6 +79,7 @@ const char * build_pathname(size_t nparts, const char *part1, ...) {
         p = p / va_arg(lst, const char *);
     }
     build_pathname_buffer = p;
+    SEND_LOG("(BUILD_PATHNAME) %s", build_pathname_buffer.c_str());
     return build_pathname_buffer.c_str();
 }
 
@@ -83,4 +87,11 @@ char create_directories(const char *path) {
     std::filesystem::path p(path);
     std::error_code ec;
     return std::filesystem::create_directories(p, ec)?1:0;
+}
+
+
+char change_current_directory(const char *path) {
+    std::error_code ec;
+    std::filesystem::current_path(std::filesystem::path(path), ec);
+    return ec == std::error_code{}?1:0;
 }

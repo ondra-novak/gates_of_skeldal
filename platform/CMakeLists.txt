@@ -14,6 +14,7 @@ target_sources(skeldal_platform PRIVATE
     config.cpp
     error.cpp
     timer.cpp
+    getopt.c
 )
 
 # Podmínky pro platformu Windows

@@ -17,9 +17,10 @@ static std::string get_default_savegame_dir() {
 
 
 
-const char *get_default_savegame_directory() {
+const char *get_default_savegame_directory(void) {
 
     static std::string dir = get_default_savegame_dir();
     return dir.c_str();
+
 
 }

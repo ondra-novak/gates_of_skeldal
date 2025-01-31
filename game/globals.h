@@ -268,7 +268,7 @@ static __inline int rangrnd(int a, int b) {return rnd(b-a+1)+a;}
 
 
 #define concat(c,s1,s2) c=strcat(strcpy((char *)alloca(strlen(s1)+strlen(s2)+1),s1),s2)
-#define local_strdup(c) strcpy((char *)strlen(c)+1, c)
+#define local_strdup(c) strcpy((char *)alloca(strlen(c)+1), c)
 #define concat2(s1,s2) strcat(strcpy((char *)alloca(strlen(s1)+strlen(s2)+1),s1),s2)
 #define concat3(s1,s2,s3) strcat(strcat(strcpy((char *)alloca(strlen(s1)+strlen(s2)+strlen(s3)+1),s1),s2),s3)
 #define concat4(s1,s2,s3,s4) strcat(strcat(strcat(strcpy((char *)alloca(strlen(s1)+strlen(s2)+strlen(s3)+strlen(s4)+1),s1),s2),s3),s4)
@@ -332,14 +332,14 @@ typedef enum skeldal_folders_tag {
     SR_FONT,
     SR_MAP,
     SR_MUSIC,
-    SR_BGRAFIKA,
+    SR_TEMP, /* = unused group */
+    SR_BGRAFIKA ,
     SR_ITEMS,
     SR_ENEMIES,
     SR_VIDEO,
     SR_DIALOGS,
     SR_SAVES,
     SR_WORK,
-    SR_CD,
 
 
 SR_COUNT} SKELDAL_FOLDERS_TAG;
@@ -555,7 +555,7 @@ extern int viewsector;             //aktualni sektor vyhledu
 extern int viewdir;                //aktualni smer vyhledu
 extern THE_TIMER timer_tree;       //strom casovych udalosti
 extern D_ACTION *d_action;         //spojovy seznam zpozdenych akci
-extern char *gpathtable[SR_COUNT];          //tabulka adresaru
+extern const char *gpathtable[SR_COUNT];          //tabulka adresaru
 extern char level_preload;         //informace o preloadingu
 extern char **texty;               //globalni tabulka textu
 extern char **level_texts;         //lokalni tabulka textu
@@ -565,7 +565,6 @@ extern int hl_ptr;                 //ukazatel na konec staticke tabulky registra
 extern int end_ptr;                //ukazatel na uplny konec tabulky registraci
 extern short **map_items;          //ukazatel na mapu predmetu
 extern int default_ms_cursor;      //cislo zakladniho mysiho kurzoru
-extern void *cur_xlat;             //aktualni tabulka pro 256 barev
 extern void (*unwire_proc)(void);      //procedura zajistujici odpojeni prave ukoncovane interakce
 extern void (*wire_proc)(void);        //procedura zajistujici pripojeni drive ukoncene interakce
 extern char cur_mode;              //cislo aktualni interakce
@@ -642,7 +641,6 @@ extern char marker; //tato promenna je 0, jen v pripade ze je 1 probehne assert
 
 //builder - skeldal
 
-int set_video(int mode);
 void *game_keyboard(EVENT_MSG *msg,void **usr);
 void calc_animations(void);
 int load_map(char *filename);

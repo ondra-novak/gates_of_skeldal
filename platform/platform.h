@@ -41,6 +41,13 @@ const char * build_pathname(size_t nparts, const char *part1, ...);
  * @retval 0 failure
  */
 char create_directories(const char *path);
+///change current directory
+/**
+ * @param path path
+ * @retval 1 success
+ * @retval 0 failure
+ */
+char change_current_directory(const char *path);
 
 
 
@@ -71,7 +78,7 @@ void sleep_ms(uint32_t);
   }
 #endif
 
-//------------- BGRAPH DX wrapper -------------------
+
 #include "sdl/BGraph2.h"
 
 #define WM_RELOADMAP (WM_APP+215)

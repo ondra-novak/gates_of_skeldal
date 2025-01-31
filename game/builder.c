@@ -232,7 +232,6 @@ void chveni(int i)
   if (i) count=i;
   count--;
   if (!count) pos=0;
-  wait_retrace();
   setvesa_displaystart(8*pos,0);
   pos=!pos;
   }

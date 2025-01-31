@@ -5,10 +5,16 @@
 #include <map>
 #include <string>
 #include <string_view>
+
+typedef struct ini_config_section_tag {
+    using Section = std::map<std::string, std::string, std::less<>>;
+    Section data;
+} INI_CONFIG_SECTION;
+
 typedef struct ini_config_tag {
 
-    using Section = std::map<std::string, std::string, std::less<>>;
-    using Config = std::map<std::string, Section , std::less<>>;
+
+    using Config = std::map<std::string, INI_CONFIG_SECTION , std::less<>>;
     Config data;
 
 } INI_CONFIG;
@@ -44,7 +50,7 @@ void parseIniStream(std::istream& input, Callback &&callback) {
             if (eqPos != std::string_view::npos) {
                 std::string_view key_view = trim(line_view.substr(0, eqPos));
                 std::string_view value_view = trim(line_view.substr(eqPos + 1));
-                callback(currentSection, std::string(key_view), std::string(value_view));
+                callback(currentSection, key_view, value_view);
             }
         }
     }
@@ -59,9 +65,9 @@ INI_CONFIG* ini_open(const char *filename) {
     parseIniStream(input, [&](std::string_view section, std::string_view key, std::string_view value) {
         INI_CONFIG::Config::iterator iter = c->data.find(section);
         if (iter == c->data.end()) {
-            iter = c->data.emplace(std::string(section), INI_CONFIG::Section()).first;
+            iter = c->data.emplace(std::string(section), INI_CONFIG_SECTION()).first;
         }
-        iter->second.emplace(std::string(key), std::string(value));
+        iter->second.data.emplace(std::string(key), std::string(value));
     });
     return c;
 }
@@ -73,15 +79,14 @@ void ini_close(INI_CONFIG *config) {
 const INI_CONFIG_SECTION* ini_section_open(const INI_CONFIG *cfg, const char *section) {
     auto iter = cfg->data.find(std::string_view(section));
     if (iter == cfg->data.end()) return NULL;
-    else return reinterpret_cast<const INI_CONFIG_SECTION *>(&iter->second);
+    else return &iter->second;
 }
 
 const char* ini_find_key(const INI_CONFIG_SECTION *section,
         const char *key) {
     if (section == NULL) return NULL;
-    const INI_CONFIG::Section *s = reinterpret_cast<const INI_CONFIG::Section *>(section);
-    auto iter = s->find(std::string_view(key));
-    if (iter == s->end()) return NULL;
+    auto iter = section->data.find(std::string_view(key));
+    if (iter == section->data.end()) return NULL;
     return iter->second.c_str();
 }
 
@@ -171,8 +176,7 @@ int ini_get_boolean(const INI_CONFIG_SECTION *section, const char *key,
 }
 
 void ini_replace_key( INI_CONFIG_SECTION *section, const char *key, const char *value) {
-    auto s = reinterpret_cast<INI_CONFIG::Section *>(section);
-    (*s)[std::string(key)] = std::string(value);
+    section->data[std::string(key)] = std::string(value);
 }
 
 INI_CONFIG_SECTION* ini_create_section(INI_CONFIG *cfg, const char *section_name) {
@@ -189,7 +193,7 @@ void ini_store_to_file(const INI_CONFIG *config, const char *filename) {
     std::ofstream out(filename,std::ios::out|std::ios::trunc);
     for (const auto &[sname, s]: config->data) {
         out << '[' << sname << ']' << std::endl;
-        for (const auto &[k,v]: s) {
+        for (const auto &[k,v]: s.data) {
             out << k << '=' << v << std::endl;
         }
     }

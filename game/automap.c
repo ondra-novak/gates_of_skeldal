@@ -583,7 +583,6 @@ void draw_automap(int xr,int yr)
      outtext(s);
      }
   ukaz_mysku();
-  wait_retrace();
   showview(0,16,640,360);
 }
 void *map_keyboard(EVENT_MSG *msg,void **usr);

@@ -1,10 +1,10 @@
+#include "legacy_coroutines.h"
+
 #include <cassert>
 #include <cstdarg>
 #include <cstdint>
 #include <iostream>
-extern "C" {
 #include "error.h"
-}
 #include "platform.h"
 
 
@@ -15,8 +15,9 @@ void display_error(const char *text) {
 
 
 static std::uint32_t gtick = get_game_tick_count();
-void send_log_impl(int task, const char *format, ...) {
+void send_log_impl(const char *format, ...) {
     va_list args;
+    int task = q_current_task();
     char buff2[1000];
     va_start(args, format);
     auto reltik = get_game_tick_count() - gtick;

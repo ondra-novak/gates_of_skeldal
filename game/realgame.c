@@ -222,10 +222,11 @@ int load_map(char *filename)
   char snd_load=0;
   void *mob_template;
   int32_t mob_size;
-  int suc;
+  int suc = 0;
 
   map_with_password=0;
   const char *mpath = build_pathname(2, gpathtable[SR_MAP], filename);
+  mpath = local_strdup(mpath);
   schovej_mysku();
   if (level_preload) show_loading_picture("LOADING.HI");
   change_music("?");

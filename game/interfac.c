@@ -1599,11 +1599,8 @@ void show_jrc_logo(char *filename)
         palw[i]=b | (r<<11) | (g<<6);
         }
       }
-        if (!bnk)
-            wait_retrace();
         put_picture(xp, yp, pcx);
         if (bnk) {
-            wait_retrace();
             showview(xp, yp, pcxw[0], pcxw[1]);
         }
     ccc=cdiff;

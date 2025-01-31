@@ -947,9 +947,6 @@ void general_engine_init()
   create_zooming();
   clear_screen(GetScreenAdr(),0);
   clear_screen(GetBuffer2nd(),0);
-  int32_t scr_linelen2 = GetScreenPitch();
-
-  screen_buffer_size=scr_linelen2*480*2;
 }
 
 void map_pos(int celx,int cely,int posx,int posy,int posz,int *x,int *y)

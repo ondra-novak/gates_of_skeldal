@@ -60,11 +60,10 @@ void SDLContext::generateCRTTexture(SDL_Renderer* renderer, SDL_Texture** textur
     int pitch;
     SDL_LockTexture(*texture, nullptr, &pixels, &pitch);
 
-    bool wider_lines = height > 1024;
+    bool wider_lines = height > 1350;
 
-    // Vyplň texturu patternem (liché řádky tmavší)
     Uint32* pixelArray = (Uint32*)pixels;
-    Uint32 darkPixel = wider_lines?0x808080FF:0xC0C0C0FF; // Černá s částečnou průhledností
+    Uint32 darkPixel = wider_lines?0x808080FF:0xA0A0A0FF;
     Uint32 transparentPixel = wider_lines ?0xFFFFFFE0:0xFFFFFFC0;
     int step = wider_lines ?3:2;
 
@@ -81,7 +80,7 @@ void SDLContext::generateCRTTexture(SDL_Renderer* renderer, SDL_Texture** textur
 
 
 
-void SDLContext::init_screen(DisplayMode mode, const char *title) {
+void SDLContext::init_video(const Config &config, const char *title) {
     char buff[256];
     static Uint32 update_request_event = SDL_RegisterEvents(1);
     _update_request_event = update_request_event;
@@ -89,14 +88,14 @@ void SDLContext::init_screen(DisplayMode mode, const char *title) {
     assert(!_render_thread.joinable());
 
 
-    int width = 640;
-    int height = 480;
-    if (mode == double_window) {
-        width*=2;
-        height*=2;
-    }
+    int width = config.window_width;
+    int height = config.window_height;
+    aspect_x = config.aspect_x;
+    aspect_y = config.aspect_y;
+    crt_filter_enabled = config.crt_filter;
 
-    _fullscreen_mode = mode == fullscreen;
+
+    _fullscreen_mode = config.fullscreen;
 
     std::atomic<bool> done = false;
     std::exception_ptr e;
@@ -105,20 +104,31 @@ void SDLContext::init_screen(DisplayMode mode, const char *title) {
         try {
             SDL_Window *window = SDL_CreateWindow(title,
                         SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED,
-                        width, height, SDL_WINDOW_RESIZABLE|(mode==fullscreen?SDL_WINDOW_FULLSCREEN_DESKTOP:0));
+                        width, height, SDL_WINDOW_RESIZABLE|(_fullscreen_mode?SDL_WINDOW_FULLSCREEN_DESKTOP:0));
 
             if (!window) {
                 snprintf(buff, sizeof(buff), "SDL Error create window: %s\n", SDL_GetError());
                 throw std::runtime_error(buff);
             }
-            SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, "2");
 
             _window.reset(window);
-            SDL_Renderer *renderer = SDL_CreateRenderer(_window.get(), -1, 0);
+            SDL_Renderer *renderer = SDL_CreateRenderer(_window.get(), -1, config.composer);
             if (!renderer) {
-                snprintf(buff,sizeof(buff), "Chyba při vytváření rendereru: %s\n", SDL_GetError());
+                snprintf(buff,sizeof(buff), "Failed to create composer: %s\n", SDL_GetError());
                 throw std::runtime_error(buff);
             }
+
+            SDL_RendererInfo rinfo;
+            SDL_GetRendererInfo(renderer, &rinfo);
+
+            if (stricmp(config.scale_quality, "auto") == 0) {
+                if (rinfo.flags & SDL_RENDERER_ACCELERATED) {
+                    SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, "best");
+                }
+            } else {
+                SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, config.scale_quality);
+            }
+
             _renderer.reset(renderer);
             SDL_Texture *texture = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_RGB565, SDL_TEXTUREACCESS_STREAMING, 640, 480);
             if (!texture) {
@@ -159,7 +169,7 @@ void SDLContext::init_screen(DisplayMode mode, const char *title) {
 
 }
 
-void SDLContext::close_screen() {
+void SDLContext::close_video() {
     _render_thread.request_stop();
     _render_thread.join();
 }
@@ -358,7 +368,7 @@ void SDLContext::update_screen() {
         SDL_SetTextureAlphaMod(_visible_texture, 255);
         SDL_RenderCopy(_renderer.get(), _visible_texture, NULL, &winrc);
     }
-    if (winrc.h > 900) {
+    if (winrc.h > 900 && crt_filter_enabled) {
         if (!_crt_effect) {
             SDL_Texture *txt;
             generateCRTTexture(_renderer.get(), &txt, 128, std::min<int>(1440, winrc.h));
@@ -431,21 +441,28 @@ SDL_Rect SDLContext::get_window_aspect_rect() const {
     int ww;
     int wh;
     SDL_GetWindowSizeInPixels(_window.get(), &ww, &wh);
-    int apw  = wh * 4 / 3;
-    int aph =  ww * 3 / 4;
-    int fw;
-    int fh;
-    if (apw > ww) {
-        fw = ww;
-        fh = aph;
+    if (aspect_x && aspect_y) {
+        int apw  = wh * aspect_x / aspect_y;
+        int aph =  ww * aspect_y / aspect_x;
+        int fw;
+        int fh;
+        if (apw > ww) {
+            fw = ww;
+            fh = aph;
+        } else {
+            fw = apw;
+            fh = wh;
+        }
+        w.h = fh;
+        w.w = fw;
+        w.x = (ww - fw)/2;
+        w.y = (wh - fh)/2;
     } else {
-        fw = apw;
-        fh = wh;
+        w.x = 0;
+        w.y = 0;
+        w.w = ww;
+        w.h = wh;
     }
-    w.h = fh;
-    w.w = fw;
-    w.x = (ww - fw)/2;
-    w.y = (wh - fh)/2;
     return w;
 }
 

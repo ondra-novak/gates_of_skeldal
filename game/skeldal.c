@@ -1,42 +1,33 @@
 #include <platform/platform.h>
 #include <assert.h>
 #include <stdarg.h>
-
 #include <stdlib.h>
-#include <ctype.h>
-#include <string.h>
 #include <stdio.h>
-#include <malloc.h>
-
 #include <libs/pcx.h>
-#include <libs/types.h>
 #include <libs/bgraph.h>
 #include <libs/event.h>
-#include <libs/devices.h>
 #include <libs/bmouse.h>
 #include <libs/memman.h>
 #include <libs/zvuk.h>
 #include <libs/strlite.h>
 #include <libs/gui.h>
 #include <libs/basicobj.h>
-#include <time.h>
 #include <libs/mgfplay.h>
 #include <libs/inicfg.h>
+#include <platform/getopt.h>
+#include <platform/save_folder.h>
 #include "globals.h"
-#include "engine1.h"
-#include "wizard.h"
-#include "version.h"
 #include "default_font.h"
-
+//
 #include "advconfig.h"
-#include <unistd.h>
+
 #define CONFIG_NAME SKELDALINI
 
 #define INI_TEXT 1
 #define INI_INT 2
 
 #define ERR_GENERAL 1
-char *gpathtable[SR_COUNT];
+const char *gpathtable[SR_COUNT];
 
 /*
 char *pathtable[]=
@@ -66,7 +57,6 @@ int charmax=3;
 int autoopenaction=0;
 int autoopendata=0;
 
-void *cur_xlat;
 
 void redraw_desktop_call(void);
 
@@ -99,12 +89,7 @@ void (*wire_proc)(void);
 char cur_mode,battle_mode;
 static int init_music_vol=127;
 static int init_gfx_vol=255;
-static char full_video=0;
 static char titles_on=0;
-static char windowed=0;
-static char windowedzoom=1;
-static char monitor=0;
-static int refresh=0;
 
 void pcx_fade_decomp(void **p,int32_t *s);
 void pcx_15bit_decomp(void **p,int32_t *s);
@@ -290,49 +275,6 @@ INIS sinit[]=
 int last_ms_cursor=-1;
 int vmode=2;
 
-int set_video(int mode)
-  {
-  int er=0;
-
-  int32_t scr_linelen2 = GetScreenPitch();
-
-  report_mode(1);
-  er=initmode_dx(windowed,windowedzoom,monitor,refresh);
-/*
-  switch(mode)
-  {
-  case 1:er=initmode256(cur_xlat);
-              if (banking) report_mode(5); else report_mode(2);
-
-               break;
-  case 2:er=initmode32();
-              if (banking) report_mode(4); else report_mode(1);
-
-               break;
-  case 0:er=initmode_lo(cur_xlat);
-              report_mode(3);
-
-               break;
-  case 3: free(cur_xlat);cur_xlat=create_blw_palette16();
-               er=initmode16(cur_xlat);
-
-              report_mode(3);
-               break;
-  case 4:er=init_empty_mode();
-             report_mode(3);
-
-              break;
-  case 5:free(cur_xlat);cur_xlat=create_hixlat();
-              er=initmode64(cur_xlat);
-              if (banking) report_mode(7); else report_mode(6);
-
-              break;
-
-  default:er=-1;
-  }*/
-  screen_buffer_size=scr_linelen2*2*480;
-  return er;
-  }
 
 void purge_temps(char _) {
     temp_storage_clear();
@@ -989,31 +931,27 @@ static void patch_error(int err)
 
 void init_skeldal(const INI_CONFIG *cfg)
   {
-  int verr;
+
 
   boldcz=LoadDefaultFont();
 
   cti_texty();
   timer_tree.next=NULL;
-
-  srand(clock());
-
-  cur_xlat=create_special_palette();
-
   init_events();
 
-  verr=set_video(vmode);
-  if (verr)
+  char verr = game_display_init(ini_section_open(cfg, "video"), "Skeldal");
+  if (!verr)
      {
-     exit(ERR_GENERAL);
+     exit(1);
      }
+  showview = game_display_update_rect;
 
   general_engine_init();
   atexit(done_skeldal);
 /*
   install_dos_error(device_error,(char *)getmem(4096)+4096);*/
-  swap_error=swap_error_exception;
-  const char *ddlfile = local_strdup(build_pathname(2, gpathtable[SR_DATA],"SKELDAL.DDL"));
+  const char *ddlfile = build_pathname(2, gpathtable[SR_DATA],"SKELDAL.DDL");
+  ddlfile = local_strdup(ddlfile);
 
   init_manager(ddlfile, NULL);
   SEND_LOG("(GAME) Memory manager initialized. Using DDL: '%s'",ddlfile);
@@ -1036,8 +974,6 @@ void init_skeldal(const INI_CONFIG *cfg)
   send_message(E_ADD,E_KEYBOARD,global_kbd);
 
   send_message(E_ADD,E_PRGERROR,error_exception);
-
-  if (debug_enabled) install_wizard();
 
   add_to_timer(TM_BACK_MUSIC,5,-1,back_music);
 
@@ -1323,24 +1259,7 @@ void set_verify(char state);
 */
 void play_movie_seq(const char *s,int y)
   {
-  int hic=full_video?SMD_HICOLOR+128:SMD_HICOLOR,cc=full_video?SMD_256+128:SMD_256;
-  word *lbuffer=GetScreenAdr();
-  set_play_attribs(lbuffer,0,banking,vmode==5);
-  switch (vmode)
-     {
-     case 1:if (!banking)
-              play_animation(s,cc,y,snd_devnum!=DEV_NOSOUND);
-            else
-              {
-              set_play_attribs(GetScreenAdr(),1,0,vmode==5);
-              play_animation(s,hic,y,snd_devnum!=DEV_NOSOUND);
-              }
-            break;
-     case 5:
-     case 2:play_animation(s,hic,y,snd_devnum!=DEV_NOSOUND);break;
-     default: set_play_attribs(GetScreenAdr(),1,0,vmode==5);
-              play_animation(s,hic,y,snd_devnum!=DEV_NOSOUND);break;
-     }
+  play_animation(s,0,y,0);
   }
 
 
@@ -1369,68 +1288,6 @@ void play_anim(int anim_num)
   }
 
 
-/*main(int argc,char *argv[])
-  {
-  int err;int sect;int dir=0;
-
-  //if (argc<2) help();
-
-  dir;
-  set_verify(0);
-  mman_pathlist=&pathtable;
-  //nofloors=1;
-  zoom_speed(1);
-  turn_speed(1);
-  configure("skeldal.ini",config_skeldal);
-  purge_temps(1);
-  textmode_effekt();
-  clrscr();
-  init_skeldal();
-  enter_menu();
-  if (argc<2)
-     {
-     invex_anim();
-   //  send_message(E_ADD,E_MOUSE,waiter);
-   //  send_message(E_ADD,E_KEYBOARD,waiter);
-   //  add_to_timer(TM_WAITER,1,-1,timer_waiter);
-     strncpy(loadlevel.name,default_map,12);
-     }
-  else strncpy(loadlevel.name,argv[1],12);
-  err=load_map(loadlevel.name);
-  if (argc>=3) sscanf(argv[2],"%d",&sect);
-  else
-     {
-     sect=mglob.start_sector;
-     dir=mglob.direction;
-     }
-  loadlevel.start_pos=sect;
-  loadlevel.dir=dir;
-  init_game();
-  while (loadlevel.name[0])
-     {
-     if (err)
-       {
-       closemode();
-       switch (err)
-          {
-          case -1: printf("Error while loading map....file not found\n");break;
-          case -2: printf("Missing -1 at the end of map string table");break;
-          case -3: printf("Map file is corrupted!\n");break;
-          default: printf("Error in string table at line %d",err);break;
-          }
-       exit(1);
-       }
-    viewsector=loadlevel.start_pos;
-    viewdir=loadlevel.dir;
-    loadlevel.name[0]=0;
-    enter_game();
-    leave_current_map();
-    if (loadlevel.name[0]!=0)err=load_map(loadlevel.name);
-     }
-  closemode();
-  }
-
-*/
 
 #define V_NOVA_HRA 0
 #define V_OBNOVA_HRY 1
@@ -1661,9 +1518,80 @@ void disable_intro(void)
   update_config();
   }
 
+/*
+ * -char def_path[]="";
+-char graph_path[]="graphics" PATH_SEPARATOR;
+-char basc_graph[]="graphics" PATH_SEPARATOR "basic" PATH_SEPARATOR;
+-char item_graph[]="graphics" PATH_SEPARATOR "items" PATH_SEPARATOR;
+-char sample_path[]="samples" PATH_SEPARATOR;
+-char font_path[]="font" PATH_SEPARATOR;
+-char map_path[]="maps" PATH_SEPARATOR;
+-char music_path[]="music" PATH_SEPARATOR;
+-char org_music_path[]="music" PATH_SEPARATOR;
+-char temp_path[]="?";
+-char enemies_path[]="graphics" PATH_SEPARATOR "enemies" PATH_SEPARATOR;
+-char video_path[]="video" PATH_SEPARATOR;
+-char dialogs_path[]="graphics" PATH_SEPARATOR "dialogs" PATH_SEPARATOR;
+-char saves_path[]="";
+-char work_path[]="";
+-char cd_path[]="";
+-char map2_path[]="";
+-char plugins_path[]="";
+ */
 
-void new_configure(const INI_CONFIG *) {
+//returns game root
+const char *configure_pathtable(const INI_CONFIG *cfg) {
 
+#define DEFAULT_SUBPATHS 4
+#define DEFAULT_SUBPATHS_LEN 20
+    const char *sub_paths[DEFAULT_SUBPATHS] = {
+            "basic", "dialogs", "enemies","items"
+    };
+
+    static char default_subpaths[DEFAULT_SUBPATHS][DEFAULT_SUBPATHS_LEN];
+    for (int i = 0; i < DEFAULT_SUBPATHS; ++i) {
+        strncpy(default_subpaths[i],  build_pathname(2, "graphics", sub_paths[i]), DEFAULT_SUBPATHS_LEN);
+    }
+
+    const INI_CONFIG_SECTION *paths = ini_section_open(cfg, "paths");
+    const char *groot = ini_get_string(paths, "root", "./");
+    gpathtable[SR_BGRAFIKA] = ini_get_string(paths, "gui", default_subpaths[0]);
+    gpathtable[SR_DIALOGS] = ini_get_string(paths, "dialogs", default_subpaths[1]);
+    gpathtable[SR_ENEMIES] = ini_get_string(paths, "enemies", default_subpaths[2]);
+    gpathtable[SR_FONT] = ini_get_string(paths, "fonts", "font");
+    gpathtable[SR_GRAFIKA] = ini_get_string(paths, "graphics", "graphics");
+    gpathtable[SR_ITEMS] = ini_get_string(paths, "items", default_subpaths[3]);
+    gpathtable[SR_MAP] = ini_get_string(paths, "maps", "maps");
+    gpathtable[SR_MUSIC] = ini_get_string(paths, "music", "music");
+    gpathtable[SR_ZVUKY] = ini_get_string(paths, "sounds", "sounds");
+    gpathtable[SR_VIDEO] = ini_get_string(paths, "video", "video");
+    gpathtable[SR_SAVES] = ini_get_string(paths, "savegame", get_default_savegame_directory());
+    gpathtable[SR_DATA]= ini_get_string(paths, "data", "./");
+
+
+    return groot;
+}
+
+
+void show_help(const char *arg0) {
+    printf(
+            "Brany Skeldalu (Gates of Skeldal) portable game player\n"
+            "Copyright (c) 2025 Ondrej Novak. All rights reserved.\n\n"
+            "This work is licensed under the terms of the MIT license.\n"
+            "For a copy, see <https://opensource.org/licenses/MIT>.\n"
+            "\n"
+            "Usage:"
+    );
+    printf("%s [-f <file>] [-a <file>] [-h]\n\n", arg0);
+
+    printf("-f <file>       path to configuration file\n"
+           "-a <adv>        path for adventure file (.adv)\n"
+           "-h              this help\n");
+    exit(0);
+}
+
+void show_help_short() {
+    printf("add -h to print help\n");
 }
 
 int main(int argc,char *argv[])
@@ -1671,39 +1599,47 @@ int main(int argc,char *argv[])
   def_mman_group_table(gpathtable);
   zoom_speed(1);
   turn_speed(1);
+  const char *config_name = CONFIG_NAME;
+  const char *adv_config_file = NULL;
+  for (int optchr = -1; (optchr = getopt(argc, argv, "hf:a:")) != -1; ) {
+      switch (optchr) {
+          case 'f': config_name = local_strdup(optarg);break;
+          case 'a': adv_config_file = local_strdup(optarg);break;
+          case 'h': show_help(argv[0]);break;
+          default: show_help_short();
+                   return 1;
+      }
+  }
 
-  INI_CONFIG *cfg = ini_open(CONFIG_NAME);
+  INI_CONFIG *cfg = ini_open(config_name);
   if (cfg == NULL) {
       fprintf(stderr, "Failed to open configuration file: %s\n", CONFIG_NAME);
+      show_help_short();
       return 1;
   }
 
-  if (argc >= 2) {
-      TSTR_LIST adv_config=read_config(argv[1]);;
+  if (adv_config_file) {
+      TSTR_LIST adv_config=read_config(adv_config_file);
       adv_patch_config(cfg, adv_config);
       release_list(adv_config);
   }
 
-  new_configure(cfg);
+  const char *groot = configure_pathtable(cfg);
+  if (!change_current_directory(groot)) {
+      fprintf(stderr, "Can't change directory to %s", groot);
+      return 1;
+  }
+
 
 
   start_check();
   purge_temps(1);
-//  textmode_effekt();
   clrscr();
 
   init_skeldal(cfg);
 
+  add_task(65536,start);
 
-  //add_task(32768,check_number_1phase,argv[0]);
-
-
-     add_task(65536,start);
-
-/*  position(200,200);
-  set_font(H_FBIG,RGB(200,200,200));
-  outtext("Ahoj lidi");
-  showview(0,0,0,0);*/
   escape();
   closemode();
 
