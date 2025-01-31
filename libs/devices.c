@@ -89,6 +89,9 @@ void keyboard(EVENT_MSG *msg, void *user_data) {
     user_data;
     if (msg->msg == E_WATCH) {
         *otevri_zavoru = 1;
+        if (game_display_is_quit_requested()) {
+            send_message(E_KEYBOARD, E_QUIT_GAME_KEY);
+        }
         if (!_bios_keybrd(_KEYBRD_READY))
             return;
         i = _bios_keybrd(_KEYBRD_READ);

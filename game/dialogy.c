@@ -125,16 +125,16 @@ static int glob_y;
 
 static int last_pgf;
 
-static word *paleta;
+static const word *paleta;
 static int32_t loc_anim_render_buffer;
 static short task_num=-1;
 
-void small_anm_buff(void *target,void *buff,void *paleta);
+void small_anm_buff(void *target,const void *buff,const void *paleta);
 //#pragma aux small_anm_buff parm[edi][esi][ebx] modify [eax ecx]
-void small_anm_delta(void *target,void *buff,void *paleta);
+void small_anm_delta(void *target,const void *buff,const void *paleta);
 //#pragma aux small_anm_delta parm[edi][esi][ebx] modify [eax ecx]
 
-static void animace_kouzla(int act,void *data,int csize)
+static void animace_kouzla(int act,const void *data,int csize)
   {
   word *p=GetScreenAdr()+loc_anim_render_buffer;
   switch (act)
@@ -154,7 +154,7 @@ static void dialog_anim(va_list args)
   int speed=va_arg(args,int);
   int rep=va_arg(args,int);
 
-  void *anm;
+  const void *anm;
   void *aptr;
   char hid;
   int spdc=0,cntr=rep,tm,tm2;
@@ -235,7 +235,7 @@ static T_PARAGRAPH *find_paragraph(int num)
   T_PARAGRAPH *z;
 
   num+=local_pgf;
-  pp=(int *)ablock(H_DIALOGY_DAT);
+  pp=(int *)ablock_copy(H_DIALOGY_DAT);
   pocet=*pp;pp+=2;
   z=(T_PARAGRAPH *)pp;
   for(i=0;i<pocet;i++,z++) if (z->num==(unsigned)num) return z;
@@ -256,7 +256,7 @@ static int find_pgnum(char *pc)
   int pocet;
   int pcc,i;
 
-  pp=(int *)ablock(H_DIALOGY_DAT);
+  pp=(int *)ablock_copy(H_DIALOGY_DAT);
   pocet=*pp;pp+=2;
   pcc=pc-(char *)pp-8-sizeof(T_PARAGRAPH)*pocet;
   z=(T_PARAGRAPH *)pp;
@@ -275,7 +275,7 @@ static void goto_paragraph(int prgf)
      if (z->visited) z->first=1;
      if (z->alt==z->num || !z->visited)
         {
-        pc=((char *)ablock(H_DIALOGY_DAT))+*((int *)ablock(H_DIALOGY_DAT))*sizeof(T_PARAGRAPH)+8+z->position;
+        pc=((char *)ablock_copy(H_DIALOGY_DAT))+*((int *)ablock_copy(H_DIALOGY_DAT))*sizeof(T_PARAGRAPH)+8+z->position;
         last_pgf=prgf;
         z->visited=1;
         return;
@@ -527,7 +527,7 @@ static int get_last_his_line()
 
 static void draw_all()
   {
-  void *c;
+  const void *c;
   show_desc();
   if (back_pic_enable) c=back_pic;else c=ablock(H_DIALOG_PIC);
   other_draw();
@@ -991,7 +991,7 @@ static char ask_who_proc(int id,int xa,int ya,int xr,int yr)
   {
   THUMAN *p;
   int i;
-  word *xs;
+  const word *xs;
 
   if (id==2)
      {
@@ -1367,7 +1367,7 @@ char save_dialog_info(TMPFILE_WR *f)
   T_PARAGRAPH *q;
 
   SEND_LOG("(DIALOGS)(SAVELOAD) Saving dialogs info...");
-  p=ablock(H_DIALOGY_DAT);
+  p=ablock_copy(H_DIALOGY_DAT);
   pgf_pocet=*p;
   temp_storage_write(&pgf_pocet,1*4,f);
   siz=(pgf_pocet+3)/4;
@@ -1375,7 +1375,7 @@ char save_dialog_info(TMPFILE_WR *f)
      {
      c=getmem(siz);
      memset(c,0,siz);
-     p=ablock(H_DIALOGY_DAT);
+     p=ablock_copy(H_DIALOGY_DAT);
      q=(T_PARAGRAPH *)(p+2);
      for(i=0;i<pgf_pocet;i++)
        {
@@ -1399,7 +1399,7 @@ char load_dialog_info(TMPFILE_RD *f)
   T_PARAGRAPH *q;
 
   SEND_LOG("(DIALOGS)(SAVELOAD) Loading dialogs info...");
-  p=ablock(H_DIALOGY_DAT);
+  p=ablock_copy(H_DIALOGY_DAT);
   aswap(H_DIALOGY_DAT);
   temp_storage_read(&pgf_pocet,1*4,f);
   siz=(pgf_pocet+3)/4;
@@ -1413,7 +1413,7 @@ char load_dialog_info(TMPFILE_RD *f)
      {
      c=getmem(siz);
      res|=(temp_storage_read(c,1*siz,f)!=siz);
-     p=ablock(H_DIALOGY_DAT);
+     p=ablock_copy(H_DIALOGY_DAT);
      q=(T_PARAGRAPH *)(p+2);
      for(i=0;i<pgf_pocet;i++)
        {

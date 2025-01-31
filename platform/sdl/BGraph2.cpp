@@ -89,13 +89,13 @@ int DxGetResY() {
 void setvesa_displaystart(int x,int y){
 
 }
-void StripBlt(void *data, unsigned int startline, uint32_t width) {
+void StripBlt(const void *data, unsigned int startline, uint32_t width) {
 
     unsigned short *start=startline*GetScreenPitch()+GetScreenAdr();
     while (width--)
     {
       memcpy(start,data,640*2);
-      data=(void *)(reinterpret_cast<short *>(data)+GetScreenPitch());
+      data=(void *)(reinterpret_cast<const short *>(data)+GetScreenPitch());
       start=start+GetScreenPitch();
     }
 
@@ -214,6 +214,12 @@ void DxDoneTurn(void *handle) {
     sdl.swap_display_buffers(); //present hidden buffer
 
 }
-void DxTurnLeftRight(char right, float phase, int border, int ypos, int *last) {
 
+
+char  game_display_is_quit_requested() {
+    return get_sdl_global_context().is_quit_requested()?1:0;
+}
+
+void game_display_cancel_quit_request() {
+    return get_sdl_global_context().cancel_quit_request();
 }

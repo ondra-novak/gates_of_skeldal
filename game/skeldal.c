@@ -91,11 +91,11 @@ static int init_music_vol=127;
 static int init_gfx_vol=255;
 static char titles_on=0;
 
-void pcx_fade_decomp(void **p,int32_t *s);
-void pcx_15bit_decomp(void **p,int32_t *s);
-void pcx_15bit_autofade(void **p,int32_t *s);
-void pcx_15bit_backgrnd(void **p,int32_t *s);
-void pcx_8bit_decomp(void **p,int32_t *s);
+const void *pcx_fade_decomp(const void *p, int32_t *s);
+const void *pcx_15bit_decomp(const void *p, int32_t *s);
+const void *pcx_15bit_autofade(const void *p, int32_t *s);
+const void *pcx_15bit_backgrnd(const void *p, int32_t *s);
+const void *pcx_8bit_decomp(const void *p, int32_t *s);
 
 char *texty_knihy;
 static char *patch_file=NULL;
@@ -280,82 +280,80 @@ void purge_temps(char _) {
     temp_storage_clear();
 }
 
-void pcx_fade_decomp(void **p,int32_t *s)
+const void *pcx_fade_decomp(const void *p, int32_t *s)
   {
   char *buff;
-  int r = load_pcx(*p,*s,A_FADE_PAL,&buff,mglob.fade_r,mglob.fade_g,mglob.fade_b);
+  int r = load_pcx(p,*s,A_FADE_PAL,&buff,mglob.fade_r,mglob.fade_g,mglob.fade_b);
   assert(r > 0);
   *s=r;
-  free(*p);
-  *p=buff;
+  return buff;
   }
 
-void pcx_15bit_decomp(void **p,int32_t *s)
+const void *pcx_15bit_decomp(const void *p, int32_t *s)
   {
   char *buff;
-  int r = load_pcx(*p,*s,A_16BIT,&buff);
+  int r = load_pcx(p,*s,A_16BIT,&buff);
   assert(r > 0);
   *s=r;
-  free(*p);
-  *p=buff;
+  return buff;
   }
 
-void pcx_15bit_autofade(void **p,int32_t *s)
+const void *pcx_15bit_autofade(const void *p, int32_t *s)
   {
   char *buff;
-  int r = load_pcx(*p,*s,A_16BIT,&buff);
+  int r = load_pcx(p,*s,A_16BIT,&buff);
   assert(r > 0);
   *s=r;
-  free(*p);
-  *p=buff;
   buff[5]=0x80;
+  return buff;
   }
 
-void pcx_15bit_backgrnd(void **p,int32_t *s)
+const void *pcx_15bit_backgrnd(const void *p, int32_t *s)
   {
   char *buff;
   int32_t i;int32_t *z;
 
-  if (*p!=NULL)
+  if (p!=NULL)
      {
-     int r = load_pcx(*p,*s,A_16BIT,&buff);
+     int r = load_pcx(p,*s,A_16BIT,&buff);
      assert(r>0);
      z=(int32_t *)buff;
      *s=r;
      for(i=*s;i>0;i-=4,z++) *z|=0x80008000;
-     free(*p);
-     *p=buff;
+     return buff;
      }
+  return NULL;
   }
 
-void pcx_8bit_nopal(void **p,int32_t *s)
+const void *pcx_8bit_nopal(const void *p,int32_t *s)
   {
-  char *buff;
+  char *buff = NULL;
 
-  if (*p!=NULL)
+  if (p!=NULL)
      {
-     int r = load_pcx(*p,*s,A_8BIT_NOPAL,&buff);
+     int r = load_pcx(p,*s,A_8BIT_NOPAL,&buff);
      assert(r>0);
      *s=r;
-     free(*p);
-     *p=buff;
      }
+  return buff;
   }
 
 
-void pcx_8bit_decomp(void **p,int32_t *s)
+
+const void *pcx_8bit_decomp(const void *p, int32_t *s)
   {
   char *buff;
-  int r = load_pcx(*p,*s,A_8BIT,&buff);
+  int r = load_pcx(p,*s,A_8BIT,&buff);
   assert(r>0);
   *s=r;
-  free(*p);
-  *p=buff;
+  return buff;
   }
 
-void hi_8bit_correct(void **p,int32_t *s)
+const void *hi_8bit_correct(const void *p,int32_t *s)
 {
-  word *ptr=(word *)*p;
+    word *out = (word *)getmem(*s);
+    memcpy(out, p, *s);
+  word *ptr=out;
   int i;
   if (ptr[2]==8)
   {
@@ -364,13 +362,14 @@ void hi_8bit_correct(void **p,int32_t *s)
 	  ptr[i+3]=((ptr[i+3] & ~0x1F)+ptr[i+3]);
 	}
   }
+  return out;
 }
 
 
-void load_mob_legacy_format(void **p, int32_t *s) {
+const void *load_mob_legacy_format(const void *p, int32_t *s) {
     const int sz = 376;
     int count = *s / sz;;
-    char *c = *p;
+    const char *c = p;
     TMOB *out = getmem(count * sizeof(TMOB));
 
     memset(out, 0 , sizeof(TMOB)*count);
@@ -393,33 +392,34 @@ void load_mob_legacy_format(void **p, int32_t *s) {
         memcpy(d, c, nx - ofs); //last padding 1
         c+=nx - ofs - 1;
     }
-    free(*p);
-    *p =out;
     *s = count * sizeof(TMOB);
+    return out;
 }
 
 
-void set_background(void **p,int32_t *s)
+const void *set_background(const void *p, int32_t *s)
   {
-  word *data;
+  const word *data;
   word *ptr;
-  word *pal;
+  const word *pal;
   char *pic;
+  void *out;
   int counter;
 
 
-  if (!bgr_handle) return;
-  if (bgr_distance==-1) return;
+  if (!bgr_handle) return p;
+  if (bgr_distance==-1) return p;
   int32_t scr_linelen2 = GetScreenPitch();
   data=ablock(bgr_handle);
   *s=scr_linelen2*360*2;
-  ptr=*p=getmem(*s);
+  out = ptr=getmem(*s);
   counter=scr_linelen2*360;
   pal=data+3+bgr_distance*256;
   pic=(char *)data+PIC_FADE_PAL_SIZE;
   do
 	*ptr++=pal[(uint8_t)*pic++] | BGSWITCHBIT;
   while (--counter);
+  return out;
   }
 
 void mouse_set_cursor(int cursor)
@@ -1268,6 +1268,7 @@ void play_anim(int anim_num)
      char *t,*z;
      TSTR_LIST titl=NULL;
      const char *s = build_pathname(2,gpathtable[SR_VIDEO], texty[anim_num]);
+     s = local_strdup(s);
      if (snd_devnum==DEV_NOSOUND || titles_on)
       {
       concat(t,s,"   ");
@@ -1433,7 +1434,7 @@ static void load_saved_game(void)
   update_mysky();
   {
       EVENT_MSG *msg = task_wait_event(E_CLOSE_MAP);
-      game = va_arg(msg->data, int);
+      game = msg?va_arg(msg->data, int):-1;
   }
   unwire_proc();
   disable_click_map();
@@ -1485,6 +1486,7 @@ static void start(va_list args)
      volba=enter_menu(openning);openning=1;
      switch (volba)
        {
+       default:
        case V_KONEC:exit_wait=1;break;
        case V_NOVA_HRA: if (!enter_generator())
                           {
@@ -1594,6 +1596,10 @@ void show_help_short() {
     printf("add -h to print help\n");
 }
 
+void quit_cb_exit_wait(void *) {
+    exit_wait = 1;
+}
+
 int main(int argc,char *argv[])
   {
   def_mman_group_table(gpathtable);
@@ -1638,9 +1644,12 @@ int main(int argc,char *argv[])
 
   init_skeldal(cfg);
 
-  add_task(65536,start);
+  int start_task = add_task(65536,start);
 
   escape();
+
+  term_task_wait(start_task);
+
   closemode();
 
   ini_close(cfg);

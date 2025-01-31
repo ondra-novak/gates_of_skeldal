@@ -429,8 +429,7 @@ void type_text_v2(va_list args)
      showview(x,y,xs,ys);
 
      EVENT_MSG *ev= task_wait_event(E_KEYBOARD); //proces bude cekat na klavesu
-     if (ev == NULL) return;
-     znak=va_arg(ev->data, int);
+     znak=ev?va_arg(ev->data, int):27;
      schovej_mysku();
      if (task_quitmsg()==1) znak=27;
      switch(znak & 0xff)
@@ -507,21 +506,22 @@ void type_text_v2(va_list args)
   }
 
 
-void col_load(void **data,int32_t *size)
+const void *col_load(const void *data, int32_t *size)
   {
   int siz=*size;
-  char *s,*c;
+  char *s;
+  const char *c;
   int palcount;
   int i;//,j,k;
 
   palcount=siz/COL_SIZE;
   *size=PIC_FADE_PAL_SIZE*palcount;
   s=getmem(*size);
-  c=*data;c+=8;
-  for(i=0;i<palcount;i++,c+=COL_SIZE)
+  c=data;c+=8;
+  for(i=0;i<palcount;i++,c+=COL_SIZE) {
      palette_shadow(c,(void *)(&s[i*PIC_FADE_PAL_SIZE]),mglob.fade_r,mglob.fade_g,mglob.fade_b);
-  free(*data);
-  *data=s;
+  }
+    return s;
   }
 
 
@@ -917,7 +917,7 @@ void check_number_1phase(char *exename) //check serial number!
 */
 static void skeldal_checkbox_draw(int x1,int y1,int x2,int y2,OBJREC *o)
   {
-  word *obr;
+  const word *obr;
   char *data;
   int phase;
   int32_t scr_linelen2 = GetScreenPitch();
@@ -1006,7 +1006,7 @@ static void setup_button_draw(int x1,int y1,int x2,int y2,OBJREC *o)
   char data;
   void **z;
   word *pic;
-  word *bb;
+  const word *bb;
   int x,y;
 
   z=(void **)o->userptr;
@@ -1088,7 +1088,7 @@ static void skeldal_soupak_draw (int x1,int y1,int x2,int y2,OBJREC *o)
   skeldal_soupak_params *z;
   int rozsah;
   int value;
-  word *pic;
+  const word *pic;
   word *back;
   int total;
   int xpos;
@@ -1120,7 +1120,7 @@ static void skeldal_soupak_event(EVENT_MSG *msg,OBJREC *o)
      skeldal_soupak_params *z;
      int rozsah;
      int total;
-     word *pic;
+     const word *pic;
      int ypos,newvalue;
 
      ms=get_mouse(msg);

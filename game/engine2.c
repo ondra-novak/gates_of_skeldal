@@ -155,7 +155,7 @@ skpskp: add     edx,2 ;dalsi hodnota v tabulce
 }
 
 
-void fcdraw(void *source,void *target, void *table)
+void fcdraw(const void *source,void *target, const void *table)
 //#pragma aux fcdraw parm [EDX][EBX][EAX] modify [ECX ESI EDI];
 {
 
@@ -445,7 +445,7 @@ shmad4: add     edi,scr_linelen
 
 
 
-void scroll_and_copy(void *pic,void *slide, void *scr, int _size,int shift, void *lineinfo)
+void scroll_and_copy(const void *pic,void *slide, void *scr, int _size,int shift, void *lineinfo)
 //#pragma aux scroll_and_copy parm[esi][ebx][edi][ecx][edx][eax]
 {
     int32_t scr_linelen2 = GetScreenPitch();
@@ -570,7 +570,7 @@ sac_end:sub     ecx,2           ;odecti counter
 #define ed_stk1 600*4
 
 
-void enemy_draw(void *src,void *trg,int shade,int scale,int maxspace,int clip)
+void enemy_draw(const void *src,void *trg,int shade,int scale,int maxspace,int clip)
 //#pragma aux enemy_draw parm[ESI][EDI][EBX][EDX][EAX][ECX]
 {
     int32_t scr_linelen2 = GetScreenPitch();
@@ -756,7 +756,7 @@ ed_err: add     esp,ed_stack;vymaz tabulku
 	}
 	*/
 }
-void enemy_draw_transp(void *src,void *trg,void *shade,int scale,int maxspace,int clip)
+void enemy_draw_transp(const void *src,void *trg,const void *shade,int scale,int maxspace,int clip)
 //#pragma aux enemy_draw_transp parm[ESI][EDI][EBX][EDX][EAX][ECX]
 {
 
@@ -945,7 +945,7 @@ et_err: add     esp,ed_stack;vymaz tabulku
 	}*/
 }
 
-void enemy_draw_mirror_transp(void *src,void *trg,void *shade,int scale,int maxspace,int clip)
+void enemy_draw_mirror_transp(const void *src,void *trg,const void *shade,int scale,int maxspace,int clip)
 //#pragma aux enemy_draw_mirror_transp parm[ESI][EDI][EBX][EDX][EAX][ECX]
 {
 
@@ -1132,7 +1132,7 @@ etmerr: add     esp,ed_stack;vymaz tabulku
 	}
 	*/
 }
-void enemy_draw_mirror(void *src,void *trg,int shade,int scale,int maxspace,int clip)
+void enemy_draw_mirror(const void *src,void *trg,int shade,int scale,int maxspace,int clip)
 //#pragma aux enemy_draw_mirror parm[ESI][EDI][EBX][EDX][EAX][ECX]
 //clip je v poradi vpravo - vlevo (HiLo)
 {

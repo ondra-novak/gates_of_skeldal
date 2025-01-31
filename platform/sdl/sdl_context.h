@@ -6,6 +6,7 @@
 #include <thread>
 #include <vector>
 #include <libs/mouse.h>
+#include <functional>
 
 #include <queue>
 
@@ -38,6 +39,7 @@ public:
     void show_slide_transition(const SDL_Rect &visible_from, const SDL_Rect &visible_where,
                                const SDL_Rect &hidden_from, const SDL_Rect &hidden_where);
 
+    void set_quit_callback(std::function<void()> fn);
     MS_EVENT getMsEvent()  {
         std::lock_guard _(_mx);
         MS_EVENT out = ms_event;
@@ -58,6 +60,12 @@ public:
     bool is_keyboard_ready() const;
     std::uint16_t pop_keyboard_code() ;
 
+    bool is_quit_requested() const {
+        return _quit_requested;
+    }
+    void cancel_quit_request() {
+        _quit_requested = false;
+    }
 
 protected:
 
@@ -97,6 +105,7 @@ protected:
     int aspect_x = 4;
     int aspect_y = 3;
     bool crt_filter_enabled = false;
+    std::function<void()> _quit_callback;
 
     std::unique_ptr<SDL_Window, SDL_Deleter> _window;
     std::unique_ptr<SDL_Renderer, SDL_Deleter> _renderer;
@@ -108,12 +117,12 @@ protected:
 
     std::jthread _render_thread;
 
-    bool _quit_requested = false;
     bool _fullscreen_mode = false;
     bool _present = false;
     std::atomic<bool> _key_control = false;
     std::atomic<bool> _key_shift = false;
     std::atomic<bool> _key_capslock = false;
+    std::atomic<bool> _quit_requested = false;
 
 
     std::vector<char> _display_update_queue;

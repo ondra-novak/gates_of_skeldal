@@ -507,7 +507,7 @@ void global_map_point(EVENT_MSG *msg,void **_)
   if(msg->msg == E_MOUSE)
      {
      int x,y,i,xs,ys;
-     char *ptr;
+     const char *ptr;
      ms=get_mouse(msg);
      if (ms->event_type & 0x1)
         {

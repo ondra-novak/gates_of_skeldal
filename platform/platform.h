@@ -64,6 +64,7 @@ void display_error(const char *text);
 ///returns -1 if doesn't exists
 char check_file_exists(const char *pathname);
 FILE *fopen_icase(const char *pathname, const char *mode);
+const char *file_icase_find(const char *pathname);
 
 int stricmp(const char *a, const char *b);
 #define MIN(a, b) ((a)<(b)?(a):(b))

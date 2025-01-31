@@ -464,15 +464,12 @@ void except_GPF()
   }
 
 */
+
 void init_events()
   {
   send_message(E_ADD,E_WATCH,keyboard);
   send_message(E_ADD,E_WATCH,timer);
   send_message(E_ADD,E_WATCH,tasker);
-#ifdef nodebug
-  alloc_exception(0xD,except_GPF);
-  alloc_exception(0xE,except_GPF);
-#endif
   }
 
 static char do_events_called=0;

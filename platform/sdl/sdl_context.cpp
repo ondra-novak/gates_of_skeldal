@@ -186,16 +186,13 @@ void SDLContext::event_loop(std::stop_token stp) {
     SDL_Event e;
     while (SDL_WaitEvent(&e)) {
         if (e.type == SDL_QUIT) {
-            return;
-        }
-        if (e.type == exit_loop_event) {
-            return;
-        }
-        if (e.type == _update_request_event) {
+            _quit_requested = true;
+            if (_quit_callback) _quit_callback();
+        } else if (e.type == exit_loop_event) {
+            break;
+        } else if (e.type == _update_request_event) {
             update_screen();
-        }
-
-         if (e.type == SDL_WINDOWEVENT) {
+        } else if (e.type == SDL_WINDOWEVENT) {
                 if (e.window.event == SDL_WINDOWEVENT_SIZE_CHANGED) {
                     _crt_effect.reset();
                 }
@@ -501,7 +498,7 @@ SDL_Rect SDLContext::to_window_rect(const SDL_Rect &winrc, const SDL_Rect &sourc
     SDL_Point wpt1(to_window_point(winrc, pt1));
     SDL_Point wpt2(to_window_point(winrc, pt2));
     return {wpt1.x, wpt1.y, wpt2.x - wpt1.x, wpt2.y - wpt1.y};
-
-
-
+}
+void SDLContext::set_quit_callback(std::function<void()> fn) {
+    _quit_callback = std::move(fn);
 }

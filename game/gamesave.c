@@ -1358,7 +1358,7 @@ static void saveload_keyboard(EVENT_MSG *msg,void **_)
   {
   if (msg->msg == E_KEYBOARD)
      {
-      int v = va_arg(msg->data, int);
+      int v = quit_request_as_escape(va_arg(msg->data, int));
      switch (v>>8)
         {
         case 1:unwire_proc();wire_proc();break;
@@ -1377,6 +1377,7 @@ static void saveload_keyboard(EVENT_MSG *msg,void **_)
 
 void unwire_save_load()
   {
+    term_task_wait(clk_ask_name[0].id);
   if (back_texture!=NULL) free(back_texture);
   back_texture=NULL;
   if (story_text!=NULL)release_list(story_text);

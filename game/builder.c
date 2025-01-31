@@ -287,14 +287,14 @@ word *bott_clear(void)
 
 static void draw_small_icone(int num,int x,int y)
   {
-  word *pic;
+  const word *pic;
 
   pic=ablock(H_POSTUP);
   num*=13;x+=num;
   put_textured_bar(pic,x,y,13,13,num,0);
   }
 
-static void bott_fletna_normal(void **pp,int32_t *s)
+static const void *bott_fletna_normal(const void *pp, int32_t *s)
   {
   word *bott_scr;
   int i,x;
@@ -307,12 +307,13 @@ static void bott_fletna_normal(void **pp,int32_t *s)
      {
      set_aligned_position(x,32,1,1,texty[180+i]);outtext(texty[180+i]);
      }
-  *pp=GetScreenAdr();
+  void *out=GetScreenAdr();
   *s=GetScreenSizeBytes();
   RestoreScreen();
+  return out;
   }
 
-static void bott_draw_normal(void **pp,int32_t *s)
+static const void *bott_draw_normal(const void *pp, int32_t *s)
   {
   int i,j;int x,xs=0,y;
   word *bott_scr;
@@ -404,9 +405,10 @@ static void bott_draw_normal(void **pp,int32_t *s)
         outtext(s);
         }
  */
-  *pp=GetScreenAdr();
+  void *out = GetScreenAdr();
   *s=GetScreenSizeBytes();
   RestoreScreen();
+  return out;
   }
 
 
@@ -420,7 +422,7 @@ void bott_timer_draw(struct the_timer *q)
   bott_timer=NULL;
   }
 
-void bott_disp_text_proc(void **pp,int32_t *ss)
+const void *bott_disp_text_proc(const void *pp, int32_t *ss)
   {
   char *p,*text;
   int y=20;
@@ -442,9 +444,10 @@ void bott_disp_text_proc(void **pp,int32_t *ss)
      p=strchr(p,0)+1;
      }
   while (p[0]);
-  *pp=GetScreenAdr();
+  void *out = GetScreenAdr();
   *ss=GetScreenSizeBytes();
   RestoreScreen();
+  return out;
   }
 
 void bott_disp_text(const char *text)
@@ -460,7 +463,7 @@ void bott_disp_text(const char *text)
   strcpy(bott_text,text);
   }
 
-static void MaskPutPicture(int x, int y, char mask, word color, char blend, void *pic)
+static void MaskPutPicture(int x, int y, char mask, word color, char blend, const void *pic)
   {
   short *info=(short *)pic;
   char *data=(char *)(info+3+256);
@@ -479,7 +482,7 @@ static void MaskPutPicture(int x, int y, char mask, word color, char blend, void
   }
 
 
-void bott_draw_rune(void **pp,int32_t *ss)
+const void *bott_draw_rune(const void *pp, int32_t *ss)
   {
   int sel_zivel=showrune/10;
   int sel_rune=showrune%10;
@@ -504,9 +507,10 @@ void bott_draw_rune(void **pp,int32_t *ss)
   position (75,60);
   outtext(buff);
   put_picture(70,30,ablock(glob_items[showruneitem].vzhled+face_arr[0]));
-  *pp=GetScreenAdr();
+  void *out = GetScreenAdr();
   *ss=GetScreenSizeBytes();
   RestoreScreen();
+  return out;
   }
 
 void bott_disp_rune(char rune, int item)
@@ -527,14 +531,15 @@ void bott_text_forever()
   bott_timer=NULL;
   }
 
-void bott_draw_proc(void **p,int32_t *s)
+const void *bott_draw_proc(const void *p, int32_t *s)
   {
   switch (bott_display)
      {
-     case BOTT_NORMAL:bott_draw_normal(p,s);break;
-     case BOTT_TEXT:bott_disp_text_proc(p,s);break;
-     case BOTT_FLETNA:bott_fletna_normal(p,s);break;
-	 case BOTT_RUNA:bott_draw_rune(p,s);break;
+     case BOTT_NORMAL:return bott_draw_normal(p,s);break;
+     case BOTT_TEXT:return bott_disp_text_proc(p,s);break;
+     case BOTT_FLETNA:return bott_fletna_normal(p,s);break;
+	 case BOTT_RUNA:return bott_draw_rune(p,s);break;
+	 default: return p;
      }
   }
 
@@ -562,7 +567,7 @@ void bott_draw_fletna()
 void draw_spell(int handle,int phase,int xicht)
   {
   int x,y,i;
-  word *w;
+  const word *w;
   int32_t scr_linelen2 = GetScreenPitch();
 
 
@@ -721,9 +726,9 @@ static __inline int toInt( float fval )
 }
 
 
-static void *check_autofade(void *image, char ceil, int dark)
+static const void *check_autofade(const void *image, char ceil, int dark)
 {
-  char *data=image;
+    const char *data=image;
   if (data[5]==0x80)
   {
     word *xy=(word *)image;
@@ -781,7 +786,7 @@ int draw_basic_floor(int celx,int cely,int sector)
 
 static int calc_item_shiftup(TITEM *it)
   {
-  short *s;
+    const short *s;
   char *c;
   int y,x,xs,ys,t;
 
@@ -1098,7 +1103,7 @@ static char set_blind(void) {
 
 extern char folow_mode;
 
-static void zobraz_lodku(word *lodka, word *screen, int size)
+static void zobraz_lodku(const word *lodka, word *screen, int size)
   {
     int32_t scr_linelen2 = GetScreenPitch();
 
@@ -1193,8 +1198,8 @@ void render_scene(int sector, int smer)
 //  trace_for_bgr(smer);
   i=VIEW3D_Z-1;
   s=minimap[i][VIEW3D_X];
-  if (s && !map_sectors[s].ceil) clear_buff(ablock(H_BGR_BUFF),back_color,360);
-  else clear_buff(ablock(H_BGR_BUFF),back_color,80);
+  if (s && !map_sectors[s].ceil) clear_buff(ablock_copy(H_BGR_BUFF),back_color,360);
+  else clear_buff(ablock_copy(H_BGR_BUFF),back_color,80);
   for(i=-VIEW3D_X+1;i<VIEW3D_X;i++)
      if ((s=minimap[VIEW3D_Z-1][VIEW3D_X+i])!=0)
         if (map_coord[s].flags & MC_SHADING) back_clear(i,0);
@@ -1336,7 +1341,7 @@ static FX_PLAY *fx_data=NULL;
 
 void draw_fx()
   {
-  word *c;
+    const word *c;
   FX_PLAY *fx;
   FX_PLAY **last;
 

@@ -144,7 +144,10 @@ void term_task(int id_num) {
     }
 }
 char is_running(int id_num) {
-    return id_num < 0 || task_list.find(id_num) != task_list.end();
+    if (id_num < 0) return false;
+    auto iter = task_list.find(id_num);
+    if (iter == task_list.end()) return false;
+    return !iter->second->exited;
 }
 void unsuspend_task(EVENT_MSG *msg) {
     if (current_task_inst) return;
@@ -166,7 +169,7 @@ void task_sleep(void) {
     }
 }
 EVENT_MSG *task_wait_event(int32_t event_number) {
-    if (current_task_inst == NULL) return NULL;
+    if (current_task_inst == NULL || current_task_inst->request_exit || current_task_inst->exited) return NULL;
     current_task_inst->wake_up_msg = event_number;
     switch_to_task(NULL);
     return cur_message;
@@ -178,6 +181,14 @@ char task_quitmsg() {
     if (current_task_inst == NULL) return 0;
     return current_task_inst->request_exit?1:0;
 }
+
+void term_task_wait(int id_num) {
+    term_task(id_num);
+    while (is_running(id_num)) {
+        task_sleep();
+    }
+}
+
 char q_is_mastertask() {
     return current_task_inst == NULL;
 }
@@ -185,5 +196,8 @@ int q_current_task() {
     return current_task_inst?current_task_inst->id:-1;
 }
 void task_sleep_for(unsigned int time_ms) {
-
+    if (current_task_inst) {
+        current_task_inst->_wake_up_after = std::chrono::system_clock::now() + std::chrono::milliseconds(time_ms);
+    }
 }
+

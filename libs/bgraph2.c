@@ -8,7 +8,8 @@
 
 word *screen;
 word curcolor,charcolors[7] = {0x0000,RGB555(0,31,0),RGB555(0,28,0),RGB555(0,24,0),RGB555(0,20,0),0x0000,0x0000};
-word *curfont,*writepos,writeposx;
+const word *curfont;
+word *writepos,writeposx;
 byte fontdsize=0;
 void (*showview)(word,word,word,word);
 char line480=0;
@@ -17,7 +18,8 @@ char screenstate=0;
 char __skip_change_line_test=0;
 char no_restore_mode=0;
 
-void *mscursor,*mssavebuffer=NULL;
+const void *mscursor;
+void *mssavebuffer=NULL;
 integer mscuroldx=0,mscuroldy=0;
 integer mscuroldxs=1,mscuroldys=1;
 char write_window=0;
@@ -501,7 +503,7 @@ void redraw_ms_cursor_on_screen(void) {
 }
 
 
-void *register_ms_cursor(void *cursor)
+void *register_ms_cursor(const void *cursor)
   {
   integer xs,ys;
 
@@ -544,7 +546,7 @@ void move_ms_cursor(integer newx,integer newy,char nodraw)
   mscuroldys=ys;
   }
 
-int text_height(char *text)
+int text_height(const char *text)
   {
   char max=0,cur;
 
@@ -553,7 +555,7 @@ int text_height(char *text)
   return max<<fontdsize;
   }
 
-int text_width(char *text)
+int text_width(const char *text)
   {
   int suma=0;
 
@@ -563,7 +565,7 @@ int text_width(char *text)
   }
 
 
-void set_aligned_position(int x,int y,char alignx,char aligny,char *text)
+void set_aligned_position(int x,int y,char alignx,char aligny,const char *text)
   {
   switch (alignx)
      {

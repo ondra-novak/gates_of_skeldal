@@ -109,7 +109,7 @@ void zkontroluj_postavu();
 
 void place_human_item(word *obrazek,int x,int y,int item)
   {
-  word *p;
+  const word *p;
 
   p=ablock(item);
   put_picture2picture(p,obrazek,PO_XSS-p[0]/2+x,PO_YS-p[1]-y-20);
@@ -143,22 +143,25 @@ void item_sound_event(int item,int sector)
   play_sample_at_sector(glob_items[item].sound+sound_handle,viewsector,sector,0,0);
   }
 
-static void items_15to16_correct(void **p,int32_t *s)
+static const void *items_15to16_correct(const void *p,int32_t *s)
   {
   int i,j;
-  char *cur=(char *)(*p);
+  void *np = getmem(*s);
+  memcpy(np, p, *s);
+  char *cur=(char *)(np);
   for (i=0;i<IT_LIB_SIZE;i++)
     {
     int pos=IT_ICONE_SIZE*i;
     word *pal;
 
-    if (pos>=*s) return;
+    if (pos>=*s) return np;
     pal=((word *)(cur+pos))+3;
     for (j=0;j<256;j++,pal++)
       {
       *pal=RGB555(*pal>>10,(*pal>>5)& 0x1F,(*pal & 0x1F));
       }
     }
+  return np;
   }
 
 void load_items()
@@ -870,7 +873,8 @@ char exit_inv(int id,int xa,int ya,int xr,int yr)
 void definuj_postavy()
   {
   int i,num1,r,inv=0,z;
-  char *c,*end,cc;
+  const char *c,*end;
+  char cc;
   int tmp;
 
   c=ablock(H_POSTAVY_DAT);
@@ -1128,7 +1132,7 @@ void display_items_in_inv(THUMAN *h)
   short *p;
 
   put_picture(266,TOP_OFS,ablock(H_IDESKA));
-  p=ablock(H_IMRIZ1);
+  p=ablock_copy(H_IMRIZ1);
   p[1]=INV_YS*((h->inv_size-1)/6)+58;
   put_picture(INV_X,INV_Y,p);
   xr=INV_X;x=0;
@@ -1176,7 +1180,8 @@ void display_rings()
 void *build_items_wearing(THUMAN *h, int32_t *s)
   {
   int i,vzhled,it;
-  word *p,hx,hy;
+  const word *p;
+  word hx,hy;
   word *ob;
   size_t siz;
   char *pp;
@@ -1224,9 +1229,9 @@ void *build_items_wearing(THUMAN *h, int32_t *s)
   }
 
 
-void build_items_called(void **p,int32_t *s)
+const void *build_items_called(const void *p, int32_t *s)
   {
-  *p=build_items_wearing(&postavy[memman_handle-H_POSTAVY], s);
+  return build_items_wearing(&postavy[memman_handle-H_POSTAVY], s);
   }
 
 void display_items_wearing(THUMAN *h)
@@ -1240,7 +1245,7 @@ void display_items_wearing(THUMAN *h)
   if (it)
         {
         TITEM *itt;
-        word *w;int vzhled;
+        const word *w;int vzhled;
 
         itt=&glob_items[it-1];
         vzhled=itt->vzhled;
@@ -1860,7 +1865,7 @@ char bag_click(int id,int xa,int ya,int xr,int yr)
 char item_pointed(int k,int x,int y,short item,short kind)
   {
   int x1,y1,x2,y2,xs,ys,xsiz,ysiz,i;
-  short *p;
+  const short *p;
   char *c,cc;
 
   if (!item) return 0;
@@ -2166,7 +2171,7 @@ void *inv_keyboard(EVENT_MSG *msg,void **usr)
   usr;
   if (msg->msg==E_KEYBOARD)
      {
-     c=va_arg(msg->data, int)>>8;
+     c=quit_request_as_escape(va_arg(msg->data, int))>>8;
      switch (c)
         {
         case 0x17:
@@ -2212,7 +2217,8 @@ void draw_fly_items(int celx,int cely,int sector,int side)
   {
   LETICI_VEC *p;
   int xpos,ypos;
-  short *pic,picnum;char turn,smr;
+  const short *pic;
+  short picnum;char turn,smr;
   TITEM *it;
   int i;
 
@@ -2692,7 +2698,7 @@ static void block_back()
 
 static void redraw_keepers_items()
   {
-        word *w;
+    const word *w;
         schovej_mysku();
         w=ablock(H_SHOP_PIC);
         display_keepers_items();
@@ -2934,7 +2940,7 @@ void enter_shop(int shopid)
 
 char shop_change_player(int id, int xa, int ya,int xr,int yr)
   {
-  word *xs;
+    const word *xs;
   int i;
 
   id;xa;ya;yr;

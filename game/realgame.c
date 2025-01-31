@@ -125,45 +125,7 @@ void prepare_graphics(int *ofs,char *names,int32_t size,void *decomp,int class)
      }
   }
 
-static void preload_percent(int cur,int max)
-  {
-  int pos;
-  pos=cur*640/max;
-  if (pos>640) pos=640;
-  curcolor=RGB555(16,16,16);hor_line32(0,476,pos);
-  curcolor=RGB555(8,8,8);hor_line32(0,477,pos);
-  curcolor=RGB555(31,31,31);hor_line32(0,475,pos);
-  showview(0,460,640,20);
-  do_events();
-  }
 
-void preload_objects(int ofsts)
-//#pragma preload_objects parm [];
-  {
-  int i;
-  char lodka=1;
-
-  for(i=1;i<mapsize;i++) if (map_sectors[i].sector_type==S_LODKA) break;
-  if (i==mapsize) lodka=0;
-//  const char *c = build_pathname(2, pathname[SR_DATA], "LOADING.MUS");
-//  change_music(c);
-  trans_bar(0,460,640,20,0);
-  position(0,460);
-  set_font(H_FBOLD,RGB555(0,31,0));
-  const char *c = concat2(texty[TX_LOAD], mglob.mapname);
-  outtext(c);
-  for(i=0;i<ofsts;i++)
-     {
-     if (i<H_LODKA0 || i>H_LODKA7 || lodka) apreload_sign(i,ofsts);
-     }
-  apreload_start(preload_percent);
-/*  for(i=0;i<ofsts;i++)
-     {
-     ablock(ofsts-i-1);
-     preload_percent(i+ofsts,ofsts);
-     }
-  */
-  }
 
 int load_level_texts(const char *filename)
   {
@@ -194,21 +156,6 @@ char *change_extension_support(char *buffer, const char *filename,char *new_exte
 
 #define set_file_extension(filename, extension) change_extension_support((char *)alloca(strlen(filename)+strlen(extension)), (filename), (extension))
 
-void show_loading_picture(char *filename)
-  {
-  void *p;
-  int32_t s;
-
-  p=afile(filename,SR_BGRAFIKA,&s);
-  put_picture(0,0,p);
-  showview(0,0,0,0);
-  free(p);
-  #ifdef LOGFILE
-  display_ver(639,0,2,0);
-  #endif
-  cancel_pass=1;
-  }
-
 extern int snd_devnum;
 
 int load_map(char *filename)
@@ -228,8 +175,6 @@ int load_map(char *filename)
   const char *mpath = build_pathname(2, gpathtable[SR_MAP], filename);
   mpath = local_strdup(mpath);
   schovej_mysku();
-  if (level_preload) show_loading_picture("LOADING.HI");
-  change_music("?");
   zobraz_mysku();
   f=fopen_icase(mpath,"rb");
   if (level_fname!=NULL) free(level_fname);
@@ -317,7 +262,7 @@ int load_map(char *filename)
                   SEND_LOG("(GAME) Loading enemies...");
                   if (mob_template==NULL)
                     {
-                    int32_t h;char *p;
+                    int32_t h;const char *p;
 
                     alock(H_ENEMY);
                     p=ablock(H_ENEMY);
@@ -370,7 +315,6 @@ int load_map(char *filename)
   fclose(f);
   flag_map=(char *)getmem(mapsize*4);
   memset(minimap,0,sizeof(minimap));
-  if (level_preload) preload_objects(ofsts);
   end_ptr=ofsts;
   const char *tpath=set_file_extension(mpath,".txt");
   suc=load_level_texts(tpath);
@@ -1866,16 +1810,16 @@ void sleep_players(va_list args)
 
 void *game_keyboard(EVENT_MSG *msg,void **usr)
   {
-  uint8_t c;
+  int c;
 
   usr;
   if (pass_zavora) return NULL;
   if (cur_mode==MD_END_GAME) return NULL;
   if (msg->msg==E_KEYBOARD)
      {
-      c=va_arg(msg->data, int)>>8;
+      c=quit_request_as_escape(va_arg(msg->data, int));
      while (_bios_keybrd(_KEYBRD_READY) ) _bios_keybrd(_KEYBRD_READ);
-     switch (c)
+     switch (c >> 8)
         {
         case 'H':step_zoom(0);break;
         case 'P':step_zoom(2);break;

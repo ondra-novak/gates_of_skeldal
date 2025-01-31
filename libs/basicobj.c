@@ -198,7 +198,7 @@ void button2(OBJREC *o)
 
 void draw_status_line(char *c)
   {
-  static word *font;
+  static const word *font;
   static FC_TABLE color;
   static word backgr;
   static word ysmax=0,y;

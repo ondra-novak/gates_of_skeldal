@@ -196,17 +196,17 @@ int calcul_volume(int chan,int x,int y,int side,int volume)
   return 0;
   }
 
-void wav_load(void **p,int32_t *s)
+const void *wav_load(const void *p, int32_t *s)
   {
-  char *sr;
+  const char *sr;
   char *tg;
   void *tgr;
   struct t_wave x[3];
 
-  sr=*p;
+  sr=p;
   sr=find_chunk(sr,WAV_FMT);
   read_chunk(sr,&x);
-  sr=*p;
+  sr=p;
   sr=find_chunk(sr,WAV_DATA);
   *s=get_chunk_size(sr);
   tgr=tg=getmem(*s+sizeof(struct t_wave)+4);
@@ -215,31 +215,9 @@ void wav_load(void **p,int32_t *s)
   *(int *)tg=*s;
   tg+=4;
   read_chunk(sr,tg);
-  free(*p);
-  *p=tgr;
+
   *s+=sizeof(struct t_wave)+4;
-/*  if (x[0].freq!=x[0].bps)
-     {
-     char s;
-
-     siz>>=1;
-     s=siz & 1;
-     siz>>=1;
-     d=tg;
-     for(;siz--;d++) *d^=0x80008000;
-     if (s) {c=(char *)d;c[1]^=0x80;}
-     }
-  else
-     {
-     char s;
-
-     s=siz & 3;
-     siz>>=2;
-     d=(int32_t *)tg;
-     for(;siz--;d++) *d^=0x80808080;
-     c=(char *)d;
-     for(;s--;c++) *c^=0x80;
-     }*/
+  return tgr;
   }
 
 void play_effekt(int x,int y,int xd,int yd,int side,int sided,const TMA_SOUND *p)
@@ -247,7 +225,7 @@ void play_effekt(int x,int y,int xd,int yd,int side,int sided,const TMA_SOUND *p
   int chan;
   int blockid;
   SND_INFO *track;
-  char *s;
+  const char *s;
 
   if (!sound_enabled) return;
   side;
@@ -273,8 +251,6 @@ void play_effekt(int x,int y,int xd,int yd,int side,int sided,const TMA_SOUND *p
     if (blockid == -1) {
         def_handle(end_ptr, p->filename, wav_load, SR_ZVUKY);
         blockid = end_ptr++;
-        if (level_preload)
-            apreload(blockid);
     }
 
       alock(blockid);
@@ -414,7 +390,7 @@ void purge_playlist()
 void play_sample_at_sector(int sample,int sector1,int sector2,int track, char loop)
   {
   int x,y,xd,yd,chan;
-  char *s;
+  const char *s;
   struct t_wave *p;
   int siz;
 	int oldtrack;
@@ -450,7 +426,7 @@ void play_sample_at_sector(int sample,int sector1,int sector2,int track, char lo
 
 void play_sample_at_channel(int sample,int channel,int vol)
   {
-  char *s;
+  const char *s;
   struct t_wave *p;
   int siz;
 
@@ -486,7 +462,7 @@ void create_sound_table(char *template,int32_t size)
 
 void create_sound_table_old()
   {
-  char *c,*s;
+  const char *c,*s;
   int32_t pocet;
   int i=0;
 
@@ -547,8 +523,8 @@ static int flute_canal=30;
 
 void start_play_flute(char note)
   {
-  void *q;
-  char *w;
+  const void *q;
+  const char *w;
   float realfrq;
   int vol=50;
 
@@ -569,8 +545,8 @@ void start_play_flute(char note)
 
 void stop_play_flute()
   {
-  void *q;
-  char *w;
+  const void *q;
+  const char *w;
 
   if (check_snd_effect(SND_GFX))
      {

@@ -12,9 +12,9 @@ typedef struct t_wave
   int32_t freq,bps;
   }T_WAVE;
 
-char *find_chunk(char *wav,char *name);
-int get_chunk_size(char *wav);
-int read_chunk(char *wav,void *mem);
+const char *find_chunk(const char *wav,char *name);
+int get_chunk_size(const char *wav);
+int read_chunk(const char *wav,void *mem);
 
 
 #endif

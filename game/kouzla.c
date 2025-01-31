@@ -161,43 +161,45 @@ unsigned char twins;
 
 static short rand_value;
 
-static word *paleta;
+static word paleta[256];
 
-void show_full_lfb12e(void *target,void *buff,void *paleta);
+void show_full_lfb12e(void *target,const void *buff,const void *paleta);
 //#pragma aux show_full_lfb12e parm[edi][esi][ebx] modify [eax ecx]
-void show_delta_lfb12e(void *target,void *buff,void *paleta);
+void show_delta_lfb12e(void *target,const void *buff,const void *paleta);
 //#pragma aux show_delta_lfb12e parm[edi][esi][ebx] modify [eax ecx]
-char mob_check_next_sector(int sect,int dir,char alone,char passable);
+char mob_check_next_sector(int sect,int dir,const char alone,char passable);
 
 void call_spell(int i);
 int calculatePhaseDoor(int sector, int dir, int um);
 
 
-static void animace_kouzla(int act,void *data, int ssize)
+static void animace_kouzla(int act,const void *data, int ssize)
   {
   switch (act)
      {
      case MGIF_LZW:
      case MGIF_COPY:show_full_lfb12e(anim_render_buffer,data,paleta);break;
      case MGIF_DELTA:show_delta_lfb12e(anim_render_buffer,data,paleta);break;
-     case MGIF_PAL:paleta=data;*paleta|=0x8000;break;
+     case MGIF_PAL:memcpy(paleta,data,sizeof(paleta));paleta[0]|=0x8000;break;
      }
   }
 
 
-void load_spells_legacy_format(void **p, int32_t *s) {
-    TKOUZLO *k = (*p);
-    TKOUZLO *end = (TKOUZLO *)((char *)(*p) + k->start);
+const void *load_spells_legacy_format(const void *p, int32_t *s) {
+    void *np = getmem(*s);
+    memcpy(np,p,*s);
+    TKOUZLO *k = (np);
+    TKOUZLO *end = (TKOUZLO *)((char *)(np) + k->start);
     ++k;
     int count = 1;
     while (k < end) {
         ++count;
-        TKOUZLO *end2 = (TKOUZLO *)((char *)(*p) + k->start);
+        TKOUZLO *end2 = (TKOUZLO *)((char *)(np) + k->start);
         if (end2 < end) end = end2;
         ++k;
     }
     SEND_LOG("(SPELL) Loading spell table: count %d", count);
-    k = (*p);
+    k = (np);
     for (int i = 0; i < count; ++i) {
         char *b = (char *)k;
         char traceon = *(k->spellname-1);    //traceon was there;
@@ -207,6 +209,7 @@ void load_spells_legacy_format(void **p, int32_t *s) {
         k->traceon = traceon;
         ++k;
     }
+    return np;
 }
 
 
@@ -215,7 +218,7 @@ static void play_anim(va_list args) //tasked animation
   {
   int block=va_arg(args,int);
 #define ANIM_SIZE (320*180*2)
-  void *anm;
+  const void *anm;
   int32_t *l,c;
 
   if (running_anm)

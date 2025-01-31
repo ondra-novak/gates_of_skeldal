@@ -32,6 +32,9 @@
 #define E_MOUSE 11
 #define E_TIMER 12
 
+
+#define E_QUIT_GAME_KEY ((int)0xFFFF)
+
 #define TASK_RUNNING 0
 #define TASK_TERMINATING 1
 

@@ -11,7 +11,7 @@ char start_mixing() {
 void stop_mixing() {
 
 }
-void play_sample(int channel,void *sample,int32_t size,int32_t lstart,int32_t sfreq,int type) {
+void play_sample(int channel,const void *sample,int32_t size,int32_t lstart,int32_t sfreq,int type) {
 
 }
 void set_channel_volume(int channel,int left,int right) {
@@ -50,7 +50,7 @@ void mute_channel(int channel) {
 void chan_break_loop(int channel) {
 
 }
-void chan_break_ext(int channel,void *org_sample,int32_t size_sample) {
+void chan_break_ext(int channel,const void *org_sample,int32_t size_sample) {
 
 }
 
@@ -67,7 +67,7 @@ int  get_snd_effect(int funct) {
 void *PrepareVideoSound(int mixfreq, int buffsize) {
     return 0;
 }
-char LoadNextVideoFrame(void *buffer, char *data, int size, short *xlat, short *accnums, int32_t *writepos) {
+char LoadNextVideoFrame(void *buffer, const char *data, int size, const short *xlat, short *accnums, int32_t *writepos) {
     std::this_thread::sleep_for(std::chrono::milliseconds(20));
     return 1;
 

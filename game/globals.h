@@ -6,6 +6,7 @@
 #include <string.h>
 #include <stdint.h>
 #include <stdlib.h>
+#include <libs/memman.h>
 
 #define POCET_POSTAV 6
 #define HODINA 360
@@ -470,7 +471,7 @@ typedef struct tdregisters
   {
   int h_num;
   char name[13];
-  void (*proc)(void **,int32_t *);
+  ABLOCK_DECODEPROC proc;
   char path;
   }TDREGISTERS;
 
@@ -646,17 +647,17 @@ void calc_animations(void);
 int load_map(char *filename);
 void other_draw(void);
 void refresh_scene(void);
-void pcx_fade_decomp(void **p,int32_t *s);
-void pcx_15bit_decomp(void **p,int32_t *s);
-void pcx_15bit_autofade(void **p,int32_t *s);
-void pcx_15bit_backgrnd(void **p,int32_t *s);
-void pcx_8bit_decomp(void **p,int32_t *s);
-void hi_8bit_correct(void **p,int32_t *s);
-void pcx_8bit_nopal(void **p,int32_t *s);
-void set_background(void **p,int32_t *s);
-void wav_load(void **p,int32_t *s);
-void load_mob_legacy_format(void **p, int32_t *s);
-void load_spells_legacy_format(void **p, int32_t *s);
+const void *pcx_fade_decomp(const void *p, int32_t *s);
+const void *pcx_15bit_decomp(const void *p, int32_t *s);
+const void *pcx_15bit_autofade(const void *p, int32_t *s);
+const void *pcx_15bit_backgrnd(const void *p, int32_t *s);
+const void *pcx_8bit_decomp(const void *p, int32_t *s);
+const void *hi_8bit_correct(const void *p, int32_t *s);
+const void *pcx_8bit_nopal(const void *p, int32_t *s);
+const void *set_background(const void *p, int32_t *s);
+const void *wav_load(const void *p, int32_t *s);
+const void *load_mob_legacy_format(const void *p, int32_t *s);
+const void *load_spells_legacy_format(const void *p, int32_t *s);
 void wire_main_functs(void);
 void ukaz_kompas(char mode);
 void *timming(EVENT_MSG *msg,void **data);
@@ -669,8 +670,7 @@ void objekty_mimo(void);
 void mouse_set_cursor(int cursor);
 void set_font(int font,int c1,...);
 void bott_draw(char);
-void bott_draw_proc(void **p,int32_t *s);
-THE_TIMER *add_to_timer(int id,int delay,int maxcall,void *proc);
+const void *bott_draw_proc(const void *p, int32_t *s);
 void mouse_set_default(int cursor);
 void create_frame(int x,int y,int xs,int ys,char clear);
 void save_dump(const uint16_t *screen_addr,
@@ -993,7 +993,7 @@ void calc_fly(void);
 void zmen_skupinu(THUMAN *p);
 void add_to_group(int num);
 void group_all(void);
-void build_items_called(void **p,int32_t *s);
+const void *build_items_called(const void *p, int32_t *s);
 void real_regeneration(void); //regenerace postav behem hry v realu (pouze kondice a mana)
 char sleep_regenerace(THUMAN *p);  //regenerace postav behem spani
 char check_jidlo_voda(THUMAN *p);
@@ -1666,7 +1666,7 @@ int message(int butts,char def,char canc,char *keys,...);
 void type_text(EVENT_MSG *msg,void **data); //event procedura (parms: X,Y,TEXT,MAX_SPACE,MAX_CHARS);
 void type_text_v2(va_list args);//char *text_buffer,int x,int y,int max_size,int max_chars,int font,int color,void (*exit_proc)(char));
 void zalamovani(char *source,char *target,int maxxs,int *xs,int *ys);
-void col_load(void **data,int32_t *size);
+const void *col_load(const void *data, int32_t *size);
 void open_story_file(void);
 void write_story_text(char *text);
 void close_story_file(void);
@@ -1779,6 +1779,10 @@ static __inline char TimerEvents(int sector, int side, int32_t time)
 	return GlobEvent(i,sector,side);
   }
   return 1;
+}
+
+static __inline int quit_request_as_escape(int c) {
+    if (c == E_QUIT_GAME_KEY) return 0x011B;else return c;
 }
 
 //extras

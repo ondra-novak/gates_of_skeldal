@@ -13,9 +13,9 @@
 void *get_palette_ptr=NULL;
 
 
-void decomprimate_line_256(char *src,char *trg,int linelen,int *srcstep)
+void decomprimate_line_256(const char *src,char *trg,int linelen,int *srcstep)
   {
-  char *srcsave;
+  const char *srcsave;
 
   srcsave=src;
   while (linelen--)
@@ -31,9 +31,9 @@ void decomprimate_line_256(char *src,char *trg,int linelen,int *srcstep)
      }
   *srcstep=src-srcsave;
   }
-void decomprimate_line_hi(char *src,unsigned short *trg,unsigned short *paleta,int linelen,int *srcstep)
+void decomprimate_line_hi(const char *src,unsigned short *trg,unsigned short *paleta,int linelen,int *srcstep)
   {
-  char *srcsave;
+  const char *srcsave;
 
   srcsave=src;
   while (linelen--)
@@ -52,10 +52,10 @@ void decomprimate_line_hi(char *src,unsigned short *trg,unsigned short *paleta,i
   *srcstep=src-srcsave;
   }
 
-void palette_shadow(char *pal1,unsigned short pal2[][256],int tr,int tg,int tb)
+void palette_shadow(const char *pal1,unsigned short pal2[][256],int tr,int tg,int tb)
   {
   int i,j;
-  char *bt;
+  const char *bt;
   int r,g,b;
   short hi;
 
@@ -90,14 +90,15 @@ void palette_shadow(char *pal1,unsigned short pal2[][256],int tr,int tg,int tb)
   }
 
 
-int load_pcx(char *pcx,int32_t fsize,int conv_type,char **buffer, ... )
+int load_pcx(const char *pcx,int32_t fsize,int conv_type,char **buffer, ... )
   //dale nasleduji int hodnoty poctu prechodu a R,G,B barvy
   {
   unsigned short paleta2[256];
-  char *paleta1;
-  char *ptr1;
+  const char *paleta1;
+  const char *ptr1;
+  char *ptr4;
   unsigned short *ptr2;
-  char *ptr3;
+  const char *ptr3;
   int i;
   PCXHEADER pcxdata;
   int xsize,ysize;
@@ -129,20 +130,20 @@ int load_pcx(char *pcx,int32_t fsize,int conv_type,char **buffer, ... )
      case A_NORMAL_PAL: *buffer=(char *)getmem(sz = xsize*ysize+16+768);break;
      default: return -2; //invalid type specificied
      }
-  ptr1=*buffer;
-  *(unsigned short *)ptr1++=xsize;ptr1++;
-  *(unsigned short *)ptr1++=ysize;ptr1++;
-  *(unsigned short *)ptr1++=conv_type;ptr1++;
+  ptr4=*buffer;
+  *(unsigned short *)ptr4++=xsize;ptr4++;
+  *(unsigned short *)ptr4++=ysize;ptr4++;
+  *(unsigned short *)ptr4++=conv_type;ptr4++;
   pcx+=sizeof(pcxdata);ptr3=pcx;
   if (conv_type==A_NORMAL_PAL)
      {
-     memcpy(ptr1,paleta1,768);
-     ptr1+=768;
+     memcpy(ptr4,paleta1,768);
+     ptr4+=768;
      }
   if (conv_type==A_8BIT)
      {
-     memcpy(ptr1,paleta2,512);
-     ptr1+=512;
+     memcpy(ptr4,paleta2,512);
+     ptr4+=512;
      }
   if (conv_type==A_FADE_PAL)
      {
@@ -154,8 +155,8 @@ int load_pcx(char *pcx,int32_t fsize,int conv_type,char **buffer, ... )
      tg=va_arg(lst,int);
      tb=va_arg(lst,int);
      va_end(lst);
-     palette_shadow(paleta1,(unsigned short (*)[256])ptr1,tr,tg,tb);
-     ptr1+=SHADE_PAL;
+     palette_shadow(paleta1,(unsigned short (*)[256])ptr4,tr,tg,tb);
+     ptr4+=SHADE_PAL;
      }
   ysize++;
   while (--ysize)
@@ -163,13 +164,13 @@ int load_pcx(char *pcx,int32_t fsize,int conv_type,char **buffer, ... )
      int step;
      if (conv_type==A_16BIT)
         {
-        decomprimate_line_hi(ptr3,(unsigned short *)ptr1,paleta2,pcxdata.bytesperline,&step);
-        ptr1+=2*xsize;
+        decomprimate_line_hi(ptr3,(unsigned short *)ptr4,paleta2,pcxdata.bytesperline,&step);
+        ptr4+=2*xsize;
         }
      else
         {
-        decomprimate_line_256(ptr3,ptr1,pcxdata.bytesperline,&step);
-        ptr1+=xsize;
+        decomprimate_line_256(ptr3,ptr4,pcxdata.bytesperline,&step);
+        ptr4+=xsize;
         }
      ptr3+=step;
      }

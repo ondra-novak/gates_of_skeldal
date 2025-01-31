@@ -62,7 +62,7 @@ static char vymacknout(int id,int xa,int ya,int xr,int yr)
 
 static char promacknuti(int id,int xa,int ya,int xr,int yr)
   {
-  char *z;
+  const char *z;
   word *w;
 
   z=ablock(H_MENU_MASK);w=(word *)z;
@@ -122,18 +122,17 @@ jp1:lodsb
   }
 }*/
 
-static void nahraj_rozdilovy_pcx(void **pp,int32_t *s)
+static const void *nahraj_rozdilovy_pcx(const void *pp, int32_t *s)
   {
   char *org,*pos;
   char *vysl;
   word *size,*paltab;
   word *hicolor,*p;
-  void *origin;
+  const void *origin;
   int siz;
 
-  load_pcx((char *)*pp,*s,A_8BIT,&vysl);
+  load_pcx((char *)pp,*s,A_8BIT,&vysl);
   size=(word *)vysl;
-  free(*pp);
   siz=size[0]*size[1];
   p=hicolor=getmem(siz*2+12);
   *p++=size[0];
@@ -145,8 +144,8 @@ static void nahraj_rozdilovy_pcx(void **pp,int32_t *s)
   paltab=(word *)vysl+3;
   rozdily((uint8_t *)org,(uint8_t *)pos,hicolor+3,paltab,siz);
   free(vysl);
-  *pp=hicolor;
   *s=siz*2+12;
+  return hicolor;
   }
 
 
@@ -204,7 +203,7 @@ jp2: inc  ebx
     }
   }
 */
-static void zobraz_podle_masky_asm(char barva, uint16_t *scr, uint16_t *data, uint8_t *maska, int xs, int ys, int scr_linelen) {
+static void zobraz_podle_masky_asm(char barva, uint16_t *scr, const uint16_t *data, const uint8_t *maska, int xs, int ys, int scr_linelen) {
     int width = xs;
 
     for (int y = 0; y < ys; y++) {
@@ -221,8 +220,8 @@ static void zobraz_podle_masky_asm(char barva, uint16_t *scr, uint16_t *data, ui
 
 static void zobraz_podle_masky(char barva,char anim)
   {
-  char *maska;
-  word *data;
+  const char *maska;
+  const word *data;
   int32_t scr_linelen2 = GetScreenPitch();
   word *obr=GetScreenAdr()+300*scr_linelen2+220;
   word xs,ys;
@@ -272,11 +271,11 @@ static void prehraj_animaci_v_menu(EVENT_MSG *msg,char **unused)
   }
 
 
+#if 0
 static void preload_anim(va_list args)
   {
   int i;
 
-  low_mem=0;
   ablock(H_ANIM+29);
   for(i=0;i<30;i+=2)
      {
@@ -305,6 +304,7 @@ static void preload_anim(va_list args)
   task_wait_event(E_TIMER);
   load_ok=1;
   }
+#endif
 
 static void klavesnice(EVENT_MSG *msg,void **unused)
   {
@@ -317,7 +317,11 @@ static void klavesnice(EVENT_MSG *msg,void **unused)
      for(cursor=0;cursor<5;cursor++) if (cur_dir[cursor]==SELECT) break;
      if (cursor==5) cursor=-1;
      int c = va_arg(msg->data,int);
-     switch(c)
+     if (c ==E_QUIT_GAME_KEY) {
+         send_message(E_MENU_SELECT,4);
+         return;
+     }
+     switch(c >> 8)
         {
         case 'H':cursor--;if (cursor<0) cursor=0;break;
         case 'P':cursor++;if (cursor>4) cursor=4;break;
@@ -328,14 +332,12 @@ static void klavesnice(EVENT_MSG *msg,void **unused)
      }
   }
 
+
 int enter_menu(char open)
   {
   uint8_t c;
 
   init_menu_entries();
-  add_task(2048,preload_anim);
-  load_ok=0;
-  while(!load_ok) task_sleep();
   if (!open)
     {
     change_music(get_next_music_from_playlist());
@@ -353,7 +355,7 @@ int enter_menu(char open)
   ms_last_event.event_type=0x1;
   send_message(E_MOUSE,&ms_last_event);
   EVENT_MSG *ev = task_wait_event(E_MENU_SELECT);
-  c=va_arg(ev->data, int);
+  c=ev?va_arg(ev->data, int):-1;
   disable_click_map();
   send_message(E_DONE,E_KEYBOARD,klavesnice);
   cur_dir[c]=UNSELECT;
@@ -516,7 +518,7 @@ void titles(va_list args)
   char send_back=va_arg(args,int);
   char *textname=va_arg(args,char *);
 
-  void *picture;
+  const void *picture;
   word *scr,*buff;
   int counter,newc;
   int lcounter=1;

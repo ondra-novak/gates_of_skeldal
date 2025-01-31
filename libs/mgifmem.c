@@ -74,9 +74,9 @@ void mgif_install_proc(MGIF_PROC proc)
   show_proc=proc;
   }
 
-struct mgif_header load_mgif_header(char **mgif) {
+struct mgif_header load_mgif_header(const char **mgif) {
     struct mgif_header r;
-    char *iter = *mgif;
+    const char *iter = *mgif;
     memcpy(r.sign, iter, 4); iter+=4;
     memcpy(r.year, iter, 2); iter+=2;
     r.eof = *iter++;
@@ -90,9 +90,9 @@ struct mgif_header load_mgif_header(char **mgif) {
     return r;
 }
 
-void *open_mgif(void *mgif) //vraci ukazatel na prvni frame
+const void *open_mgif(const void *mgif) //vraci ukazatel na prvni frame
   {
-  char *c = mgif;
+  const char *c = mgif;
   struct mgif_header mgh = load_mgif_header(&c);
 
   if (strncmp(mgh.sign,MGIF,4)) return NULL;
@@ -111,9 +111,9 @@ void close_mgif(void)           //dealokuje buffery pro prehravani
   }
 
 
-int input_code(void *source,int32_t *bitepos,int bitsize,int mask)
+int input_code(const void *source,int32_t *bitepos,int bitsize,int mask)
   {
-      uint8_t *esi = source;            //    mov esi,source
+      const uint8_t *esi = source;            //    mov esi,source
       int32_t *edi = bitepos;           //    mov edi,bitepos
       int ebx = bitsize;                //    mov ebx,bitsize
       int edx = mask;                   //    mov edx,mask
@@ -276,7 +276,7 @@ end:
     */
   }
 
-void lzw_decode(void *source,char *target)
+void lzw_decode(const void *source,char *target)
   {
   int32_t bitpos=0;
   int code;
@@ -332,7 +332,7 @@ typedef struct chunk_header_t {
     uint8_t type;
 } CHUNK_HEADER_T;
 
-CHUNK_HEADER_T read_chunk_header(char **iter) {
+CHUNK_HEADER_T read_chunk_header(const char **iter) {
     CHUNK_HEADER_T ret;
     ret.type = *(uint8_t *)(*iter)++;
     ret.size = *(uint8_t *)(*iter)++;
@@ -341,7 +341,7 @@ CHUNK_HEADER_T read_chunk_header(char **iter) {
     return ret;
 }
 
-FRAME_HEADER_T read_frame_header(char **iter) {
+FRAME_HEADER_T read_frame_header(const char **iter) {
     FRAME_HEADER_T ret;
     ret.count = *(uint8_t *)(*iter)++;
     ret.size = *(uint8_t *)(*iter)++;
@@ -350,11 +350,13 @@ FRAME_HEADER_T read_frame_header(char **iter) {
     return ret;
 }
 
-void *mgif_play(void *mgif) //dekoduje a zobrazi frame
+const void *mgif_play(const void *mgif) //dekoduje a zobrazi frame
   {
-  char *pf,*pc,*ff;
+  const char *pf;
+  const char *pc;
+  char *ff;
 //  int acts,size,act,csize;
-  void *scr_sav;
+  const void *scr_sav;
   int scr_act=-1;
 
 

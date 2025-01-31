@@ -69,7 +69,7 @@ typedef struct objrec
   int32_t datasize;
   void *data;
   FC_TABLE f_color;
-  word *font;
+  const word *font;
   void *userptr;
   void (*call_init)(struct objrec *, va_list);
   void (*call_draw)(int , int, int, int, struct objrec *);
@@ -122,7 +122,7 @@ extern CTL3D noneborder;
 extern FC_TABLE f_default;
 extern word desktop_y_size;
 //extern char change_flag;
-extern word *default_font;
+extern const word *default_font;
 extern void *gui_background;
 
 
@@ -137,7 +137,7 @@ void redraw_object(OBJREC *o);
 void redraw_window(void);
 void define(int id,int x,int y,int xs,int ys,char align,void (*initproc)(OBJREC *),...);
 CTL3D *border(word light,word shadow, word bsize, word btype);
-void property(CTL3D *ctl,word *font,FC_TABLE *fcolor,word color);
+void property(CTL3D *ctl,const word *font,FC_TABLE *fcolor,word color);
 FC_TABLE *flat_color(word color);
 void aktivate_window(MS_EVENT *ms);
 void redraw_desktop(void);

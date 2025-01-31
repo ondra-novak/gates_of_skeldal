@@ -1415,7 +1415,7 @@ char ask_who_proc(int id,int xa,int ya,int xr,int yr)
   {
   THUMAN *p;
   int i;
-  word *xs;
+  const word *xs;
 
   xs=ablock(H_OKNO);
   i=xr/xs[0];yr;xa;ya;id;
@@ -1492,7 +1492,7 @@ char runes_mask(int id,int xa,int ya,int xr,int yr)
   {
   char *c;
   int cc;
-  short *d;
+  const short *d;
 
   id;ya;xa;
   d=ablock(H_RUNEMASK);
@@ -1927,7 +1927,7 @@ void programming_keyboard(EVENT_MSG *msg,void **unused)
   unused;
   if (msg->msg==E_KEYBOARD)
      {
-     c=va_arg(msg->data, int)>>8;
+     c=quit_request_as_escape(va_arg(msg->data, int))>>8;
      while (_bios_keybrd(_KEYBRD_READY) ) _bios_keybrd(_KEYBRD_READ);
      switch (c)
         {

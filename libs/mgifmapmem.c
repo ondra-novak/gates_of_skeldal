@@ -123,7 +123,7 @@ static void StretchImageHQ(word *src, word *trg, int32_t linelen, char full)
 
 
 
-static void PlayMGFFile(void *file, MGIF_PROC proc,int ypos,char full)
+static void PlayMGFFile(const void *file, MGIF_PROC proc,int ypos,char full)
   {
   int32_t scr_linelen2 = GetScreenPitch();
   mgif_install_proc(proc);
@@ -144,7 +144,9 @@ static void PlayMGFFile(void *file, MGIF_PROC proc,int ypos,char full)
       file=mgif_play(file);
       StretchImageHQ(picture, GetScreenAdr()+ypos*scr_linelen2, scr_linelen2,full);
       showview(0,ypos,0,360);
-      if (_bios_keybrd(_KEYBRD_READY)==0) {
+      if (game_display_is_quit_requested()) {
+          break;
+      } else if (_bios_keybrd(_KEYBRD_READY)==0) {
           mix_back_sound(0);
       }
       else
@@ -159,13 +161,13 @@ static void PlayMGFFile(void *file, MGIF_PROC proc,int ypos,char full)
   }
 
 
-void show_full_lfb12e(void *target,void *buff,void *paleta);
-void show_delta_lfb12e(void *target,void *buff,void *paleta);
+void show_full_lfb12e(void *target,const void *buff,const void *paleta);
+void show_delta_lfb12e(void *target,const void *buff,const void *paleta);
 void show_delta_lfb12e_dx(void *target,void *buff,void *paleta);
 void show_full_lfb12e_dx(void *target,void *buff,void *paleta);
 
 
-word * load_mgf_palette(word *pal) {
+word * load_mgf_palette(const word *pal) {
     static word paleta[256];
     for (int i = 0; i < 256; ++i) {
         paleta[i] = pal[i]+(pal[i]&0x7fe0);
@@ -173,7 +175,7 @@ word * load_mgf_palette(word *pal) {
     return paleta;
 }
 
-void BigPlayProc(int act,void *data,int csize)
+void BigPlayProc(int act,const void *data,int csize)
   {
   switch (act)
      {
@@ -189,7 +191,7 @@ void BigPlayProc(int act,void *data,int csize)
 void play_animation(const char *filename,char mode,int posy,char sound)
   {
   size_t sz;
-  void *mgf=map_file_to_memory(filename, &sz);
+  void *mgf=map_file_to_memory(file_icase_find(filename), &sz);
   change_music(NULL);
   if (mgf==NULL) return;
   PlayMGFFile(mgf,BigPlayProc,posy,mode & 0x80);

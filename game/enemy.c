@@ -203,7 +203,7 @@ void init_mobs()
   send_message(E_ADD,E_KOUZLO_KOLO,mob_reload);
   }
 
-static void register_mob_graphics(int num,char *name_part,char *anims,char *seq)
+static void register_mob_graphics(int num,char *name_part,const char *anims,const char *seq)
   {
   char fulname[14];
   char znaky[]=MOB_ZNAKY;
@@ -949,9 +949,9 @@ void draw_blood(int zasah,int celx,int cely,int posx,int posy)
   draw_placed_texture(ablock(H_MZASAH1+zasah-1),celx,cely,posx+64,posy+64,75,0);
   }
 */
-static void *mob_select_palette(TMOB *p)
+static const void *mob_select_palette(TMOB *p)
   {
-  char *palet;
+  const char *palet;
 
   palet=ablock(p->cislo_vzoru+6*16+4+monster_block);
   return palet+(p->palette)*PIC_FADE_PAL_SIZE;

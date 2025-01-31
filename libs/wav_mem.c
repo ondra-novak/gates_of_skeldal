@@ -3,7 +3,7 @@
 #include <stdio.h>
 #include "wav_mem.h"
 
-char *find_chunk(char *wav,char *name)
+const char *find_chunk(const char *wav,char *name) //TODO improve
   {
   int32_t next;
 
@@ -18,7 +18,7 @@ char *find_chunk(char *wav,char *name)
   while (1);
   }
 
-int get_chunk_size(char *wav)
+int get_chunk_size(const char *wav)
   {
   int32_t size;
 
@@ -26,7 +26,7 @@ int get_chunk_size(char *wav)
   return(size);
   }
 
-int read_chunk(char *wav,void *mem)
+int read_chunk(const char *wav,void *mem)
   {
 
   wav+=4;

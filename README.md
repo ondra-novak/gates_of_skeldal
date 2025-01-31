@@ -20,39 +20,16 @@ make all
 
 You need original DOS version files (distrubuted on CD) or Windows port files.
 
-You need to create following file in the root of the game folder 
+You need to create or update `skeldal.ini` following file in the root of the game folder 
 
-**WSKELDAL.INI**
+The `skeldal.ini` must be at current folder or you can specify config using command line option
 
 ```
-CESTA_MAPY ./maps/
-CESTA_MUSIC ./music/
-CESTA_VIDEO ./video/
-CESTA_DATA ./
-CESTA_POZICE ./savegame/
-CESTA_TEMPY /tmp/
-vmode 0
-sound_device 9 0 0 0
-SOUND_MIXFREQ 44100
-default_map lespred.map
-ZOOM_SPEED 8
-TURN_SPEED 8
-MUSIC_VOLUME 127
-SOUND_VOLUME 255
-PRELOAD 0
-AUTOSAVE 8
-WINDOWED 1
-SKIP_INTRO 8
-FULLRESVIDEO 0
-DEBUG 0
-GAME_SPEED 6
-BATTLE_ACCEL 0
-WINDOWEDZOOM 0
-EXTRAS 0
+$ ./skeldal
+$ ./skeldal -f conf/skeldal.ini
 ```
-(the final format of the configuration file is subject of change)
 
-Move to root folder of the original game and run the built binary 
+The documentation of the configuration file is in the file.
 
 ## todo
 

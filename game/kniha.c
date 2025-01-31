@@ -337,7 +337,7 @@ static int get_data_handle(char *filename,void *dec)
 static void insert_picture(char *filename,int align,int line,int lsize)
   {
   int x, y;
-  short *psiz;
+  const short *psiz;
   char *c=write_buff;
 
   psiz=ablock(get_data_handle(filename,pcx_8bit_decomp));
@@ -568,7 +568,7 @@ static char *displ_picture(char *c)
   {
   char *d;
   int x,y,hn,z,ln,sl;
-  short *sh;
+  const short *sh;
   int32_t scr_linelen2 = GetScreenPitch();
 
 

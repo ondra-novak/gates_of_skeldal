@@ -83,7 +83,7 @@ static void setup_keyboard(EVENT_MSG *msg,void **_)
   {
   if (msg->msg == E_KEYBOARD)
      {
-      char c= va_arg(msg->data, int);
+      char c= quit_request_as_escape(va_arg(msg->data, int));
      if (c==27)
         {
         unwire_proc();

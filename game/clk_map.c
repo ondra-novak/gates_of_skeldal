@@ -67,7 +67,7 @@ char clk_touch_vyk(int sector,int side,int xr,int yr)
      else
         {
         int fc;
-        word *w;
+        const word *w;
         for(i=0;v->items[i];i++);
         if (i==8)
            {
@@ -202,7 +202,10 @@ char konec(int id,int xa,int ya,int xr,int yr)
   if (cur_mode==MD_ANOTHER_MAP) unwire_proc(),wire_proc();
   send_message(E_CLOSE_MAP);
   }
- else wire_proc();
+ else {
+     wire_proc();
+     game_display_cancel_quit_request();
+ }
  return 1;
  }
 
@@ -234,7 +237,7 @@ char start_invetory(int id,int xa,int ya,int xr,int yr)
   {
   THUMAN *p;
   int i;
-  word *xs;
+  const word *xs;
 
   id;xa;ya;yr;
   if (cur_mode==MD_ANOTHER_MAP) unwire_proc(),wire_proc();
@@ -382,7 +385,7 @@ char empty_clk(int id,int xa,int ya,int xr,int yr) //tato udalost slouzi ke zrus
 
 static char sing_song_clk(int id,int xa,int ya,int xr,int yr)
   {
-  char *xadr;
+  const char *xadr;
   word *xs;
   static char playing=0;
   char standardflute=map_sectors[viewsector].sector_type>=S_FLT_SMER &&

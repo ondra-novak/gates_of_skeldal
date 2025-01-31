@@ -61,6 +61,14 @@ char check_file_exists(const char *pathname) {
     return std::filesystem::exists(path)?1:0;
 
 }
+
+const char *file_icase_find(const char *pathname) {
+    static std::string p;
+    std::filesystem::path path = try_to_find_file(convert_pathname_to_path(pathname));
+    p = path;
+    return p.c_str();
+}
+
 FILE *fopen_icase(const char *pathname, const char *mode) {
     std::filesystem::path path = try_to_find_file(convert_pathname_to_path(pathname));
     return fopen(path.c_str(), mode);

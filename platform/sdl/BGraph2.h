@@ -21,8 +21,8 @@ void RedirectScreenBufferSecond(void);
 char game_display_init(const INI_CONFIG_SECTION *display_section, const char *title);
 void game_display_close(void);
 void game_display_update_rect(unsigned short x,unsigned short y,unsigned short xs,unsigned short ys);
-
-
+char game_display_is_quit_requested();
+void game_display_cancel_quit_request();
 
 void *DxPrepareWalk(int ypos);
 void DxZoomWalk(void *handle, int ypos, int *points,float phase, void *lodka);
@@ -49,7 +49,7 @@ void DXMouseTransform(unsigned short *x, unsigned short *y);
 //HWND GetGameWindow();
 //void DxLockBuffers(BOOL lock);
 
-void StripBlt(void *data, unsigned int startline, uint32_t width);
+void StripBlt(const void *data, unsigned int startline, uint32_t width);
 
 
 #ifdef __cplusplus

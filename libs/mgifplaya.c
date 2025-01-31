@@ -5,7 +5,7 @@
 
 #include <assert.h>
 
-void show_full_lfb12e(void *target, void *buff, void *paleta) {
+void show_full_lfb12e(void *target,const void *buff, const void *paleta) {
     uint16_t *edi = (uint16_t *)target;
     uint8_t *esi = (uint8_t *)buff;
     uint16_t *ebx = (uint16_t *)paleta;

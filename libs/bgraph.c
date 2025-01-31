@@ -12,14 +12,15 @@ word *lbuffer;
 word *screen;
 word curcolor,charcolors[7] = {0x0000,0x03E0,0x0380,0x0300,0x0280,0x0000,0x0000};
 longint linelen;
-word *curfont,*writepos,writeposx;
+const word *curfont;
+word *writepos,writeposx;
 byte fontdsize=0;
 byte *palmem,*xlatmem;
 void (*showview)(word,word,word,word);
 char line480=0;
 int32_t screen_buffer_size=512000;
 
-void *mscursor,*mssavebuffer=NULL;
+const void *mscursor,*mssavebuffer=NULL;
 integer mscuroldx=0,mscuroldy=0;
 integer msshowx=0,msshowy=0;
 int32_t pictlen; // Tato promenna je pouze pouzita v BGRAPH1.ASM
@@ -194,7 +195,7 @@ void hide_ms_cursor()
   put_picture(mscuroldx,mscuroldy,mssavebuffer);
   }
 
-void *register_ms_cursor(void *cursor)
+void *register_ms_cursor(const void *cursor)
   {
   integer xs,ys;
 

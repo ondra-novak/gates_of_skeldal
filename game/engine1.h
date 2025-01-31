@@ -28,19 +28,19 @@
 
 
 void general_engine_init(void);
-void draw_floor_ceil(int celx,int cely,char f_c,void *txtr);
-void show_cel2(int celx,int cely,void *stena,int xofs,int yofs,char rev);
+void draw_floor_ceil(int celx,int cely,char f_c,const void *txtr);
+void show_cel2(int celx,int cely,const void *stena,int xofs,int yofs,char rev);
   //zobrazi primou stenu ktera lezi pred nebo napravo od pozorovatele
-void show_cel(int celx,int cely,void *stena,int xofs,int yofs,char rev);
+void show_cel(int celx,int cely,const void *stena,int xofs,int yofs,char rev);
   void turn_left(void);
 void turn_right(void);
-void zooming_backward(word *background);
-void zooming_forward(word *background);
+void zooming_backward(const word *background);
+void zooming_forward(const word *background);
 void OutBuffer2nd(void);
 void CopyBuffer2nd(void);
 void report_mode(int);
-void draw_item(int celx,int cely,int posx,int posy,short *pic,int index);
-void draw_item2(int celx,int cely,int xpos,int ypos,void *texture,int index);
+void draw_item(int celx,int cely,int posx,int posy,const short *pic,int index);
+void draw_item2(int celx,int cely,int xpos,int ypos,const void *texture,int index);
 //void textmode_effekt(void);
 //#pragma aux textmode_effekt modify[eax ebx ecx edx edi];
 
@@ -49,7 +49,8 @@ void clear_buff(word *background,word backcolor,int lines);
 
 typedef struct zoominfo
   {
-     void *startptr, *texture;
+     void *startptr;
+     const void *texture;
      int32_t texture_line,line_len;
      int32_t *xtable;
      short *ytable;
@@ -122,41 +123,41 @@ typedef short palette_t[256];
 
 typedef struct drw_enemy_struct
   {
-  void *txtr;
+  const void *txtr;
   int celx,cely,posx,posy,adjust,shiftup,num;
   char mirror;
   char stoned;
-  palette_t *palette;
+  const palette_t *palette;
   }DRW_ENEMY;
 
 
 
 
-void enemy_draw(void *src,void *trg,int shade,int scale,int maxspace,int clip);
+void enemy_draw(const void *src,void *trg,int shade,int scale,int maxspace,int clip);
 //#pragma aux enemy_draw parm[ESI][EDI][EBX][EDX][EAX][ECX]
-void enemy_draw_transp(void *src,void *trg,void *shade,int scale,int maxspace,int clip);
+void enemy_draw_transp(const void *src,void *trg,  const void *shade,int scale,int maxspace,int clip);
 //#pragma aux enemy_draw_transp parm[ESI][EDI][EBX][EDX][EAX][ECX]
-void enemy_draw_mirror_transp(void *src,void *trg,void *shade,int scale,int maxspace,int clip);
+void enemy_draw_mirror_transp(const void *src,void *trg,  const void *shade,int scale,int maxspace,int clip);
 //#pragma aux enemy_draw_mirror_transp parm[ESI][EDI][EBX][EDX][EAX][ECX]
-void enemy_draw_mirror(void *src,void *trg,int shade,int scale,int maxspace,int clip);
+void enemy_draw_mirror(const void *src,void *trg,int shade,int scale,int maxspace,int clip);
 //#pragma aux enemy_draw_mirror parm[ESI][EDI][EBX][EDX][EAX][ECX]
 //clip je v poradi vpravo - vlevo (HiLo)
 
 void draw_enemy(DRW_ENEMY *drw);
-void draw_player(short *txtr,int celx,int cely,int posx,int posy,int adjust,char *name);
+void draw_player(const short *txtr,int celx,int cely,int posx,int posy,int adjust,  const char *name);
 
 void set_lclip_rclip(int celx,int cely,int lc,int rc);
-void draw_spectxtr(short *txtr,int celx,int cely,int xpos);
+void draw_spectxtr(const short *txtr,int celx,int cely,int xpos);
 
 int turn_speed(int turnspeed); //oba je nutne volat na zacatku
 int zoom_speed(int zoomspeed);
 
-void scroll_and_copy(void *pic,void *slide, void *scr, int size,int shift, void *lineinfo);
+void scroll_and_copy(const void *pic,void *slide, void *scr, int size,int shift, void *lineinfo);
 //#pragma aux scroll_and_copy parm[esi][ebx][edi][ecx][edx][eax]
 
 void set_backgrnd_mode(int mode);
 
-int get_item_top(int celx,int cely,int posx,int posy,word *txtr,int index);
+int get_item_top(int celx,int cely,int posx,int posy,const word *txtr,int index);
  //vraci nejnizsi souradnici y predmetu leziciho na zemi v celx, cely na pozici posx,posy;
 
 #endif

@@ -242,7 +242,7 @@ void psani_poznamek_event(EVENT_MSG *msg,void **data)
      {
      char c;
 
-     c=va_arg(msg->data, int);
+     c=quit_request_as_escape(va_arg(msg->data, int));
      set_font(H_FLITT5,NOSHADOW(0));
      if (c)
         {
@@ -630,7 +630,7 @@ void *map_keyboard(EVENT_MSG *msg,void **usr)
   if (msg->msg==E_AUTOMAP_REDRAW) draw=4;
   if (msg->msg==E_KEYBOARD)
      {
-      int d = va_arg(msg->data, int);
+      int d = quit_request_as_escape(va_arg(msg->data, int));
      c=d>>8;
      switch (c)
         {
@@ -773,13 +773,13 @@ static void wire_glob_map_control(void)
 
 char map_menu(int id,int xa,int ya,int xr,int yr)
   {
-  char *s;
-  word *c;
+  const char *s;
+  const word *c;
 
   ya;xa;id;
   id=set_select_mode(0);
   s=ablock(H_CHARGENM);
-  c=ablock(H_CHARGENM);
+  c=(const word *)s;
   s+=*c*yr+xr+6;
   id=*s;
   if (!id) return 1;
@@ -897,7 +897,7 @@ void map_teleport_keyboard(EVENT_MSG *msg,void **usr)
   {
   usr;
   if (msg->msg==E_KEYBOARD) {
-      int c = va_arg(msg->data, int);
+      int c = quit_request_as_escape(va_arg(msg->data, int));
      switch (c>>8)
         {
         case 1:

@@ -76,7 +76,7 @@ void scroll_support_64(void *lbuf,void *src1,void *src2,int size1,void *xlat);
 //#pragma aux scroll_support_64 parm [EDI][ESI][EDX][ECX][EBX] modify [EAX];
 void scroll_support_64b(void *lbuf,void *src1,void *src2,int size1,void *xlat);
 //#pragma aux scroll_support_64b parm [EDI][ESI][EDX][ECX][EBX] modify [EAX];*/
-void fcdraw(void *source,void *target, void *table);
+void fcdraw(const void *source,void *target,const  void *table);
 //#pragma aux fcdraw parm [EDX][EBX][EAX] modify [ECX ESI EDI];
 
 /*void lodka32(void *source,void *target,void *background,void *xlat,int32_t xysize);
@@ -451,7 +451,7 @@ void create_zooming(void)
      }
   }
 
-static void zooming_forward_backward(word *background,char back)
+static void zooming_forward_backward(const word *background,char back)
   {
   if (!zooming_step) return;
     {
@@ -477,12 +477,12 @@ static void zooming_forward_backward(word *background,char back)
     }
   }
 
-void zooming_forward(word *background)
+void zooming_forward(const word *background)
   {
   zooming_forward_backward(background,0);
   }
 
-void zooming_backward(word *background)
+void zooming_backward(const word *background)
   {
   zooming_forward_backward(background,1);
   }
@@ -577,12 +577,13 @@ void turn_right()
       */
   }
 
-void show_cel(int celx,int cely,void *stena,int xofs,int yofs,char rev)
+void show_cel(int celx,int cely,const void *stena,int xofs,int yofs,char rev)
   {
   T_INFO_X_3D *x3d,*x0d;
   T_INFO_Y *yd,*yp;
   int txtsx,txtsy,realsx,realsy,x,i,yss,ysd;
-  char *p;int plac;
+  const char *p;
+  int plac;
 
   int32_t scr_linelen2 = GetScreenPitch();
 
@@ -649,12 +650,13 @@ void show_cel(int celx,int cely,void *stena,int xofs,int yofs,char rev)
  }
 
 
-void show_cel2(int celx,int cely,void *stena,int xofs,int yofs,char rev)
+void show_cel2(int celx,int cely,const void *stena,int xofs,int yofs,char rev)
   {
   T_INFO_X *x3d;
   T_INFO_Y *yd;
   int txtsx,txtsy,realsx,realsy,x,i;
-  char *p;int plac;
+  const char *p;
+  int plac;
 
   int32_t scr_linelen2 = GetScreenPitch();
 
@@ -716,7 +718,7 @@ void show_cel2(int celx,int cely,void *stena,int xofs,int yofs,char rev)
 
 
 
-void draw_floor_ceil(int celx,int cely,char f_c,void *txtr)
+void draw_floor_ceil(int celx,int cely,char f_c,const void *txtr)
   {
   int y;
 
@@ -1051,7 +1053,7 @@ void map_pos(int celx,int cely,int posx,int posy,int posz,int *x,int *y)
 */
 
 static int items_indextab[][2]={{0,0},{-1,3},{1,7},{-1,7},{1,10},{-1,10},{0,10},{-2,15}};
-void draw_item(int celx,int cely,int posx,int posy,short *txtr,int index)
+void draw_item(int celx,int cely,int posx,int posy,const short *txtr,int index)
   {
   int x,y;
   int clipl,clipr;
@@ -1076,10 +1078,10 @@ void draw_item(int celx,int cely,int posx,int posy,short *txtr,int index)
   }
 
 
-void put_textured_bar(void *src,int x,int y,int xs,int ys,int xofs,int yofs)
+void put_textured_bar(const void *src,int x,int y,int xs,int ys,int xofs,int yofs)
   {
   word *pos;
-  word *xy;
+  const word *xy;
   int32_t scr_linelen2 = GetScreenPitch();
 
 
@@ -1092,7 +1094,7 @@ void put_textured_bar(void *src,int x,int y,int xs,int ys,int xofs,int yofs)
   put_textured_bar_(src,pos,xs,ys,xofs,yofs);
   }
 
-void draw_placed_texture(short *txtr,int celx,int cely,int posx,int posy,int posz,char turn)
+void draw_placed_texture(const short *txtr,int celx,int cely,int posx,int posy,int posz,char turn)
   {
   int x,y;
   int clipl,clipr;
@@ -1295,7 +1297,7 @@ void draw_enemy(DRW_ENEMY *drw)
     }
 }
 
-void draw_player(short *txtr,int celx,int cely,int posx,int posy,int adjust,char *name)
+void draw_player(  const short *txtr,int celx,int cely,int posx,int posy,int adjust,  const char *name)
   {
   int x,y,yc,lx,sd;
   int clipl,clipr;
@@ -1330,7 +1332,7 @@ void draw_player(short *txtr,int celx,int cely,int posx,int posy,int adjust,char
   }
 
 
-void draw_spectxtr(short *txtr,int celx,int cely,int xpos)
+void draw_spectxtr(const short *txtr,int celx,int cely,int xpos)
   {
   int x,y,clipl,clipr;
   int32_t scr_linelen2 = GetScreenPitch();
@@ -1349,7 +1351,7 @@ void draw_spectxtr(short *txtr,int celx,int cely,int xpos)
   }
 
 
-void draw_item2(int celx,int cely,int xpos,int ypos,void *txtr,int index)
+void draw_item2(int celx,int cely,int xpos,int ypos,  const void *txtr,int index)
   {
   int x,y,xs,ys,abc,asc,clipl,clipr;
   static int indextab[][2]={{0,0},{0,1},{1,0},{-1,0},{1,2},{-1,1},{-2,1},{2,1}};
@@ -1441,7 +1443,7 @@ void set_backgrnd_mode(int mode)
   backgrnd_mode=mode;
   }
 
-int get_item_top(int celx,int cely,int posx,int posy,word *txtr,int index)
+int get_item_top(int celx,int cely,int posx,int posy,const word *txtr,int index)
   {
   int x,y;
   int randx,randy;

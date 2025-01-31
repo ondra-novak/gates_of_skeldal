@@ -227,7 +227,7 @@ static void draw_other_bar()
   int i;
   int32_t scr_linelen2 = GetScreenPitch();
 
-  word *bbar=ablock(H_BOTTBAR);
+  const word *bbar=ablock(H_BOTTBAR);
   word *screen=GetScreenAdr()+(480-102)*scr_linelen2;
   for (i=0;i<102;i++,screen+=scr_linelen2,bbar+=scr_linelen2) memcpy(screen,bbar,scr_linelen2*2);
   //put_8bit_clipped(ablock(H_GEN_OKBUTT),378*640+520+screen,0,120,102);
@@ -239,7 +239,7 @@ static void draw_other_bar()
 
 static void display_character(THUMAN *p,char i)
   {
-  word *w;
+    const word *w;
  put_picture(4,SCREEN_OFFLINE,ablock(H_IOBLOUK));
  if (p->used)
      {
@@ -277,11 +277,11 @@ static void vypocet_perly(int angle,int xp,int yp,int *x,int *y)
 
 static void zobraz_perlu(void)
   {
-  word *perla;
+    const word *perla;
   int x,y;
   word *scr,*sss;
   char *p;
-  word *b;
+  const word *b;
   int xs,ys,xxs;
 
   int32_t scr_linelen2 = GetScreenPitch();
@@ -567,7 +567,6 @@ static void def_entries()
 
      sprintf(s,CHAR_NAME,i);
      def_handle(H_GEN_POSTAVY+i,s,pcx_8bit_decomp,SR_BGRAFIKA);
-     apreload(H_GEN_POSTAVY+i);
      mix_back_sound(0);
      }
   for(i=0;i<MAX_XICHTS;i++)
@@ -576,14 +575,13 @@ static void def_entries()
 
      sprintf(s,XICHT_NAME,i);
      def_handle(H_GEN_XICHTY+i,s,pcx_8bit_decomp,SR_BGRAFIKA);
-     apreload(H_GEN_XICHTY+i);
      mix_back_sound(0);
      }
   }
 
 static char go_next_page(int id,int xa,int ya,int xr,int yr)
   {
-  word *w;
+    const word *w;
   char *b;
 
   xa,ya;
@@ -714,7 +712,7 @@ char potvrzeno(char *text,void (*redraw)(char))
 
 static char view_another_click2(int id,int xa,int ya,int xr,int yr)
   {
-  short *w;
+    const short *w;
 
   id,xa,ya,xr,yr;
   w=ablock(H_OKNO);
@@ -760,21 +758,28 @@ static void enter_reaction(EVENT_MSG *msg,void **unused)
   if (msg->msg==E_KEYBOARD)
      {
       int c = va_arg(msg->data, int);
-     if (c==13 && !shut_downing_text)
+      if ((c >> 1) == 1 || c == E_QUIT_GAME_KEY) {
+          gen_exit_editor(2,0,0,0,0);
+          return;
+      } else if ((c & 0xFF)==13 && !shut_downing_text)
         {
         send_message(E_KEYBOARD,13);
         bott_draw(1);
         redraw_generator(1);
         msg->msg=-1;
+        was_enter=1;
         }
-     was_enter=1;
      }
   }
 
 static void enter_reaction2(EVENT_MSG *msg,void **_)
   {
   int c = va_arg(msg->data, int);
-  if (msg->msg==E_KEYBOARD && c==13 && !shut_downing_text && ~b_disables & 0x3)
+  if ((c >> 1) == 1 || c == E_QUIT_GAME_KEY) {
+      gen_exit_editor(1,0,0,0,0);
+      return;
+  }
+  if (msg->msg==E_KEYBOARD && (c & 0xFF)==13 && !shut_downing_text && ~b_disables & 0x3)
      {
      send_message(E_KEYBOARD,13);
      bott_draw(1);
@@ -804,6 +809,7 @@ char gen_exit_editor(int id,int xa,int ya,int xr,int yr)
      }
   else
      {
+      game_display_cancel_quit_request();
      if (id==2)redraw_generator(1);
      else redraw_svitek(0);
      edit_name();
@@ -848,10 +854,13 @@ char enter_generator()
        {
        send_message(E_ADD,E_KEYBOARD,enter_reaction);
        EVENT_MSG *ev= task_wait_event(E_CLOSE_GEN);;
-       i=va_arg(ev->data, int);
+       i=ev?va_arg(ev->data, int):255;
        send_message(E_DONE,E_KEYBOARD,enter_reaction);
        if (i==3 && potvrzeno(texty[116],redraw_generator)) goto znova;
-       if (i==255) return 1;
+       if (i==255) {
+           term_task(edit_task);
+           return 1;
+       }
        }
      while (cur_xicht==-1 || i==3);
      send_message(E_KEYBOARD,13);

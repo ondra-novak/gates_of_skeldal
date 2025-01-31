@@ -121,7 +121,7 @@ void line_32(int x,int y,int xs,int ys)
   }
 
 
-void char_32(word *posit,word *font,char znak)
+void char_32(word *posit,const word *font,char znak)
 //#pragma aux char_32 parm [edi] [esi] [eax] modify [eax ebx ecx edx]
   {
     int32_t scr_linelen2 = GetScreenPitch();
@@ -213,7 +213,7 @@ chrend:                 ;konec
     }
 */
   }
-void char2_32(word *posit,word *font,char znak)
+void char2_32(word *posit, const word *font,char znak)
 //#pragma aux char2_32 parm [edi] [esi] [eax] modify [eax ebx ecx edx]
   {
 
@@ -275,7 +275,7 @@ chr2end:              ;konec
 */
   }
 
-word charsize(word *font,char znak)
+word charsize(const word *font,char znak)
   {
 
 	  unsigned char *esi = (unsigned char *)font;
@@ -308,12 +308,12 @@ chsend: and     eax,0ffffh
     }*/
   }
 
-void put_picture(word x,word y,void *p)
+void put_picture(word x,word y,const void *p)
 //#pragma aux put_picture parm [esi] [eax] [edi] modify [ebx ecx edx]
   {
   int32_t scr_linelen2 = GetScreenPitch();
   word *adr=GetScreenAdr()+scr_linelen2*y+x;
-  word *data=p;
+  const word *data=p;
   word xs=data[0];
   word ys=data[1];
   word mode=data[2];
@@ -354,7 +354,7 @@ void put_picture(word x,word y,void *p)
     }
   if (mode==8 || mode==264)
     {
-    word *table=data;
+    const word *table=data;
     uint8_t *cdata=(uint8_t *)(data+(mode==264?10*256:256));
     int i;
     int j;
@@ -369,7 +369,7 @@ void put_picture(word x,word y,void *p)
     }
   else if (mode==512 )
     {
-    word *table=data;
+    const word *table=data;
     uint8_t *cdata=(uint8_t *)(data+256);
     int i;
     int j;
@@ -412,11 +412,11 @@ void get_picture(word x,word y,word xs,word ys,void *p)
     }
   }
 
-void put_image(word *image,word *target,int start_line,int sizex,int sizey)
+void put_image(const word *image,word *target,int start_line,int sizex,int sizey)
 //#pragma aux put_image parm [ESI][EDI][EAX][EBX][EDX] modify [ECX]
   {
     int32_t scr_linelen2 = GetScreenPitch();
-	word *esi = image;
+	const word *esi = image;
 	word *edi = target;
 	int edx = sizey;
 	int ecx = esi[0];
@@ -464,15 +464,15 @@ puti_lp:mov     ecx,ebx
     }*/
   }
 
-void put_8bit_clipped(void *src,void *trg,int startline,int velx,int vely)
+void put_8bit_clipped(const void *src,void *trg,int startline,int velx,int vely)
 //#pragma aux put_8bit_clipped parm [ESI][EDI][EAX][EBX][EDX] modify [ECX];
   {
     int32_t scr_linelen2 = GetScreenPitch();
 	  if (src==NULL) return;
 	  {
-		  word *esi = src;
+		  const word *esi = src;
 		  word *edi = trg;
-		  word *paleta = esi+3;
+		  const word *paleta = esi+3;
 		  int cx = esi[0];
 		  unsigned char *imgdata = (unsigned char *)(esi + 3 + 256)+ startline * cx;
 
@@ -536,7 +536,7 @@ put8_trns:
 ende:
     }*/
 
-void put_textured_bar_(void *src,void *trg,int xsiz,int ysiz,int xofs,int yofs)
+void put_textured_bar_(const void *src,void *trg,int xsiz,int ysiz,int xofs,int yofs)
 //#pragma aux put_textured_bar_ parm [EBX][EDI][EDX][ECX][ESI][EAX];
   {
 
@@ -711,7 +711,7 @@ void wait_retrace()
 
 #define pic_start (2+2+2+512*5+512*5)
 
-void put_picture2picture(word *source,word *target,int xp,int yp)
+void put_picture2picture(const word *source,word *target,int xp,int yp)
 //#pragma aux put_picture2picture parm [ESI][EDI][EAX][EDX] modify [ECX]
   {
 

@@ -25,7 +25,7 @@ FC_TABLE f_default;
 word desktop_y_size;
 char force_redraw_desktop=0;
 static char change_flag=0,f_cancel_event=0;
-word *default_font;
+const word *default_font;
 void empty()
   {
   }
@@ -382,7 +382,7 @@ CTL3D *border(word light,word shadow, word bsize, word btype)
   return &p;
   }
 
-void property(CTL3D *ctl,word *font,FC_TABLE *fcolor,word color)
+void property(CTL3D *ctl,const word *font,FC_TABLE *fcolor,word color)
   {
   if (ctl!=NULL) memcpy(&o_end->border3d,ctl,sizeof(CTL3D));
   if (font!=NULL) o_end->font=font;

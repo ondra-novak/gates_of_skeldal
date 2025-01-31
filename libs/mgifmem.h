@@ -1,7 +1,7 @@
 //!!!! POZOR, NUTNE LINKOVAT SOUBOR LZWA.ASM
 #ifndef _MGIFMEM_H
 
-typedef void (*MGIF_PROC)(int,void *,int csize); //prvni cislo akce, druhy data akce
+typedef void (*MGIF_PROC)(int,const void *,int csize); //prvni cislo akce, druhy data akce
 
 #define _MGIFMEM_H
 #define MGIF "MGIF"
@@ -34,7 +34,7 @@ typedef struct mgif_header
 
 
 void mgif_install_proc(MGIF_PROC proc);
-void *open_mgif(void *mgif); //vraci ukazatel na prvni frame
-void *mgif_play(void *mgif); //dekoduje a zobrazi frame
+const void *open_mgif(const void *mgif); //vraci ukazatel na prvni frame
+const void *mgif_play(const void *mgif); //dekoduje a zobrazi frame
 void close_mgif(void);           //dealokuje buffery pro prehravani
 #endif

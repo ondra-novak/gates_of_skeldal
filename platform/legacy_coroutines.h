@@ -33,6 +33,7 @@ int add_task(int stack,TaskerFunctionName fcname,...);
 
  */
 void term_task(int id_num);
+void term_task_wait(int id_num);
 ///returns true, if task is running
 char is_running(int id_num);
 //void suspend_task(int id_num,int msg);

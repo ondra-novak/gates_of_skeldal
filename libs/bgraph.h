@@ -15,7 +15,8 @@ void RedirectScreenBufferSecond(void);
 
 
 extern word curcolor,charcolors[7];
-extern word *curfont,*writepos,writeposx;
+extern const word *curfont;
+extern word *writepos,writeposx;
 extern byte fontdsize;
 extern void (*showview)(word,word,word,word);
 extern char __skip_change_line_test;
@@ -42,13 +43,13 @@ void ver_line_xor(int x1,int y1,int y2);
 //#pragma aux ver_line_xor parm [eSi] [eAX] [eCX] modify [eDX];
 void line_32(int x,int y,int xs,int ys);
 //#pragma aux line_32 parm [esi] [eax] [ecx] [ebx] modify [edx edi]
-void char_32(word *posit,word *font,char znak);
+void char_32(word *posit,const word *font,char znak);
 //#pragma aux char_32 parm [edi] [esi] [eax] modify [eax ebx ecx edx]
-void char2_32(word *posit,word *font,char znak);
+void char2_32(word *posit,const word *font,char znak);
 //#pragma aux char2_32 parm [edi] [esi] [eax] modify [eax ebx ecx edx]
-word charsize(word *font,char znak);
+word charsize(const word *font,char znak);
 //#pragma aux charsize parm [esi] [eax]
-void put_picture(word x,word y,void *p);
+void put_picture(word x,word y,const void *p);
 //#pragma aux put_picture parm [esi] [eax] [edi] modify [ebx ecx edx]
 void get_picture(word x,word y,word xs,word ys,void *p);
 //#pragma aux get_picture parm [esi] [eax] [ebx] [ecx] [edi] modify [edx]
@@ -108,22 +109,22 @@ void closemode(void);
 void line32(word x1,word y1, word x2, word y2);
 void position(word x,word y);
 void show_ms_cursor(integer x,integer y);
-void *register_ms_cursor(void *cursor);
+void *register_ms_cursor(const void *cursor);
 void move_ms_cursor(integer newx,integer newy,char nodraw);
 void hide_ms_cursor(void);
 void redraw_ms_cursor_on_screen(void);
-int text_height(char *text);
-int text_width(char *text);
-void set_aligned_position(int x,int y,char alignx, char aligny,char *text);
+int text_height(  const char *text);
+int text_width(  const char *text);
+void set_aligned_position(int x,int y,char alignx, char aligny,const char *text);
 void rectangle(int x1,int y1,int x2,int y2,int color);
 word *mapvesaadr1(word *a);
 void rel_position_x(word x);
 
-void put_8bit_clipped(void *src,void *trg,int startline,int velx,int vely);
+void put_8bit_clipped(const void *src,void *trg,int startline,int velx,int vely);
 //#pragma aux put_8bit_clipped parm [ESI][EDI][EAX][EBX][EDX] modify [ECX];
-void put_textured_bar_(void *src,void *trg,int xsiz,int ysiz,int xofs,int yofs);
+void put_textured_bar_(const void *src,void *trg,int xsiz,int ysiz,int xofs,int yofs);
 //#pragma aux put_textured_bar_ parm [EBX][EDI][EDX][ECX][ESI][EAX];
-void put_textured_bar(void *src,int x,int y,int xs,int ys,int xofs,int yofs);
+void put_textured_bar(const void *src,int x,int y,int xs,int ys,int xofs,int yofs);
 void trans_bar(int x,int y,int xs,int ys,int barva);
 //#pragma aux trans_bar parm [EDI][ESI][EDX][ECX][EBX] modify [EAX];
 void trans_bar25(int x,int y,int xs,int ys);
@@ -132,11 +133,11 @@ void trans_line_x(int x,int y,int xs,int barva);
 //#pragma aux trans_line_x parm [EDI][ESI][ECX][EDX] modify [EAX];
 void trans_line_y(int x,int y,int ys,int barva);
 //#pragma aux trans_line_y parm [EDI][ESI][ECX][EDX] modify [EAX];
-void draw_placed_texture(short *txtr,int celx,int cely,int posx,int posy,int posz,char turn);
+void draw_placed_texture(const short *txtr,int celx,int cely,int posx,int posy,int posz,char turn);
 
-void put_image(word *image,word *target,int start_line,int sizex,int sizey);
+void put_image(const word *image,word *target,int start_line,int sizex,int sizey);
 //#pragma aux put_image parm [ESI][EDI][EAX][EBX][EDX] modify [ECX]
-void put_picture2picture(word *source,word *target,int xp,int yp);
+void put_picture2picture(const word *source,word *target,int xp,int yp);
 //#pragma aux put_picture2picture parm [ESI][EDI][EAX][EDX] modify [ECX]
 
 
