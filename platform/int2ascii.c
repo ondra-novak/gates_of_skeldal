@@ -6,7 +6,7 @@ static char *render_int(char *where, int i, int radix) {
     if (i == 0) return where;
     char *r = render_int(where, i/radix, radix);
     int p = i % radix;
-    if (p<=0) {
+    if (p<=9) {
         *r = p + '0';
     } else {
         *r = p + 'A' - 10;

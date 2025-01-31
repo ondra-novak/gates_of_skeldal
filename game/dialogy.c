@@ -164,7 +164,8 @@ static void dialog_anim(va_list args)
   mgif_install_proc(animace_kouzla);
   const char *ch = build_pathname(2,gpathtable[SR_DIALOGS], block);
   free(block);
-  aptr=load_file(ch);
+  size_t loadsize;
+  aptr=load_file(ch, &loadsize);
   do
      {
      anm=open_mgif(aptr);

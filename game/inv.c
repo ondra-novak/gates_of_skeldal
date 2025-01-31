@@ -1534,6 +1534,9 @@ void write_pocet_sipu()
   }
 
 
+static const void *shop_keeper_picture = NULL;
+
+
 void redraw_inventory()
   {
   update_mysky();
@@ -2430,12 +2433,12 @@ static void shop_mouse_event(EVENT_MSG *msg,void **unused)
 
   }
 
-static __inline void copy_data(char **src, void *target, int size) {
+static __inline void copy_data(const char **src, void *target, int size) {
     memcpy(target, *src, size);
     (*src)+=size;
 }
 
-static char * load_TSHOP(char *binary, TSHOP *target) {
+static const char * load_TSHOP(const char *binary, TSHOP *target) {
     copy_data(&binary, target->keeper, 16);
     copy_data(&binary, target->picture, 13);
     copy_data(&binary, &target->koef, 4);
@@ -2447,7 +2450,7 @@ static char * load_TSHOP(char *binary, TSHOP *target) {
     return binary;
 }
 
-static char * load_TPRODUCT(char *binary, TPRODUCT *target) {
+static const char * load_TPRODUCT(const char *binary, TPRODUCT *target) {
     copy_data(&binary, &target->item, 2);
     copy_data(&binary, &target->cena, 4);
     copy_data(&binary, &target->trade_flags, 2);
@@ -2456,16 +2459,17 @@ static char * load_TPRODUCT(char *binary, TPRODUCT *target) {
     return binary;
 }
 
-static void rebuild_shops(void)
+static void rebuild_shops(const void *shop_ptr)
   {
-  char *c=(char *)shop_hacek;
+  const char *c=(const char *)shop_ptr;
   int i;
 
   SEND_LOG("(SHOP) Rebuilding shops....");
   if (shop_list!=NULL) free(shop_list);
+  max_shops = *(const int32_t *)c;
   shop_list=NewArr(TSHOP *,max_shops);
   c+=4;
-  char *d = c;
+  const char *d = c;
   size_t reqsize  = 0;
   size_t products = 0;
   for(i=0;i<max_shops;i++) {
@@ -2509,24 +2513,14 @@ static void rebuild_shops(void)
 void load_shops(void)
   {
 
-  int *d;
   if (!test_file_exist(SR_MAP,SHOP_NAME))
      {
      shop_hacek=NULL;
      shop_list=NULL;
      return;
      }
-  shop_hacek=afile(SHOP_NAME,SR_MAP,&shop_hacek_size);
-  d=shop_hacek;
-  max_shops=*d;
-  if (!max_shops)
-     {
-     free(shop_hacek);
-     shop_hacek=NULL;
-     shop_list=NULL;
-     return;
-     }
-  rebuild_shops();
+  const void *sh=afile(SHOP_NAME,SR_MAP,&shop_hacek_size);
+  rebuild_shops(sh);
   }
 
 static int32_t *get_product_count(const TPRODUCT *p) {
@@ -2660,6 +2654,7 @@ static void redraw_shop()
   info_box_drawed=0;
   if (info_box_below!=NULL) free(info_box_below);
   info_box_below=NULL;
+  if (shop_keeper_picture) put_picture(5,SCREEN_OFFLINE,shop_keeper_picture);
   ms_last_event.event_type=0x1;send_message(E_MOUSE,&ms_last_event);
   ukaz_mysku();
   showview(0,0,0,0);
@@ -2778,10 +2773,14 @@ char shop_keeper_click(int id, int xa, int ya, int xr, int yr) {
                 sprintf(c, texty[102], price);
                 p = message(3, 0, 1, texty[118], c, texty[77], texty[230],
                         texty[78]);
-                if (p == 2)
+                if (p == 2) {
                     price = -1;
-                if (p == 1)
+                }
+                if (p == 1) {
+                    redraw_shop();
                     price = smlouvat(price, pp->cena, *get_product_count(pp), money, 0);
+
+                }
                 if (price >= 0) {
                     play_sample_at_channel(H_SND_OBCHOD, 1, 100);
                     buy_item(z);
@@ -2834,18 +2833,24 @@ char shop_bag_click(int id,int xa,int ya,int xr,int yr)
   if (pp==NULL) return 0;
   mouse_set_cursor(H_MS_DEFAULT);
   if (!price) return 0;
-  if (price>money)
-     {
-     p=message(2,0,0,"",texty[104],texty[230],texty[78]);
-     if (!p) price=smlouvat(price,pp->cena,*get_product_count(pp),money,1);else price=-1;
-     }
-  else
-     {
-     sprintf(s,texty[101],price);
-     p=message(3,0,1,texty[118],s,texty[77],texty[230],texty[78]);
-     if (p==1) price=smlouvat(price,pp->cena,*get_product_count(pp),money,1);else
-     if (p==2) price=-1;
-     }
+    if (price > money) {
+        p = message(2, 0, 0, "", texty[104], texty[230], texty[78]);
+        if (!p) {
+            redraw_shop();
+            price = smlouvat(price, pp->cena, *get_product_count(pp), money, 1);
+        } else {
+            price = -1;
+        }
+    } else {
+        sprintf(s, texty[101], price);
+        p = message(3, 0, 1, texty[118], s, texty[77], texty[230], texty[78]);
+        if (p == 1) {
+            redraw_shop();
+            price = smlouvat(price, pp->cena, *get_product_count(pp), money, 1);
+        } else if (p == 2) {
+            price = -1;
+        }
+    }
   if (price>=0)
         {
         play_sample_at_channel(H_SND_OBCHOD,1,100);
@@ -2887,7 +2892,6 @@ void wire_shop()
   {
   int32_t size;
   static TSHOP *last_shop=NULL;
-  static void *pic=NULL;
   mute_all_tracks(0);
   old_inv_view_mode=inv_view_mode;
   inv_view_mode=0;
@@ -2895,10 +2899,10 @@ void wire_shop()
   schovej_mysku();
   if (last_shop!=cur_shop)
      {
-     free(pic);pic=afile(cur_shop->picture,SR_DIALOGS,&size);
+     ablock_free(shop_keeper_picture);
+     shop_keeper_picture=afile(cur_shop->picture,SR_DIALOGS,&size);
      last_shop=cur_shop;
      }
-  if (cur_shop->picture[0]) put_picture(5,SCREEN_OFFLINE,pic);
   send_message(E_ADD,E_MOUSE,shop_mouse_event);
   unwire_proc=unwire_shop;
   change_click_map(clk_shop,CLK_SHOP);

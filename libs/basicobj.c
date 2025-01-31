@@ -816,6 +816,7 @@ void input_line_event(EVENT_MSG *msg,OBJREC *o)
 
 void input_line_done(OBJREC *o) {
     free(o->userptr);
+    o->userptr = NULL;
 }
 
 

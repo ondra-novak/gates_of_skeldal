@@ -1233,14 +1233,7 @@ static void configure(char *filename)
 */
 static int update_config(void)
   {
-  SEND_LOG("(GAME) Updating config. file '%s'",CONFIG_NAME);
-  add_field_num(&cur_config,sinit[1].heslo,zoom_speed(-1));
-  add_field_num(&cur_config,sinit[2].heslo,turn_speed(-1));
-  if (check_snd_effect(SND_MUSIC)) add_field_num(&cur_config,sinit[3].heslo,get_snd_effect(SND_MUSIC));
-  if (check_snd_effect(SND_GFX)) add_field_num(&cur_config,sinit[4].heslo,get_snd_effect(SND_GFX));
-  add_field_num(&cur_config,sinit[9].heslo,level_preload);
-  add_field_num(&cur_config,sinit[13].heslo,autosave_enabled);
-  save_config(cur_config,CONFIG_NAME);
+
 
   return 0;
   }

@@ -90,7 +90,7 @@ void *getmem(int32_t size)
   }
 
 
-void *load_file(const char *filename)
+void *load_file(const char *filename, size_t *sz)
   {
   FILE *f;
   int32_t *p;
@@ -109,7 +109,7 @@ void *load_file(const char *filename)
   p=(void *)getmem(size);
   if (fread(p,1,size,f)!=size) load_error(filename);
   fclose(f);
-  last_load_size=size;
+  *sz=size;
   return p;
   }
 
@@ -377,7 +377,7 @@ THANDLE_DATA *def_handle(int handle,const char *filename,ABLOCK_DECODEPROC decom
   return h;
   }
 
-void *afile(char *filename,int group,int32_t *blocksize)
+const void *afile(char *filename,int group,int32_t *blocksize)
   {
   char *d;
   int32_t entr;
@@ -393,23 +393,30 @@ void *afile(char *filename,int group,int32_t *blocksize)
 		 const void *hnd;
 		 SEND_LOG("(LOAD) Afile is loading file '%s' from group %d",d,group);
 		 if (entr<0) entr=-entr,hnd=patch_m;else hnd=bmf_m;
-		 const int32_t * szptr = (const int32_t *)hnd;
+		 const int32_t * szptr = (const int32_t *)((const char *)hnd+entr);
 		 *blocksize = *szptr;
-		 void *ret = getmem(*blocksize);
-		 memcpy(ret, szptr+1, *blocksize);
-		 return ret;
+		 return szptr+1;
      }
   else if (mman_pathlist!=NULL)
      {
       const char *name = build_pathname(2,mman_pathlist[group],d);
+      size_t sz;
 
      SEND_LOG("(LOAD) Afile is loading file '%s' from disk (group %d)",d,group);
-     p=load_file(name);
-     *blocksize=last_load_size;
+     p=load_file(name, &sz);
+     *blocksize=sz;
      }
   else return NULL;
   return p;
   }
+
+void *afile_copy(char *filename,int group,int32_t *blocksize) {
+    const void *ptr = afile(filename, group, blocksize);
+    if (need_to_be_free(ptr)) return (void *)ptr;
+    void *cpy = getmem(*blocksize);
+    memcpy(cpy, ptr, *blocksize);
+    return cpy;
+}
 
 
 static void decompress_data(THANDLE_DATA *h) {
@@ -452,10 +459,11 @@ const void *ablock(int handle)
            {
            if (h->src_file[0]!=0)
               {
+               size_t sz;
               if (mman_action!=NULL) mman_action(MMA_READ);
               const char *name = build_pathname(2,mman_pathlist[h->path], h->src_file);
-              p=load_file(name);
-              s=last_load_size;
+              p=load_file(name, &sz);
+              s=sz;
               }
            else
               {
@@ -794,19 +802,6 @@ int32_t get_handle_size(int handle)
   return c;
   }
  */
-
-FILE *afiletemp(char *filename, int group)
-  {
-  int32_t size;
-  void *p=afile(filename,group,&size);
-  FILE *f;
-  if (p==NULL) return NULL;
-  f=tmpfile();
-  if (f==NULL) {free(p);return NULL;}
-  fwrite(p,size,1,f);
-  fseek(f,0,SEEK_SET);
-  return f;
-  }
 
 void ablock_free(const void *ptr) {
     if (need_to_be_free(ptr)) free((void *)ptr);

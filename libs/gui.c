@@ -606,7 +606,11 @@ void do_it_events(EVENT_MSG *msg,void **user_data)
   if (msg->msg==E_INIT) return;
   if (desktop==NULL) {exit_wait=1;return;}
   change_flag=0;f_cancel_event=0;
-  if (o_aktual!=NULL)o_aktual->on_event(msg,o_aktual);
+  if (o_aktual!=NULL) {
+      EVENT_MSG mcpy = clone_message(msg);
+      o_aktual->on_event(&mcpy,o_aktual);
+      destroy_message(&mcpy);
+  }
   if (msg->msg==E_MOUSE)
      {
      *oz=1;
@@ -665,11 +669,13 @@ void do_it_events(EVENT_MSG *msg,void **user_data)
   if (msg->msg==E_KEYBOARD)
       {
      *oz=1;
+     EVENT_MSG cmsg = clone_message(msg);
       if (o_aktual!=NULL)
         {
         o_aktual->call_event(msg,o_aktual);
         }
-      int code = va_arg(msg->data, int);
+      int code = va_arg(cmsg.data, int);
+      destroy_message(&cmsg);
      if ((code>>8)==0xf && waktual->idlist!=NULL)
         {
         if (o_aktual==NULL) o_aktual=get_last_id();

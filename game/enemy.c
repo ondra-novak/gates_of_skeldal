@@ -460,72 +460,75 @@ int mob_vyber_vychod(int r,int sector,int dir,char alone,char mobile)
   return dir;
   }
 
-char je_mozne_videt(int sector1,int sector2,int flag)
-  {
-  int x1,y1;
-  int x2,y2;
-  int xs,ys;
-  int x,y,ly,s;
+char je_mozne_videt(int sector1, int sector2, int flag) {
+    int x1, y1;
+    int x2, y2;
+    int xs, ys;
+    int x, y, ly, s;
 
-  if (map_coord[sector1].layer!=map_coord[sector2].layer) return 0;
-  x1=map_coord[sector1].x;x2=map_coord[sector2].x;
-  y1=map_coord[sector1].y;y2=map_coord[sector2].y;
-  xs=x1-x2;
-  ys=y1-y2;
-  if (xs==0 && ys==0) return 1;
-  s=sector1;
-  ly=0;
-  if (xs>=0)
-     {
-     for(x=0;x<=xs;x++)
-        {
-        y=(x+1)*ys/(xs+1);
-        while (y>ly)
-           if ((map_sides[(s<<2)].flags & flag)!=(unsigned)flag)
-              {
-              s=map_sectors[s].step_next[0];
-              ly++;
-              }
-           else return 0;
-        while (y<ly)
-           if ((map_sides[(s<<2)+2].flags & flag)!=(unsigned)flag)
-              {
-              s=map_sectors[s].step_next[2];
-              ly--;
-              }
-           else return 0;
-        if (x!=xs) {
-           if ((map_sides[(s<<2)+3].flags & flag)!=(unsigned)flag) s=map_sectors[s].step_next[3];
-        } else return 0;
+    if (map_coord[sector1].layer != map_coord[sector2].layer)
+        return 0;
+    x1 = map_coord[sector1].x;
+    x2 = map_coord[sector2].x;
+    y1 = map_coord[sector1].y;
+    y2 = map_coord[sector2].y;
+    xs = x1 - x2;
+    ys = y1 - y2;
+    if (xs == 0 && ys == 0)
+        return 1;
+    s = sector1;
+    ly = 0;
+    if (xs >= 0) {
+        for (x = 0; x <= xs; x++) {
+            y = (x + 1) * ys / (xs + 1);
+            while (y > ly) {
+                if ((map_sides[(s << 2)].flags & flag) != (unsigned) flag) {
+                    s = map_sectors[s].step_next[0];
+                    ly++;
+                } else
+                    return 0;
+            }
+            while (y < ly) {
+                if ((map_sides[(s << 2) + 2].flags & flag) != (unsigned) flag) {
+                    s = map_sectors[s].step_next[2];
+                    ly--;
+                } else
+                    return 0;
+            }
+            if (x != xs) {
+                if ((map_sides[(s << 2) + 3].flags & flag) != (unsigned) flag) {
+                    s = map_sectors[s].step_next[3];
+                } else {
+                    return 0;
+                }
+            }
         }
-     }
-  else
-  if (xs<0)
-     {
-     for(x=0;x>=xs;x--)
-        {
-        y=(x-1)*ys/(xs-1);
-        while (y>ly)
-           if ((map_sides[(s<<2)].flags & flag)!=(unsigned)flag)
-              {
-              s=map_sectors[s].step_next[0];
-              ly++;
-              }
-           else return 0;
-        while (y<ly)
-           if ((map_sides[(s<<2)+2].flags & flag)!=(unsigned)flag)
-              {
-              s=map_sectors[s].step_next[2];
-              ly--;
-              }
-           else return 0;
-        if (x!=xs) {
-           if ((map_sides[(s<<2)+1].flags & flag)!=(unsigned)flag) s=map_sectors[s].step_next[1];
-        } else return 0;
+    } else if (xs < 0) {
+        for (x = 0; x >= xs; x--) {
+            y = (x - 1) * ys / (xs - 1);
+            while (y > ly)
+                if ((map_sides[(s << 2)].flags & flag) != (unsigned) flag) {
+                    s = map_sectors[s].step_next[0];
+                    ly++;
+                } else
+                    return 0;
+            while (y < ly)
+                if ((map_sides[( s << 2) + 2].flags & flag) != (unsigned) flag) {
+                    s = map_sectors[s].step_next[2];
+                    ly--;
+                } else
+                    return 0;
+            if (x != xs) {
+                if ((map_sides[(s << 2) + 1].flags & flag) != (unsigned) flag) {
+                    s = map_sectors[s].step_next[1];
+                } else {
+                    return 0;
+                }
+            }
         }
-     }
-  return s==sector2;
-  }
+    }
+    return s == sector2;
+}
 
 int q_vidis_postavu(int sector,int dir,TMOB *p,int *otocit_se,char ret)
   {

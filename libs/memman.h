@@ -81,7 +81,7 @@ extern int memman_handle; //cislo handle naposled zpracovavaneho prikazem ablock
 extern char mman_patch;    //jednicka zapina moznost pouziti patchu
 void *getmem(int32_t size);        //alokace pameti pres memman. alokovat pomoci malloc lze ale hrozi nebezpeci ze vrati NULL
 void *grealloc(void *m,int32_t size); //realokace pameti pres memman
-void *load_file(const char *filename); //obycejne natahne soubor do pameti a vrati ukazatel.
+void *load_file(const char *filename, size_t *size); //obycejne natahne soubor do pameti a vrati ukazatel.
 void init_manager(const char *filename,const char *swp); //inicializuje manager. Jmeno filename i swapname nejsou povinne (musi byt NULL kdyz nejsou pouzity)
 void def_mman_group_table(const char ** ); //define pointer to table of paths, for each group there is path
 THANDLE_DATA *def_handle(int handle,const char *filename,ABLOCK_DECODEPROC decompress,char path); //deklaruje rukojet. promenna decompress je ukazatel na funkci ktera upravi data pred vracenim ukazatele
@@ -98,7 +98,8 @@ THANDLE_DATA *zneplatnit_block(int handle); //zneplatni data bloku
 THANDLE_DATA *get_handle(int handle); //vraci informace o rukojeti
 int find_handle(const char *name,void *decomp);   //hleda mezi rukojeti stejnou definici
 int test_file_exist(int group,char *filename); //testuje zda soubor existuje v ramci mmanageru
-void *afile(char *filename,int group,int32_t *blocksize); //nahraje do pameti soubor registrovany v ramci mmanageru
+const void *afile(char *filename,int group,int32_t *blocksize); //nahraje do pameti soubor registrovany v ramci mmanageru
+void *afile_copy(char *filename,int group,int32_t *blocksize); //nahraje do pameti soubor registrovany v ramci mmanageru
 int32_t get_handle_size(int handle);
 //void get_mem_info(MEMORYSTATUS *mem);
 void ablock_free(const void *ptr);
@@ -106,7 +107,6 @@ void ablock_free(const void *ptr);
 
 int read_group(int index);
 char add_patch_file(char *filename);  //pripojuje zaplatu
-FILE *afiletemp(char *filename, int group);
 
 
 #define MMA_READ 1

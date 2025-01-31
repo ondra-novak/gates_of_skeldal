@@ -1485,9 +1485,10 @@ int smlouvat(int cena,int puvod,int pocet,int money,char mode)
   int temp1,temp2;
 
   cena,puvod,pocet,money;text[0]=0;text[1]=0;
-  add_window(170,130,300,150,H_IDESKA,3,20,20);
+  set_font(H_FBOLD,RGB555(31,31,31));
+  add_window(170,130,300,100,H_WINTXTR,3,20,20);
   define(-1,10,15,1,1,0,label,texty[241]);
-  set_font(H_FBOLD,RGB555(31,31,31));define(-1,150,15,100,13,0,label,int2ascii(cena,buffer,10));
+  define(-1,150,15,100,13,0,label,int2ascii(cena,buffer,10));
   set_font(H_FBOLD,MSG_COLOR1);
   define(-1,10,30,1,1,0,label,texty[238]);
   define(10,150,30,100,13,0,input_line,8);property(def_border(5,BAR_COLOR),NULL,NULL,0);set_default("");
