@@ -181,6 +181,7 @@ static T_CLK_MAP message_win[]=
   };
 
 #define MSG_COLOR1 (RGB555(30,30,23))
+#define MSG_COLOR_T -2,RGB555_ALPHA(0,0,0),RGB555(24,31,24),RGB555(24,31,24),RGB555(24,31,24),RGB555(24,31,24)
 
 void open_message_win(int pocet_textu,char **texts)
   {
@@ -190,7 +191,7 @@ void open_message_win(int pocet_textu,char **texts)
   int i;
   char *text;
 
-  set_font(H_FBOLD,MSG_COLOR1);
+  set_font(H_FBOLD,MSG_COLOR_T);
   text=alloca(strlen(texts[0])+2);
   zalamovani(texts[0],text,MES_MAXSIZE,&maxxs,&maxys);
   maxws=0;wsys=0;

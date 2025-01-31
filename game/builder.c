@@ -43,15 +43,15 @@
 
 #define HUMAN_ADJUST 97
 
-unsigned short barvy_skupin[POCET_POSTAV+1]=
+unsigned int barvy_skupin[POCET_POSTAV+1]=
          {
-         RGB555(8,8,8),
-         RGB555(31,28,00),
-         RGB555(00,23,06),
-         RGB555(31,11,13),
-         RGB555(22,16,31),
-         RGB555(28,13,31),
-         RGB555(00,29,26)
+         RGB555(8,8,8)|FONT_TSHADOW,
+         RGB555(31,28,00)|FONT_TSHADOW,
+         RGB555(00,23,06)|FONT_TSHADOW,
+         RGB555(31,11,13)|FONT_TSHADOW,
+         RGB555(22,16,31)|FONT_TSHADOW,
+         RGB555(28,13,31)|FONT_TSHADOW,
+         RGB555(00,29,26)|FONT_TSHADOW
          };
 
 char reverse_draw=0;

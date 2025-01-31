@@ -580,7 +580,7 @@ extern int num_ofsets[];           //tabulka offsetu pro steny
 extern int back_color;             //cislo barvy pozadi
 extern uint8_t cur_group;             //cislo aktualni skupiny
 extern uint8_t group_select;               //1 = prave byla sestavena nova skupina
-extern unsigned short barvy_skupin[POCET_POSTAV+1]; //cisla barev skupin
+extern unsigned int barvy_skupin[POCET_POSTAV+1]; //cisla barev skupin
 extern char battle;          //jednicka znaci ze bezi bitva
 extern char battle_mode;          //rezim bitvy 0=programovani
 extern char neco_v_pohybu;          //jednicka znaci ze se nektere potvory jeste hejbou
@@ -668,6 +668,8 @@ void delete_from_timer(int id);
 THE_TIMER *find_timer(int id);
 void objekty_mimo(void);
 void mouse_set_cursor(int cursor);
+#define FONT_TSHADOW 0x10000
+#define FONT_TSHADOW_GRAY 0x30000
 void set_font(int font,int c1,...);
 void bott_draw(char);
 const void *bott_draw_proc(const void *p, int32_t *s);
@@ -1648,7 +1650,7 @@ void spell_teleport(int cil,int owner, int teleport_target);
 #define WINCOLOR RGB555(24,24,24) // 11000 11000 0 11000
 #define BAR_COLOR RGB555(15,13,11)
 #define SETUP_COL1 RGB555(20,31,20)
-#define SETUP_COL2 RGB555(31,31,12)
+#define SETUP_COL2 (RGB555(31,31,16) | FONT_TSHADOW)
 #define S_WINPOS_X 100
 #define S_WINPOS_Y 100
 #define S_WINPOS_XS 320

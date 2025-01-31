@@ -7,7 +7,7 @@
 #include "memman.h"
 
 word *screen;
-word curcolor,charcolors[7] = {0x0000,RGB555(0,31,0),RGB555(0,28,0),RGB555(0,24,0),RGB555(0,20,0),0x0000,0x0000};
+word curcolor,charcolors[7] = {RGB555_ALPHA(0,0,0),RGB555(12,31,12),RGB555(12,30,12),RGB555(12,28,12),RGB555(12,20,12),0x0000,0x0000};
 const word *curfont;
 word *writepos,writeposx;
 byte fontdsize=0;

@@ -32,6 +32,8 @@
 #define MEDIUM_MAP_LINE1 RGB555(25,20,17)
 #define MEDIUM_MAP_LINE2 RGB555(31,22,6)
 
+#define AUTOMAP_FONT_COLOR (RGB555(0,0,0)|FONT_TSHADOW_GRAY)
+
 word stairs_colors[7]=
   {AUTOMAP_LINE1,
    RGB555(14,12,11),
@@ -162,7 +164,7 @@ void ukaz_vsechny_texty_v_mape(void)
   char *c;
 
   if (texty_v_mape==NULL) return;
-  set_font(H_FLITT5,NOSHADOW(0));
+  set_font(H_FLITT5,AUTOMAP_FONT_COLOR);
   cn=str_count(texty_v_mape);
   for(i=0;i<cn;i++)
      {
@@ -215,7 +217,7 @@ void psani_poznamek_event(EVENT_MSG *msg,void **data)
      y = va_arg(msg->data, int);
      c = va_arg(msg->data, char *);
 
-     set_font(H_FLITT5,NOSHADOW(0));
+     set_font(H_FLITT5,AUTOMAP_FONT_COLOR);
      strcpy(text,c);
      save=(char *)getmem(strlen(text)+1);
      strcpy(save,text);
@@ -243,15 +245,18 @@ void psani_poznamek_event(EVENT_MSG *msg,void **data)
      char c;
 
      c=quit_request_as_escape(va_arg(msg->data, int));
-     set_font(H_FLITT5,NOSHADOW(0));
+     set_font(H_FLITT5,AUTOMAP_FONT_COLOR);
      if (c)
         {
         switch (c)
            {
            case 8:if (index) index--; text[index]=0;break;
-           case 27:strcpy(text,save);break;
+           case 27:strcpy(text,save);
+                   [[fallthrough]];
            case 13:save_text_to_map(x,y,cur_depth,text);
-                  send_message(E_DONE,E_MOUSE,psani_poznamek_event);msg->msg=-2;return;
+                  send_message(E_DONE,E_MOUSE,psani_poznamek_event);
+                  msg->msg=-2;
+                  return;
            default:if (c>=32)
               {
               text[index]=c;
@@ -290,7 +295,7 @@ int hledej_poznamku(int x,int y,int depth)
   y=(y-197)+map_yr;
   if (texty_v_mape==NULL) return -1;
   count=str_count(texty_v_mape);
-  set_font(H_FLITT5,NOSHADOW(0));
+  set_font(H_FLITT5,AUTOMAP_FONT_COLOR);
   for(i=0;i<count;i++)
      if (texty_v_mape[i]!=NULL)
         {
@@ -412,7 +417,7 @@ static void draw_amap_sector(int x,int y,int sector,int mode,int turn,int line1,
                   for(i=0,sd=map_sides+sector*4;i<4 && ~sd->flags & SD_SEC_VIS;i++,sd++) {}
                   if (i!=4) {set_font(H_FSYMB,0x3e0);print_symbol(x,y,'T');}
                   break;
-              case S_DIRA:set_font(H_FSYMB,NOSHADOW(0));print_symbol(x,y,'N');break;
+              case S_DIRA:set_font(H_FSYMB,AUTOMAP_FONT_COLOR);print_symbol(x,y,'N');break;
               }
            }
         else
@@ -477,7 +482,7 @@ static void zobraz_herni_cas(void)
      strcat(text,cas);
      old_time=game_time;
      }
-  set_font(H_FONT6,NOSHADOW(0));
+  set_font(H_FONT6,AUTOMAP_FONT_COLOR);
   set_aligned_position(635,372,2,2,text);
   outtext(text);
   }
@@ -878,7 +883,7 @@ void wire_kniha(void)
   put_picture(0,0,ablock(H_KNIHA));
   change_click_map(clk_kniha,CLK_KNIHA);
   unwire_proc=unwire_kniha;
-  set_font(H_FONT6,NOSHADOW(0));
+  set_font(H_FONT6,AUTOMAP_FONT_COLOR);
   write_book(cur_page);
   ukaz_mysku();
   showview(0,0,0,0);

@@ -7,6 +7,7 @@
 
 #define BGSWITCHBIT 0x0020
 
+
 #define SKELDALINI "skeldal.ini"
 
 #ifdef __cplusplus
@@ -24,7 +25,9 @@ uint32_t _bios_keybrd(int mode);
 
 
 #define RGB888(r,g,b) ((unsigned short)((((r)<<8)&0xF800) | (((g)<<3) & 0x7C0) | ((b)>>3)))
-#define RGB555(r,g,b) ((unsigned short)(((r)<<11) | ((g)<<6) | (b)))
+#define RGB555(r,g,b) (((unsigned short)(((r)<<11) | ((g)<<6) | (b))) & ~BGSWITCHBIT)
+#define RGB555_ALPHA(r,g,b) (((unsigned short)(((r)<<11) | ((g)<<6) | (b))) | BGSWITCHBIT)
+
 
 
 ///build pathname from parts

@@ -462,6 +462,8 @@ void mouse_set_default(int cursor)
 void set_font(int font,int c1,...)
   {
   static int last_font=-1;
+  va_list lst;
+  va_start(lst, c1);
   int i;
 
   if (last_font!=-1 && last_font!=font)
@@ -476,17 +478,20 @@ void set_font(int font,int c1,...)
       charcolors[0]=0xFFFF;
       for (i=1;i<5;i++) charcolors[i]=c1 & ~0x20;
       }
-     else
+     else if (c1 & FONT_TSHADOW) {
+         if ((c1 & FONT_TSHADOW_GRAY) == FONT_TSHADOW_GRAY)
+             charcolors[0]=RGB555_ALPHA(16,16,15);
+         else
+             charcolors[0]=BGSWITCHBIT;
+         for (i=1;i<5;i++) charcolors[i]=c1 & ~0x20;
+     }else
       {
       charcolors[0]=0;
       for (i=1;i<5;i++) charcolors[i]=c1 & ~0x20;
       }
   else if (c1==-2)
      {
-     int *p;
-
-     p=&c1;p++;
-     for (i=0;i<5;i++) charcolors[i]=*p++;
+     for (i=0;i<7;i++) charcolors[i]=va_arg(lst, int);
      }
   last_font=font;
   default_font=curfont;
@@ -1593,7 +1598,7 @@ void show_help(const char *arg0) {
 }
 
 void show_help_short() {
-    printf("add -h to print help\n");
+    printf("Use -h for help\n");
 }
 
 void quit_cb_exit_wait(void *) {

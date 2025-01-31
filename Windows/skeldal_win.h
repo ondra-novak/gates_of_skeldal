@@ -31,7 +31,8 @@ char *AutodetectWinAmp();
 #endif
 
 #define RGB888(r,g,b) ((unsigned short)((((r)<<8)&0xF800) | (((g)<<3) & 0x7C0) | ((b)>>3)))
-#define RGB555(r,g,b) ((unsigned short)(((r)<<11) | ((g)<<6) | (b)))
+#define RGB555(r,g,b) ((unsigned short)(((r)<<11) | (((g) & 0xF8)<<6) | (b)))
+#define RGB555_ALPHA(r,g,b) ((unsigned short)(((r)<<11) | ((((g) & 0xF8) | 0x04)<<6) | (b)))
 
 #pragma warning (disable : 4244 4761 4133)
 

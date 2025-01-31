@@ -147,7 +147,10 @@ chr5:
 	if (al == 0) goto chr2;
 	if (al >= 8) goto chr3;
 	ax = charcolors[(al-1)];
-	if (ax == 0xffff) goto chr4;
+	if (ax == 0xFFFF) goto chr4;
+	if (ax & BGSWITCHBIT) {
+	    ax = ((*ebx & 0xF7DF) + (ax & 0xF7DF)) >> 1;
+	}
 	*ebx = ax;
 	goto chr4;
 chr3:if (al == 255) goto chrend;

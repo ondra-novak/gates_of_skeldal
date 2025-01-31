@@ -58,10 +58,10 @@ void parseIniStream(std::istream& input, Callback &&callback) {
 
 
 INI_CONFIG* ini_open(const char *filename) {
-    INI_CONFIG *c = new INI_CONFIG;
 
     std::fstream input(filename);
-    if (!input) return c;
+    if (!input) return NULL;
+    INI_CONFIG *c = new INI_CONFIG;
     parseIniStream(input, [&](std::string_view section, std::string_view key, std::string_view value) {
         INI_CONFIG::Config::iterator iter = c->data.find(section);
         if (iter == c->data.end()) {

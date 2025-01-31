@@ -81,7 +81,7 @@ static TSHOP_ALL_STATE shop_all_state;
 #define INV_YS 60
 #define INV_NAME_X 129
 #define INV_NAME_Y 349
-#define INV_NAME_COL (RGB555(10,31,31))
+#define INV_NAME_COL (RGB555(10,31,31)|FONT_TSHADOW_GRAY)
 #define INV_DESK 266
 #define INV_INFO_X 298
 #define INV_INFO_Y 343

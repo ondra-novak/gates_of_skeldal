@@ -891,8 +891,8 @@ static int cur_story_pos=0;
 static char load_mode;
 
 #define SLOT_SPACE 33
-#define SELECT_COLOR RGB555(31,31,31)
-#define NORMAL_COLOR RGB555(10,31,10)
+#define SELECT_COLOR (RGB555(31,31,31)|FONT_TSHADOW)
+#define NORMAL_COLOR (RGB555(12,31,12)|FONT_TSHADOW)
 #define STORY_X 57
 #define STORY_Y 50
 #define STORY_XS (298-57)
