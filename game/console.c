@@ -1,55 +1,18 @@
-#include <platform/platform.h>
-
-#include <stdlib.h>
-#include <ctype.h>
-#include <string.h>
-#include <stdio.h>
-#include <malloc.h>
-
-#include <libs/types.h>
 #include <libs/bgraph.h>
 #include <libs/event.h>
-#include <libs/devices.h>
-#include <libs/bmouse.h>
-#include <libs/memman.h>
-#include <platform/sound.h>
-#include <libs/strlite.h>
-#include <libs/gui.h>
-#include <libs/basicobj.h>
-#include <time.h>
-#include <stdarg.h>
 #include "globals.h"
 
-void kamenik2windows(const char *src, int size, char *trg);
-
-#define BREAK
-
-static void wzprintf(const char *text,...)
-  {
-    va_list lst;
-    va_start(lst, text);
-    vprintf(text, lst);
-  }
-
-static void wzputs(const char *text)
-  {
-  wzprintf(text);
-  wzprintf("\r\n");
-  }
-
-static void wzcls()
-  {
-
-  }
+#include <ctype.h>
+#define console_max_characters  120
+#define console_max_lines  16
 
 
+/****/
 
-static int wzscanf(const char *prompt, const char *format,...)
-  {
-    va_list lst;
-    va_start(lst, format);
-    return vscanf(format, lst);
-  }
+
+static void wzprintf(const char *text,...);
+static void wzputs(const char *text);
+
 char *side_flags[]=
   {
   "AUTOMAP",
@@ -146,7 +109,7 @@ void spell_group_invis()
   }
 
 
-
+#if 0
 static void advence_player(int player,int level,char auto_advance)
   {
   THUMAN *h;
@@ -306,25 +269,7 @@ static char raise_death(void)
     return 1;
   }
 */
-void unaffect();
-extern char immortality;
-extern char nohassle;
 
-static char set_immortality()
-  {
-  immortality=!immortality;
-  SEND_LOG("(WIZARD) Immortality has been turned %s.",immortality?"on":"off",0);
-  wzprintf("Nesmrtelnost byla %s.\r\n",immortality?"zapnuta":"vypnuta");
-  return 0;
-  }
-
-static char set_nohassle()
-  {
-  nohassle=!nohassle;
-  SEND_LOG("(WIZARD) Nohassle has been turned %s.",nohassle?"on":"off",0);
-  wzprintf("Nevycititelnost byla %s.\r\n",nohassle?"zapnuta":"vypnuta");
-  return 0;
-  }
 
 
 static char advance_weapon()
@@ -366,15 +311,17 @@ static reload_mobs()
   send_message(E_CLOSE_MAP);
   }
 
+#endif
+
+
 static char display_game_status(void)
   {
   short *v;
   THUMAN *p;
   TSTENA *s;
   TSECTOR *ss;
-  register i,cn,astr;
+ int i,cn,astr;
 
-  wzcls();
   SEND_LOG("(WIZARD) Starting wizard window at Sect %d Side %d",viewsector,viewdir);
   wzprintf("Sektor: %5d  Smer: %d  Skupina %d \r\n",viewsector,viewdir,cur_group);
   for(i=0,p=postavy;i<POCET_POSTAV;i++,p++)
@@ -408,7 +355,7 @@ static char display_game_status(void)
   wzprintf("Stena: Prim %d Sec %d Obl %d Anim_prim %d/%d Anim_sec %d/%d\r\n",
          s->prim,s->sec,s->oblouk & 0xf,s->prim_anim>>4,s->prim_anim & 0xf,s->sec_anim>>4,s->sec_anim & 0xf);
   wzprintf("       Cil akce %d Smer akce %d Akce %d\r\n",s->action,s->sector_tag,s->side_tag & 0x3);
-  wzprintf("       Multiakce: %s\r\n",macros[viewsector*4+viewdir]==NULL?"<zadna>":"Existuje");
+  wzprintf("       Multiakce: %s\r\n",macros[viewsector*4+viewdir].action_list==NULL?"<zadna>":"Existuje");
   wzprintf("       Vlajky: %04X %02X %02X ",s->flags,s->oblouk>>4,s->side_tag>>2);
   wzputs("");
   show_flags(s->flags,side_flags,32);
@@ -416,46 +363,231 @@ static char display_game_status(void)
   return 0;
   }
 
-void wizard_kbd(EVENT_MSG *msg,void **usr)
-  {
-  char c;
+/*****/
 
-  if (map_with_password && debug_enabled!=266859) return;
-  usr;
-  if (msg->msg==E_KEYBOARD)
-     {
-     int c=va_arg(msg->data,int)>>8;
-     msg->msg=-1;
-     switch (c)
-        {
-        case 'C':
-        case '<':show_debug=!show_debug;break;
-        case '=':show_lives=!show_lives;break;
-        case '>':if (mman_action!=NULL) mman_action=NULL;else mman_action=mman_scan;break;
-        case '@':set_immortality();set_nohassle();break;
-        case 'A':bott_draw_fletna();break;
-        case 'B':wire_global_map();break;
-        case '?':cur_group=10;break;/*folow_mode=!folow_mode;
-                 if (folow_mode) folow_mob=mob_map[map_sectors[viewsector].step_next[viewdir]]-1;
-                 else for(c=0;c<POCET_POSTAV;c++) if (postavy[c].groupnum==cur_group) viewsector=postavy[c].sektor;
-                 if (folow_mob==255) folow_mode=0;
-                 */
-                 break;
+void unaffect();
+extern char immortality;
+extern char nohassle;
 
-        default:
-              msg->msg=E_KEYBOARD;break;
 
+static char console_input_line[console_max_characters+1]  = "";
+static char *console_output_lines[console_max_lines] = {};
+
+static const int console_x = 0;
+static const int console_y = 20;
+static const int console_width = 640;
+static const int console_height = 160;
+static const int console_padding = 3;
+static int console_blink = 0;
+static char console_visible = 0;
+
+
+void draw_console_window() {
+    if (!console_visible) return;
+    trans_bar(console_x, console_y, console_width, console_height, 0);
+
+    set_font(H_FLITT5, RGB888(255,255,128));
+    int y = console_y+console_height-text_height("X")-console_padding;
+    position(console_x+console_padding, y);
+    outtext("$ ");
+    outtext(console_input_line);
+    if ((console_blink>>1) & 1) {
+        outtext("_");
+    }
+    ++console_blink;
+
+    set_font(H_FLITT5, RGB888(255,255,255));
+
+
+    y-=3*text_height("X")/2;
+
+    for (int i = 0; i < console_max_lines;++i) {
+        position(console_x+console_padding,y);
+        if (console_output_lines[i]) outtext(console_output_lines[i]);
+        y-=text_height("X");
+        if (y < console_y+console_padding) break;
+    }
+}
+
+char console_is_visible() {
+    return console_visible;
+}
+
+static void console_add_line(const char *line) {
+    free(console_output_lines[console_max_lines-1]);
+    memmove(console_output_lines+1,console_output_lines, (console_max_lines-1)*sizeof(char *));
+    console_output_lines[0] = strdup(line);
+}
+
+typedef struct {
+    char *cmd_buffer;
+    const char *command;
+    const char *args;
+} PARSED_COMMAND;
+
+static PARSED_COMMAND parse_command(const char *cmd) {
+    PARSED_COMMAND ret;
+    ret.command = 0;
+    ret.args = 0;
+    ret.cmd_buffer = strdup(cmd);
+    char *c =ret.cmd_buffer;
+    while (*c && isspace(*c)) ++c;
+    if (!*c) return ret;
+    ret.command = c;
+    ret.args = NULL;
+    char *sep = strrchr(c, ' ');
+    if (sep!= NULL) {
+        *sep = 0;
+        ++sep;
+        while (*sep && isspace(*sep)) ++sep;
+        if (*sep) {
+            ret.args = sep;
+            char *end = strrchr(sep,0);
+            end--;
+            while (end > sep && isspace(*end)) end--;
+            end++;
+            *end = 0;
         }
-     }
-  return;
-  }
 
-c
+    }
+    return ret;
+}
 
-void install_wizard()
+static int process_on_off_command(const char *cmd, char on) {
+    if (stricmp(cmd, "inner-eye") == 0) {
+        show_debug = on;
+        return 1;
+    }
+    if (stricmp(cmd, "hunter-instinct") == 0) {
+        show_lives = on;
+        return 1;
+    }
+    if (stricmp(cmd, "no-hassle") == 0) {
+        nohassle=on;
+        return 1;
+    }
+    if (stricmp(cmd, "iron-skin") == 0) {
+        immortality=on;
+        return 1;
+    }
+    if (stricmp(cmd, "spirit-wander") == 0) {
+        cur_group=on?10:postavy[0].groupnum;
+        return 1;
+    }
+    return 0;
+}
+
+static int process_actions(const char *command) {
+    if (stricmp(command, "flute") == 0) {
+        bott_draw_fletna();
+        return 1;
+    }
+    if (stricmp(command, "global-map") == 0) {
+        wire_global_map();
+        return 1;
+    }
+    if (stricmp(command, "status") == 0) {
+        display_game_status();
+        return 1;
+    }
+    return 0;
+}
+
+static int process_command(PARSED_COMMAND cmd) {
+    int onoff = -1;
+    if (cmd.args) {
+        if (stricmp(cmd.args, "on") == 0) onoff = 1;
+        else if (stricmp(cmd.args, "off") == 0) onoff = 0;
+    } else {
+        return process_actions(cmd.command);
+    }
+    if (onoff != -1) {
+        return process_on_off_command(cmd.command, onoff);
+    }
+    return 0;
+}
+
+static void console_keyboard(EVENT_MSG *msg, void **) {
+    if (msg->msg == E_KEYBOARD) {
+        int c = va_arg(msg->data, int) & 0xFF;
+        if (c == E_QUIT_GAME_KEY) return;
+        if (c) {
+            int len = strlen(console_input_line);
+            if (c == 0x1B) {
+                console_show(0);
+                 msg->msg = -1;
+                 return;
+            }
+            if (c == '\b') {
+                if (len) {
+                    console_input_line[len-1] = 0;
+                }
+                msg->msg = -1;
+            } else if (c == '\r') {
+                PARSED_COMMAND cmd = parse_command(console_input_line);
+                char ok = process_command(cmd);
+                if (ok) {
+                    console_add_line(console_input_line);
+                    console_input_line[0] = 0;
+                }
+                free(cmd.cmd_buffer);
+                msg->msg = -1;
+            } else if (c >=32 && len < console_max_characters) {
+                console_input_line[len] = c;
+                console_input_line[len+1] = 0;
+                msg->msg = -1;
+            }
+        }
+    }
+}
+
+
+static void wire_console(void) {
+    send_message(E_ADD,E_KEYBOARD, console_keyboard);
+}
+
+
+static void unwire_console(void) {
+    send_message(E_DONE,E_KEYBOARD, console_keyboard);
+}
+
+void console_show(char show) {
+    if (console_visible != show) {
+        console_visible = show;
+        if (show) wire_console();
+        else unwire_console();
+    }
+
+}
+
+static void wzprintf(const char *text,...)
   {
-  send_message(E_ADD,E_KEYBOARD,wizard_kbd);
+    char buff[console_max_characters+1];
+    static char wzprint_line[console_max_characters+1];
+    va_list lst;
+    va_start(lst, text);
+    vsnprintf(buff,console_max_characters, text, lst);
+    char *c = buff;
+    char *d = strchr(c, '\n');
+    while (d != NULL) {
+        *d = 0;
+        strncat(wzprint_line,c, console_max_characters);
+        console_add_line(wzprint_line);
+        c = d+1;
+        d = strchr(c, '\n');
+        wzprint_line[0] = 0;
+    }
+    strncat(wzprint_line, c, console_max_characters);
+
   }
+
+
+static void wzputs(const char *text)
+  {
+    console_add_line(text);
+  }
+
+
 
 
 

@@ -456,6 +456,7 @@ T_CLK_MAP clk_main_view[]=
   {H_SIPKY_J,560,446,598,474,clk_step,2,H_MS_DEFAULT},
   {H_SIPKY_SV,599,387,628,418,clk_step,2,H_MS_DEFAULT},
   {H_SIPKY_V,605,420,632,454,clk_step,2,H_MS_DEFAULT},
+  {-1,565,408,593,447,clk_enter,2,H_MS_DEFAULT},
   {MS_GAME_WIN,0,17,639,377,clk_fly_cursor,8,-1},
   {1,320,303,639,376,pick_item_,2,-1},//344
   {0,0,303,320,376,pick_item_,2,-1},//344

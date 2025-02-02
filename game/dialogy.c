@@ -134,7 +134,7 @@ void small_anm_buff(void *target,const void *buff,const void *paleta);
 void small_anm_delta(void *target,const void *buff,const void *paleta);
 //#pragma aux small_anm_delta parm[edi][esi][ebx] modify [eax ecx]
 
-static void animace_kouzla(int act,const void *data,int csize)
+static void animace_kouzla(MGIF_HEADER_T *_,int act,const void *data,int csize)
   {
   word *p=GetScreenAdr()+loc_anim_render_buffer;
   switch (act)
@@ -169,7 +169,8 @@ static void dialog_anim(va_list args)
   do
      {
      anm=open_mgif(aptr);
-     while (anm!=NULL && task_quitmsg())
+     char f = anm != NULL;
+     while (f && task_quitmsg())
        {
        task_sleep();
        if (!spdc)
@@ -179,7 +180,7 @@ static void dialog_anim(va_list args)
              hid=1;schovej_mysku();
              }
           else hid=0;
-          anm=mgif_play(anm);
+          f=mgif_play(anm);
           spdc=speed;
           if (hid) ukaz_mysku();
           showview(PIC_X,PIC_Y,320,180);
@@ -191,7 +192,7 @@ static void dialog_anim(va_list args)
         }
        }
      rep--;
-     close_mgif();
+     close_mgif(anm);
      }
   while (!cntr && rep && !task_quitmsg());
   free(aptr);

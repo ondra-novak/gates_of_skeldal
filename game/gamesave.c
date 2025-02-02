@@ -1013,7 +1013,7 @@ static void read_story_task(va_list args)
        {
        int xs,ys;
        d=c;
-       while (size && *d!='\r' && *d!='\n') {d++;size--;};
+       while (size>0 && *d!='\r' && *d!='\n') {d++;size--;};
        if (!size) break;
        *d=0;
        {
@@ -1027,7 +1027,7 @@ static void read_story_task(va_list args)
           e=strchr(e,0)+1;
           }
         c=d+1;size--;
-       if (*c=='\n' || *c=='\r') {c++;size--;};
+       if (size > 0 &&(*c=='\n' || *c=='\r')) {c++;size--;};
        free(or);
        }
        }

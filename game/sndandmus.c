@@ -384,6 +384,7 @@ static void build_dungeon_sound_map(int sector, int side) {
     if (mapsize != (int)current_sound_sector_map_size) {
         free(current_sound_sector_map);
         current_sound_sector_map = NewArr(TSOUND_SIDE_MAP, mapsize);
+        memset(current_sound_sector_map,0,sizeof(TSOUND_SIDE_MAP)*mapsize);
         current_sound_sector_map_size = mapsize;
     }
     int32_t counter = ++current_sound_sector_map_counter;

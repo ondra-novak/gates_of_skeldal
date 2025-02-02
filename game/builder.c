@@ -603,6 +603,7 @@ void other_draw()
   show_money();
   anim_sipky(0,-1);
   draw_fx();
+  draw_console_window();
   int32_t scr_linelen2 = GetScreenPitch();
 
   memset(GetScreenAdr()+(SCREEN_OFFLINE-1)*scr_linelen2,0,1280);

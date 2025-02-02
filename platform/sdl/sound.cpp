@@ -134,12 +134,14 @@ void fade_music() {
     size_t wrsamples = music_buffer_write_pos / sizeof(WaveSource::StereoInt16);
     size_t l =music_source->length();
     float_t size = (rdpos < wrsamples?0:l) + wrsamples - rdpos;
-    for (size_t i = 0; i < size; ++i) {
-        float fact = (size - i)/size;
-        rdptr[rdpos].left = rdptr[rdpos].left * fact;
-        rdptr[rdpos].right = rdptr[rdpos].right * fact;
-        ++rdpos;
-        if (rdpos >=l) rdpos = 0;
+    if (l) {
+        for (size_t i = 0; i < size; ++i) {
+            float fact = (size - i)/size;
+            rdptr[rdpos].left = rdptr[rdpos].left * fact;
+            rdptr[rdpos].right = rdptr[rdpos].right * fact;
+            ++rdpos;
+            if (rdpos >=l) rdpos = 0;
+        }
     }
 }
 
@@ -161,21 +163,21 @@ static void stop_music() {
     music_source.reset();
 }
 
-void create_new_music_track(int freq) {
+void create_new_music_track(int freq, int buffsize) {
     stop_music();
     static int track_id = music_track_id_base;
     double basef = base_freq;
     double rel_speed = freq/basef;
-    music_buffer = new uint8_t[BACK_BUFF_SIZE];
-    std::memset(music_buffer, 0, BACK_BUFF_SIZE);
+    music_buffer = new uint8_t[buffsize];
+    std::memset(music_buffer, 0, buffsize);
     music_source = std::make_shared<WaveSource>(
             WaveSource::WavePtr(music_buffer,music_buffer_deleter),
             WaveSource::Format::stereo_int16, rel_speed,
-            BACK_BUFF_SIZE/sizeof(WaveSource::StereoInt16),0);
+            buffsize/sizeof(WaveSource::StereoInt16),0);
 
-    sound_mixer.set_track(track_id, WaveMixer<2>(music_source,{music_volume,music_volume},1.0));
+    sound_mixer.set_track(track_id, WaveMixer<2>(music_source,{music_volume*master_volume,music_volume*master_volume},1.0));
     track_id = track_id ^ 1;
-    music_buffer_write_pos = BACK_BUFF_SIZE/2;
+    music_buffer_write_pos = buffsize/2;
 }
 
 static std::unique_ptr<IMusicStream> load_music_ex(const char *name) {
@@ -203,7 +205,7 @@ static void handle_end_of_song() {
         current_music = load_music_ex(new_music);
         if (current_music) {
             auto nfo = current_music->get_info();
-            create_new_music_track(nfo.freq);
+            create_new_music_track(nfo.freq, BACK_BUFF_SIZE);
             mix_back_sound(0);
         }
     }
@@ -242,7 +244,7 @@ void change_music(const char *filename) {
     current_music = load_music_ex(filename);
     if (current_music) {
         auto nfo = current_music->get_info();
-        create_new_music_track(nfo.freq);
+        create_new_music_track(nfo.freq, BACK_BUFF_SIZE);
         mix_back_sound(0);
     }
 }
@@ -317,15 +319,31 @@ int  get_snd_effect(AUDIO_PROPERTY funct) {
 }
 
 void *PrepareVideoSound(int mixfreq, int buffsize) {
+    create_new_music_track(mixfreq, buffsize);
     return 0;
 }
 char LoadNextVideoFrame(void *buffer, const char *data, int size, const short *xlat, short *accnums, int32_t *writepos) {
-    std::this_thread::sleep_for(std::chrono::milliseconds(20));
+    std::size_t rdpos = music_source->get_output_position_bytes();
+    std::size_t wrpos = *writepos;
+    auto l = music_source->length_bytes();
+    auto space = (rdpos < wrpos?l:0) + rdpos - wrpos;
+    if (space < static_cast<std::size_t>(size)*2) {
+        sound_mixer.wait_for_advance_write_pos();
+        return 0;
+    }
+    short *wave = reinterpret_cast<short *>(music_buffer);
+    auto w = wrpos/2;
+    auto ls = l /2;
+    for (int i = 0; i < size; ++i) {
+        auto acc = accnums+(i & 1);
+        *acc  = wave[(w+i) % ls] = xlat[static_cast<uint8_t>(data[i])]+*acc;
+    }
+    music_buffer_write_pos = *writepos = (wrpos + size*2)%l;
     return 1;
 
 }
 void DoneVideoSound(void *buffer) {
-
+    //empty
 }
 
 const char *device_name(int )

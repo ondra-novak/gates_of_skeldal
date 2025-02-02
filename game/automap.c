@@ -859,10 +859,23 @@ T_CLK_MAP clk_kniha[]=
   };
 
 
+static void kniha_keyboard_proc(EVENT_MSG *msg, void **) {
+    if (msg->msg == E_KEYBOARD) {
+        int c = quit_request_as_escape(va_arg(msg->data,int));
+        switch(c>>8) {
+            case 1: exit_kniha(1, 0, 0, 0, 0);break;
+            case 0x4d: page_change(2, 0, 0, 0, 0);break;
+            case 0x4b: page_change(-2, 0, 0, 0, 0);break;
+            default:break;
+        }
+    }
+}
+
 void unwire_kniha(void)
 {
   hold_timer(TM_FAST_TIMER,0);
   GlobEvent(MAGLOB_AFTERBOOK,viewsector,viewdir);
+  send_message(E_DONE,E_KEYBOARD, kniha_keyboard_proc);
 }
 
 
@@ -882,6 +895,7 @@ void wire_kniha(void)
   schovej_mysku();
   put_picture(0,0,ablock(H_KNIHA));
   change_click_map(clk_kniha,CLK_KNIHA);
+  send_message(E_ADD,E_KEYBOARD, kniha_keyboard_proc);
   unwire_proc=unwire_kniha;
   set_font(H_FONT6,AUTOMAP_FONT_COLOR);
   write_book(cur_page);

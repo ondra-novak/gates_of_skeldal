@@ -58,6 +58,7 @@ public:
      */
     std::size_t get_output_position_samples() const {
         std::lock_guard _(_mx);
+        if (_position == 0) return _length-1;   //assume loop
         return static_cast<std::size_t>(std::round(wrap_pos(_position - 1.0)));
     }
 
@@ -229,7 +230,7 @@ protected:
     double wrap_pos(double position) const {
         if (position >= _length) {
             if (_loop_pos == _length) {
-                position = _length;
+                position = _length-1;
             } else {
                 position = std::fmod((position - _length),(_length - _loop_pos)) + _loop_pos;
             }

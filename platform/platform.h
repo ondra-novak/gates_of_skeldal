@@ -79,6 +79,16 @@ int get_timer_value(void);
 uint32_t get_game_tick_count(void);
 void sleep_ms(uint32_t);
 
+typedef enum {
+    file_type_normal = 1,
+    file_type_directory = 2,
+    file_type_dot = 4
+} LIST_FILE_TYPE;
+
+typedef int (*LIST_FILES_CALLBACK)(const char *, LIST_FILE_TYPE , size_t, void *);
+int list_files(const char *directory, int type, LIST_FILES_CALLBACK cb, void *ctx);
+
+
 #ifdef __cplusplus
   }
 #endif

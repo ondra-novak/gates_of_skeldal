@@ -1724,7 +1724,7 @@ int count_pages(void);
 void save_book(void);
 void load_book(void);
 void prekodovat(char *c);
-
+char clk_enter(int id,int xa,int ya,int xr,int yr);
 
 //menu
 int enter_menu(char open); //task!
@@ -1786,6 +1786,10 @@ static __inline char TimerEvents(int sector, int side, int32_t time)
 static __inline int quit_request_as_escape(int c) {
     if (c == E_QUIT_GAME_KEY) return 0x011B;else return c;
 }
+
+void draw_console_window(void);
+void console_show(char show);
+char console_is_visible(void);
 
 //extras
 #include "extras.h"

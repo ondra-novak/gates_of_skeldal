@@ -65,7 +65,6 @@ TSHOP **shop_list=NULL;
 int max_shops=0; //shop_list=prima spojeni s obchody
 void *shop_hacek=NULL; //hacek za ktery visi cely shop strom (free(shop_hacek) - odalokuje shopy)
                        //hacek lze ulozit do savegame -> ulozi se cely stav obchodu
-int32_t shop_hacek_size=0; //toto je jeho delka
 static TSHOP_ALL_STATE shop_all_state;
 
 #define ico_extract(icnnum) (((char*)ablock(ikon_libs+(icnnum)/IT_LIB_SIZE))+IT_ICONE_SIZE*((icnnum)%IT_LIB_SIZE))
@@ -207,6 +206,7 @@ void load_items()
            hs=hl_ptr;
            prepare_graphics(&hl_ptr,(char *)p,size,wav_load,SR_ZVUKY);
            sound_handle=hs-1;
+           free(p);
            break;
         default:
            free(p);
@@ -853,12 +853,17 @@ char exit_inv(int id,int xa,int ya,int xr,int yr)
 void definuj_postavy()
   {
   int i,num1,r,inv=0,z;
-  const char *c,*end;
+  char *c,*end;
+  const char *tmpptr;
   char cc;
   int tmp;
 
-  c=ablock(H_POSTAVY_DAT);
-  end=c+get_handle(H_POSTAVY_DAT)->size;
+  tmpptr=ablock(H_POSTAVY_DAT);
+  size_t sz = get_handle(H_POSTAVY_DAT)->size;
+  c = alloca(sz+1);
+  memcpy(c, tmpptr, sz);
+  c[sz] = 0;
+  end=c + sz;
   for(i=0;c<end && i<20;i++)
      {
      THUMAN *p=&postavy_2[i];
@@ -2222,7 +2227,9 @@ void draw_fly_items(int celx,int cely,int sector,int side)
           xpos+=64;
           ypos+=64;
           if (p->items==NULL) it=glob_items+p->item-1;else it=&glob_items[*(p->items)-1];
-          if (p->flags & FLY_DESTROY_SEQ) smr=3;
+          if (p->flags & FLY_DESTROY_SEQ) {
+              smr=3;
+          }
           else if (smr==3) smr=1;
           picnum=it->v_letu[(smr<<2)+p->anim_pos];
           if (!picnum)
@@ -2445,9 +2452,7 @@ static void rebuild_shops(const void *shop_ptr)
   int i;
 
   SEND_LOG("(SHOP) Rebuilding shops....");
-  if (shop_list!=NULL) free(shop_list);
   max_shops = *(const int32_t *)c;
-  shop_list=NewArr(TSHOP *,max_shops);
   c+=4;
   const char *d = c;
   size_t reqsize  = 0;
@@ -2499,8 +2504,10 @@ void load_shops(void)
      shop_list=NULL;
      return;
      }
+  int32_t shop_hacek_size=0; //toto je jeho delka
   const void *sh=afile(SHOP_NAME,SR_MAP,&shop_hacek_size);
   rebuild_shops(sh);
+  ablock_free(sh);
   }
 
 static int32_t *get_product_count(const TPRODUCT *p) {

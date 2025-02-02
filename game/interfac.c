@@ -1360,6 +1360,7 @@ TMPFILE_RD *enc_open(const char *filename)
       encdata[i] = last;
   }
   temp_storage_store("__enc_temp", encdata, size);
+  free(encdata);
   return temp_storage_open("__enc_temp");
   }
 

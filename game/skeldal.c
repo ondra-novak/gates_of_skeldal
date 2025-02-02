@@ -474,7 +474,7 @@ void set_font(int font,int c1,...)
      if (c1 & BGSWITCHBIT)
       {
       charcolors[0]=0xFFFF;
-      for (i=1;i<5;i++) charcolors[i]=c1 & ~0x20;
+      for (i=1;i<5;i++) charcolors[i]=c1 & ~BGSWITCHBIT;
       }
      else if (c1 & FONT_TSHADOW) {
          if ((c1 & FONT_TSHADOW_GRAY) == FONT_TSHADOW_GRAY)
@@ -998,6 +998,7 @@ void unwire_main_functs(void)
   delete_from_timer(TM_REGEN);
   send_message(E_DONE,E_KEYBOARD,game_keyboard);
   send_message(E_DONE,E_KROK,real_krok);
+  console_show(0);
   disable_click_map();
   cancel_render=1;
   wire_proc=wire_main_functs;
@@ -1439,6 +1440,16 @@ static void load_saved_game(void)
       }
   }
 
+static int any_save_callback(const char *c, LIST_FILE_TYPE _, size_t __, void *___) {
+    return 1;
+}
+
+static char any_save() {
+    int c = list_files(gpathtable[SR_SAVES],file_type_normal,any_save_callback,0);
+    return c;
+}
+
+
 static void start(va_list args)
   {
   int volba;
@@ -1448,7 +1459,7 @@ static void start(va_list args)
    openning=0;
    update_mysky();
    schovej_mysku();
-   if (!skip_intro)
+   if (!any_save())
     {
     show_jrc_logo("LOGO.PCX");
     play_anim(7);

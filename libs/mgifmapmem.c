@@ -7,10 +7,8 @@
 #include "mgifmem.h"
 #include <platform/sound.h>
 
-static MGIF_HEADER_T *mgif_header;
 
-static short mgif_accnums[2];
-static int32_t mgif_writepos;
+
 
 
 static const word *paleta;
@@ -128,34 +126,31 @@ static void PlayMGFFile(const void *file, MGIF_PROC proc,int ypos,char full)
   int32_t scr_linelen2 = GetScreenPitch();
   mgif_install_proc(proc);
   sound=PrepareVideoSound(22050,256*1024);
-  mgif_accnums[0]=mgif_accnums[1]=0;
-  mgif_writepos=65536;
   picture=getmem(2*3+320*180*2);
   picture[0]=320;
   picture[1]=180;
   picture[2]=15;
   memset(picture+3,0,320*180*2);
   anim_render_buffer=picture+3;
-  mgif_header=(MGIF_HEADER_T *)file;
   file=open_mgif(file);
   if (file==NULL) return;
-  while (file)
+  MGIF_HEADER_T *hdr =(MGIF_HEADER_T *)file;
+  hdr->accnums[0] = hdr->accnums[1] = 0;
+  hdr->sound_write_pos = 65536;
+  char f = 1;
+  while (f)
 	{
-      file=mgif_play(file);
+      f=mgif_play(file);
       StretchImageHQ(picture, GetScreenAdr()+ypos*scr_linelen2, scr_linelen2,full);
       showview(0,ypos,0,360);
       if (game_display_is_quit_requested()) {
           break;
-      } else if (_bios_keybrd(_KEYBRD_READY)==0) {
-          mix_back_sound(0);
-      }
-      else
-	      {
+      } else if (_bios_keybrd(_KEYBRD_READY)) {
           _bios_keybrd(_KEYBRD_READ);
           break;
 	  }
 	}
-  close_mgif();
+  close_mgif(file);
   DoneVideoSound(sound);
   free(picture);
   }
@@ -169,7 +164,7 @@ void show_full_lfb12e_dx(void *target,void *buff,void *paleta);
 
 
 
-void BigPlayProc(int act,const void *data,int csize)
+void BigPlayProc(MGIF_HEADER_T *hdr,int act,const void *data,int csize)
   {
   switch (act)
      {
@@ -178,7 +173,7 @@ void BigPlayProc(int act,const void *data,int csize)
      case MGIF_DELTA:show_delta_lfb12e(anim_render_buffer,data,paleta);break;
      case MGIF_PAL:paleta=data;break;
 	 case MGIF_SOUND:
-	   while (LoadNextVideoFrame(sound,data,csize,mgif_header->ampl_table,mgif_accnums,&mgif_writepos)==0);
+	   while (LoadNextVideoFrame(sound,data,csize,hdr->ampl_table,hdr->accnums,&hdr->sound_write_pos)==0);
      }
   }
 

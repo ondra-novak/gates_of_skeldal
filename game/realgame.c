@@ -1575,8 +1575,7 @@ void step_zoom(char smer)
      sort_groups();
      bott_draw(0);
      other_draw();
-     shift_zoom(smer);
-    if (smer==0 && nopass) shift_zoom(smer+2);
+    if (!nopass) shift_zoom(smer);
     if (battle || (game_extras & EX_ALWAYS_MINIMAP)) draw_medium_map();
     sort_groups();
     bott_draw(0);
@@ -1858,6 +1857,10 @@ void *game_keyboard(EVENT_MSG *msg,void **usr)
 				 {unwire_proc();cancel_render=1;wire_save_load(1);}break;
         case '=':unwire_proc();cancel_render=1;wire_save_load(0);break;
         case '>':game_setup(0,0,0,0,0);break;
+        case 0x2E: if (get_control_key_state() && get_shift_key_state()) {
+                    console_show(!console_is_visible());
+                    }
+                    break;
         CASE_KEY_1_6:c=group_sort[c-2];
                      if (postavy[c].sektor==viewsector && postavy[c].used)
                        add_to_group(c);

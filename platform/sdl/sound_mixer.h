@@ -22,6 +22,13 @@ public:
                 --i;
             }
         }
+        ++_calls;
+        _calls.notify_all();
+    }
+
+    void wait_for_advance_write_pos() {
+        auto v = _calls.load();
+        _calls.wait(v);
     }
 
     template<std::invocable<WaveMixer<channels> &> Fn>
@@ -99,6 +106,7 @@ protected:
 
     std::mutex _mx;
     std::vector<Track> _tracks;
+    std::atomic<unsigned int> _calls = {0};
 
 
 };

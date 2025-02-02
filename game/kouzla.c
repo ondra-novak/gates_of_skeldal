@@ -173,7 +173,7 @@ void call_spell(int i);
 int calculatePhaseDoor(int sector, int dir, int um);
 
 
-static void animace_kouzla(int act,const void *data, int ssize)
+static void animace_kouzla(MGIF_HEADER_T *_,int act,const void *data, int ssize)
   {
   switch (act)
      {
@@ -236,16 +236,17 @@ static void play_anim(va_list args) //tasked animation
   anm=open_mgif(ablock(block));
   c=0;
   SEND_LOG("(ANIM) Buffer is now ready...");
-  while (anm!=NULL)
+  char f = 1;
+  while (f)
      {
      task_wait_event(E_KOUZLO_ANM);
      c++;
      SEND_LOG("(ANIM) Rendering frame %d in animation %xh",c,block);
-     anm=mgif_play(anm);
+     f=mgif_play(anm);
      neco_v_pohybu=1;
      }
   task_wait_event(E_KOUZLO_ANM);
-  close_mgif();
+  close_mgif(anm);
   running_anm=0;
   free(anim_render_buffer);
 

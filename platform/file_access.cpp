@@ -103,3 +103,26 @@ char change_current_directory(const char *path) {
     std::filesystem::current_path(std::filesystem::path(path), ec);
     return ec == std::error_code{}?1:0;
 }
+
+int list_files(const char *directory, int type, LIST_FILES_CALLBACK cb, void *ctx) {
+    std::error_code ec;
+    std::filesystem::directory_iterator iter(std::string(directory), ec);
+    if (ec == std::error_code{}) {
+        while (iter != std::filesystem::directory_iterator()) {
+            int r = 0;
+            const auto &entry = *iter;
+            if (entry.is_regular_file(ec) && (type & file_type_normal)) {
+                r = cb(entry.path().c_str(), file_type_normal, entry.file_size(ec), ctx);
+            } else if (entry.is_directory(ec)) {
+                int dot = entry.path().filename() == "." || entry.path().filename() == "..";
+                if (!dot && (type & file_type_directory)) {
+                    r = cb(entry.path().c_str(), file_type_directory, 0, ctx);
+                } else if (dot & (type & file_type_dot)) {
+                    r = cb(entry.path().c_str(), file_type_dot, 0, ctx);
+                }
+            }
+            if (r) return r;
+        }
+    }
+    return 0;
+}

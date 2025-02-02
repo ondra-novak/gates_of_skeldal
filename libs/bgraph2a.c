@@ -153,7 +153,7 @@ chr5:
 	ax = charcolors[(al-1)];
 	if (ax == 0xFFFF) goto chr4;
 	if (ax & BGSWITCHBIT) {
-	    ax = avg_pixels(*ebx ,ax);
+	    ax = avg_pixels(*ebx ,ax) & ~BGSWITCHBIT;
 	}
 	*ebx = ax;
 	goto chr4;

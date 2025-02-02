@@ -352,7 +352,12 @@ void define(int id,int x,int y,int xs,int ys,char align,void (*initproc)(OBJREC 
   o->font=default_font;
   o->datasize=0;
   initproc(o);
-  if (o->datasize) o->data=(void *)getmem(o->datasize); else o->data=NULL;
+  if (o->datasize) {
+      o->data=(void *)getmem(o->datasize);
+      memset(o->data,0,o->datasize);
+  }else {
+      o->data=NULL;
+  }
   va_list vlst;
   va_start(vlst, initproc);
   o->call_init(o,vlst);

@@ -22,14 +22,15 @@
 #include <unistd.h>
 #define GLOBMAP "GLOBMAP.DAT"
 
-#define ODDELOVACE ";:=,\n{}"
+#define ODDELOVACE ";:=,\n\r{}"
 #define OD_COMMAND oddelovace[0]
 #define OD_CRIT    oddelovace[1]
 #define OD_SET     oddelovace[2]
 #define OD_COMMA   oddelovace[3]
 #define OD_NEWLINE oddelovace[4]
-#define OD_IN      oddelovace[5]
-#define OD_OUT     oddelovace[6]
+#define OD_CR      oddelovace[5]
+#define OD_IN      oddelovace[6]
+#define OD_OUT     oddelovace[7]
 #define OD_COMMENT '`'
 
 #define INDEXU   256
@@ -247,7 +248,7 @@ static char test_kriterii(void)
                 break;
         default:
                 {
-                    hodn=temp_storage_find(text);
+                    hodn=temp_storage_find(text)>=0;
 /*                char c[200];
                 sprintf(c,"%s.TMP",text);
                 hodn=!check_file_exists(c);*/
@@ -269,11 +270,11 @@ static char proved_prikaz()
   char op;
 
   ODD=cti_oddelovac();
-  while (ODD==OD_NEWLINE) ODD=cti_oddelovac(); //preskoc prazdne radky
+  while (ODD==OD_NEWLINE || ODD==OD_CR) ODD=cti_oddelovac(); //preskoc prazdne radky
   if (ODD==OD_IN) return 0;  //cti znak {
   do
      {
-     while (ODD==OD_NEWLINE || ODD==OD_COMMAND) ODD=cti_oddelovac();
+     while (ODD==OD_NEWLINE || ODD==OD_CR || ODD==OD_COMMAND) ODD=cti_oddelovac();
      if (ODD!=0) error("O�ek�v� se jm�no definice (p��klad: INDX=)");
      cti_retezec(20,prikaz,1,1);
      op=get_symbol(prikaz);
@@ -335,9 +336,9 @@ static char proved_prikaz()
         default:error(prikaz);
         }
      ODD=cti_oddelovac();
-     if (ODD!=OD_COMMAND && ODD!=OD_NEWLINE && ODD!=EOF) ex_error(OD_COMMAND);
+     if (ODD!=OD_COMMAND && ODD!=OD_NEWLINE && ODD!=OD_CR && ODD!=EOF) ex_error(OD_COMMAND);
      }
-  while (ODD!=OD_NEWLINE && ODD!=EOF);
+  while (ODD!=OD_NEWLINE && ODD !=OD_CR && ODD!=EOF);
   return 0;
   }
 

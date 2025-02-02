@@ -1947,6 +1947,10 @@ void programming_keyboard(EVENT_MSG *msg,void **unused)
                  wire_inv_mode(human_selected);
                  break;
         case 82:group_all();break;
+        case 0x2E: if (get_control_key_state() && get_shift_key_state()) {
+                    console_show(!console_is_visible());
+                    }
+                    break;
         CASE_KEY_1_6:c=group_sort[c-2];
                      if (postavy[c].used)
                        {

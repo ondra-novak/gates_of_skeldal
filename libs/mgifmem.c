@@ -10,8 +10,6 @@
 #define LZW_BUFFER 64000
 
 MGIF_PROC show_proc;
-static int mgif_frames;
-static int cur_frame;
 
 
 typedef struct double_s
@@ -93,21 +91,29 @@ struct mgif_header load_mgif_header(const char **mgif) {
 const void *open_mgif(const void *mgif) //vraci ukazatel na prvni frame
   {
   const char *c = mgif;
-  struct mgif_header mgh = load_mgif_header(&c);
+  MGIF_HEADER_T hdr = load_mgif_header(&c);
 
-  if (strncmp(mgh.sign,MGIF,4)) return NULL;
-  mgif_frames=mgh.frames;
-  cur_frame=0;
+  if (strncmp(hdr.sign,MGIF,4)) return NULL;
+  MGIF_HEADER_T *ins = getmem(sizeof(MGIF_HEADER_T));
+  *ins = hdr;
+  ins->nx_frame = c;
+  ins->cur_frame = 0;
+  ins->sound_write_pos = 0;
+  ins->accnums[0] = 0;
+  ins->accnums[1] = 0;
   init_lzw_compressor(8);
   if (lzw_buffer==NULL) lzw_buffer=getmem(LZW_BUFFER);
-  return c;
+  return ins;
   }
 
-void close_mgif(void)           //dealokuje buffery pro prehravani
+void close_mgif(const void *mgif)           //dealokuje buffery pro prehravani
   {
-  done_lzw_compressor();
-  free(lzw_buffer);
-  lzw_buffer=NULL;
+    if (mgif) {
+      done_lzw_compressor();
+      free(lzw_buffer);
+      lzw_buffer=NULL;
+      free((void *)mgif);
+    }
   }
 
 
@@ -350,8 +356,9 @@ FRAME_HEADER_T read_frame_header(const char **iter) {
     return ret;
 }
 
-const void *mgif_play(const void *mgif) //dekoduje a zobrazi frame
+char mgif_play(const void *mgif) //dekoduje a zobrazi frame
   {
+    MGIF_HEADER_T *hdr = (MGIF_HEADER_T *)mgif;
   const char *pf;
   const char *pc;
   char *ff;
@@ -361,7 +368,7 @@ const void *mgif_play(const void *mgif) //dekoduje a zobrazi frame
 
 
 
-  pf=mgif;
+  pf=hdr->nx_frame;
   FRAME_HEADER_T frame_hdr = read_frame_header(&pf);
   pc = pf;
   pf += frame_hdr.size;
@@ -378,14 +385,15 @@ const void *mgif_play(const void *mgif) //dekoduje a zobrazi frame
           scr_sav = pc;
           scr_act = chunk_hdr.type;
       } else {
-          show_proc(chunk_hdr.type,pc,chunk_hdr.size);
+          show_proc(hdr,chunk_hdr.type,pc,chunk_hdr.size);
       }
       pc+=chunk_hdr.size;
   }
-  if (scr_act!=-1) show_proc(scr_act,scr_sav,0);
-  cur_frame+=1;
-  if (cur_frame==mgif_frames) return NULL;
-  return pf;
+  if (scr_act!=-1) show_proc(hdr, scr_act,scr_sav,0);
+  hdr->cur_frame+=1;
+  if (hdr->cur_frame==hdr->frames) return 0;
+  hdr->nx_frame = pf;
+  return 1;
   }
 /*
   acts=*pf++;
