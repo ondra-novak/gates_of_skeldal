@@ -24,9 +24,8 @@ public:
             iter += 4;
             blocks = read_int();
             iter += 8;
-            std::memcpy(btable,iter,sizeof(btable));
-            iter += sizeof(btable);
-            btable[0] = -31767;
+            btable = reinterpret_cast<const short *>(iter);
+            iter += 512;
         }
     }
 
@@ -65,7 +64,7 @@ protected:
     std::int16_t chans;
     std::int32_t freq;
     std::int32_t blocks;
-    short btable[256];
+    const short *btable;
     const uint8_t *iter;
     std::vector<int16_t> outbuff;
     std::string_view unprocessed_buffer;
@@ -96,12 +95,10 @@ protected:
             uint8_t p = *iter++;
             short val=accum[c]+btable[p];
             accum[c]=val;
-            /*
-            if (p==0)  //pridano jako provizorni reseni pro korekci chyby komprimacniho programu
+            if (p==0)  //a bug in compression algorithm
                   {
                   val-=31767;
                   }
-             */
              c = (c + 1) % chans;
              outbuff.push_back(val);
         }

@@ -143,26 +143,6 @@ void item_sound_event(int item,int sector)
   play_sample_at_sector(glob_items[item].sound+sound_handle,viewsector,sector,0,0);
   }
 
-static const void *items_15to16_correct(const void *p,int32_t *s)
-  {
-  int i,j;
-  void *np = getmem(*s);
-  memcpy(np, p, *s);
-  char *cur=(char *)(np);
-  for (i=0;i<IT_LIB_SIZE;i++)
-    {
-    int pos=IT_ICONE_SIZE*i;
-    word *pal;
-
-    if (pos>=*s) return np;
-    pal=((word *)(cur+pos))+3;
-    for (j=0;j<256;j++,pal++)
-      {
-      *pal=RGB555(*pal>>10,(*pal>>5)& 0x1F,(*pal & 0x1F));
-      }
-    }
-  return np;
-  }
 
 void load_items()
   {
@@ -179,7 +159,7 @@ void load_items()
         char name[200];
         sprintf(name, IT_LIB_NAME, i++);
         if (test_file_exist(SR_ITEMS, name)) {
-            def_handle(hl_ptr++, name, items_15to16_correct, SR_ITEMS);
+            def_handle(hl_ptr++, name, NULL, SR_ITEMS);
         } else {
             break;
         }

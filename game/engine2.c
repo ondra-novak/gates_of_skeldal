@@ -215,7 +215,6 @@ void klicovani_anm(void *target,void *source,char mirror)
 			while (c > 0) {
 				word p = *s++;
 				if ((p & 0x8000 ) == 0) {
-					p = p + (p & ~0x1F);
 					--c;
 					t[c] = p;
 					t[c+scr_linelen2] = p;
@@ -237,7 +236,6 @@ void klicovani_anm(void *target,void *source,char mirror)
 			while (c > 0) {
 				word p = *s++;
 				if ((p & 0x8000 ) == 0) {
-					p = p + (p & ~0x1F);
 					t[0] = p;
 					t[scr_linelen2] = p;
 					++t;
@@ -638,7 +636,7 @@ void enemy_draw(const void *src,void *trg,int shade,int scale,int maxspace,int c
 			int xpos = xiter;
 			unsigned char p = row[xtable[xiter]];
 			if (p != 0) {
-				if (p == 1) screen[xpos] = (screen[xpos] & 0xF7DE) >> 1;
+				if (p == 1) screen[xpos] = (screen[xpos] & 0x7BDE) >> 1;
 				else screen[xpos] = palette[p];
 			}
 			++xiter;
@@ -735,7 +733,7 @@ ed_lp3: mov     eax,[edx]
 			stosw                ;zapis barvu
 			jmp     ed_skp2
 ed_shd: movzx   eax,short ptr[edi];vem barvu
-		and     eax,0xF7DE   ;stmav
+		and     eax,0x7BDE   ;stmav
 		shr     eax,1
 		stosw               ;zapis
 		jmp     ed_skp2     ;skok na konec
@@ -825,7 +823,7 @@ void enemy_draw_transp(const void *src,void *trg,const void *shade,int scale,int
 			int xpos = xiter -clipl;
 			unsigned char p = row[xtable[xiter]];
 			if (p != 0) {
-				if (p & 0x80) screen[xpos] = ((screen[xpos] & 0xF7DE) + (palette[p] & 0xF7DE))>>1;
+				if (p & 0x80) screen[xpos] = ((screen[xpos] & 0x7BDE) + (palette[p] & 0x7BDE))>>1;
 				else screen[xpos] = palette[p];
 			}
 			++xiter;
@@ -921,9 +919,9 @@ et_lp3: mov     eax,[edx]
 			mov     eax,[ebx+eax*2];vyzvedni hicolor
 			stosw                ;zapis barvu
 			jmp     et_skp2
-et_shd: and     short ptr[edi],0xF7DE ;1111 0111 1101 1110
+et_shd: and     short ptr[edi],0x7BDE ;1111 0111 1101 1110
 		mov     eax,[ebx+eax*2];vyzvedni hicolor
-		and     eax,0xF7DE  ;stmav
+		and     eax,0x7BDE  ;stmav
 		add     ax,short ptr[edi]
 		rcr     ax,1
 			stosw               ;zapis
@@ -1014,8 +1012,12 @@ void enemy_draw_mirror_transp(const void *src,void *trg,const void *shade,int sc
 			int xpos = xiter -clipl;
 			unsigned char p = row[xtable[xiter]];
 			if (p != 0) {
-				if (p & 0x80) screen[xpos] = ((screen[xpos] & 0xF7DE) + (palette[p] & 0xF7DE))>>1;
-				else screen[xpos] = palette[p];
+				if (p & 0x80) {
+				    screen[xpos] = ((screen[xpos] & 0x7BDE) + (palette[p] & 0x7BDE))>>1;
+				}
+				else {
+				    screen[xpos] = palette[p];
+				}
 			}
 			++xiter;
 		}
@@ -1108,9 +1110,9 @@ etmlp3: mov     eax,[edx]
 			mov     eax,[ebx+eax*2];vyzvedni hicolor
 			stosw                ;zapis barvu
 			jmp     etmskp2
-etmshd: and     short ptr[edi],0xF7DE
+etmshd: and     short ptr[edi],0x7BDE
 		mov     eax,[ebx+eax*2];vyzvedni hicolor
-		and     eax,0xF7DE   ;stmav
+		and     eax,0x7BDE   ;stmav
 		add     ax,short ptr[edi]
 		rcr     ax,1
 			stosw               ;zapis
@@ -1200,7 +1202,7 @@ void enemy_draw_mirror(const void *src,void *trg,int shade,int scale,int maxspac
 			int xpos = xiter;
 			unsigned char p = row[xtable[xiter]];
 			if (p != 0) {
-				if (p == 1) screen[xpos] = (screen[xpos] & 0xF7DE) >> 1;
+				if (p == 1) screen[xpos] = (screen[xpos] & 0x7BDE) >> 1;
 				else screen[xpos] = palette[p];
 			}
 			++xiter;
@@ -1294,7 +1296,7 @@ edmlp3: mov     eax,[edx]
 			stosw                ;zapis barvu
 			jmp     edmskp2
 edmshd: movzx   eax,short ptr[edi];vem barvu
-		and     eax,0xF7DE   ;stmav
+		and     eax,0x7BDE   ;stmav
 		shr     eax,1
 		stosw               ;zapis
 		jmp     edmskp2     ;skok na konec

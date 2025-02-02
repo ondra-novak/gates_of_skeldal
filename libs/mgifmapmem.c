@@ -13,14 +13,14 @@ static short mgif_accnums[2];
 static int32_t mgif_writepos;
 
 
-static word *paleta;
+static const word *paleta;
 
 static word *picture;
 static word *anim_render_buffer;
 static void *sound;
 
 static inline word avg_pixels(word a, word b) {
-    return ((a & 0xF7DE)+(a & 0xF7DE)) >> 1;
+    return ((a & 0x7BDE)+(b & 0x7BDE)) >> 1;
 }
 
 static void StretchImageHQ(word *src, word *trg, int32_t linelen, char full)
@@ -86,7 +86,7 @@ static void StretchImageHQ(word *src, word *trg, int32_t linelen, char full)
           word n5 = avg_pixels(n1, n2);
           word n6 = avg_pixels(n3, n4);
           word n7 = avg_pixels(n5, n6);
-          trg_row[x+linelen] = n7;
+          trg_row[x+linelen] = avg_pixels(n7,0);
       }
       trg_row += 2*linelen;
   }
@@ -167,13 +167,7 @@ void show_delta_lfb12e_dx(void *target,void *buff,void *paleta);
 void show_full_lfb12e_dx(void *target,void *buff,void *paleta);
 
 
-word * load_mgf_palette(const word *pal) {
-    static word paleta[256];
-    for (int i = 0; i < 256; ++i) {
-        paleta[i] = pal[i]+(pal[i]&0x7fe0);
-    }
-    return paleta;
-}
+
 
 void BigPlayProc(int act,const void *data,int csize)
   {
@@ -182,7 +176,7 @@ void BigPlayProc(int act,const void *data,int csize)
      case MGIF_LZW:
      case MGIF_COPY:show_full_lfb12e(anim_render_buffer,data,paleta);break;
      case MGIF_DELTA:show_delta_lfb12e(anim_render_buffer,data,paleta);break;
-     case MGIF_PAL:paleta=load_mgf_palette(data);break;
+     case MGIF_PAL:paleta=data;break;
 	 case MGIF_SOUND:
 	   while (LoadNextVideoFrame(sound,data,csize,mgif_header->ampl_table,mgif_accnums,&mgif_writepos)==0);
      }

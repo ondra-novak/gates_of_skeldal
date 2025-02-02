@@ -68,7 +68,7 @@ void palette_shadow(const char *pal1,unsigned short pal2[][256],int tr,int tg,in
        r=(tr+(*(bt++)-tr)*(3*SHADE_STEPS-3*j-1)/(3*SHADE_STEPS-1))>>3;
        g=(tg+(*(bt++)-tg)*(3*SHADE_STEPS-3*j-1)/(3*SHADE_STEPS-1))>>3;
        b=(tb+(*(bt++)-tb)*(3*SHADE_STEPS-3*j-1)/(3*SHADE_STEPS-1))>>3;
-       hi=(r<<11)+(g<<6)+b;
+       hi=RGB555(r,g,b);
        pal2[j][i]=hi;
        }
     while (++i & 0xff);
@@ -82,7 +82,7 @@ void palette_shadow(const char *pal1,unsigned short pal2[][256],int tr,int tg,in
        r=((*(bt++))*(SHADE_STEPS-j)/SHADE_STEPS)>>3;
        g=((*(bt++))*(SHADE_STEPS-j)/SHADE_STEPS)>>3;
        b=((*(bt++))*(SHADE_STEPS-j)/SHADE_STEPS)>>3;
-       hi=(r<<11)+(g<<6)+b;
+       hi=RGB555(r,g,b);
        pal2[j+SHADE_STEPS][i]=hi;
        }
     while (++i & 0xff);
@@ -111,10 +111,12 @@ int load_pcx(const char *pcx,int32_t fsize,int conv_type,char **buffer, ... )
      memcpy(get_palette_ptr,ptr1,768);
   for (i=0;i<256;i++)
      {
-     *ptr2=*(ptr1++)>>3;
-     *ptr2=(*ptr2<<5)+(*(ptr1++)>>3);
-     *ptr2=(*ptr2<<6)+(*(ptr1++)>>3);
-     ptr2++;
+      int r = ptr1[0];
+      int g = ptr1[1];
+      int b = ptr1[2];
+      *ptr2 = RGB888(r,g,b);
+      ++ptr2;
+      ptr1+=3;
      }
 
   memcpy(&pcxdata,pcx,sizeof(pcxdata));

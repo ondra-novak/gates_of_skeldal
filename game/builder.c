@@ -469,12 +469,12 @@ static void MaskPutPicture(int x, int y, char mask, word color, char blend, cons
   char *data=(char *)(info+3+256);
   int32_t scr_linelen2 = GetScreenPitch();
   word *pos=GetScreenAdr()+x+y*scr_linelen2;
-  if (blend) color=color & 0xF7DE;
+  if (blend) color=color & 0x7BDE;
   for (y=0;y<info[1];y++,pos+=scr_linelen2,data+=info[0])
 	for (x=0;x<info[0];x++)
 	  if (data[x]==mask) {
 		if (blend) {
-		  pos[x]=((pos[x] & 0xF7DE)+color)>>1;
+		  pos[x]=((pos[x] & 0x7BDE)+color)>>1;
 		} else {
 		  pos[x]=color;
 		}

@@ -135,14 +135,14 @@ void SDLContext::init_video(const VideoConfig &config, const char *title) {
             }
 
             _renderer.reset(renderer);
-            SDL_Texture *texture = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_RGB565, SDL_TEXTUREACCESS_STREAMING, 640, 480);
+            SDL_Texture *texture = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_ARGB1555, SDL_TEXTUREACCESS_STREAMING, 640, 480);
             if (!texture) {
                 snprintf(buff, sizeof(buff), "Chyba při vytváření textury: %s\n", SDL_GetError());
                 throw std::runtime_error(buff);
             }
             SDL_SetTextureBlendMode(texture, SDL_BLENDMODE_BLEND);
             _texture.reset(texture);
-            texture = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_RGB565, SDL_TEXTUREACCESS_STREAMING, 640, 480);
+            texture = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_ARGB1555, SDL_TEXTUREACCESS_STREAMING, 640, 480);
             if (!texture) {
                 snprintf(buff, sizeof(buff), "Chyba při vytváření textury: %s\n", SDL_GetError());
                 throw std::runtime_error(buff);
@@ -400,8 +400,14 @@ void SDLContext::push_item(const std::string_view &item) {
 void SDLContext::push_update_msg(const SDL_Rect &rc, const uint16_t *data, int pitch) {
     push_item(DisplayRequest::update);
     push_item(rc);
+    auto sz = _display_update_queue.size();
+    _display_update_queue.resize(sz+rc.w*rc.h*2);
+    short *trg = reinterpret_cast<short *>(_display_update_queue.data()+sz);
     for (int yp = 0; yp < rc.h; ++yp) {
-        push_item(std::string_view(reinterpret_cast<const char *>(data), rc.w*2));
+        for (int xp = 0; xp < rc.w; ++xp) {
+            *trg = data[xp] ^ 0x8000;
+            ++trg;
+        }
         data += pitch;
     }
 }

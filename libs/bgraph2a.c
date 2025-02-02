@@ -120,6 +120,10 @@ void line_32(int x,int y,int xs,int ys)
 	}
   }
 
+static inline word avg_pixels(word a, word b) {
+    return ((a & 0x7BDE)+(b & 0x7BDE)) >> 1;
+}
+
 
 void char_32(word *posit,const word *font,char znak)
 //#pragma aux char_32 parm [edi] [esi] [eax] modify [eax ebx ecx edx]
@@ -149,7 +153,7 @@ chr5:
 	ax = charcolors[(al-1)];
 	if (ax == 0xFFFF) goto chr4;
 	if (ax & BGSWITCHBIT) {
-	    ax = ((*ebx & 0xF7DF) + (ax & 0xF7DF)) >> 1;
+	    ax = avg_pixels(*ebx ,ax);
 	}
 	*ebx = ax;
 	goto chr4;
@@ -339,7 +343,8 @@ void put_picture(word x,word y,const void *p)
     for (i=0;i<yss;i++,adr+=scr_linelen2,data+=(xs-xss))
       for (j=0;j<xss;j++)
         {
-        adr[j]=((*data & ~0x1f)<<1) | (*data & 0x1f);
+//        adr[j]=((*data & ~0x1f)<<1) | (*data & 0x1f);
+        adr[j]=*data;
         data++;
         }
     }
@@ -400,7 +405,7 @@ void get_picture(word x,word y,word xs,word ys,void *p)
 
   data[0]=xss;
   data[1]=yss;
-  data[2]=16;
+  data[2]=15;
   data+=3;
     {
     int i;
@@ -644,7 +649,7 @@ ptb_skip2:
     }
   }
 */
-#define MIXTRANSP(a,b) ((((a) & 0xF7DE)+((b) & 0xF7DE))>>1)
+#define MIXTRANSP(a,b) ((((a) & 0x7BDE)+((b) & 0x7BDE))>>1)
 
 void trans_bar(int x,int y,int xs,int ys,int barva)
   {

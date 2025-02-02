@@ -180,7 +180,7 @@ static void animace_kouzla(int act,const void *data, int ssize)
      case MGIF_LZW:
      case MGIF_COPY:show_full_lfb12e(anim_render_buffer,data,paleta);break;
      case MGIF_DELTA:show_delta_lfb12e(anim_render_buffer,data,paleta);break;
-     case MGIF_PAL:memcpy(paleta,data,sizeof(paleta));paleta[0]|=0x8000;break;
+     case MGIF_PAL:memcpy(paleta,data,sizeof(paleta));paleta[0]|=BGSWITCHBIT;break;
      }
   }
 

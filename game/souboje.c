@@ -1847,7 +1847,8 @@ char mask_click(int id,int xa,int ya,int xr,int yr)
      souboje_stisknout(d);
      switch(d)
         {
-        case AC_RUN: postavy[select_player].utek=5+postavy[select_player].actions;break;
+        case AC_RUN: postavy[select_player].utek=5+postavy[select_player].actions;
+                     [[fallthrough]];
         case AC_ATTACK:
         case AC_STAND:
         case AC_ARMOR:
