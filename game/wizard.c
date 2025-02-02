@@ -12,7 +12,7 @@
 #include <libs/devices.h>
 #include <libs/bmouse.h>
 #include <libs/memman.h>
-#include <libs/zvuk.h>
+#include <platform/sound.h>
 #include <libs/strlite.h>
 #include <libs/gui.h>
 #include <libs/basicobj.h>

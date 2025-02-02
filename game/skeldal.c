@@ -8,7 +8,7 @@
 #include <libs/event.h>
 #include <libs/bmouse.h>
 #include <libs/memman.h>
-#include <libs/zvuk.h>
+#include <platform/sound.h>
 #include <libs/strlite.h>
 #include <libs/gui.h>
 #include <libs/basicobj.h>
@@ -87,8 +87,6 @@ THUMAN postavy[POCET_POSTAV],postavy_save[POCET_POSTAV];
 void (*unwire_proc)(void);
 void (*wire_proc)(void);
 char cur_mode,battle_mode;
-static int init_music_vol=127;
-static int init_gfx_vol=255;
 static char titles_on=0;
 
 const void *pcx_fade_decomp(const void *p, int32_t *s);
@@ -498,25 +496,6 @@ void set_font(int font,int c1,...)
   memcpy(f_default,charcolors,sizeof(charcolors));
   }
 
-void music_init(void)
-  {
-//  char *path;
-/*  if (sound_detection)
-     {
-
-     if (sound_detect(&snd_devnum,&snd_parm1,&snd_parm2,&snd_parm3)) snd_devnum=DEV_NOSOUND;
-     }*/
-  SEND_LOG("(SOUND) SOUND_SET Setting Sound: Device '%s' Port: %3X",device_name(snd_devnum),snd_parm1);
-  SEND_LOG("(SOUND) SOUND_SET Setting Sound: IRQ: %X DMA: %X",snd_parm2,snd_parm3);
-  set_mixing_device(snd_devnum,snd_mixing,snd_parm1,snd_parm2,snd_parm3);
-
-  start_mixing();
-  set_snd_effect(SND_GFX,init_gfx_vol);
-  set_snd_effect(SND_MUSIC,init_music_vol);
-//  path=plugins_path;
-
-
-  }
 
 void clrscr(void)
   {
@@ -984,7 +963,8 @@ void init_skeldal(const INI_CONFIG *cfg)
 
   add_game_window();
 
-  music_init();
+  game_sound_init_device(ini_section_open(cfg, "audio"));
+  start_mixing();
 
   if ((verr=init_mysky())!=0)
      {
@@ -1267,7 +1247,7 @@ void play_anim(int anim_num)
      TSTR_LIST titl=NULL;
      const char *s = build_pathname(2,gpathtable[SR_VIDEO], texty[anim_num]);
      s = local_strdup(s);
-     if (snd_devnum==DEV_NOSOUND || titles_on)
+     if (titles_on)
       {
       concat(t,s,"   ");
       z=strrchr(t,'.');
@@ -1344,8 +1324,8 @@ static void game_big_circle(char enforced)
          {viewdir=i;break;}
       }
      }
-    for(r=0;r<mapsize*4;r++) call_macro(r,MC_STARTLEV);
     recalc_volumes(viewsector,viewdir);
+    for(r=0;r<mapsize*4;r++) call_macro(r,MC_STARTLEV);
     loadlevel.name[0]=0;
     reroll_all_shops();
 

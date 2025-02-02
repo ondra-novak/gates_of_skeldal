@@ -75,6 +75,7 @@ int stricmp(const char *a, const char *b);
 void strupr(char *c);
 const char * int2ascii(int i, char *c, int radix);
 
+int get_timer_value(void);
 uint32_t get_game_tick_count(void);
 void sleep_ms(uint32_t);
 

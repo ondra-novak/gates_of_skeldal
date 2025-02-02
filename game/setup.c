@@ -10,7 +10,7 @@
 #include <libs/devices.h>
 #include <libs/bmouse.h>
 #include <libs/bgraph.h>
-#include <libs/zvuk.h>
+#include <platform/sound.h>
 #include <libs/strlite.h>
 #include "engine1.h"
 #include <libs/pcx.h>

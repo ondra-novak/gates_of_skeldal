@@ -7,7 +7,7 @@
 #include <libs/memman.h>
 #include <libs/bgraph.h>
 #include <libs/event.h>
-#include <libs/zvuk.h>
+#include <platform/sound.h>
 #include "math.h"
 #include "globals.h"
 #include "engine1.h"

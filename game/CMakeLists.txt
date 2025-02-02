@@ -42,4 +42,5 @@ target_link_libraries(skeldal
     skeldal_libs 
     skeldal_platform
     skeldal_sdl
+    skeldal_libs
      ${SDL2_LIBRARIES} pthread)

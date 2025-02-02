@@ -69,7 +69,7 @@
 #include <libs/bgraph.h>
 #include <libs/memman.h>
 
-#include <libs/zvuk.h>
+#include <platform/sound.h>
 
 //#include <vesa.h>
 //#include <i86.h>

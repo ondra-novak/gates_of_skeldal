@@ -8,7 +8,7 @@
 #include <libs/event.h>
 #include <libs/memman.h>
 #include <libs/bgraph.h>
-#include <libs/zvuk.h>
+#include <platform/sound.h>
 #include "engine1.h"
 #include "globals.h"
 #include "specproc.h"

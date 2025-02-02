@@ -3,7 +3,7 @@
 #include <stdlib.h>
 
 #include <libs/memman.h>
-#include <libs/zvuk.h>
+#include <platform/sound.h>
 #include <libs/wav_mem.h>
 #include <libs/event.h>
 #include "globals.h"
@@ -29,12 +29,26 @@ typedef struct snd_info
   {
   const TMA_SOUND *data;              //4
   short xpos,ypos,side;         //10
-  word volume,block;            //14
+  word volume,sample_block;            //14
+  word sector;
   }SND_INFO;
 
 static short chan_state[CHANNELS];
 static short track_state[TRACKS];
 short sample_volume=255;
+
+typedef struct sound_side_map_dir_t {
+    uint32_t distance;
+    int32_t visit_counter;
+} TSOUND_SIDE_MAP_DIR;
+
+typedef struct sound_side_map_t {
+    TSOUND_SIDE_MAP_DIR parts[4];
+} TSOUND_SIDE_MAP;
+
+static TSOUND_SIDE_MAP *current_sound_sector_map = NULL;
+static size_t current_sound_sector_map_size = 0;
+static int32_t current_sound_sector_map_counter = 0;
 
 //static struct t_wave wav_last_head;
 //static int wav_last_size;
@@ -140,7 +154,7 @@ void release_channel(int channel)
   if (i==-1) return;
   mute_channel(channel);
      {
-     aunlock(playings[channel].block);
+     aunlock(playings[channel].sample_block);
      chan_state[channel]=-1;
      track_state[i]=-1;
      }
@@ -158,7 +172,62 @@ int calc_volume(int *x,int *y,int side)
   return ds;
   }
 
-int calcul_volume(int chan,int x,int y,int side,int volume)
+int set_channel_volume_from_sector(int channel,
+                                    int sound_source_sector,
+                                    int sound_source_side,
+                                   int listener_sector,
+                                   int listener_direction,
+                                   int volume) {
+    const int maxvolume = 32768;
+    volume = 255*volume/100;
+    int left = maxvolume;
+    int right = maxvolume;
+    if (sound_source_sector > mapsize) return 0;
+    if (sound_source_sector <0 || sound_source_sector == listener_sector) {
+        if (sound_source_side >= 0) {
+            int ddf = (sound_source_side + 4 - listener_direction) & 3;
+            switch (ddf) {
+                default:
+                case 0:
+                case 2: left = right = maxvolume;break;
+                case 1: left = maxvolume/4; right = maxvolume;break;
+                case 3: left = maxvolume; right = maxvolume/4;break;
+            }
+        }
+    } else {
+
+        const TSOUND_SIDE_MAP *p = current_sound_sector_map+sound_source_sector;
+        left = 0;
+        right = 0;
+        for (int i = 0; i < 4; ++i) {
+            if (p->parts[i].visit_counter == current_sound_sector_map_counter) {
+                int dist = p->parts[i].distance;
+                if (!dist) return 1; //error
+                int inc = maxvolume/(dist*dist);
+                switch(i) {
+                    default:
+                    case 2:
+                    case 0: left += inc; right += inc; break;
+                    case 1: right += inc;break;
+                    case 3: left += inc;break;
+
+                }
+            }
+        }
+
+    }
+    left = (left * volume) >> 8;
+    right = (right * volume) >> 8;
+    if (left > maxvolume) left = maxvolume;
+    if (right > maxvolume) right = maxvolume;
+    if (left == 0  && right == 0) return 0;
+
+    set_channel_volume(channel,left,right);
+    return 1;
+
+}
+
+/*int calcul_volume(int chan,int x,int y,int side,int volume)
   {
   int lv,rv;
   int ds,bal,i;
@@ -195,7 +264,7 @@ int calcul_volume(int chan,int x,int y,int side,int volume)
   set_channel_volume(chan,lv,rv);
   return 0;
   }
-
+*/
 const void *wav_load(const void *p, int32_t *s)
   {
   const char *sr;
@@ -220,7 +289,7 @@ const void *wav_load(const void *p, int32_t *s)
   return tgr;
   }
 
-void play_effekt(int x,int y,int xd,int yd,int side,int sided,const TMA_SOUND *p)
+void play_effekt(int x,int y,int xd,int yd,int sector,int side,const TMA_SOUND *p)
   {
   int chan;
   int blockid;
@@ -228,14 +297,14 @@ void play_effekt(int x,int y,int xd,int yd,int side,int sided,const TMA_SOUND *p
   const char *s;
 
   if (!sound_enabled) return;
-  side;
   chan=find_free_channel(p->soundid);
   release_channel(chan);
   track=&tracks[p->soundid];
   track->data=p;
   track->xpos=xd;
   track->ypos=yd;
-  track->side=sided;
+  track->side=side;
+  track->sector = sector;
   track_state[p->soundid]=-1;
   if (p->bit16 & 0x8)
      {
@@ -244,7 +313,8 @@ void play_effekt(int x,int y,int xd,int yd,int side,int sided,const TMA_SOUND *p
      else set_channel_volume(chan,vol,rnd(vol));
      }
   else {
-     if (calcul_volume(chan,x-xd,y-yd,/*side-*/sided,p->volume)) return;
+      if (!set_channel_volume_from_sector(chan, sector, side, viewsector, viewdir, p->volume))
+          return;
   }
 
     blockid = find_handle(p->filename, wav_load);
@@ -260,12 +330,75 @@ void play_effekt(int x,int y,int xd,int yd,int side,int sided,const TMA_SOUND *p
       playings[chan].data=p;
       playings[chan].xpos=xd;
       playings[chan].ypos=yd;
-      playings[chan].side=sided;
+      playings[chan].sector = sector;
+      playings[chan].side=side;
       playings[chan].volume=p->volume;
-      playings[chan].block=blockid;
+      playings[chan].sample_block=blockid;
       chan_state[chan]=p->soundid;
       track_state[p->soundid]=chan;
   }
+
+typedef struct _sound_map_queue_t {
+    int from_sector;
+    int to_sector;
+} TSOUND_MAP_QUEUE;
+
+static void build_dungeon_sound_map_in_dir(int sector, int side, int position, int32_t counter) {
+    if (map_sectors[sector].step_next[side] == 0
+               || !(map_sides[sector * 4 +side].flags & SD_TRANSPARENT)) return;
+
+    TSOUND_MAP_QUEUE queue[128];
+    int qbeg = 0;
+    int qend = 0;
+    queue[qend].from_sector = sector;
+    queue[qend].to_sector = map_sectors[sector].step_next[side];
+    ++qend;
+    while (qbeg != qend) {
+        const TSOUND_MAP_QUEUE *item = queue+(qbeg % countof(queue));
+        int cursect = item->to_sector;
+        int fromsect = item->from_sector;
+        ++qbeg;
+        if (current_sound_sector_map[cursect].parts[position].visit_counter != counter) {
+            current_sound_sector_map[cursect].parts[position].visit_counter = counter;
+            int d = current_sound_sector_map[cursect].parts[position].distance =
+                    current_sound_sector_map[fromsect].parts[position].distance + 1;
+            if (d<32) {
+                for (int i = 0; i < 4; ++i) {
+                    int nx = map_sectors[cursect].step_next[i];
+                    if (nx && (map_sides[cursect * 4 +i].flags & SD_TRANSPARENT)) {
+                        if (current_sound_sector_map[nx].parts[position].visit_counter != counter) {
+                            TSOUND_MAP_QUEUE *t = queue+(qend % countof(queue));
+                            ++qend;
+                            t->from_sector = cursect;
+                            t->to_sector = nx;
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+}
+
+static void build_dungeon_sound_map(int sector, int side) {
+    if (mapsize != (int)current_sound_sector_map_size) {
+        free(current_sound_sector_map);
+        current_sound_sector_map = NewArr(TSOUND_SIDE_MAP, mapsize);
+        current_sound_sector_map_size = mapsize;
+    }
+    int32_t counter = ++current_sound_sector_map_counter;
+    if (sector > mapsize) return;
+    for (int i = 0; i < 4; ++i) {
+        current_sound_sector_map[sector].parts[i].distance = 0;
+        current_sound_sector_map[sector].parts[i].visit_counter = counter;
+    }
+    build_dungeon_sound_map_in_dir(sector, side, 0, counter);
+    build_dungeon_sound_map_in_dir(sector, (side+1)&3, 1, counter);
+    build_dungeon_sound_map_in_dir(sector, (side+2)&3, 2, counter);
+    build_dungeon_sound_map_in_dir(sector, (side+3)&3, 3, counter);
+}
+
+
 void recalc_volumes(int sector,int side)
   {
   int i;
@@ -275,16 +408,29 @@ void recalc_volumes(int sector,int side)
 
   side;
   SEND_LOG("(SOUND) %s","Recalculating volumes");
+  build_dungeon_sound_map(sector, side);
   newx=map_coord[sector].x;
   newy=map_coord[sector].y;
 //  layer=map_coord[sector].layer;
-  for(i=0;i<CHANNELS;i++)
+  for(i=0;i<CHANNELS;i++) {
+      int volume = playings[i].volume;
      if (chan_state[i]>=0 && playings[i].side>=0)
         {
-        calcul_volume(i,newx-playings[i].xpos,newy-playings[i].ypos,/*side-*/playings[i].side,playings[i].volume);
+         set_channel_volume_from_sector(
+                 i,
+                 playings[i].sector,
+                 playings[i].side,
+                 sector,
+                 side,
+                 volume);
+        //calcul_volume(i,newx-playings[i].xpos,newy-playings[i].ypos,/*side-*/playings[i].side,playings[i].volume);
         if (!get_channel_state(i)) release_channel(i);
         }
-     else calcul_volume(i,0,0,-1,playings[i].volume);
+     else {
+         int v = SND_EFF_MAXVOL*volume / 100;
+         set_channel_volume(i, v, v);
+     }
+  }
   for(i=1;i<TRACKS;i++) if (track_state[i]<0 && tracks[i].data!=NULL)
      {
      if (tracks[i].side<0)
@@ -296,7 +442,8 @@ void recalc_volumes(int sector,int side)
         {
        int x=newx-tracks[i].xpos, y=newy-tracks[i].ypos;
         if (calc_volume(&x,&y,tracks[i].side)>0)
-           if (have_loop(tracks[i].data))play_effekt(newx,newy,tracks[i].xpos,tracks[i].ypos,side,tracks[i].side,tracks[i].data);
+           if (have_loop(tracks[i].data))
+               play_effekt(newx,newy,tracks[i].xpos,tracks[i].ypos,tracks[i].sector,tracks[i].side,tracks[i].data);
         }
      }
   mute_task=-1;
@@ -360,7 +507,7 @@ const char *get_next_music_from_playlist()
   if (!remain_play)
      for(i=0;cur_playlist[i]!=NULL;remain_play++,i++) cur_playlist[i][0]=32;
   if (play_list_mode==PL_RANDOM)
-     step=rand()*(playlist_size-1)/32768+1;
+     step=rnd(playlist_size)+1;
   else
      step=1;
   i=playing_track;
@@ -387,24 +534,22 @@ void purge_playlist()
   cur_playlist=NULL;
   }
 
-void play_sample_at_sector(int sample,int sector1,int sector2,int track, char loop)
+void play_sample_at_sector(int sample,int listener,int source,int track, char loop)
   {
-  int x,y,xd,yd,chan;
+  int xd,yd,chan;
   const char *s;
   struct t_wave *p;
   int siz;
 	int oldtrack;
 
   if (!sound_enabled) return;
-  if (map_coord[sector1].layer!=map_coord[sector2].layer) return;
-  x=map_coord[sector1].x;
-  y=map_coord[sector1].y;
-  xd=map_coord[sector2].x;
-  yd=map_coord[sector2].y;
+  if (map_coord[listener].layer!=map_coord[source].layer) return;
+  xd=map_coord[source].x;
+  yd=map_coord[source].y;
   chan=find_free_channel(track);
 	oldtrack=track_state[track];
   if (!track || oldtrack==-1) release_channel(chan);
-  if (calcul_volume(chan,x-xd,y-yd,viewdir,100)) return;
+  if (!set_channel_volume_from_sector(chan, source, -1, listener, -1, 100)) return;
   if (!track || oldtrack==-1)
      {
      alock(sample);
@@ -419,7 +564,8 @@ void play_sample_at_sector(int sample,int sector1,int sector2,int track, char lo
   playings[chan].ypos=yd;
   playings[chan].side=viewdir;
   playings[chan].volume=100;
-  playings[chan].block=sample;
+  playings[chan].sample_block=sample;
+  playings[chan].sector=source;
   chan_state[chan]=track;
   track_state[track]=chan;
   }
@@ -519,7 +665,8 @@ char test_playing(int track)
   return track_state[track]!=-1;
   }
 
-static int flute_canal=30;
+static int flute_channel=30;
+static int flute_channel_offset = 0;
 
 void start_play_flute(char note)
   {
@@ -534,8 +681,9 @@ void start_play_flute(char note)
      q=ablock(H_FLETNA);
      w=q;w+=sizeof(struct t_wave)+4;
      vol*=SND_EFF_MAXVOL/100;
-     set_channel_volume(flute_canal,vol,vol);
-     play_sample(flute_canal,w,0x1665,0xADE,(int)(realfrq+0.5),1);
+     int ch = flute_channel+flute_channel_offset;
+     set_channel_volume(ch,vol,vol);
+     play_sample(ch,w,0x1665,0xADE,(int)(realfrq+0.5),1);
      }
   else
      {
@@ -552,8 +700,9 @@ void stop_play_flute()
      {
      q=ablock(H_FLETNA);
      w=q;w+=sizeof(struct t_wave);
-     chan_break_ext(flute_canal,w+4,*(int *)w);
-     flute_canal^=1;
+     int ch = flute_channel+flute_channel_offset;
+     chan_break_ext(ch,w+4,*(int *)w);
+     flute_channel_offset = (flute_channel_offset+1) & 7;
      }
   else
      {

@@ -11,7 +11,7 @@
 #include <libs/devices.h>
 #include <libs/bmouse.h>
 #include <libs/bgraph.h>
-#include <libs/zvuk.h>
+#include <platform/sound.h>
 #include <libs/strlite.h>
 #include "engine1.h"
 #include <libs/pcx.h>
@@ -185,7 +185,7 @@ void macro_sound(const TMA_SOUND *p,int psect,int pdir,int sect,int dir)
   if (sound_side_flags & SD_PRIM_FORV) up=2;
   if (~(p->bit16) & up) {
      if (psect) {
-       play_effekt(map_coord[sect].x,map_coord[sect].y,map_coord[psect].x,map_coord[psect].y,dir,pdir,p);
+       play_effekt(map_coord[sect].x,map_coord[sect].y,map_coord[psect].x,map_coord[psect].y,psect,pdir,p);
      }      else {
        play_effekt(0,0,0,0,-1,-1,p);
      }

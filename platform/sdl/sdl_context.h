@@ -15,7 +15,7 @@ public:
 
     SDLContext();
 
-    struct Config {
+    struct VideoConfig {
         int window_width;
         int window_height;
         bool crt_filter;
@@ -26,10 +26,21 @@ public:
         int aspect_y;
     };
 
+    struct AudioConfig {
+        const char *audioDevice;
+    };
 
-    void init_video(const Config &config, const char *title);
+    struct AudioInfo {
+        int freq;
+    };
+
+    void init_video(const VideoConfig &config, const char *title);
 
     void close_video();
+
+    AudioInfo init_audio(const AudioConfig &config, SDL_AudioCallback cb, void *cb_ctx);
+    void pause_audio(bool pause);
+    void close_audio();
 
 
     void present_rect(uint16_t *pixels, unsigned int pitch, unsigned int x, unsigned int y, unsigned int xs,unsigned ys);
@@ -99,6 +110,12 @@ protected:
         slide_transition
     };
 
+    struct SDL_Audio_Deleter {
+        void operator()(void *x);
+    };
+
+
+
 
     MS_EVENT ms_event;
     mutable std::mutex _mx;
@@ -112,6 +129,7 @@ protected:
     std::unique_ptr<SDL_Texture, SDL_Deleter> _texture;
     std::unique_ptr<SDL_Texture, SDL_Deleter> _texture2;
     std::unique_ptr<SDL_Texture, SDL_Deleter> _crt_effect;
+    std::unique_ptr<void, SDL_Audio_Deleter> _audio;
     SDL_Texture *_visible_texture;
     SDL_Texture *_hidden_texture;
 
@@ -123,6 +141,7 @@ protected:
     std::atomic<bool> _key_shift = false;
     std::atomic<bool> _key_capslock = false;
     std::atomic<bool> _quit_requested = false;
+
 
 
     std::vector<char> _display_update_queue;

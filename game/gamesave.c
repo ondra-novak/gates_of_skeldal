@@ -14,7 +14,7 @@
 #include <libs/bmouse.h>
 #include <libs/memman.h>
 #include <fcntl.h>
-#include <libs/zvuk.h>
+#include <platform/sound.h>
 #include <stdarg.h>
 #include "globals.h"
 #include "temp_storage.h"

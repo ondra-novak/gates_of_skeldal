@@ -24,6 +24,11 @@ void SDLContext::SDL_Deleter::operator ()(SDL_Texture* texture) {
     SDL_DestroyTexture(texture);
 }
 
+void SDLContext::SDL_Audio_Deleter::operator()(void *x) {
+    SDL_AudioDeviceID id = reinterpret_cast<std::uintptr_t>(x);
+    SDL_CloseAudioDevice(id);
+}
+
 struct SDL_INIT_Context {
 
     SDL_INIT_Context() {
@@ -80,7 +85,7 @@ void SDLContext::generateCRTTexture(SDL_Renderer* renderer, SDL_Texture** textur
 
 
 
-void SDLContext::init_video(const Config &config, const char *title) {
+void SDLContext::init_video(const VideoConfig &config, const char *title) {
     char buff[256];
     static Uint32 update_request_event = SDL_RegisterEvents(1);
     _update_request_event = update_request_event;
@@ -501,4 +506,33 @@ SDL_Rect SDLContext::to_window_rect(const SDL_Rect &winrc, const SDL_Rect &sourc
 }
 void SDLContext::set_quit_callback(std::function<void()> fn) {
     _quit_callback = std::move(fn);
+}
+
+SDLContext::AudioInfo SDLContext::init_audio(const AudioConfig &config, SDL_AudioCallback cb, void *cb_ctx) {
+    char buff[256];
+    _audio.reset();
+    SDL_AudioSpec aspec = {};
+    aspec.callback = cb;
+    aspec.userdata = cb_ctx;
+    aspec.channels = 2;
+    aspec.format = AUDIO_F32;
+    aspec.freq = 44100;
+    aspec.samples = 1024;
+    SDL_AudioSpec obtaied = {};
+    auto id = SDL_OpenAudioDevice(config.audioDevice, 0, &aspec, &obtaied, SDL_AUDIO_ALLOW_FREQUENCY_CHANGE|SDL_AUDIO_ALLOW_SAMPLES_CHANGE);
+    if (id < 1) {
+        snprintf(buff, sizeof(buff), "SDL Error create audio: %s\n", SDL_GetError());
+        throw std::runtime_error(buff);
+    }
+    _audio.reset(reinterpret_cast<void *>(id));
+
+    return {obtaied.freq};
+}
+void SDLContext::pause_audio(bool pause) {
+    SDL_AudioDeviceID id = reinterpret_cast<std::intptr_t>(_audio.get());
+    SDL_PauseAudioDevice(id, pause?1:0);
+}
+
+void SDLContext::close_audio() {
+    _audio.reset();
 }

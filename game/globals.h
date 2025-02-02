@@ -1428,12 +1428,12 @@ extern char **sound_table;
 
 void init_tracks(void);
 void recalc_volumes(int sector,int side);
-void play_effekt(int x,int y,int xd,int yd,int side,int sided,const TMA_SOUND *p);
+void play_effekt(int x,int y,int xd,int yd,int sector, int side,const TMA_SOUND *p);
 void create_playlist(char *playlist);
 const char *get_next_music_from_playlist(void);
 const char * end_of_song_callback(void *ctx);
 void purge_playlist(void);
-void play_sample_at_sector(int sample,int sector1,int sector2,int track, char loop);
+void play_sample_at_sector(int sample,int listener,int source,int track, char loop);
 void play_sample_at_channel(int sample,int channel,int vol);
 void stop_track(int track);
 char test_playing(int track);

@@ -11,7 +11,7 @@
 #include <libs/devices.h>
 #include <libs/bmouse.h>
 #include <libs/bgraph.h>
-#include <libs/zvuk.h>
+#include <platform/sound.h>
 #include <libs/strlite.h>
 #include "engine1.h"
 #include <libs/pcx.h>
@@ -185,7 +185,6 @@ int load_map(char *filename)
   mob_template=NULL;
   mob_size=0;
   if (f==NULL) return -1;
-  if (snd_devnum==DEV_DAC) stop_mixing();
   do
      {
      r=load_section(f,&temp,&sect,&size);
@@ -329,7 +328,6 @@ int load_map(char *filename)
      exit(0);
      }
   doNotLoadMapState=0;
-  if (snd_devnum==DEV_DAC) start_mixing();
   return suc;
   }
 
@@ -1605,45 +1603,49 @@ void step_zoom(char smer)
   if (cur_mode==MD_GAME) recalc_volumes(viewsector,viewdir);
   }
 
-void turn_zoom(int smer)
-  {
-  if (running_anm) return;
-  if (pass_zavora) return;else pass_zavora=1;
-  if (!GlobEvent(MAGLOB_ONTURN,viewsector,viewdir)) return;
-  if (set_halucination) do_halucinace();
-  norefresh=1;
-  hold_timer(TM_BACK_MUSIC,1);
-                 viewdir=(viewdir+smer)&3;
-                 render_scene(viewsector,viewdir);
-                 hide_ms_at(387);
-                 OutBuffer2nd();
-                 other_draw();
-                 bott_draw(0);
-                 if (smer==1)
-                    {
-                    anim_sipky(H_SIPKY_SV,1);
-                    anim_sipky(0,255);
-                    turn_left();
-                    }
-                    else
-                    {
-                    anim_sipky(H_SIPKY_SZ,1);
-                    anim_sipky(0,255);
-                    turn_right();
-                    }
-  chod_s_postavama(0);
-  if (battle || (game_extras & EX_ALWAYS_MINIMAP)) draw_medium_map();
-  update_mysky();
-  ukaz_mysku();
-  showview(0,0,0,0);
-  recalc_volumes(viewsector,viewdir);
-  if (!battle) calc_game();
-  norefresh=0;
-  cancel_render=1;
-  hold_timer(TM_BACK_MUSIC,0);
-  mix_back_sound(0);
-  pass_zavora=0;
-  }
+void turn_zoom(int smer) {
+    if (running_anm)
+        return;
+    if (pass_zavora)
+        return;
+    else
+        pass_zavora = 1;
+    if (!GlobEvent(MAGLOB_ONTURN, viewsector, viewdir))
+        return;
+    if (set_halucination)
+        do_halucinace();
+    norefresh = 1;
+    hold_timer(TM_BACK_MUSIC, 1);
+    viewdir = (viewdir + smer) & 3;
+    recalc_volumes(viewsector, viewdir);
+    render_scene(viewsector, viewdir);
+    hide_ms_at(387);
+    OutBuffer2nd();
+    other_draw();
+    bott_draw(0);
+    if (smer == 1) {
+        anim_sipky(H_SIPKY_SV, 1);
+        anim_sipky(0, 255);
+        turn_left();
+    } else {
+        anim_sipky(H_SIPKY_SZ, 1);
+        anim_sipky(0, 255);
+        turn_right();
+    }
+    chod_s_postavama(0);
+    if (battle || (game_extras & EX_ALWAYS_MINIMAP))
+        draw_medium_map();
+    update_mysky();
+    ukaz_mysku();
+    showview(0, 0, 0, 0);
+    if (!battle)
+        calc_game();
+    norefresh = 0;
+    cancel_render = 1;
+    hold_timer(TM_BACK_MUSIC, 0);
+    mix_back_sound(0);
+    pass_zavora = 0;
+}
 
 int check_path(word **path,word tosect)
   {

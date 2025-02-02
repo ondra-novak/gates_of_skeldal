@@ -5,7 +5,7 @@
 #include "memman.h"
 #include "mem.h"
 #include "mgifmem.h"
-#include <libs/zvuk.h>
+#include <platform/sound.h>
 
 static MGIF_HEADER_T *mgif_header;
 

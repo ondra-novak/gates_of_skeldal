@@ -12,7 +12,7 @@ static uint16_t screen_pitch = 640;
 
 char game_display_init(const INI_CONFIG_SECTION *display_section, const char *title) {
 
-    SDLContext::Config cfg  = {};
+    SDLContext::VideoConfig cfg  = {};
     const char *aspect_str;
 
     aspect_str = ini_get_string(display_section, "aspect_ratio", "4:3");
