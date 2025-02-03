@@ -128,6 +128,7 @@ typedef struct drw_enemy_struct
   char mirror;
   char stoned;
   const palette_t *palette;
+  const char *more_info;
   }DRW_ENEMY;
 
 

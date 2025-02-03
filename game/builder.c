@@ -65,6 +65,7 @@ char set_halucination=0;
 int hal_sector;
 int hal_dir;
 char see_monster=0;
+char hide_walls = 0;
 char lodka=0;
 int bgr_distance=0; //vzdalenost pozadi od pohledu
 int bgr_handle=0;
@@ -833,7 +834,7 @@ static int draw_basic_sector(int celx, int cely, int sector) {
             show_cel2(celx, cely, ablock(num_ofsets[OBL_NUM] + obl), 0, 0, 1);
         if (q->flags & SD_RIGHT_ARC && q->oblouk & 0x0f)
             show_cel2(celx, cely, ablock(num_ofsets[OBL2_NUM] + obl), 0, 0, 2);
-        if (q->flags & SD_PRIM_VIS && q->prim)
+        if (q->flags & SD_PRIM_VIS && q->prim && !hide_walls)
             show_cel2(celx, cely,
                     ablock(
                             num_ofsets[MAIN_NUM] + q->prim
@@ -863,7 +864,7 @@ static int draw_basic_sector(int celx, int cely, int sector) {
         if (left_shiftup)
             show_cel(celx, cely, ablock(num_ofsets[LEFT_NUM] + left_shiftup), 0,
                     0, 2), left_shiftup = 0;
-        if (q->flags & SD_PRIM_VIS && q->prim)
+        if (q->flags & SD_PRIM_VIS && q->prim && !hide_walls)
             show_cel(-celx, cely,
                     ablock(
                             num_ofsets[LEFT_NUM] + q->prim
@@ -895,7 +896,7 @@ static int draw_basic_sector(int celx, int cely, int sector) {
         if (right_shiftup)
             show_cel(celx, cely, ablock(num_ofsets[RIGHT_NUM] + right_shiftup),
                     0, 0, 3), right_shiftup = 0;
-        if (q->flags & SD_PRIM_VIS && q->prim)
+        if (q->flags & SD_PRIM_VIS && q->prim && !hide_walls)
             show_cel(celx, cely,
                     ablock(
                             num_ofsets[RIGHT_NUM] + q->prim
@@ -1002,18 +1003,18 @@ int draw_sloup_sector(int celx,int cely,int sector)
      show_cel2(celx,cely,ablock(num_ofsets[OBL_NUM]+obl),0,0,1);
   if (q->flags & SD_RIGHT_ARC && q->oblouk)
      show_cel2(celx,cely,ablock(num_ofsets[OBL2_NUM]+obl),0,0,2);
-  if (q->flags & SD_PRIM_VIS && q->prim)
+  if (q->flags & SD_PRIM_VIS && q->prim  && !hide_walls)
       show_cel2(celx,cely,ablock(num_ofsets[MAIN_NUM]+q->prim+(q->prim_anim>>4)),0,0,1+(q->oblouk & SD_POSITION));
   if (celx<=0)
      {
      q=&w[dirs[0]];
-     if (q->flags & SD_PRIM_VIS && q->prim)
+     if (q->flags & SD_PRIM_VIS && q->prim && !hide_walls)
       show_cel(-celx,cely,ablock(num_ofsets[LEFT_NUM]+q->prim+(q->prim_anim>>4)),0,0,2+(q->oblouk & SD_POSITION));
      }
   if (celx>=0)
      {
      q=&w[dirs[2]];
-     if (q->flags & SD_PRIM_VIS && q->prim)
+     if (q->flags & SD_PRIM_VIS && q->prim && !hide_walls)
       show_cel(celx,cely,ablock(num_ofsets[RIGHT_NUM]+q->prim+(q->prim_anim>>4)),0,0,3+(q->oblouk & SD_POSITION));
      }
   q=&w[dirs[1]];
@@ -1379,8 +1380,8 @@ void play_fx(int x,int y)
 
 void play_fx_at(int where)
   {
-  static word polex[]={313,290,362};
-  static word poley[]={1,1,1};
+  static word polex[]={313,290,362,336};
+  static word poley[]={1,1,1,1,1};
 
   play_fx(polex[where],poley[where]);
   }

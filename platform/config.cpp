@@ -96,11 +96,11 @@ long ini_get_value_int(const char *value, int *conv_ok) {
     if (value != NULL) {
         long ret = strtol(value, &out, 10);
         if (*out == 0) {
-            if (*conv_ok) *conv_ok = 1;
+            if (conv_ok) *conv_ok = 1;
             return ret;
         }
     }
-    if (*conv_ok) *conv_ok = 0;
+    if (conv_ok) *conv_ok = 0;
     return -1;
 
 }
@@ -110,11 +110,11 @@ double ini_get_value_double(const char *value, int *conv_ok) {
     if (value != NULL) {
         double ret = strtod(value, &out);
         if (*out == 0) {
-            if (*conv_ok) *conv_ok = 1;
+            if (conv_ok) *conv_ok = 1;
             return ret;
         }
     }
-    if (*conv_ok) *conv_ok = 0;
+    if (conv_ok) *conv_ok = 0;
     return -1;
 }
 

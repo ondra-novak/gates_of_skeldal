@@ -739,6 +739,7 @@ void draw_blood(char mode,int mob_dostal,int mob_dostal_pocet);
 #define FX_MAGIC 0
 #define FX_BOOK 1
 #define FX_MONEY 2
+#define FX_MAP 3
 
 
 
@@ -791,7 +792,7 @@ typedef struct t_clk_map
   int cursor;
   }T_CLK_MAP;
 
-#define CLK_MAIN_VIEW 17
+#define CLK_MAIN_VIEW 18
 #define MS_GAME_WIN 256
 extern T_CLK_MAP clk_main_view[];        //clickovaci mapa pro hlavni vyhled
 

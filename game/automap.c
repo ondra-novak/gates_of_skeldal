@@ -621,17 +621,11 @@ void unwire_automap(void)
 void *map_keyboard(EVENT_MSG *msg,void **usr)
   {
   char c;
-  static int draw=0;
+  int draw=0;
   static int xr,yr;
 
   usr;
   if (msg->msg==E_INIT) xr=yr=0;
-  if (msg->msg==E_IDLE && draw==1)
-     {
-     draw_automap(xr,yr);
-     draw=0;
-     }
-  else draw--;
   if (msg->msg==E_AUTOMAP_REDRAW) draw=4;
   if (msg->msg==E_KEYBOARD)
      {
@@ -654,6 +648,9 @@ void *map_keyboard(EVENT_MSG *msg,void **usr)
               wire_proc();
               break;
          }
+     if (draw) {
+         draw_automap(xr,yr);
+     }
      }
   return &map_keyboard;
   }
@@ -859,7 +856,7 @@ T_CLK_MAP clk_kniha[]=
   };
 
 
-static void kniha_keyboard_proc(EVENT_MSG *msg, void **) {
+static void kniha_keyboard_proc(EVENT_MSG *msg, void **_) {
     if (msg->msg == E_KEYBOARD) {
         int c = quit_request_as_escape(va_arg(msg->data,int));
         switch(c>>8) {

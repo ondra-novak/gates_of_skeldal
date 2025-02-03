@@ -1585,7 +1585,7 @@ void show_help_short() {
     printf("Use -h for help\n");
 }
 
-void quit_cb_exit_wait(void *) {
+void quit_cb_exit_wait(void *_) {
     exit_wait = 1;
 }
 

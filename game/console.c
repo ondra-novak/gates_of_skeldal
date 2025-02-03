@@ -74,9 +74,6 @@ char *mc_flags[]=
   "!SUMMON"
   };
 
-void mman_scan(int )
-  {
-  }
 
 void show_flags(int number,char **flags,char nums)
   {
@@ -435,7 +432,7 @@ static PARSED_COMMAND parse_command(const char *cmd) {
     if (!*c) return ret;
     ret.command = c;
     ret.args = NULL;
-    char *sep = strrchr(c, ' ');
+    char *sep = strchr(c, ' ');
     if (sep!= NULL) {
         *sep = 0;
         ++sep;
@@ -452,6 +449,8 @@ static PARSED_COMMAND parse_command(const char *cmd) {
     }
     return ret;
 }
+
+extern int hide_walls;
 
 static int process_on_off_command(const char *cmd, char on) {
     if (stricmp(cmd, "inner-eye") == 0) {
@@ -474,6 +473,10 @@ static int process_on_off_command(const char *cmd, char on) {
         cur_group=on?10:postavy[0].groupnum;
         return 1;
     }
+    if (stricmp(cmd, "hide-walls") == 0) {
+        hide_walls = on;
+        return 1;
+    }
     return 0;
 }
 
@@ -490,6 +493,67 @@ static int process_actions(const char *command) {
         display_game_status();
         return 1;
     }
+    if (stricmp(command, "offlers-blessing") == 0) {
+        money=150000;
+        play_fx_at(FX_MONEY);
+        return 1;
+    }
+    if (stricmp(command, "i-require-gold") == 0) {
+        money+=1;
+        play_fx_at(FX_MONEY);
+        return 1;
+    }
+    if (stricmp(command, "to-the-moon") == 0) {
+        money+=100000;
+        play_fx_at(FX_MONEY);
+        return 1;
+    }
+    if (stricmp(command, "echo-location") == 0) {
+        for (int i = 1; i < mapsize; ++i) {
+            if (map_coord[i].flags & MC_NOAUTOMAP) continue;
+            map_coord[i].flags |= MC_AUTOMAP;
+        }
+        play_fx_at(FX_MAP);
+        return 1;
+    }
+    return 0;
+}
+
+static void wiz_find_item(const char *name) {
+    for (int i = 0; i <item_count; ++i) {
+        if (imatch(glob_items[i].jmeno, name)
+                || imatch(glob_items[i].popis, name)) {
+            wzprintf("i%d %s - %s\n",i, glob_items[i].jmeno, glob_items[i].popis);
+        }
+    }
+}
+
+static void wiz_find_monster(const char *name) {
+
+    alock(H_ENEMY);
+    const TMOB *mobs =(TMOB *)ablock(H_ENEMY);
+    size_t cnt = get_handle_size(H_ENEMY)/sizeof(TMOB);
+
+
+    for (size_t i = 0; i <cnt; ++i) {
+        if (imatch(mobs[i].name, name)) {
+           wzprintf("m%d %s\n", i, mobs[i].name);
+        }
+    }
+}
+
+static int process_with_params(const char *cmd, const char *args) {
+    if (stricmp(cmd, "locate") == 0) {
+        if (args[0] == 0) return 0;
+        wiz_find_item(args);
+        wiz_find_monster(args);
+        console_add_line("");
+        return 1;
+    }
+    if (stricmp(cmd, "say") == 0) {
+        console_add_line(args);
+        return 1;
+    }
     return 0;
 }
 
@@ -503,11 +567,12 @@ static int process_command(PARSED_COMMAND cmd) {
     }
     if (onoff != -1) {
         return process_on_off_command(cmd.command, onoff);
-    }
+    } else
+        return process_with_params(cmd.command, cmd.args);
     return 0;
 }
 
-static void console_keyboard(EVENT_MSG *msg, void **) {
+static void console_keyboard(EVENT_MSG *msg, void **_) {
     if (msg->msg == E_KEYBOARD) {
         int c = va_arg(msg->data, int) & 0xFF;
         if (c == E_QUIT_GAME_KEY) return;

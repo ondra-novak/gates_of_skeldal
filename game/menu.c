@@ -34,7 +34,7 @@
 #define SPEED 3
 int speedscroll=3;
 char low_mem=0;
-static volatile char load_ok=0;
+//static volatile char load_ok=0;
 
 static int cur_pos[]={0,0,0,0,0};
 static int cur_dir[]={UNSELECT,UNSELECT,UNSELECT,UNSELECT,UNSELECT};

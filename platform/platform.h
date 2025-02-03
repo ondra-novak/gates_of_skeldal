@@ -70,6 +70,7 @@ FILE *fopen_icase(const char *pathname, const char *mode);
 const char *file_icase_find(const char *pathname);
 
 int stricmp(const char *a, const char *b);
+int imatch(const char *haystack, const char *needle);
 #define MIN(a, b) ((a)<(b)?(a):(b))
 #define MAX(a, b) ((a)>(b)?(a):(b))
 void strupr(char *c);
