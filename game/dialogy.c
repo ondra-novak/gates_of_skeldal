@@ -563,7 +563,7 @@ static void nahodne(int vls,int omz,char check)
 
   memset(chk,0,sizeof(chk));
   if (!check) for(i=0;i<SAVE_POSTS;i++) if (sn_nums[i]<POCET_POSTAV) chk[(uint8_t)sn_nums[i]]|=1;
-  for(i=0;i<POCET_POSTAV;i++) if (postavy[i].sektor!=viewsector || !postavy[i].lives || !postavy[i].used || postavy[i].inmaphash != current_map_hash) chk[i]|=2;
+  for(i=0;i<POCET_POSTAV;i++) if (postavy[i].sektor!=viewsector || !postavy[i].lives || !postavy[i].used) chk[i]|=2;
   m=0;l=-1;
   for(i=0;i<POCET_POSTAV;i++)
      if (postavy[i].vlastnosti[vls]>=omz && chk[i]==0)
@@ -963,6 +963,7 @@ char join_character(int i)
      h->sektor=viewsector;
      h->direction=viewdir;
      h->groupnum=cur_group;
+     h->inmaphash=current_map_hash;
      reg_grafiku_postav();
      bott_draw(1);
      return 0;
@@ -1181,10 +1182,10 @@ static char najist_postavy(int cena)
   int i,s=0;
   THUMAN *h=postavy;
 
-  for(i=0;i<POCET_POSTAV;i++,h++) if (h->used && h->sektor==viewsector && h->lives && h->inmaphash != current_map_hash) s=s+cena;
+  for(i=0;i<POCET_POSTAV;i++,h++) if (h->used && h->sektor==viewsector && h->lives) s=s+cena;
   if (s>money) return 1;
   money-=s;
-  for(i=0,h=postavy;i<POCET_POSTAV;i++,h++) if (h->used && h->sektor==viewsector && h->lives && h->inmaphash != current_map_hash)
+  for(i=0,h=postavy;i<POCET_POSTAV;i++,h++) if (h->used && h->sektor==viewsector && h->lives)
      {
      h->jidlo=MAX_HLAD(h);
      h->voda=MAX_ZIZEN(h);

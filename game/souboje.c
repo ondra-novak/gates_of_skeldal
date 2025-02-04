@@ -30,6 +30,7 @@ HUM_ACTION spell_string;
 short caster;
 short vybrana_zbran=-1;
 char plr_switcher[POCET_POSTAV];
+static int pohyblivost_counter[POCET_POSTAV];
 static int autostart_round=0;
 
 char autoattack=0;
@@ -208,6 +209,33 @@ T_CLK_MAP clk_power[]=
   {-1,54,378,497,479,ask_who_proc,2,-1},
   {-1,0,0,639,479,empty_clk,0xff,-1},
   };
+
+void pc_gain_action(THUMAN *h) {
+    int idx = h- postavy;
+    if (idx >=0 && idx < POCET_POSTAV) {
+        pohyblivost_counter[idx] += h->vlastnosti[VLS_POHYB];
+    }
+}
+
+
+
+int pc_get_actions(THUMAN *h) {
+    int idx = h- postavy;
+    if (idx >=0 && idx < POCET_POSTAV) {
+        return pohyblivost_counter[idx]/AP_MULTIPLIER;
+    }
+    return 0;
+}
+
+void pc_use_actions(THUMAN *h, int count) {
+    int idx = h- postavy;
+    if (idx >=0 && idx < POCET_POSTAV) {
+        int useap = count * AP_MULTIPLIER;
+        useap = MIN(useap, pohyblivost_counter[idx]);
+        pohyblivost_counter[idx] -= useap;
+    }
+
+}
 
 
 THUMAN *isplayer(int sector,THUMAN *h,char death)
@@ -530,6 +558,7 @@ void zacatek_kola()
            mobs[i].actions=get_ap(mobs[i].vlastnosti);
            mobs[i].walk_data=0;
            }
+  memset(plr_switcher,0,sizeof(plr_switcher));
   for(i=0;i<POCET_POSTAV;i++)
      {
      p=&postavy[i];
@@ -538,7 +567,8 @@ void zacatek_kola()
         postavy[i].programovano=0;
         if (p->kondice && p->lives && p->inmaphash == current_map_hash)
            {
-           p->actions=get_ap(p->vlastnosti);
+           pc_gain_action(p);
+           p->actions=pc_get_actions(p);
        //    if (p->actions) autostart_round=0;
            }
         else postavy[i].actions=0;
@@ -1100,13 +1130,13 @@ void pouzij_zbran(THUMAN *p,int ruka)
   bott_draw(0);
   }
 
-static word last_sector;
-static char valid_sectors(word sector)
+static char valid_sectors(word sector, void *ctx)
   {
   int pp;
   int i;
+  word *last_sector = (word *)ctx;
 
-  last_sector=sector;
+  *last_sector=sector;
   if (mob_map[sector]) return 0; //nevyhovujici
   pp=map_sectors[sector].sector_type;
   if (pp==S_DIRA || ISTELEPORT(pp)) return 0;
@@ -1119,6 +1149,7 @@ static char StrachPostavy(THUMAN *p)
 {
   word *cesta;
   int i;
+  word last_sector = 0;
 
   int wf=weigth_defect(p)+1;
 
@@ -1126,8 +1157,8 @@ static char StrachPostavy(THUMAN *p)
   cur_group=p->groupnum;
   for(select_player=0;select_player<6;select_player++) if (postavy+select_player==p) break;
   bott_draw(0);
-  labyrinth_find_path(p->sektor,65535,SD_PLAY_IMPS,valid_sectors,NULL);
-  labyrinth_find_path(p->sektor,last_sector,SD_PLAY_IMPS,valid_sectors,&cesta);
+  labyrinth_find_path(p->sektor,65535,SD_PLAY_IMPS,valid_sectors,NULL,&last_sector);
+  labyrinth_find_path(p->sektor,last_sector,SD_PLAY_IMPS,valid_sectors,&cesta,&last_sector);
   if (cesta[0]==0) {free(cesta);return 0;}
   for (i=0;i<6 && cesta[i] && p->kondice ;i++)
   {
@@ -1237,7 +1268,13 @@ void jadro_souboje(EVENT_MSG *msg,void **unused) //!!!! Jadro souboje
                              wire_presun_postavy();
                              break;
                   }
-                case AC_ATTACK:pouzij_zbran(p,p->provadena_akce->data1);break;
+                case AC_ATTACK:pouzij_zbran(p,p->provadena_akce->data1);
+                            if (p->provadena_akce->data1 == 2 && plr_switcher[p-postavy] == 1) {
+                                prave_hraje--;
+                                neco_v_pohybu = 1;
+                                return;
+                            }
+                            break;
                 case AC_ARMOR:souboje_prezbrojeni(nxt);
                              bott_draw(1);
                              other_draw();
@@ -1799,6 +1836,8 @@ static void zahajit_kolo(char prekvapeni)
                           int counter=5;
                           short w1,w2,dw1,dw2,w;
 
+                          pc_use_actions(p, pc_get_actions(p));
+
                           while (~map_sides[(sect<<2)+dir].flags & SD_PLAY_IMPS)
                              {
                              int m1,m2;
@@ -2047,6 +2086,7 @@ void start_battle()
   if (!running_battle)
      {
      SEND_LOG("(BATTLE) Battle started (monster: %s)",attack_mob!=NULL?attack_mob->name:"(NULL)");
+     memset(pohyblivost_counter,0,sizeof(pohyblivost_counter));
      poloz_vsechny_predmety();
      zacatek_kola();
      running_battle=1;

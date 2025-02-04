@@ -22,6 +22,7 @@
 #define AUTOMAP_VODA RGB555(0,15,31)
 #define AUTOMAP_LAVA RGB555(31,16,0)
 #define AUTOMAP_FORE RGB555(18,17,14)
+#define AUTOMAP_FORE_LVP RGB555(14,13,11)
 #define AUTOMAP_LINE1 RGB555(13,11,10)
 #define AUTOMAP_LINE2 RGB555(31,22,6)
 #define AUTOMAP_MOB RGB555(31,8,8)
@@ -382,6 +383,7 @@ static void draw_amap_sector(int x,int y,int sector,int mode,int turn,int line1,
         ss=&map_sectors[sector];
         if (ss->sector_type==S_VODA || ss->sector_type==S_LODKA) curcolor=AUTOMAP_VODA;
         else if (ss->sector_type==S_LAVA) curcolor=AUTOMAP_LAVA;
+        else if (ss->sector_type==S_LEAVE) curcolor=AUTOMAP_FORE_LVP;
         else curcolor=AUTOMAP_FORE;
         if (!mode)
            {
@@ -594,7 +596,7 @@ void draw_automap(int xr,int yr)
   ukaz_mysku();
   showview(0,16,640,360);
 }
-void *map_keyboard(EVENT_MSG *msg,void **usr);
+void map_keyboard(EVENT_MSG *msg,void **usr);
 
 void enable_all_map(void)
   {
@@ -613,7 +615,6 @@ void unwire_automap(void)
               {
               send_message(E_DONE,E_KEYBOARD,map_keyboard);
               send_message(E_DONE,E_AUTOMAP_REDRAW,map_keyboard);
-              send_message(E_DONE,E_IDLE,map_keyboard);
               hold_timer(TM_FAST_TIMER,0);
               disable_all_map();
               noarrows=0;
@@ -622,42 +623,91 @@ void unwire_automap(void)
 			  GlobEvent(MAGLOB_AFTERMAPOPEN,viewsector,viewdir);
               }
 
-void *map_keyboard(EVENT_MSG *msg,void **usr)
+
+
+void map_keyboard(EVENT_MSG *msg,void **usr)
   {
   char c;
-  int draw=0;
   static int xr,yr;
 
   usr;
-  if (msg->msg==E_INIT) xr=yr=0;
-  if (msg->msg==E_AUTOMAP_REDRAW) draw=4;
+  if (msg->msg==E_INIT) {
+      xr=va_arg(msg->data,int);
+      yr=va_arg(msg->data,int);
+  }
   if (msg->msg==E_KEYBOARD)
      {
       int d = quit_request_as_escape(va_arg(msg->data, int));
      c=d>>8;
      switch (c)
         {
-        case 'H':yr++;draw=4;break;
-        case 'P':yr--;draw=4;break;
-        case 'M':xr--;draw=4;break;
-        case 'K':xr++;draw=4;break;
+        case 'H':yr++;break;
+        case 'P':yr--;break;
+        case 'M':xr--;break;
+        case 'K':xr++;break;
         case 'Q':
-        case 's':if (check_for_layer(cur_depth-1)) cur_depth--;draw=4;break;
+        case 's':if (check_for_layer(cur_depth-1)) cur_depth--;break;
         case 'I':
-        case 't':if (check_for_layer(cur_depth+1)) cur_depth++;draw=4;break;
+        case 't':if (check_for_layer(cur_depth+1)) cur_depth++;break;
         case 15:
         case 50:
         case 1:
               unwire_proc();
               wire_proc();
-              break;
+              return;
          }
-     if (draw) {
-         draw_automap(xr,yr);
      }
-     }
-  return &map_keyboard;
+  draw_automap(xr,yr);
+
+  return;
   }
+
+typedef struct  {
+    int left,  top,  right,  bottom;
+} TMAP_RECT;
+
+static TMAP_RECT get_map_rect() {
+    TMAP_RECT rc = {};
+    char first = 1;
+    for(int i=1;i<mapsize;i++) {
+         if ((map_coord[i].flags & (MC_AUTOMAP|MC_DISCLOSED)) &&  (map_coord[i].flags & MC_MARKED)) {
+             int xp=map_coord[i].x;
+             int yp=map_coord[i].y;
+             if (first) {
+                 rc.left=rc.right = xp;
+                 rc.top=rc.bottom = yp;
+                 first = 0;
+             } else {
+                 if (xp < rc.left) rc.left = xp;
+                 if (yp < rc.top) rc.top = yp;
+                 if (xp > rc.right) rc.right = xp;
+                 if (yp > rc.bottom) rc.bottom = yp;
+             }
+         }
+    }
+    return rc;
+}
+
+static TMAP_RECT get_screen_rect() {
+    TMAP_RECT rc;
+    rc.left = -35;
+    rc.right = 35;
+    rc.top = -18;
+    rc.bottom = 18;
+    return rc;
+}
+
+static void shift_map_to_center(TMAP_RECT map_rect, int mx, int my, int *xr, int *yr) {
+    TMAP_RECT screen_rect = get_screen_rect();
+    int dx = (map_rect.left+map_rect.right)/2-mx;  //
+    int dy = (map_rect.top+map_rect.bottom)/2-my;
+    if (dx < screen_rect.left) dx = screen_rect.left;
+    if (dx > screen_rect.right) dx = screen_rect.right;
+    if (dy < screen_rect.top) dy = screen_rect.top;
+    if (dy > screen_rect.bottom) dy = screen_rect.bottom;;
+    *xr = -dx;
+    *yr = -dy;
+}
 
 void show_automap(char full)
   {
@@ -674,10 +724,15 @@ void show_automap(char full)
   ukaz_mysku();
   showview(0,376,640,480);
   cur_depth=map_coord[viewsector].layer;
-  draw_automap(0,0);
-  send_message(E_ADD,E_KEYBOARD,map_keyboard);
-  send_message(E_ADD,E_AUTOMAP_REDRAW,map_keyboard);
-  send_message(E_ADD,E_IDLE,map_keyboard);
+  int xm = map_coord[viewsector].x;
+  int ym = map_coord[viewsector].y;
+  int xr;
+  int yr;
+  shift_map_to_center(get_map_rect(), xm, ym, &xr, &yr);
+  draw_automap(xr,yr);
+
+  send_message(E_ADD,E_KEYBOARD,map_keyboard,xr,yr);
+  send_message(E_ADD,E_AUTOMAP_REDRAW,map_keyboard,xr,yr);
   change_click_map(clk_map_view,CLK_MAP_VIEW);
 }
 
@@ -928,7 +983,7 @@ void map_teleport_keyboard(EVENT_MSG *msg,void **usr)
   }
 
 
-static char path_ok(word sector)
+static char path_ok(word sector, void *ctx)
   {
   map_coord[sector].flags|=MC_MARKED;
   return 1;
@@ -950,7 +1005,7 @@ char map_target_select(int id,int xa,int ya,int xr,int yr)
      y2=y1+8;
      if (xr>=x1 && xr<=x2 && yr>=y1 && yr<=y2)
         {
-        if (!labyrinth_find_path(viewsector,id,SD_PLAY_IMPS,path_ok,NULL)) return 0;
+        if (!labyrinth_find_path(viewsector,id,SD_PLAY_IMPS,path_ok,NULL,NULL)) return 0;
         last_selected=id;
         exit_wait=1;
         return 1;
@@ -965,7 +1020,7 @@ int select_teleport_target(void)
   *otevri_zavoru=1;
   unwire_proc();
   disable_all_map();
-  labyrinth_find_path(viewsector,65535,SD_PLAY_IMPS,path_ok,NULL);
+  labyrinth_find_path(viewsector,65535,SD_PLAY_IMPS,path_ok,NULL,NULL);
   map_coord[viewsector].flags|=MC_MARKED;
   schovej_mysku();
   send_message(E_ADD,E_KEYBOARD,map_teleport_keyboard);

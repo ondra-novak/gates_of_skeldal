@@ -460,25 +460,26 @@ static char monster_in_game(void)
   return 0;
   }
 
-static char monster_test;
 
-static char is_monster(word sector)
+
+static char is_monster(word sector, void *flag)
   {
+    char *monster_test = (char *)flag;
   int m1,m2;
   m1=mob_map[sector]-1;
   if (m1>=0)
      {
      m2=mobs[m1].next-1;
-     if (~mobs[m1].vlajky & MOB_MOBILE && (m2<0 || ~mobs[m2].vlajky & MOB_MOBILE)) monster_test=1;
+     if (~mobs[m1].vlajky & MOB_MOBILE && (m2<0 || ~mobs[m2].vlajky & MOB_MOBILE)) *monster_test=1;
      }
-  return !monster_test;
+  return !*monster_test;
   }
 
 static char monster_in_room(int sector)
   {
-  monster_test=0;
-  is_monster(sector);
-  if (!monster_test) labyrinth_find_path(sector,65535,SD_MONST_IMPS,is_monster,NULL);
+  char monster_test=0;
+  is_monster(sector, &monster_test);
+  if (!monster_test) labyrinth_find_path(sector,65535,SD_MONST_IMPS,is_monster,NULL, &monster_test);
   return monster_test;
   }
 
@@ -650,19 +651,13 @@ static int  ma_play_anim(const char *filename,char cls)
   return 0;
   }
 
-static char ma_control_mob_control(word sector)
-  {
-  sector;
-  return 1;
-  }
-
 static void ma_control_mob(int from,int to)
   {
   word *path;
   int m;
 
   if (mob_map[from]==0) return;
-  if (labyrinth_find_path(from,to,SD_MONST_IMPS,ma_control_mob_control,&path)==0) return;
+  if (labyrinth_find_path(from,to,SD_MONST_IMPS,NULL,&path,NULL)==0) return;
   m=mob_map[from]-1;
   send_mob_to(m,path);
   }

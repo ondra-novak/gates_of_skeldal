@@ -447,7 +447,7 @@ int find_item(short *place,int mask)
 
 static int lastsector;
 
-static char ValidateSector(word sector)
+static char ValidateSector(word sector, void *_)
   {
   int pp=map_sectors[sector].sector_type;
   if (pp==S_NORMAL || pp==S_SMER || pp==S_LEAVE || pp==S_FLT_SMER)
@@ -471,7 +471,7 @@ void push_item(int sect,int pos,short *picked_item)
      {
 	 if (game_extras & EX_RECOVER_DESTROYED_ITEMS)
 	   {
-	   labyrinth_find_path(viewsector,65535,SD_PLAY_IMPS,ValidateSector,NULL);
+	   labyrinth_find_path(viewsector,65535,SD_PLAY_IMPS,ValidateSector,NULL, NULL);
 	   push_item(lastsector,viewdir,picked_item);
 	   return;
 	   }
@@ -1281,6 +1281,7 @@ typedef struct t_inv_script
 } T_INV_SCRIPT;
 
 #define INFO_AP -1
+#define INFO_APF -3
 #define INFO_EXP -2
 #define LINE_STEP 6
 #define COL_STEP 8
@@ -1324,7 +1325,8 @@ static T_INV_SCRIPT script[]=
   {0,37,NULL,0,97,1,0},
   {30,5,"%d-%d",pvls(VLS_UTOK_L),pvls(VLS_UTOK_H),2,2},
   {30,7,"%d-%d",pvls(VLS_OBRAN_L),pvls(VLS_OBRAN_H),2,2},
-  {30,9,"%d",INFO_AP,0,2,2},
+  {28,9,"%d",INFO_AP,0,2,2},
+  {28,9,".%d",INFO_APF,0,2,0},
   {17,5,NULL,0,18,1,0},
   {17,7,NULL,0,17,1,0},
   {17,9,NULL,0,20,1,0},
@@ -1352,9 +1354,12 @@ static int calc_value(int parm,int lenght)
            l=(human_selected->level<PLAYER_MAX_LEVEL?(level_map[human_selected->level-1]-human_selected->exp):0);
            break;
         case INFO_AP:
-           l=get_ap(human_selected->vlastnosti);
+           l=human_selected->vlastnosti[VLS_POHYB]/AP_MULTIPLIER;
            break;
-        }
+       case INFO_APF:
+           l=((human_selected->vlastnosti[VLS_POHYB] * 10)/AP_MULTIPLIER) % 10;
+           break;
+       }
   switch(lenght)
      {
      case 1:l=(int32_t)((signed char)l);break;
@@ -2028,7 +2033,7 @@ static char check_double_wield(int newplace,short item)
   z2=glob_items[item2-1].zmeny;
   for(i=0;i<4;i++)
      {
-     int chk=(*q1+*q2)*3/4;
+     int chk=(*q1+*q2)-(human_selected->vlastnosti[VLS_OBRAT]/2);   //cim vyssi obratnost tim spis double wield
      if (*p<chk) return 1;
      if (*p+*z1+*z2<chk) return 1;
      q1++;p++;q2++;

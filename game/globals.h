@@ -275,7 +275,8 @@ static __inline int rangrnd(int a, int b) {return rnd(b-a+1)+a;}
 #define concat4(s1,s2,s3,s4) strcat(strcat(strcat(strcpy((char *)alloca(strlen(s1)+strlen(s2)+strlen(s3)+strlen(s4)+1),s1),s2),s3),s4)
 #define countof(array) (sizeof(array)/sizeof(array[0]))
 
-#define get_ap(vls) (((vls[VLS_POHYB])>0 && (vls[VLS_POHYB])<15)?1:(vls[VLS_POHYB])/15)
+#define AP_MULTIPLIER 15
+#define get_ap(vls) (((vls[VLS_POHYB])>0 && (vls[VLS_POHYB])<AP_MULTIPLIER)?1:(vls[VLS_POHYB])/AP_MULTIPLIER)
 
 #define SAVE_NAME_SIZE 32
 
@@ -695,6 +696,8 @@ void reg_grafiku_postav(void);
 void play_movie_seq(const char *s,int y);
 void check_postavy_teleport(void);  //je-li viewsector=teleport pak presune postavy
 
+
+
 //builder
 #define MAIN_NUM 0
 #define LEFT_NUM 1
@@ -974,6 +977,7 @@ typedef struct thuman
   struct thuman *demon_save;    //ukazatel na postavu ulozenou behem kouzla demon
   uint32_t inmaphash;                //hash nazvu mapy, kde se postavy nachazi
   }THUMAN;
+
 
 extern TITEM *glob_items;             //tabulka predmetu
 extern int ikon_libs;
@@ -1675,7 +1679,7 @@ const void *col_load(const void *data, int32_t *size);
 void open_story_file(void);
 void write_story_text(char *text);
 void close_story_file(void);
-char labyrinth_find_path(word start,word konec,int flag,char (*proc)(word),word **cesta);
+char labyrinth_find_path(word start,word konec,int flag,char (*proc)(word, void *),word **cesta, void *ctx);
   //tato procedura je obecne hledani cesty. Start - startovni cislo sektoru
                                           //Konec - cilove cislo sektoru
                                           //flag - je podminkovy flag pro nepruchozi steny
@@ -1799,6 +1803,7 @@ char *map_hash_to_string_impl(char *c, uint32_t h, int sz);
 const char *find_map_from_hash_impl(char *c, uint32_t h, int sz);
 #define find_map_from_hash(h) (find_map_from_hash_impl((char *)alloca(31), h, 30))
 char can_select_player(THUMAN *p, char select_dead, char select_far);
+
 
 //extras
 #include "extras.h"

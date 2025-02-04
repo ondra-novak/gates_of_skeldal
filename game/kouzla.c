@@ -1786,13 +1786,12 @@ char ask_who(int num)
   return 0;
   }
 
-static word last_sector;
 
-static char get_valid_sector(word sector)
+static char get_valid_sector(word sector, void *ctx)
   {
-
-  last_sector=sector;
-  return 1;
+    word *last_sector = (word *)ctx;
+    *last_sector=sector;
+    return 1;
   }
 
 
@@ -1848,7 +1847,8 @@ void cast(int num,THUMAN *p,int owner, char backfire)
            p->mana-=k->mge;
 		   if ((game_extras & EX_RANDOM_BACKFIRES)!=0)
 			 {
-			 labyrinth_find_path(p->sektor,65535,SD_PLAY_IMPS,get_valid_sector,NULL);
+		       word last_sector = p->sektor;
+			 labyrinth_find_path(p->sektor,65535,SD_PLAY_IMPS,get_valid_sector,NULL,&last_sector);
 			 teleport_target=last_sector;
 			 cast(rand()*105/RAND_MAX+(cil*512),p,p-postavy,1);
 			 return;

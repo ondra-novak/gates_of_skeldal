@@ -365,6 +365,7 @@ static char display_game_status(void)
 void unaffect();
 extern char immortality;
 extern char nohassle;
+extern char pass_all_mobs;
 
 
 static char console_input_line[console_max_characters+1]  = "";
@@ -492,6 +493,10 @@ static int process_on_off_command(const char *cmd, char on) {
     }
     if (stricmp(cmd, "enemy-walk-diagonal") == 0) {
         game_extras = on?(game_extras | EX_WALKDIAGONAL):(game_extras & ~EX_WALKDIAGONAL);
+        return 1;
+    }
+    if (stricmp(cmd, "ghost-form") == 0) {
+        pass_all_mobs = on;
         return 1;
     }
     return 0;

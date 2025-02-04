@@ -16,7 +16,7 @@ static SoundMixer<2> sound_mixer;
 
 static float master_volume = 1.0;
 static float sound_effect_volume = 1.0;
-static float music_volume = 1.0;
+static float music_volume = 0.5;
 static float base_freq;
 bool swap_channels = false;
 static void empty_deleter(const void *) {}

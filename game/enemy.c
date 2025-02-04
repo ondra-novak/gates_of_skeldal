@@ -63,6 +63,7 @@ char battle=0;
 char neco_v_pohybu=1;
 char nohassle=0;
 
+
 typedef struct tmobsavedata
 {
   short anim_counter;        //citac animaci
@@ -1930,18 +1931,23 @@ char track_mob(int sect,int dir)
 //---------------------------------------------------------------------
 /* Nasledujici procedury a funkce se volaji pro chovani potvory v bitve */
 
-static word last_sector;
-static TMOB *fleeing_mob;
 
-static char valid_sectors(word sector)
+typedef struct flee_monster_context {
+    word last_sector;
+    TMOB *fleeing_mob;
+
+} TFLEE_MONSTER_CONTEXT;
+
+static char valid_sectors(word sector, void *ctx)
   {
   int pp;
+  TFLEE_MONSTER_CONTEXT *fmc = (TFLEE_MONSTER_CONTEXT *)ctx;
 
-  last_sector=sector;
+  fmc->last_sector=sector;
   if (map_coord[sector].flags & MC_MARKED) return 0; //nevyhovujici
   pp=q_kolik_je_potvor(sector);
   if (pp==2) return 0; //moc potvor - nevyhovujici
-  if (fleeing_mob->stay_strategy & MOB_BIG && pp) return 0;
+  if (fmc->fleeing_mob->stay_strategy & MOB_BIG && pp) return 0;
   pp=map_sectors[sector].sector_type;
   if (pp==S_DIRA || ISTELEPORT(pp)) return 0;
   return 1;
@@ -1962,9 +1968,11 @@ char flee_monster_zac(TMOB *m)
           map_coord[map_sectors[s].step_next[i]].flags |= MC_MARKED; //oznac sektor jako nevyhovujici
      map_coord[s].flags |= MC_MARKED;
      }
-  fleeing_mob=m;
-  labyrinth_find_path(m->sector,65535,SD_MONST_IMPS,valid_sectors,NULL);
-  i=labyrinth_find_path(m->sector,last_sector,SD_MONST_IMPS,valid_sectors,&cesta);
+  TFLEE_MONSTER_CONTEXT fmc;
+  fmc.last_sector = 0;
+  fmc.fleeing_mob = m;
+  labyrinth_find_path(m->sector,65535,SD_MONST_IMPS,valid_sectors,NULL,&fmc);
+  i=labyrinth_find_path(m->sector,fmc.last_sector,SD_MONST_IMPS,valid_sectors,&cesta,&fmc);
   for(j=0;j<mapsize;j++)map_coord[j].flags &= ~MC_MARKED;
   if (!i) return 0;
   for(cntr=0,c=cesta;cntr<6;cntr++,c++) if (!*c) break;

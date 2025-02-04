@@ -397,7 +397,6 @@ static void do_script(void)
   fclose(glbm);
   }
 
-static int found_place=0;
 
 /*
 static char flp_validate2(word sector)
@@ -417,9 +416,10 @@ static char flp_validate2(word sector)
   return 1;
   }
 */
-static char flp_validate(word sector)
+static char flp_validate(word sector, void *ctx)
   {
   TMOB *m;
+  int *found_place =  (int *)ctx;
   char c;
 
   if (found_place) return 0;
@@ -433,16 +433,16 @@ static char flp_validate(word sector)
   c=map_sectors[sector].sector_type;
   if (~map_coord[sector].flags & 1) return 0;
   if (c==S_DIRA || ISTELEPORT(c) || c==S_LAVA || c==S_VODA ) return 0;
-  if (c==S_LEAVE && !found_place) found_place=sector;
+  if (c==S_LEAVE && !*found_place) *found_place=sector;
   return 1;
   }
 
 
 static int find_leave_place(int sector)
   {
-  found_place=0;
+  int found_place=0;
   if (map_sectors[sector].sector_type==S_LEAVE) return sector;
-  labyrinth_find_path(sector,65535,(SD_PLAY_IMPS | SD_SECRET),flp_validate,NULL);
+  labyrinth_find_path(sector,65535,(SD_PLAY_IMPS | SD_SECRET),flp_validate,NULL, &found_place);
   return found_place;
   }
 

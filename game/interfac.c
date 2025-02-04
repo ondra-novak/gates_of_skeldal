@@ -530,7 +530,7 @@ const void *col_load(const void *data, int32_t *size)
 #define Lo(x) ((x)& 0xffff)
 
 
-char labyrinth_find_path(word start,word konec,int flag,char (*proc)(word),word **cesta)
+char labyrinth_find_path(word start,word konec,int flag,char (*proc)(word, void *),word **cesta, void *ctx)
   {
   longint *stack;
   longint *stk_free;
@@ -553,7 +553,7 @@ char labyrinth_find_path(word start,word konec,int flag,char (*proc)(word),word 
         d=map_sectors[ss].step_next[i];
         c=1<<(d & 0x7);
         w=d>>3;
-        if (!(ok_flags[w] & c) && proc(d))
+        if (!(ok_flags[w] & c) && (proc==NULL || proc(d, ctx)))
            {
            ok_flags[w]|=c;
           *stk_free++=d | ((stk_cur-stack)<<16);

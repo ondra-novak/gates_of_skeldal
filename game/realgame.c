@@ -18,6 +18,7 @@
 #include "globals.h"
 #include <libs/inicfg.h>
 
+#include <ctype.h>
 #include <string.h>
 
 
@@ -69,6 +70,7 @@ char sekceid[]="<BLOCK>";
 char datapath;
 D_ACTION *d_action={NULL};
 int end_ptr;
+char pass_all_mobs = 0; //cheat make all mobs passable
 uint8_t cur_group=1;
 uint8_t group_select=1;
 char cancel_pass=0;
@@ -162,7 +164,7 @@ uint32_t fnv1a_hash(const char *str) {
     uint32_t hash = 0x01000193;
 
     while (*str) {
-        hash ^= (unsigned char)(*str);
+        hash ^= (unsigned char)(toupper(*str));
         hash *= 0x811C9DC5;
         str++;
     }
@@ -1559,7 +1561,9 @@ void step_zoom(char smer)
      mob_map[nsect]=0;
      }
   else if (mob_map[nsect] && !nopass) {
-     if (!battle){ if (!mob_alter(nsect)) return; }
+     if (!battle){
+         if (!pass_all_mobs && !mob_alter(nsect)) return;
+     }
      else return;
   }
   if (map_sectors[nsect].sector_type==S_LODKA)
