@@ -6,6 +6,7 @@
 #define console_max_characters  120
 #define console_max_lines  16
 
+void macro_drop_item(int sector,int smer,short item);
 
 /****/
 
@@ -454,6 +455,25 @@ static PARSED_COMMAND parse_command(const char *cmd) {
 extern int ghost_walls;
 extern int nofloors;
 
+static int add_file_to_console(const char *name, LIST_FILE_TYPE , size_t, void *ctx) {
+    int *cnt = (void *)ctx;
+    char buff[20] = "";
+    for (int i = 0; i < 19; ++i) buff[i] = ' ';
+    buff[19] = 0;
+    int l = strlen(name);
+    if (l > 3 && stricmp(name+l-4,".MAP") == 0) {
+        if (l>19) l = 19;
+        memcpy(buff, name, l);
+        wzprintf("%s", buff);
+        if (++(*cnt) == 6) {
+            wzprintf("\n");
+            *cnt = 0;
+        }
+    }
+    return 0;
+
+}
+
 static int process_on_off_command(const char *cmd, char on) {
     if (stricmp(cmd, "inner-eye") == 0) {
         show_debug = on;
@@ -538,6 +558,46 @@ static int process_actions(const char *command) {
         play_fx_at(FX_MAP);
         return 1;
     }
+    if (stricmp(command, "rise-and-shine") == 0) {
+        int r = 0;
+        for (int i = 0; i < POCET_POSTAV; ++i) {
+            THUMAN *p = postavy+i;
+            if (p->used && p->inmaphash == current_map_hash) {
+                p->lives=p->vlastnosti[VLS_MAXHIT];
+                p->mana=p->vlastnosti[VLS_MAXMANA];
+                p->kondice=p->vlastnosti[VLS_KONDIC];
+                p->sektor = viewsector;
+                r = 1;
+            }
+        }
+        bott_draw(0);
+        return r;
+
+    }
+    if (stricmp(command, "ascent") == 0) {
+        int lev = postavy[0].exp;
+        for (int i = 0; i < POCET_POSTAV; ++i) {
+            THUMAN *p = postavy+i;
+            if (p->used) lev = MAX(lev,p->level);
+        }
+        for (int i = 0; i < POCET_POSTAV; ++i) {
+            THUMAN *p = postavy+i;
+            p->exp = level_map[lev-1];
+            check_player_new_level(p);
+        }
+        return 1;
+    }
+    if (stricmp(command, "by-the-power-of-grayskull") == 0) {
+        memset(runes,0xFF, sizeof(runes));
+        play_fx_at(FX_MAGIC);
+        return 1;
+    }
+    if (stricmp(command, "world-list") == 0) {
+        int cnt = 0;
+        list_files(gpathtable[SR_MAP], file_type_normal|file_type_just_name, add_file_to_console, &cnt);
+        printf("\n");
+        return 1;
+    }
     return 0;
 }
 
@@ -572,6 +632,20 @@ static int process_with_params(const char *cmd, const char *args) {
         console_add_line("");
         return 1;
     }
+    if (stricmp(cmd, "summon") == 0) {
+        if (args[0] == 'i') {
+            char *end;
+            unsigned long  id = strtoul(args+1, &end, 10);
+            if (*end == 0) {
+                if (id < (unsigned long)item_count) {
+                    macro_drop_item(viewsector,viewdir,id);
+                    return 1;
+                }
+            }
+
+        }
+        return 0;
+    }
     if (stricmp(cmd, "say") == 0) {
         console_add_line(args);
         return 1;
@@ -580,6 +654,16 @@ static int process_with_params(const char *cmd, const char *args) {
         long v = strtol(args, NULL, 10);
         if (v > 0) timerspeed_val = v;
         return v > 0;
+    }
+    if (stricmp(cmd, "portal-jump") == 0) {
+        if (check_file_exists(build_pathname(2,gpathtable[SR_MAP], args))) {
+            TMA_LOADLEV lev;
+            strncpy(lev.name,args,12);
+            lev.start_pos = 0;
+            macro_load_another_map(&lev);
+            return 1;
+        }
+        return 0;
     }
     return 0;
 }

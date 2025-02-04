@@ -111,17 +111,21 @@ int list_files(const char *directory, int type, LIST_FILES_CALLBACK cb, void *ct
         while (iter != std::filesystem::directory_iterator()) {
             int r = 0;
             const auto &entry = *iter;
+            const char *name;
+            if (type & file_type_just_name) name = entry.path().filename().c_str();
+            else name = entry.path().filename().c_str();
             if (entry.is_regular_file(ec) && (type & file_type_normal)) {
-                r = cb(entry.path().c_str(), file_type_normal, entry.file_size(ec), ctx);
+                r = cb(name, file_type_normal, entry.file_size(ec), ctx);
             } else if (entry.is_directory(ec)) {
                 int dot = entry.path().filename() == "." || entry.path().filename() == "..";
                 if (!dot && (type & file_type_directory)) {
-                    r = cb(entry.path().c_str(), file_type_directory, 0, ctx);
+                    r = cb(name, file_type_directory, 0, ctx);
                 } else if (dot & (type & file_type_dot)) {
-                    r = cb(entry.path().c_str(), file_type_dot, 0, ctx);
+                    r = cb(name, file_type_dot, 0, ctx);
                 }
             }
             if (r) return r;
+            ++iter;
         }
     }
     return 0;

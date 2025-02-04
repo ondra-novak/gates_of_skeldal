@@ -86,7 +86,8 @@ void sleep_ms(uint32_t);
 typedef enum {
     file_type_normal = 1,
     file_type_directory = 2,
-    file_type_dot = 4
+    file_type_dot = 4,
+    file_type_just_name = 8
 } LIST_FILE_TYPE;
 
 typedef int (*LIST_FILES_CALLBACK)(const char *, LIST_FILE_TYPE , size_t, void *);

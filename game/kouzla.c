@@ -538,6 +538,7 @@ void zmen_vlastnost(int num,int cil,int what,int how)
      if (p->lives>p->vlastnosti[VLS_MAXHIT]) p->lives=p->vlastnosti[VLS_MAXHIT];
      //if (p->mana>p->vlastnosti[VLS_MAXMANA]) p->lives=p->vlastnosti[VLS_MAXMANA];
      if (p->kondice>p->vlastnosti[VLS_KONDIC]) p->lives=p->vlastnosti[VLS_KONDIC];
+
      }
   }
 
@@ -752,8 +753,14 @@ void spell_hit(int cil,int min,int max,int owner)
      vysl=min+rnd(max-min+1);
      if (vysl<0)
       {
-      h->lives-=vysl>h->vlastnosti[VLS_MAXHIT]?h->vlastnosti[VLS_MAXHIT]:vysl;
-      if (h->groupnum==0) h->groupnum=cur_group;
+         if (vysl < 0 && h->lives == 0 && h->sektor == 0) {
+             h->sektor = viewsector;
+             h->inmaphash = current_map_hash;
+         }
+          h->lives-=vysl;
+          if (h->lives < 0) h->lives = 0;
+          if (h->lives > h->vlastnosti[VLS_MAXHIT]) h->lives = h->vlastnosti[VLS_MAXHIT];
+          if (h->groupnum==0) h->groupnum=cur_group;
       }
       else player_hit(h,vysl,1);
 
@@ -898,7 +905,7 @@ void spell_pripojenia(int owner)
   THUMAN *h=NULL;
   char more=0;
   destroy_player_map();
-  for(i=0;i<POCET_POSTAV;i++) if (postavy[i].used && postavy[i].lives)
+  for(i=0;i<POCET_POSTAV;i++) if (postavy[i].used)
      {
      int sect;
      sect=postavy[i].sektor;
@@ -1820,8 +1827,9 @@ void cast(int num,THUMAN *p,int owner, char backfire)
         {
         THUMAN *h1=postavy+cil-1;
         char s[256];
-        if ((abs(map_coord[h1->sektor].x-map_coord[p->sektor].x)>5) ||
-           (abs(map_coord[h1->sektor].y-map_coord[p->sektor].y)>5) )
+        if ((h1->lives)
+           && ((abs(map_coord[h1->sektor].x-map_coord[p->sektor].x)>5) ||
+           (abs(map_coord[h1->sektor].y-map_coord[p->sektor].y)>5) ))
            {
            sprintf(s,texty[37+(h1->female==1)],h1->jmeno,p->jmeno);
            bott_disp_text(s);
