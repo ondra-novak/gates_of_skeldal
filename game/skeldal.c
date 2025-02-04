@@ -1455,7 +1455,6 @@ static void start(va_list args)
   int volba;
   char /*d,*/openning;
 
-  zde:
    openning=0;
    update_mysky();
    schovej_mysku();
@@ -1484,7 +1483,10 @@ static void start(va_list args)
                           exit_wait=1;
                           }
                         break;
-       case V_UVOD:bar32(0,0,639,479);goto zde;break;
+       case V_UVOD:bar32(0,0,639,479);
+                   play_anim(7);
+                   openning =0;
+                   break;
        case V_OBNOVA_HRY:load_saved_game();break;
        case V_AUTORI:run_titles(NULL);break;
         }

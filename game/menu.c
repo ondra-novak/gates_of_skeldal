@@ -348,7 +348,8 @@ int enter_menu(char open)
   put_picture(0,0,ablock(H_MENU_BAR));
   put_picture(0,56,ablock(H_ANIM));
   ukaz_mysku();
-  if (open) effect_show(NULL);else showview(0,0,0,0);
+  effect_show(NULL);
+  //if (open) effect_show(NULL);else showview(0,0,0,0);
   change_click_map(clk_main_menu,CLK_MAIN_MENU);
   send_message(E_ADD,E_TIMER,prehraj_animaci_v_menu);
   send_message(E_ADD,E_KEYBOARD,klavesnice);
