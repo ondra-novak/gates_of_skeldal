@@ -613,6 +613,7 @@ extern int bgr_handle;  //cislo handle k obrazku pozadi;
 extern char enable_glmap; //povoluje globalni mapu;
 extern int charmin;
 extern int charmax;
+extern uint32_t current_map_hash;
 
 extern int autoopenaction;
 extern int autoopendata;
@@ -971,6 +972,7 @@ typedef struct thuman
   int jidlo;   //max 25000      //pocet kol o hladu zbyvajicich
   int voda;    //max 20000      //pocet kol o zizny zbyvajicich
   struct thuman *demon_save;    //ukazatel na postavu ulozenou behem kouzla demon
+  uint32_t inmaphash;                //hash nazvu mapy, kde se postavy nachazi
   }THUMAN;
 
 extern TITEM *glob_items;             //tabulka predmetu
@@ -1791,6 +1793,12 @@ static __inline int quit_request_as_escape(int c) {
 void draw_console_window(void);
 void console_show(char show);
 char console_is_visible(void);
+
+char *map_hash_to_string_impl(char *c, uint32_t h, int sz);
+#define map_hash_to_string(h) (map_hash_to_string_impl((char *)alloca(31), h, 30))
+const char *find_map_from_hash_impl(char *c, uint32_t h, int sz);
+#define find_map_from_hash(h) (find_map_from_hash_impl((char *)alloca(31), h, 30))
+char can_select_player(THUMAN *p, char select_dead, char select_far);
 
 //extras
 #include "extras.h"

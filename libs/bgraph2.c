@@ -72,6 +72,41 @@ void outtext(const char *text)
      }
   }
 
+void outtext_w_nl(const char *text)
+  {
+  byte pos;
+  int savewriteposx = writeposx;
+
+  if (fontdsize)
+     while (*text)
+     {
+         if (*text == '\n') {
+             writepos -= writeposx - savewriteposx - GetScreenPitch() * (charsize(curfont, 'X') >> 8);
+             writeposx = savewriteposx;
+         } else {
+             char2_32(writepos,curfont,*text);
+             pos=(charsize(curfont,*text) & 0xff)<<1;
+             writepos+=pos;
+             writeposx+=pos;
+         }
+         text++;
+     }
+  else
+   while (*text)
+     {
+       if (*text == '\n') {
+           writepos -= writeposx - savewriteposx - GetScreenPitch() * (charsize(curfont, 'X') >> 8);
+           writeposx = savewriteposx;
+       } else {
+           char_32(writepos,curfont,*text);
+           pos=charsize(curfont,*text) & 0xff;
+           writepos+=pos;
+           writeposx+=pos;
+       }
+       text++;
+     }
+  }
+
 /*MODEinfo vesadata[3];
 SVGAinfo svgadata[3];
 int lastbank=0;

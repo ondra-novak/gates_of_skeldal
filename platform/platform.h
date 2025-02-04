@@ -20,6 +20,7 @@ extern "C"
 #define _KEYBRD_READ 1
 
 #define TIMERSPEED 20
+extern int timerspeed_val;
 
 uint32_t _bios_keybrd(int mode);
 
@@ -27,6 +28,8 @@ uint32_t _bios_keybrd(int mode);
 #define RGB888(r,g,b) ((unsigned short)((((r)<<7)&0x7C00) | (((g)<<2) & 0x3E0) | ((b)>>3)))
 #define RGB555(r,g,b) (((unsigned short)(((r)<<10) | ((g)<<5) | (b))) & ~BGSWITCHBIT)
 #define RGB555_ALPHA(r,g,b) (((unsigned short)(((r)<<10) | ((g)<<5) | (b))) | BGSWITCHBIT)
+#define AVG_PIXEL_MASK (0x7BDE)
+#define BLEND_PIXELS(px1, px2) ((((px1) & AVG_PIXEL_MASK) + ((px2) & AVG_PIXEL_MASK)) >> 1)
 
 
 

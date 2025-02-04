@@ -1325,6 +1325,15 @@ static void game_big_circle(char enforced)
          {viewdir=i;break;}
       }
      }
+    for (int i = 0; i<POCET_POSTAV; ++i) {
+        if (postavy[i].used &&postavy[i].groupnum == cur_group) {
+                postavy[i].inmaphash = current_map_hash;
+        }
+        if (postavy[i].sektor <0) postavy[i].sektor = -postavy[i].sektor;
+        if (postavy[i].inmaphash != current_map_hash) {
+            postavy[i].sektor = -postavy[i].sektor;
+        }
+    }
     recalc_volumes(viewsector,viewdir);
     for(r=0;r<mapsize*4;r++) call_macro(r,MC_STARTLEV);
     loadlevel.name[0]=0;

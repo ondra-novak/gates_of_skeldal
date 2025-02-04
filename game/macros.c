@@ -199,28 +199,27 @@ void macro_send_act(const TMA_SEND_ACTION *p)
 
 void macro_load_another_map(const TMA_LOADLEV *z)
   {
-  int i,j=0;
+//  int i,j=0;
 
   if (battle) return;
   group_all();
-  for(i=0;i<POCET_POSTAV;i++)
+/*  for(i=0;i<POCET_POSTAV;i++)
      if (postavy[i].sektor!=viewsector && postavy[i].used && postavy[i].lives)
         {
         bott_disp_text(texty[66]);
         return;
         }
+        */
   if (!GlobEvent(MAGLOB_LEAVEMAP,viewsector,viewdir)) return;
-  for(i=0;i<POCET_POSTAV;i++)
+/*  for(i=0;i<POCET_POSTAV;i++)
      if (postavy[i].groupnum) {
         if (i!=j)memcpy(&postavy[j++],&postavy[i],sizeof(postavy[i]));else j++;
      }
   if (j<POCET_POSTAV) memset(&postavy[j],0,sizeof(THUMAN)*(POCET_POSTAV-j));
+  */
   loadlevel=*z;
-  send_message(E_CLOSE_MAP);
   save_map=1;
-  reg_grafiku_postav();
-  reroll_all_shops();
-  for(i=0;i<POCET_POSTAV;i++) if (postavy[i].used) postavy[i].sektor=z->start_pos;
+  send_message(E_CLOSE_MAP);
   }
 
 void macro_drop_item(int sector,int smer,short item)
@@ -580,7 +579,7 @@ static void ma_send_experience(int32_t what)
   for(i=0,maxl=0,h=postavy;i<POCET_POSTAV;i++,h++)
      if (h->used && maxl<h->level) maxl=h->level;
   for(i=0,h=postavy;i<POCET_POSTAV;i++,h++)
-     if (h->used && h->lives)
+     if (h->used)
         {
         h->exp+=what*h->level/maxl;
         check_player_new_level(h);
@@ -626,7 +625,7 @@ static void build_trig_group(char mode,int side)
                      break;
      case TRIG_SECTOR:side>>=2;
                       for(i=0,h=postavy;i<POCET_POSTAV;i++,h++)
-                       if (h->used && h->sektor==side) trig_group|=1<<i;
+                       if (h->used && h->sektor==side && h->inmaphash == current_map_hash) trig_group|=1<<i;
                      break;
      }
   }

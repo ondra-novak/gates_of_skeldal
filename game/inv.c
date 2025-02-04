@@ -1014,7 +1014,7 @@ static void inv_use_spec(short **items)
 char check_jidlo_voda(THUMAN *p)
   {
   if (game_extras & EX_NOHUNGRY) return 0;
-  if (p->used && p->lives)
+  if (p->used && p->lives && p->inmaphash == current_map_hash)
      {
      p->jidlo--;
      p->voda--;
@@ -1069,7 +1069,7 @@ void pomala_regenerace_postavy(THUMAN *p)
 char sleep_regenerace(THUMAN *p)
   {
   int mreg,mmax;
-  if (p->used && p->lives)
+  if (p->used && p->lives && p->inmaphash == current_map_hash)
      {
      if (check_jidlo_voda(p)) return 1;
      p->kondice+=p->vlastnosti[VLS_VPREG];
@@ -2943,7 +2943,7 @@ char shop_change_player(int id, int xa, int ya,int xr,int yr)
      i=group_sort[i];
      p=&postavy[i];
 
-     if (p->used && p->sektor==viewsector) {
+     if (p->used && p->sektor==viewsector && p->inmaphash == current_map_hash) {
         if (ms_last_event.event_type & 0x2)
            {
            int j=select_player;

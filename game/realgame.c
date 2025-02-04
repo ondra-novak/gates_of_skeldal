@@ -85,6 +85,7 @@ short moving_player=0;
 char force_start_dialog=0;
 int start_dialog_number=0;
 int start_dialog_mob=0;
+uint32_t current_map_hash;
 
 int32_t money=0;
 
@@ -156,7 +157,33 @@ char *change_extension_support(char *buffer, const char *filename,char *new_exte
 
 #define set_file_extension(filename, extension) change_extension_support((char *)alloca(strlen(filename)+strlen(extension)), (filename), (extension))
 
-extern int snd_devnum;
+
+uint32_t fnv1a_hash(const char *str) {
+    uint32_t hash = 0x01000193;
+
+    while (*str) {
+        hash ^= (unsigned char)(*str);
+        hash *= 0x811C9DC5;
+        str++;
+    }
+
+    return hash;
+}
+
+char *map_hash_to_string_impl(char *c, uint32_t h, int sz) {
+    snprintf(c, sz, "maphash_%u", h);
+    return c;
+}
+
+const char *find_map_from_hash_impl(char *c, uint32_t h, int sz) {
+    const char *name = map_hash_to_string(h);
+    int32_t tsz = temp_storage_find(name);
+    if (tsz < 0 || tsz+1 > sz) return NULL;
+    temp_storage_retrieve(name, c, tsz);
+    c[tsz] = 0;
+    return c;
+}
+
 
 int load_map(char *filename)
   {
@@ -328,6 +355,9 @@ int load_map(char *filename)
      exit(0);
      }
   doNotLoadMapState=0;
+  current_map_hash = fnv1a_hash(filename);
+  const char * hash_str = map_hash_to_string(current_map_hash);
+  temp_storage_store(hash_str, filename, strlen(filename));
   return suc;
   }
 
@@ -355,6 +385,7 @@ int get_leaving_place(char *level_name)
   }
 
 
+
 void leave_current_map()
   {
   int i;
@@ -364,7 +395,9 @@ void leave_current_map()
   kill_all_sounds();
   remove_all_mob_spells();
   regen_all_mobs();
-  if (save_map) save_map_state(); //do tempu se zabali status mapy
+  if (save_map) {
+      save_map_state(); //do tempu se zabali status mapy
+  }
   destroy_fly_map();
   p=letici_veci;
   while (p!=NULL) {stop_fly(p,0);p=p->next;}
@@ -973,8 +1006,10 @@ void mrtva_skupina()
   {
   int i=0;
 
-  for(i=0;!postavy[i].groupnum || !postavy[i].used;i++);
-  zmen_skupinu(&postavy[i]);
+  //najde prvni pouzitelnou postavu
+  for(i=0;!postavy[i].groupnum || !postavy[i].used || postavy[i].inmaphash != current_map_hash;i++);
+  //a zmeni
+  zmen_skupinu(postavy+i);
   }
 /*
 static void check_pod_vodou(char mode)
@@ -1016,7 +1051,7 @@ void check_players_place(char mode) {
     char levitat;
 
     for (i = 0; i < POCET_POSTAV; i++, h++)
-        if (h->used && h->lives) {
+        if (h->used && h->lives && h->inmaphash == current_map_hash) {
             int sect;
             int u1;
 
@@ -1171,7 +1206,7 @@ void zmen_skupinu(THUMAN *p)
   {
   int i;
 
-  if (p->groupnum==0) {bott_draw(0);return;}
+  if (p->groupnum==0 || p->inmaphash != current_map_hash) {bott_draw(0);return;}
   cur_group=p->groupnum;
   for(i=0;i<POCET_POSTAV;i++) if (!postavy[i].lives && postavy[i].groupnum!=cur_group) postavy[i].groupnum=0;
   viewsector=p->sektor;
@@ -1236,11 +1271,11 @@ void group_all(void)
      {
      if (cur_group!=1)
         {
-        for(i=0,h=postavy;i<POCET_POSTAV;i++,h++) if (h->used && h->groupnum==1 && h->sektor!=viewsector) break;
+        for(i=0,h=postavy;i<POCET_POSTAV;i++,h++) if (h->used && h->groupnum==1 && h->sektor!=viewsector && h->inmaphash == current_map_hash) break;
         if (i==POCET_POSTAV) cur_group=1;
         }
      for(i=0,h=postavy;i<POCET_POSTAV;i++,h++)
-        if (h->used && h->lives && h->sektor==viewsector) h->groupnum=cur_group;
+        if (h->used && h->lives && h->sektor==viewsector && h->inmaphash == current_map_hash) h->groupnum=cur_group;
      }
 
   bott_draw(0);
@@ -1256,7 +1291,7 @@ void build_player_map()  //je nutne volat po presunu postav
   {
   int i;
   THUMAN *p;
-  for(i=0;p=&postavy[i],i<POCET_POSTAV;i++)
+  for(i=0;p=&postavy[i],i<POCET_POSTAV;i++) if (p->used && p->inmaphash == current_map_hash)
      {
      map_coord[p->sektor].flags|=(p->lives?MC_PLAYER:MC_DEAD_PLR);
      if (mglob.map_effector==ME_PVODA)
@@ -1458,7 +1493,7 @@ void check_postavy_teleport()
   if (ISTELEPORTSECT(viewsector))
      {
      int i,ss=0,sid=viewsector*4+viewdir;
-     for(i=0;i<POCET_POSTAV;i++) if (postavy[i].sektor==viewsector && postavy[i].used) ss|=1<<i;
+     for(i=0;i<POCET_POSTAV;i++) if (postavy[i].sektor==viewsector && postavy[i].used && postavy[i].inmaphash == current_map_hash) ss|=1<<i;
      if (map_sides[sid].flags & SD_SEC_VIS)
         postavy_teleport_effect(map_sectors[viewsector].sector_tag,map_sectors[nsect].side_tag,ss,1);
      else
@@ -1861,8 +1896,8 @@ void *game_keyboard(EVENT_MSG *msg,void **usr)
                     console_show(!console_is_visible());
                     }
                     break;
-        CASE_KEY_1_6:c=group_sort[c-2];
-                     if (postavy[c].sektor==viewsector && postavy[c].used)
+        CASE_KEY_1_6:c=group_sort[(c >> 8)-2];
+                     if (postavy[c].sektor==viewsector && postavy[c].used && postavy[c].inmaphash == current_map_hash)
                        add_to_group(c);
                      zmen_skupinu(postavy+c);
                      bott_draw(1);
@@ -1902,7 +1937,7 @@ int postavy_propadnout(int sector)
   mute_hit_sound=0;
   if (map_coord[sector].flags & MC_DPLAYER && map_sectors[sector].sector_type==S_DIRA)
      {
-     for(i=0;i<POCET_POSTAV;i++) if (postavy[i].sektor==sector && postavy[i].used && (postavy[i].vlastnosti[VLS_KOUZLA] & SPL_LEVITATION)==0)
+     for(i=0;i<POCET_POSTAV;i++) if (postavy[i].sektor==sector && postavy[i].used && postavy[i].inmaphash==current_map_hash && (postavy[i].vlastnosti[VLS_KOUZLA] & SPL_LEVITATION)==0)
         {
         int l=postavy[i].vlastnosti[VLS_MAXHIT];
         z=postavy[i].sektor=map_sectors[sector].sector_tag;

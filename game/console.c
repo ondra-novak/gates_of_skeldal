@@ -450,7 +450,8 @@ static PARSED_COMMAND parse_command(const char *cmd) {
     return ret;
 }
 
-extern int hide_walls;
+extern int ghost_walls;
+extern int nofloors;
 
 static int process_on_off_command(const char *cmd, char on) {
     if (stricmp(cmd, "inner-eye") == 0) {
@@ -473,8 +474,24 @@ static int process_on_off_command(const char *cmd, char on) {
         cur_group=on?10:postavy[0].groupnum;
         return 1;
     }
-    if (stricmp(cmd, "hide-walls") == 0) {
-        hide_walls = on;
+    if (stricmp(cmd, "ghost-walls") == 0) {
+        ghost_walls = on;
+        return 1;
+    }
+    if (stricmp(cmd, "true-seeing") == 0) {
+        true_seeing = on;
+        return 1;
+    }
+    if (stricmp(cmd, "walking-in-air") == 0) {
+        nofloors = on;
+        return 1;
+    }
+    if (stricmp(cmd, "enemy-insight") == 0) {
+        show_mob_info = on;
+        return 1;
+    }
+    if (stricmp(cmd, "enemy-walk-diagonal") == 0) {
+        game_extras = on?(game_extras | EX_WALKDIAGONAL):(game_extras & ~EX_WALKDIAGONAL);
         return 1;
     }
     return 0;
@@ -554,10 +571,19 @@ static int process_with_params(const char *cmd, const char *args) {
         console_add_line(args);
         return 1;
     }
+    if (stricmp(cmd, "speed") == 0) {
+        long v = strtol(args, NULL, 10);
+        if (v > 0) timerspeed_val = v;
+        return v > 0;
+    }
     return 0;
 }
 
 static int process_command(PARSED_COMMAND cmd) {
+    if (cmd.command == NULL) {
+        console_add_line("");
+        return 0;
+    }
     int onoff = -1;
     if (cmd.args) {
         if (stricmp(cmd.args, "on") == 0) onoff = 1;

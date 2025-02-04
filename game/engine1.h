@@ -29,9 +29,9 @@
 
 void general_engine_init(void);
 void draw_floor_ceil(int celx,int cely,char f_c,const void *txtr);
-void show_cel2(int celx,int cely,const void *stena,int xofs,int yofs,char rev);
+void show_cel2(int celx,int cely,const void *stena,int xofs,int yofs,char rev, int alpha);
   //zobrazi primou stenu ktera lezi pred nebo napravo od pozorovatele
-void show_cel(int celx,int cely,const void *stena,int xofs,int yofs,char rev);
+void show_cel(int celx,int cely,const void *stena,int xofs,int yofs,char rev, int alpha);
   void turn_left(void);
 void turn_right(void);
 void zooming_backward(const word *background);
@@ -118,6 +118,7 @@ extern word *buffer_2nd;
 extern char show_names;
 extern char show_lives;
 extern char secnd_shade;
+extern char show_mob_info;
 
 typedef short palette_t[256];
 

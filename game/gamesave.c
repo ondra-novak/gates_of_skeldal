@@ -484,6 +484,7 @@ int load_map_state() //obnovuje stav mapy; nutno volat po zavolani load_map;
   res|=load_vyklenky(fsta);
   res|=load_all_fly(fsta);
   res|=load_enemy_paths(fsta);
+
   err:
   SEND_LOG("(SAVELOAD) State of current map loaded (err:%d)",res);
   temp_storage_close_rd(fsta);

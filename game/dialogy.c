@@ -563,7 +563,7 @@ static void nahodne(int vls,int omz,char check)
 
   memset(chk,0,sizeof(chk));
   if (!check) for(i=0;i<SAVE_POSTS;i++) if (sn_nums[i]<POCET_POSTAV) chk[(uint8_t)sn_nums[i]]|=1;
-  for(i=0;i<POCET_POSTAV;i++) if (postavy[i].sektor!=viewsector || !postavy[i].lives || !postavy[i].used) chk[i]|=2;
+  for(i=0;i<POCET_POSTAV;i++) if (postavy[i].sektor!=viewsector || !postavy[i].lives || !postavy[i].used || postavy[i].inmaphash != current_map_hash) chk[i]|=2;
   m=0;l=-1;
   for(i=0;i<POCET_POSTAV;i++)
      if (postavy[i].vlastnosti[vls]>=omz && chk[i]==0)
@@ -988,6 +988,32 @@ char drop_character()
 
 static char dead_players=0;
 
+ char is_player_near(int sector, THUMAN *p, int exclude_dir) {
+    if (sector == p->sektor) return 1;
+    for (int i = 0; i  < 4; ++i) if (i != exclude_dir) {
+        if (map_sectors[sector].step_next[i] == p->sektor
+                && (map_sides[sector * 4 + i].flags & SD_PLAY_IMPS) == 0) return 1;
+    }
+    return 0;
+}
+
+char can_select_player(THUMAN *p, char select_dead, char select_far) {
+    if (select_dead) {
+        if (p->used && p->lives == 0 && (
+                p->sektor == 0 || p->sektor == viewsector)) return 1;
+    } else {
+        int side = (viewsector << 2) + viewdir;
+    if (p->used && p->lives != 0 && (select_far ||
+            (p->sektor == viewsector
+                    || ((map_sides[side].flags & SD_PLAY_IMPS) == 0
+                            && is_player_near(map_sectors[viewsector].step_next[viewdir], p, viewdir)
+
+                    ))))
+            return 1;
+    }
+    return 0;
+}
+
 static char ask_who_proc(int id,int xa,int ya,int xr,int yr)
   {
   {
@@ -1007,8 +1033,7 @@ static char ask_who_proc(int id,int xa,int ya,int xr,int yr)
      {
      i=group_sort[i];
      p=&postavy[i];
-     if (p->used && ((p->lives!=0) ^ (dead_players)))
-        if (p->sektor==viewsector)
+     if (can_select_player(p,dead_players,0))
            {
            selected_player=i;
            exit_wait=1;
@@ -1139,7 +1164,7 @@ static void dark_screen(int time,int gtime)
   showview(0,0,0,0);
   while (get_timer_value()<i) do_events();
   game_time+=gtime*HODINA;
-  for(i=0,h=postavy;i<POCET_POSTAV;i++,h++) if (h->used && h->lives)
+  for(i=0,h=postavy;i<POCET_POSTAV;i++,h++) if (h->used && h->lives && h->inmaphash == current_map_hash)
      {
      z=h->vlastnosti[VLS_HPREG]*gtime;z+=h->lives;
      if (z>h->vlastnosti[VLS_MAXHIT]) {z=h->vlastnosti[VLS_MAXHIT];h->lives=z;}
@@ -1156,10 +1181,10 @@ static char najist_postavy(int cena)
   int i,s=0;
   THUMAN *h=postavy;
 
-  for(i=0;i<POCET_POSTAV;i++,h++) if (h->used && h->sektor==viewsector && h->lives) s=s+cena;
+  for(i=0;i<POCET_POSTAV;i++,h++) if (h->used && h->sektor==viewsector && h->lives && h->inmaphash != current_map_hash) s=s+cena;
   if (s>money) return 1;
   money-=s;
-  for(i=0,h=postavy;i<POCET_POSTAV;i++,h++) if (h->used && h->sektor==viewsector && h->lives)
+  for(i=0,h=postavy;i<POCET_POSTAV;i++,h++) if (h->used && h->sektor==viewsector && h->lives && h->inmaphash != current_map_hash)
      {
      h->jidlo=MAX_HLAD(h);
      h->voda=MAX_ZIZEN(h);
@@ -1172,7 +1197,7 @@ static char isall()
   THUMAN *h=postavy;
   int i;
 
-  for(i=0,h=postavy;i<POCET_POSTAV;i++,h++) if (h->sektor!=viewsector && h->used && h->lives) return 0;
+  for(i=0,h=postavy;i<POCET_POSTAV;i++,h++) if (h->sektor!=viewsector && h->used && h->lives && h->inmaphash == current_map_hash) return 0;
   return 1;
   }
 

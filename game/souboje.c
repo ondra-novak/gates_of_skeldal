@@ -103,7 +103,7 @@ char runes_mask(int id,int xa,int ya,int xr,int yr);
 char cancel_runes(int id,int xa,int ya,int xr,int yr);
 char power(int id,int xa,int ya,int xr,int yr);
 char cancel_power(int id,int xa,int ya,int xr,int yr);
-char ask_who_proc(int id,int xa,int ya,int xr,int yr);
+static char ask_who_proc(int id,int xa,int ya,int xr,int yr);
 void wire_programming();
 void souboje_vybrano(int d);
 void program_draw();
@@ -218,7 +218,7 @@ THUMAN *isplayer(int sector,THUMAN *h,char death)
      if (h==NULL) h=postavy;else h++;
      while (h-postavy<POCET_POSTAV)
         {
-        if (h->used && (h->lives || death) && h->sektor==sector) return h;
+        if (h->used && (h->lives || death) && h->sektor==sector && h->inmaphash == current_map_hash) return h;
         h++;
         }
      }
@@ -230,7 +230,7 @@ int numplayers(int sector,char death)
   int i,c;
   THUMAN *h;
 
-  for(i=0,c=0,h=postavy;i<POCET_POSTAV;i++,h++) if (h->used && (death || h->lives) && h->sektor==sector) c++;
+  for(i=0,c=0,h=postavy;i<POCET_POSTAV;i++,h++) if (h->used && (death || h->lives) && h->sektor==sector && h->inmaphash == current_map_hash) c++;
   return c;
   }
 
@@ -255,7 +255,7 @@ void presun_krok(EVENT_MSG *msg,void **user)
 	{
 	int i;
 	destroy_player_map();
-	for (i=0;i<POCET_POSTAV;i++) if (postavy[i].used && postavy[i].lives && postavy[i].sektor==hromadny_utek)
+	for (i=0;i<POCET_POSTAV;i++) if (postavy[i].used && postavy[i].lives && postavy[i].sektor==hromadny_utek && postavy[i].inmaphash == current_map_hash)
 	  postavy[i].sektor=postavy[select_player].sektor;
 	build_player_map();
 	hromadny_utek=postavy[select_player].sektor;
@@ -268,7 +268,7 @@ void poloz_vsechny_predmety()
   int i;
 
   for(i=0;i<POCET_POSTAV && picked_item!=NULL;i++) {//polozeni pripadne drzene veci v mysi.
-    if (postavy[i].used && postavy[i].sektor==viewsector && put_item_to_inv(&postavy[i],picked_item))
+    if (postavy[i].used && postavy[i].sektor==viewsector && postavy[i].inmaphash == current_map_hash && put_item_to_inv(&postavy[i],picked_item))
           {
           free(picked_item);
           picked_item=NULL;
@@ -317,7 +317,7 @@ void zacni_souboj(TMOB *p,int d,short sector)
   init_distance=d;
   init_sector=sector;
   map_coord[p->sector].flags |= MC_AUTOMAP;
-  for(i=0;i<POCET_POSTAV;i++) if (postavy[i].used && postavy[i].sektor==init_sector) break;
+  for(i=0;i<POCET_POSTAV;i++) if (postavy[i].used && postavy[i].sektor==init_sector &&postavy[i].inmaphash == current_map_hash) break;
   if (i<POCET_POSTAV) att_player=i;else att_player=0xff;
   }
 
@@ -393,14 +393,14 @@ void rozhodni_o_poradi()
   short *r,mem;
 
   for(i=0;i<MAX_MOBS;i++) if (mobs[i].vlajky & MOB_LIVE && mobs[i].vlajky & MOB_IN_BATTLE) celk+=mobs[i].actions;
-  for(i=0;i<POCET_POSTAV;i++) if (postavy[i].used) celk+=postavy[i].programovano;
+  for(i=0;i<POCET_POSTAV;i++) if (postavy[i].used && postavy[i].inmaphash == current_map_hash) celk+=postavy[i].programovano;
   if (poradi!=NULL) free(poradi);
   r=poradi=getmem(celk*2+4);
   for(i=0;i<MAX_MOBS;i++) if (mobs[i].vlajky & MOB_LIVE && mobs[i].vlajky & MOB_IN_BATTLE)
      {
      for(j=0;j<mobs[i].actions;j++) *r++=i+1;
      }
-  for(i=0;i<POCET_POSTAV;i++) if (postavy[i].used)
+  for(i=0;i<POCET_POSTAV;i++) if (postavy[i].used  && postavy[i].inmaphash == current_map_hash)
      {
      for(j=0;j<postavy[i].programovano;j++) *r++=-i-1;
      }
@@ -462,7 +462,7 @@ void auto_group()
      {
      p->groupnum=t++;
      for(j=i+1;q=&postavy[j],j<POCET_POSTAV;j++)
-        if (p->sektor==q->sektor && p->direction==q->direction && q->used && q->lives)
+        if (p->sektor==q->sektor && p->direction==q->direction && p->inmaphash == current_map_hash && q->used && q->lives)
           q->groupnum=p->groupnum;
      }
   }
@@ -536,7 +536,7 @@ void zacatek_kola()
      if (p->used)
         {
         postavy[i].programovano=0;
-        if (p->kondice && p->lives)
+        if (p->kondice && p->lives && p->inmaphash == current_map_hash)
            {
            p->actions=get_ap(p->vlastnosti);
        //    if (p->actions) autostart_round=0;
@@ -568,7 +568,7 @@ char check_end_game()
   for(i=0;i<POCET_POSTAV;i++)
      {
      p=&postavy[i];
-     if (p->used && p->lives)
+     if (p->used && p->lives && p->inmaphash == current_map_hash)
         {
         end=2;
         if (p->groupnum==cur_group) return 0;
@@ -673,6 +673,22 @@ void wire_end_game()
   battle=0;running_battle=0;
   unwire_proc();
   for(i=0;i<MAX_MOBS;i++) if (mobs[i].vlajky & MOB_LIVE) mobs[i].vlajky&=~MOB_IN_BATTLE;
+
+  for (int i = 0; i < POCET_POSTAV; ++i) {
+      if (postavy[i].used && postavy[i].inmaphash != current_map_hash) {
+          const char *mname = find_map_from_hash(postavy[i].inmaphash);
+          if (mname != NULL) {
+              cur_group = postavy[i].groupnum;
+              TMA_LOADLEV lv;
+              strncpy(lv.name,mname, sizeof(lv.name)-1);
+              lv.start_pos = -postavy[i].sektor;
+              lv.dir = postavy[i].direction;
+              macro_load_another_map(&lv);
+              return;
+          }
+      }
+  }
+
   bott_disp_text(texty[65]);
   bott_text_forever();
   add_to_timer(TM_SCENE,gamespeed,-1,refresh_scene);
@@ -785,7 +801,7 @@ static int UtekHromadne(int sector)
   int minact=999;
   int i;
   int p=0;
-  for (i=0;i<POCET_POSTAV;i++) if (postavy[i].used && postavy[i].sektor==sector && postavy[i].kondice>2)
+  for (i=0;i<POCET_POSTAV;i++) if (postavy[i].used && postavy[i].sektor==sector && postavy[i].kondice>2 && postavy[i].inmaphash == current_map_hash)
 	{
     int wf=weigth_defect(postavy+i)+2;
 	if (postavy[i].provadena_akce==NULL || postavy[i].provadena_akce->action!=AC_RUN) return 0;
@@ -805,7 +821,7 @@ void utek_postavy(THUMAN *p)
 	int i;
 	p->actions=minact;
 	hromadny_utek=p->sektor;
-	for (i=0;i<POCET_POSTAV;i++) if (postavy[i].used && postavy[i].sektor==p->sektor)
+	for (i=0;i<POCET_POSTAV;i++) if (postavy[i].used && postavy[i].sektor==p->sektor && postavy[i].inmaphash == current_map_hash)
 	  {
       int wf=weigth_defect(postavy+i)+2;
 	  postavy[i].kondice-=minact*wf;
@@ -1280,9 +1296,9 @@ void jadro_souboje(EVENT_MSG *msg,void **unused) //!!!! Jadro souboje
            wire_main_functs();
            bott_draw(1);
            running_battle=0;
-           for(i=0;p=&postavy[i],i<POCET_POSTAV && (p->sektor!=viewsector || !p->used || !p->groupnum);i++);
+           for(i=0;p=&postavy[i],i<POCET_POSTAV && (p->sektor!=viewsector || !p->used || p->inmaphash != current_map_hash || !p->groupnum);i++);
            if (i==POCET_POSTAV)
-              for(i=0;p=&postavy[i],i<POCET_POSTAV && (!p->used || !p->groupnum);i++);
+              for(i=0;p=&postavy[i],i<POCET_POSTAV && (!p->used || !p->groupnum || p->inmaphash != current_map_hash );i++);
            cur_group=postavy[i].groupnum;
            viewsector=postavy[i].sektor;
            viewdir=postavy[i].direction;
@@ -1411,7 +1427,7 @@ char cancel_power(int id,int xa,int ya,int xr,int yr)
   return 1;
   }
 
-char ask_who_proc(int id,int xa,int ya,int xr,int yr)
+static char ask_who_proc(int id,int xa,int ya,int xr,int yr)
   {
   THUMAN *p;
   int i;
@@ -1421,12 +1437,9 @@ char ask_who_proc(int id,int xa,int ya,int xr,int yr)
   i=xr/xs[0];yr;xa;ya;id;
   if (i<POCET_POSTAV)
      {
-     char c;
      i=group_sort[i];
      p=&postavy[i];
-     c=p->sektor!=viewsector;
-     if (p->used)
-        if (((!far_play && !c) || (!death_play && c)) && death_play==(p->lives==0))
+     if (can_select_player(p, death_play, far_play)) {
            {
            if (get_spell_teleport(magic_data->data1))
               if ((magic_data->data2=select_teleport_target())==0)
@@ -1442,6 +1455,7 @@ char ask_who_proc(int id,int xa,int ya,int xr,int yr)
            mouse_set_default(H_MS_DEFAULT);
            return 1;
            }
+     }
      }
   return 0;
   }
@@ -1777,6 +1791,7 @@ static void zahajit_kolo(char prekvapeni)
   for(i=0;i<POCET_POSTAV;i++)
                           {
                           THUMAN *p=&postavy[i];
+                          if (p->inmaphash != current_map_hash) continue;
                           int sect=p->sektor,dir=p->direction;
                           char monster=0;
                           char monster_far=0;
@@ -1809,7 +1824,7 @@ static void zahajit_kolo(char prekvapeni)
                           if (w==0) w=select_weapon(p,0);
                           else if (w==3) w=select_weapon(p,0),monster|=monster_far;
                           else w--,monster|=monster_far;
-                          if (p->used && !p->programovano && p->lives) {
+                          if (p->used && !p->programovano && p->lives && p->inmaphash == current_map_hash) {
                              if (prekvapeni || !p->actions || !autoattack || !monster)
                              {
                              p->programovano++;p->zvolene_akce->action=AC_STAND;
@@ -2059,7 +2074,7 @@ int pocet_zivych(int sector)
      {
      THUMAN *p=&postavy[i];
 
-     if (p->used && p->lives && p->sektor==sector) z++;
+     if (p->used && p->lives && p->sektor==sector && p->inmaphash == current_map_hash) z++;
      }
   return z;
   }
@@ -2144,7 +2159,7 @@ char zasah_veci(int sector,TFLY *fl)
      for(i=0;i<POCET_POSTAV;i++)
         {
         THUMAN *p=&postavy[i];
-        if (sector==p->sektor && p->lives && p->used)
+        if (sector==p->sektor && p->lives && p->used && p->inmaphash == current_map_hash)
            {
            char death;
            short vlastnosti[VLS_MAX];
@@ -2250,7 +2265,7 @@ void wire_cast_spell()
 
 void wire_fly_casting(int i)
   {
-  if (!postavy[i].used || !postavy[i].lives) return;
+  if (!postavy[i].used || !postavy[i].lives || postavy[i].inmaphash != current_map_hash) return;
   magic_data=&spell_string;
   memset(&spell_string,0,sizeof(spell_string));
   after_spell_wire=wire_cast_spell;

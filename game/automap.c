@@ -556,26 +556,30 @@ void draw_automap(int xr,int yr)
               {
               int j,l=-1;
 
-              for(j=0;j<POCET_POSTAV;j++)
-               {
-               if (postavy[j].used)
-                 if (postavy[j].sektor==i) {
-                    if (postavy[j].groupnum==cur_group) break;
-                    l=j;
-                 }
-               }
-              if (j==POCET_POSTAV) j=l;
-              if (j!=-1)
-                 {
-                 char c[2];
+                        for (j = 0; j < POCET_POSTAV; j++) {
+                            if (postavy[j].used && postavy[j].sektor == i
+                                    && postavy[j].inmaphash
+                                            == current_map_hash) {
+                                if (postavy[j].groupnum == cur_group)
+                                    break;
+                                l = j;
+                            }
+                        }
+                        if (j == POCET_POSTAV)
+                            j = l;
+                        if (j != -1) {
+                            char c[2];
 
-                 position(x+1,y+1);
-                 set_font(H_FSYMB,postavy[j].groupnum==cur_group?RGB888(255,255,255):barvy_skupin[postavy[j].groupnum]);
-                 c[0]=postavy[j].direction+4;
-                 c[1]=0;
-                 outtext(c);
-                 }
-              }
+                            position(x + 1, y + 1);
+                            set_font(H_FSYMB,
+                                    postavy[j].groupnum == cur_group ?
+                                            RGB888(255, 255, 255) :
+                                            barvy_skupin[postavy[j].groupnum]);
+                            c[0] = postavy[j].direction + 4;
+                            c[1] = 0;
+                            outtext(c);
+                        }
+                    }
         }
      }
   }

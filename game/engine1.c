@@ -42,9 +42,11 @@ int yreq;
 int last_scale;
 char secnd_shade=1;
 
-void sikma_zleva(void);
+void sikma_zleva_norm(void);
+void sikma_zleva_alpha(void);
 //#pragma aux sikma_zleva parm modify [EAX EBX ECX EDX ESI EDI]
-void sikma_zprava(void);
+void sikma_zprava_norm(void);
+void sikma_zprava_alpha(void);
 //#pragma aux sikma_zprava parm modify [EAX EBX ECX EDX ESI EDI]
 /*void zooming_dx(void *source,void *target,void *background,void *xlat,int32_t xysize);
 //#pragma aux zooming_dx parm [ESI][EDI][EAX][EBX][ECX] modify [EDX]
@@ -102,7 +104,7 @@ void (*zooming)(void *source,int32_t target,word *background,void *xlat,int32_t 
 void (*turn)(int32_t lbuf,void *src1,void *src2,int size1);
 word *GetBuffer2nd();
 word *background;
-char debug=0,nosides=0,nofloors=0,drwsit=0,show_names=0,show_lives=0;
+char nofloors=0,show_names=0,show_lives=0;
 
 
 /*void zooming1(void *source,int32_t target,word *background,void *xlat,int32_t xysize)
@@ -577,7 +579,7 @@ void turn_right()
       */
   }
 
-void show_cel(int celx,int cely,const void *stena,int xofs,int yofs,char rev)
+void show_cel(int celx,int cely,const void *stena,int xofs,int yofs,char rev, int alpha)
   {
   T_INFO_X_3D *x3d,*x0d;
   T_INFO_Y *yd,*yp;
@@ -646,11 +648,16 @@ void show_cel(int celx,int cely,const void *stena,int xofs,int yofs,char rev)
   zoom.ycount=realsy+1;
   zoom.xmax=realsx;
   zoom.line_len=2*scr_linelen2;
-  if (rev) sikma_zprava(); else sikma_zleva();
+  if (alpha) {
+      if (rev) sikma_zprava_alpha(); else sikma_zleva_alpha();
+  } else {
+      if (rev) sikma_zprava_norm(); else sikma_zleva_norm();
+  }
+
  }
 
 
-void show_cel2(int celx,int cely,const void *stena,int xofs,int yofs,char rev)
+void show_cel2(int celx,int cely,const void *stena,int xofs,int yofs,char rev, int alpha)
   {
   T_INFO_X *x3d;
   T_INFO_Y *yd;
@@ -713,9 +720,13 @@ void show_cel2(int celx,int cely,const void *stena,int xofs,int yofs,char rev)
   zoom.ycount=realsy+1;
   zoom.xmax=realsx;
   zoom.line_len=scr_linelen2*2;
-  if (rev==2) sikma_zprava(); else sikma_zleva();
+  if (alpha) {
+      if (rev==2) sikma_zprava_alpha(); else sikma_zleva_alpha();
+  } else {
+      if (rev==2) sikma_zprava_norm(); else sikma_zleva_norm();
   }
 
+  }
 
 
 void draw_floor_ceil(int celx,int cely,char f_c,const void *txtr)
@@ -1219,6 +1230,7 @@ void set_lclip_rclip(int celx,int cely,int lc,int rc)
      }
   }
 
+
 void draw_enemy(DRW_ENEMY *drw)
   {
   int x,y,lx,sd;
@@ -1284,17 +1296,25 @@ void draw_enemy(DRW_ENEMY *drw)
     if (show_lives) {
         char s[25];
 
+        int ly = y + SCREEN_OFFLINE - last_scale * 5 / 6;
         RedirectScreenBufferSecond();
         sprintf(s, "%d", drw->num);
         sd = text_width(s) / 2;
         if (lx - sd > 0 && lx + sd < 639) {
-            int ly = y + SCREEN_OFFLINE - last_scale * 5 / 6;
             trans_bar(lx - sd - 5, ly - 10, sd * 2 + 10, 10, 0);
             set_aligned_position(lx, ly, 1, 2, s);
             outtext(s);
         }
         RestoreScreen();
     }
+    if (drw->more_info && x > 0 && lx < 639) {
+        int ly = y + SCREEN_OFFLINE - last_scale * 9 / 12;
+        RedirectScreenBufferSecond();
+        position(x, ly);
+        outtext_w_nl(drw->more_info);
+        RestoreScreen();
+    }
+
 }
 
 void draw_player(  const short *txtr,int celx,int cely,int posx,int posy,int adjust,  const char *name)

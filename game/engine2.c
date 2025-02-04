@@ -10,150 +10,70 @@ typedef ZOOMINFO tzoom;
 extern ZOOMINFO zoom;
 extern word *screen;
 
-void sikma_zleva(void)
-{
-
-    int32_t scr_linelen2 = GetScreenPitch();
-	word *scr = (word *)zoom.startptr;
-	const word *palette = (word *)zoom.palette;
-	word cy = zoom.ycount;
-	const unsigned char *pixmap = zoom.texture;
-	const short *ytable = zoom.ytable;
-	while (cy) {
-		const int32_t *xtable = zoom.xtable;
-		word cx = zoom.xmax;
-		word *scr_iter = scr;
-		const unsigned char *pixmap_iter = pixmap;
-		while (cx > 0) {
-			unsigned char pb = *pixmap_iter++;
-			pixmap_iter+=*xtable;
-			xtable++;
-			if (pb == 1) break;
-			if (pb != 0) *scr_iter = palette[pb];
-			scr_iter++;
-			cx--;
-		}
-		pixmap+=zoom.texture_line*(*ytable);
-		ytable++;
-		scr-=scr_linelen2;
-		cy--;
-	}
-
-
-
-	/*
-
-
-	__asm
-	{
-	mov     edi,zoom       ;nacti ukazatel do obrazovky
-	mov     ebx,[zoom]tzoom.palette ;ukazatel na paletu
-	mov     cx,short ptr [zoom]tzoom.ycount ;velikost textury na y
-	shl     ecx,16  ;vloz do horni pulky ecx
-	mov     esi,[zoom]tzoom.texture ;nacti ukazatel na texturu
-	skzl3:  mov     edx,[zoom]tzoom.xtable ;nacti ukazetel na zvetsovaci tabulku x
-	push    esi ;uchovej esi
-	push    edi ;uchovej edi
-	mov     cx,[zoom]tzoom.xmax
-	skzl1:  xor     eax,eax ;vynuluj eax pro spravny vypocet
-	lodsb       ;nacti bod
-	add     esi,[edx] ;posun se od nekolik pozic v texture podle hodnoty v tabulce x
-	add     edx,4 ;posun se v tabulce x o dalsi polozku
-	or      al,al ;test bodu na nulu
-	jz      skz1  ;preskoc transparetni barvu
-	cmp     al,1  ;test bodu na jedna
-	jz      skz2  ;ukonci kresleni linky pokud narazi na 1
-	mov     ax,[eax*2+ebx] ;konverze barvy podle palety
-	mov     [edi],ax ;nakresli bod na obrazovce
-	skz1:   add     edi,2 ;dalsi pozice
-	dec     cx
-	jnz     skzl1 ;opakuj dokola
-	skz2:   pop     edi ;obnov edi
-	pop     esi ;obnov esi
-	mov     edx,[zoom]tzoom.ytable ;vyzvedni ukazatel na ytable
-	mov     cx,[edx] ;cx - o kolik pozic se mam v texture posunout dolu
-	or      cx,cx
-	jz      skzskp
-	skzl2:  add     esi,[zoom]tzoom.texture_line ;posun o jednu pozici
-	dec     cx ;sniz citac
-	jnz     skzl2 ;dokud neni nula
-	skzskp:add     edx,2 ;dalsi hodnota v tabulce
-	mov     [zoom]tzoom.ytable,edx ;uloaz na puvodni misto
-	sub     edi,[zoom]tzoom.line_len ;odecti tolik, kolik odpovida lince na obrazovce
-	sub     ecx,10000h ;sniz horni pulku ecx o jedna
-	jnz     skzl3 ;opakuj dokud neni nula
-	}*/
+#define SIKMA_STENA(suffx, op)                              \
+void sikma_zleva_##suffx(void)                               \
+{                                                           \
+                                                            \
+    int32_t scr_linelen2 = GetScreenPitch();                \
+	word *scr = (word *)zoom.startptr;                      \
+	const word *palette = (word *)zoom.palette;             \
+	word cy = zoom.ycount;                                  \
+	const unsigned char *pixmap = zoom.texture;             \
+	const short *ytable = zoom.ytable;                      \
+	while (cy) {                                            \
+		const int32_t *xtable = zoom.xtable;                \
+		word cx = zoom.xmax;                                \
+		word *scr_iter = scr;                               \
+		const unsigned char *pixmap_iter = pixmap;          \
+		while (cx > 0) {                                    \
+			unsigned char pb = *pixmap_iter++;              \
+            pixmap_iter+=*xtable;                           \
+			xtable++;                                       \
+			if (pb == 1) break;                             \
+			if (pb != 0) op;                                \
+			scr_iter++;                                     \
+			cx--;                                           \
+		}                                                   \
+		pixmap+=zoom.texture_line*(*ytable);                \
+		ytable++;                                           \
+		scr-=scr_linelen2;                                  \
+		cy--;                                               \
+	}                                                       \
+} \
+void sikma_zprava_##suffx(void)                              \
+{                                                           \
+    int32_t scr_linelen2 = GetScreenPitch();                \
+	word *scr = (word *)zoom.startptr;                      \
+	const word *palette = (word *)zoom.palette;             \
+	word cy = zoom.ycount;                                  \
+	const unsigned char *pixmap = zoom.texture;             \
+	const short *ytable = zoom.ytable;                      \
+	while (cy) {                                            \
+		const int32_t *xtable = zoom.xtable;                \
+		word cx = zoom.xmax;                                \
+		word *scr_iter = scr;                               \
+		const unsigned char *pixmap_iter = pixmap;          \
+		while (cx > 0) {                                    \
+			unsigned char pb = *pixmap_iter++;              \
+			pixmap_iter+=*xtable;                           \
+			xtable++;                                       \
+			if (pb == 1) break;                             \
+			if (pb != 0) op;                                \
+			scr_iter--;                                     \
+			cx--;                                           \
+		}                                                   \
+		pixmap+=zoom.texture_line*(*ytable);                \
+		ytable++;                                           \
+		scr-=scr_linelen2;                                  \
+		cy--;                                               \
+	}   \
 }
 
-void sikma_zprava(void)
-{
-    int32_t scr_linelen2 = GetScreenPitch();
-	word *scr = (word *)zoom.startptr;
-	const word *palette = (word *)zoom.palette;
-	word cy = zoom.ycount;
-	const unsigned char *pixmap = zoom.texture;
-	const short *ytable = zoom.ytable;
-	while (cy) {
-		const int32_t *xtable = zoom.xtable;
-		word cx = zoom.xmax;
-		word *scr_iter = scr;
-		const unsigned char *pixmap_iter = pixmap;
-		while (cx > 0) {
-			unsigned char pb = *pixmap_iter++;
-			pixmap_iter+=*xtable;
-			xtable++;
-			if (pb == 1) break;
-			if (pb != 0) *scr_iter = palette[pb];
-			scr_iter--;
-			cx--;
-		}
-		pixmap+=zoom.texture_line*(*ytable);
-		ytable++;
-		scr-=scr_linelen2;
-		cy--;
-	}
-/*
-	__asm
-	{
-		mov     edi,zoom       ;nacti ukazatel do obrazovky
-			mov     ebx,[zoom]tzoom.palette ;ukazatel na paletu
-			mov     cx,short ptr [zoom]tzoom.ycount ;velikost textury na y
-			shl     ecx,16  ;vloz do horni pulky ecx
-			mov     esi,[zoom]tzoom.texture ;nacti ukazatel na texturu
-skzp3:  mov     edx,[zoom]tzoom.xtable ;nacti ukazetel na zvetsovaci tabulku x
-		push    esi ;uchovej esi
-		push    edi ;uchovej edi
-		mov     cx,[zoom]tzoom.xmax
-skzp1:  xor     eax,eax ;vynuluj eax pro spravny vypocet
-		lodsb       ;nacti bod
-		add     esi,[edx] ;posun se od nekolik pozic v texture podle hodnoty v tabulce x
-		add     edx,4 ;posun se v tabulce x o dalsi polozku
-		or      al,al ;test bodu na nulu
-		jz      skz3  ;preskoc transparetni barvu
-		cmp     al,1  ;test bodu na jedna
-		jz      skz4  ;ukonci kresleni linky pokud narazi na 1
-		mov     ax,[eax*2+ebx] ;konverze barvy podle palety
-		mov     [edi],ax ;nakresli bod na obrazovce
-skz3:   sub     edi,2 ;dalsi pozice
-		dec     cx
-		jnz     skzp1 ;opakuj dokola
-skz4:   pop     edi ;obnov edi
-		pop     esi ;obnov esi
-		mov     edx,[zoom]tzoom.ytable ;vyzvedni ukazatel na ytable
-		mov     cx,[edx] ;cx - o kolik pozic se mam v texture posunout dolu
-		or      cx,cx
-		jz      skpskp
-skzp2:  add     esi,[zoom]tzoom.texture_line ;posun o jednu pozici
-		dec     cx ;sniz citac
-		jnz     skzp2 ;dokud neni nula
-skpskp: add     edx,2 ;dalsi hodnota v tabulce
-		mov     [zoom]tzoom.ytable,edx ;uloaz na puvodni misto
-		sub     edi,[zoom]tzoom.line_len ;odecti tolik, kolik odpovida lince na obrazovce
-		sub     ecx,10000h ;sniz horni pulku ecx o jedna
-		jnz     skzp3 ;opakuj dokud neni nula
-	}*/
-}
 
+SIKMA_STENA(norm,*scr_iter = palette[pb])
+SIKMA_STENA(alpha,*scr_iter = BLEND_PIXELS(*scr_iter, palette[pb]))
+
+	//;
 
 void fcdraw(const void *source,void *target, const void *table)
 //#pragma aux fcdraw parm [EDX][EBX][EAX] modify [ECX ESI EDI];
@@ -633,7 +553,7 @@ void enemy_draw(const void *src,void *trg,int shade,int scale,int maxspace,int c
 		int ofs = ytable[yiter];
 		unsigned char *row = picdata+ofs;
 		while (xiter < clipr && xtable[xiter] >= 0 ) {
-			int xpos = xiter;
+			int xpos = xiter-clipl;
 			unsigned char p = row[xtable[xiter]];
 			if (p != 0) {
 				if (p == 1) screen[xpos] = (screen[xpos] & 0x7BDE) >> 1;

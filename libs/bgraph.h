@@ -96,6 +96,7 @@ void showview32(word x,word y,word xs,word ys);
 void showview256(word x,word y,word xs,word ys);
 void showview_lo(word x,word y,word xs,word ys);
 void outtext(const char *text);
+void outtext_w_nl(const char *text);
 int initmode(const INI_CONFIG_SECTION *, const char *app_name);
 int initmode32(void);
 int initmode32b(void);

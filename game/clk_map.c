@@ -256,7 +256,7 @@ char start_invetory(int id,int xa,int ya,int xr,int yr)
      {
      i=group_sort[i];
      p=&postavy[i];
-     if (p->used)
+     if (p->used && p->inmaphash == current_map_hash)
         {
         if (ms_last_event.event_type & 0x2)
            {

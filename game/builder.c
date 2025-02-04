@@ -65,7 +65,7 @@ char set_halucination=0;
 int hal_sector;
 int hal_dir;
 char see_monster=0;
-char hide_walls = 0;
+char ghost_walls = 0;
 char lodka=0;
 int bgr_distance=0; //vzdalenost pozadi od pohledu
 int bgr_handle=0;
@@ -352,11 +352,11 @@ static const void *bott_draw_normal(const void *pp, int32_t *s)
      if (p->vlastnosti[VLS_MAXMANA]) y=BARS_YS-p->mana*BARS_YS/p->vlastnosti[VLS_MAXMANA];else y=BARS_YS;
      if (y<0) y=0;
      if (y) bar32(x+MANA_S,BARS_S,x+MANA_E,BARS_S+y);
-     if (p->sektor!=viewsector) trans_bar25(x,0,74,102);
+     if (p->sektor!=viewsector || p->inmaphash != current_map_hash) trans_bar25(x,0,74,102);
      set_font(H_FLITT,p->groupnum==cur_group && !battle?SEL_COLOR:barvy_skupin[p->groupnum]);
      set_aligned_position(x+36,92,1,0,p->jmeno);outtext(p->jmeno);
-     c[0]=p->groupnum+48;set_aligned_position(x+5,86,0,2,c);outtext(c);
-     if (cur_mode==MD_INBATTLE)
+     c[0]=p->inmaphash !=current_map_hash?'-':p->groupnum+48;set_aligned_position(x+5,86,0,2,c);outtext(c);
+     if (cur_mode==MD_INBATTLE && p->inmaphash == current_map_hash)
         {
         char s[20];
 		signed char dir;
@@ -826,34 +826,36 @@ static int draw_basic_sector(int celx, int cely, int sector) {
     TSTENA *w, *q;
     int obl;
 
+    int tmask = true_seeing?SD_TRUESEE:0;
+
     w = &map_sides[sector * 4];
     q = &w[dirs[1]];
     obl = GET_OBLOUK(q);
     if (cely < VIEW3D_Z) {
         if (q->flags & SD_LEFT_ARC && obl)
-            show_cel2(celx, cely, ablock(num_ofsets[OBL_NUM] + obl), 0, 0, 1);
+            show_cel2(celx, cely, ablock(num_ofsets[OBL_NUM] + obl), 0, 0, 1, ghost_walls );
         if (q->flags & SD_RIGHT_ARC && q->oblouk & 0x0f)
-            show_cel2(celx, cely, ablock(num_ofsets[OBL2_NUM] + obl), 0, 0, 2);
-        if (q->flags & SD_PRIM_VIS && q->prim && !hide_walls)
+            show_cel2(celx, cely, ablock(num_ofsets[OBL2_NUM] + obl), 0, 0, 2, ghost_walls);
+        if (q->flags & SD_PRIM_VIS && q->prim)
             show_cel2(celx, cely,
                     ablock(
                             num_ofsets[MAIN_NUM] + q->prim
                                     + (q->prim_anim >> 4)), 0, 0,
-                    1 + (q->oblouk & SD_POSITION));
+                    1 + (q->oblouk & SD_POSITION), ghost_walls | (q->flags & tmask));
         if (q->flags & SD_SEC_VIS && q->sec) {
             if (q->side_tag & SD_SHIFTUP) {
                 if (cely != 0) {
                     show_cel2(celx, cely - 1,
                             ablock(
                                     num_ofsets[MAIN_NUM] + q->sec
-                                            + (q->sec_anim >> 4)), 0, 0, 1);
+                                            + (q->sec_anim >> 4)), 0, 0, 1, ghost_walls | (q->flags & tmask));
                 }
             } else {
                 show_cel2(celx, cely,
                         ablock(
                                 num_ofsets[MAIN_NUM] + q->sec
                                         + (q->sec_anim >> 4)), q->xsec << 1,
-                        q->ysec << 1, 0);
+                        q->ysec << 1, 0, ghost_walls | (q->flags & tmask));
             }
         }
         if (q->oblouk & 0x10)
@@ -863,13 +865,13 @@ static int draw_basic_sector(int celx, int cely, int sector) {
         q = &w[dirs[0]];
         if (left_shiftup)
             show_cel(celx, cely, ablock(num_ofsets[LEFT_NUM] + left_shiftup), 0,
-                    0, 2), left_shiftup = 0;
-        if (q->flags & SD_PRIM_VIS && q->prim && !hide_walls)
+                    0, 2, ghost_walls), left_shiftup = 0;
+        if (q->flags & SD_PRIM_VIS && q->prim )
             show_cel(-celx, cely,
                     ablock(
                             num_ofsets[LEFT_NUM] + q->prim
                                     + (q->prim_anim >> 4)), 0, 0,
-                    2 + (q->oblouk & SD_POSITION));
+                    2 + (q->oblouk & SD_POSITION), ghost_walls | (q->flags & tmask));
         if (q->flags & SD_SEC_VIS && q->sec) {
             if (q->side_tag & SD_SHIFTUP) {
                 if (celx != 0) {
@@ -881,13 +883,13 @@ static int draw_basic_sector(int celx, int cely, int sector) {
                 show_cel(celx, cely,
                         ablock(
                                 num_ofsets[LEFT_NUM] + q->sec
-                                        + (q->sec_anim >> 4)), 0, 0, 2);
+                                        + (q->sec_anim >> 4)), 0, 0, 2, ghost_walls | (q->flags & tmask));
             } else {
                 show_cel(celx, cely,
                         ablock(
                                 num_ofsets[LEFT_NUM] + q->sec
                                         + (q->sec_anim >> 4)), q->xsec << 1,
-                        q->ysec << 1, 0);
+                        q->ysec << 1, 0, ghost_walls | (q->flags & tmask));
             }
         }
     }
@@ -895,13 +897,13 @@ static int draw_basic_sector(int celx, int cely, int sector) {
         q = &w[dirs[2]];
         if (right_shiftup)
             show_cel(celx, cely, ablock(num_ofsets[RIGHT_NUM] + right_shiftup),
-                    0, 0, 3), right_shiftup = 0;
-        if (q->flags & SD_PRIM_VIS && q->prim && !hide_walls)
+                    0, 0, 3, ghost_walls), right_shiftup = 0;
+        if (q->flags & SD_PRIM_VIS && q->prim )
             show_cel(celx, cely,
                     ablock(
                             num_ofsets[RIGHT_NUM] + q->prim
                                     + (q->prim_anim >> 4)), 0, 0,
-                    3 + (q->oblouk & SD_POSITION));
+                    3 + (q->oblouk & SD_POSITION), ghost_walls | (q->flags & tmask));
         if (q->flags & SD_SEC_VIS && q->sec) {
             if (q->side_tag & SD_SHIFTUP) {
                 if (celx != 0)
@@ -912,13 +914,13 @@ static int draw_basic_sector(int celx, int cely, int sector) {
                 show_cel(celx, cely,
                         ablock(
                                 num_ofsets[RIGHT_NUM] + q->sec
-                                        + (q->sec_anim >> 4)), 0, 0, 3);
+                                        + (q->sec_anim >> 4)), 0, 0, 3, ghost_walls | (q->flags & tmask));
             } else {
                 show_cel(celx, cely,
                         ablock(
                                 num_ofsets[RIGHT_NUM] + q->sec
                                         + (q->sec_anim >> 4)),
-                        500 - (q->xsec << 1), q->ysec << 1, 1);
+                        500 - (q->xsec << 1), q->ysec << 1, 1, ghost_walls | (q->flags & tmask));
             }
         }
 
@@ -929,7 +931,7 @@ static int draw_basic_sector(int celx, int cely, int sector) {
 static int draw_lodku(int celx,int cely)
   {
   if (cely==0) return 1;
-  show_cel2(celx,cely-1,ablock(H_LODKA0+(global_anim_counter & 7)),250,80,0);
+  show_cel2(celx,cely-1,ablock(H_LODKA0+(global_anim_counter & 7)),250,80,0,0);
   return 0;
   }
 
@@ -946,6 +948,7 @@ int p_positions_y[5]={32,32,-32,-32,0};
 
 void draw_players(int sector,int dir,int celx,int cely)
   {
+
   if (map_coord[sector].flags & MC_DPLAYER)
      {
      int i;
@@ -956,7 +959,7 @@ void draw_players(int sector,int dir,int celx,int cely)
      memset(freep,0,sizeof(freep));
      for(i=0,pp=0;i<POCET_POSTAV;i++)
         {
-        if ((p=&postavy[i])->sektor==sector && ((!p->lives && p->groupnum==0) || p->sektor!=viewsector))
+        if ((p=postavy+i)->sektor==sector && p->inmaphash == current_map_hash && ((!p->lives && p->groupnum==0) || p->sektor!=viewsector))
            {
            pp++;
            d=(p->direction-dir)&0x3;
@@ -996,33 +999,36 @@ int draw_sloup_sector(int celx,int cely,int sector)
   TSTENA *w,*q;
   int obl;
 
+  int tmask = true_seeing?SD_TRUESEE:0;
+
+
   w=&map_sides[sector*4];
   q=&w[dirs[1]];
   obl=GET_OBLOUK(q);
   if (q->flags & SD_LEFT_ARC && q->oblouk)
-     show_cel2(celx,cely,ablock(num_ofsets[OBL_NUM]+obl),0,0,1);
+     show_cel2(celx,cely,ablock(num_ofsets[OBL_NUM]+obl),0,0,1, ghost_walls);
   if (q->flags & SD_RIGHT_ARC && q->oblouk)
-     show_cel2(celx,cely,ablock(num_ofsets[OBL2_NUM]+obl),0,0,2);
-  if (q->flags & SD_PRIM_VIS && q->prim  && !hide_walls)
-      show_cel2(celx,cely,ablock(num_ofsets[MAIN_NUM]+q->prim+(q->prim_anim>>4)),0,0,1+(q->oblouk & SD_POSITION));
+     show_cel2(celx,cely,ablock(num_ofsets[OBL2_NUM]+obl),0,0,2, ghost_walls);
+  if (q->flags & SD_PRIM_VIS && q->prim  )
+      show_cel2(celx,cely,ablock(num_ofsets[MAIN_NUM]+q->prim+(q->prim_anim>>4)),0,0,1+(q->oblouk & SD_POSITION), ghost_walls | (q->flags & tmask));
   if (celx<=0)
      {
      q=&w[dirs[0]];
-     if (q->flags & SD_PRIM_VIS && q->prim && !hide_walls)
-      show_cel(-celx,cely,ablock(num_ofsets[LEFT_NUM]+q->prim+(q->prim_anim>>4)),0,0,2+(q->oblouk & SD_POSITION));
+     if (q->flags & SD_PRIM_VIS && q->prim)
+      show_cel(-celx,cely,ablock(num_ofsets[LEFT_NUM]+q->prim+(q->prim_anim>>4)),0,0,2+(q->oblouk & SD_POSITION), ghost_walls| (q->flags & tmask));
      }
   if (celx>=0)
      {
      q=&w[dirs[2]];
-     if (q->flags & SD_PRIM_VIS && q->prim && !hide_walls)
-      show_cel(celx,cely,ablock(num_ofsets[RIGHT_NUM]+q->prim+(q->prim_anim>>4)),0,0,3+(q->oblouk & SD_POSITION));
+     if (q->flags & SD_PRIM_VIS && q->prim)
+      show_cel(celx,cely,ablock(num_ofsets[RIGHT_NUM]+q->prim+(q->prim_anim>>4)),0,0,3+(q->oblouk & SD_POSITION), ghost_walls | (q->flags & tmask));
      }
   q=&w[dirs[1]];
   if (q->flags & SD_SEC_VIS && q->sec && cely!=0) {
      if (q->flags & SD_SPEC)
-      show_cel2(celx,cely-1,ablock(num_ofsets[MAIN_NUM]+q->sec+(q->sec_anim>>4)),0,0,2);
+      show_cel2(celx,cely-1,ablock(num_ofsets[MAIN_NUM]+q->sec+(q->sec_anim>>4)),0,0,2, ghost_walls| (q->flags & tmask));
      else
-      show_cel2(celx,cely-1,ablock(num_ofsets[MAIN_NUM]+q->sec+(q->sec_anim>>4)),(q->xsec<<1)+celx*(points[0][0][cely].x-points[0][0][cely-1].x)/2,q->ysec<<1,0);
+      show_cel2(celx,cely-1,ablock(num_ofsets[MAIN_NUM]+q->sec+(q->sec_anim>>4)),(q->xsec<<1)+celx*(points[0][0][cely].x-points[0][0][cely-1].x)/2,q->ysec<<1,0, ghost_walls| (q->flags & tmask));
   }
   return 0;
   }
@@ -1041,9 +1047,9 @@ void swap_truesee(int ss)
 
 void draw_sector(int celx,int cely,int s)
   {
-  int ss;
-  ss=s<<2;
-  if (true_seeing) swap_truesee(ss);
+//  int ss;
+  //ss=s<<2;
+//  if (true_seeing) swap_truesee(ss);
   switch (map_sectors[s].sector_type)
      {
      case S_SSMRT:
@@ -1062,7 +1068,7 @@ void draw_sector(int celx,int cely,int s)
           draw_placed_items_normal(celx,cely,s,viewdir);
           break;
      }
-  if (true_seeing) swap_truesee(ss);
+//  if (true_seeing) swap_truesee(ss);
   }
 
 void back_clear(int celx,int color)
@@ -1279,10 +1285,10 @@ void debug_print()
   static char indx=50;
   static int counter=0;
 
-  sprintf(s,"battle: %d waiting: %d lhit: %3d ldef: %3d dostal: %3d magic: %3d lives: %3d wpn: %d",
+  sprintf(s,"battle: %d waiting: %d lhit: %3d ldef: %3d hit: %3d magic-hit: %3d lives: %3d weapon: %d",
              battle,  neco_v_pohybu,    dhit,       ddef,      ddostal,    dmzhit,   dlives, vybrana_zbran );
   trans_bar(0,17,640,15,0);
-  position(0,17);set_font(H_FBOLD,0x3ff);
+  position(0,17);set_font(H_FONT6,0x3ff);
   if (debug_text!=NULL)
      {
       outtext(debug_text);

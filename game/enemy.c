@@ -42,6 +42,7 @@ int mob_dostal_pocet;
 
 char folow_mode=0;
 char folow_mob;
+char show_mob_info = 0;
 
 char mob_go_x[]={128,255,128,0};
 char mob_go_y[]={0,128,255,128};
@@ -284,7 +285,7 @@ static char pick_item_corpse(TMOB *m,char query)
      {
      int i;
      THUMAN *h;        //najdi mezi hraci mrtvolu ktera tam lezi
-     for(i=0,h=postavy;i<POCET_POSTAV && p==NULL;i++,h++) if (!h->lives && h->used && h->sektor==sector)
+     for(i=0,h=postavy;i<POCET_POSTAV && p==NULL;i++,h++) if (!h->lives && h->used && h->inmaphash == current_map_hash &&h->sektor==sector)
         {
         int i;         //podivej se ji do inventare....
         for(i=0;i<HUMAN_RINGS && p==NULL;i++) if (h->prsteny[i]) p=&h->prsteny[i];
@@ -545,7 +546,7 @@ int q_vidis_postavu(int sector,int dir,TMOB *p,int *otocit_se,char ret)
      xs=map_coord[sector].x-map_coord[postavy[i].sektor].x;
      ys=map_coord[sector].y-map_coord[postavy[i].sektor].y;
      d=MAX(abs(xs),abs(ys));
-     if (d<=p->dohled && (!(ps->vlastnosti[VLS_KOUZLA] & SPL_INVIS)||p->vlajky & MOB_SENSE) && ps->used && ps->lives)
+     if (d<=p->dohled && (!(ps->vlastnosti[VLS_KOUZLA] & SPL_INVIS)||p->vlajky & MOB_SENSE) && ps->used && ps->lives && ps->inmaphash == current_map_hash)
         switch(dir)
            {
            case 0:ok=ys>=0;break;
@@ -893,19 +894,29 @@ void krok_moba(TMOB *p)
      }
   }
 
-static char get_view_mirror=0;
 
-int get_view(TMOB *p,int dirmob,int action,int curdir)
+typedef struct enemy_face_tag {
+    int pos;
+    int face;
+    int mirror;
+} TENEMY_FACE;
+
+
+TENEMY_FACE get_enemy_face(TMOB *p,int dirmob,int action,int curdir)
   {
+
+    TENEMY_FACE ret;
   int view;int pos;
   int xs,ys;
 
-  get_view_mirror=0;
+  ret.mirror = 0;
   if (action==MOB_ATTACK) pos=4;
   else if (action==MOB_TO_HIT) pos=5;
   else if (action==MOB_DEATH)
      {
-     return 1;
+      ret.pos = 0;
+     ret.face = 0;
+     return ret;
      }
   else
      {
@@ -929,10 +940,12 @@ int get_view(TMOB *p,int dirmob,int action,int curdir)
 		 }
 	   }
      }
-  if (pos==3) get_view_mirror=pos=1;
+  if (pos==3) ret.mirror=pos=1;
   if (p->anim_counter==-1) view=pos*16;
   else view=pos*16+(p->anim_counter % p->anim_counts[pos])+1;
-  return view;
+  ret.face = view;
+  ret.pos = pos;
+  return ret;
   }
 
 void get_pos(int x,int y,int *xpos,int *ypos,int dir)
@@ -1000,12 +1013,78 @@ static void CheckMobStoned(int num)
 
 }
 
+static void fill_drw_enemy_struct(TMOB *m, DRW_ENEMY *enm, char *buff, int curdir) {
+    if (!show_mob_info) {
+        enm->more_info = NULL;
+        return;
+    }
+    char flag_buff[100] = "";
+    char strategy_buff[100] = "";
+    const char *strategies[] = {
+            "WALK","WATCH","LISTEN","BIG","GUARD","PICK","PICKING","ROGUE"
+    };
+    const char *flags[] = {
+            "BATTLE","PASSABLE","SENS","MOB","RESPWN","CAST","SNDLP","LIVE"
+    };
+    const char *modes[] = {"NONE","CAST","FLEE","ATTACK"};
+
+    const char *actions[] = {
+            "STANDFWD","STANDLEFT","STANDBACK","STANDRIGHT","STANDLEFTMIRR",
+            "WALKFWD","WALKLEFT","WALKBACK","WALKRIGHT","WALKLEFTMIRR",
+            "ATTACK","ATTACKMIRR","INPAIN","INPAINMIRR","ERR"};
+
+    TENEMY_FACE fc = get_enemy_face(m,m->dir,m->anim_phase,curdir);
+    int action = countof(actions)-1;
+    int stand = (fc.face & 0xF) == 0;
+    if (fc.pos < 4) {
+        action = (fc.mirror?4:fc.pos) + (stand?0:5);
+    } else {
+        action = ((fc.pos - 4)*2+(fc.mirror?1:0))+10;
+    }
+
+    for (int i = 0; i < 8; i++) {
+        if (m->stay_strategy & (1<<i)) {
+            strcat(strategy_buff,strategies[i]);strcat(strategy_buff," ");
+        }
+        if (m->vlajky & (1<<i)) {
+            strcat(flag_buff,flags[i]);strcat(flag_buff," ");
+        }
+    }
+
+    sprintf(buff,"name: %s\n"
+                 "action: %s\n"
+                 "walkdata: %d\n"
+                 "sight: %d\n"
+                 "reach: %d\n"
+                 "hit: %d\n"
+                 "intent: %s\n"
+                 "strategy: %s\n"
+                 "flags: %s\n"
+                 "has_path: %s",
+                m->name,
+                actions[action],
+                m->walk_data,
+                m->dohled,
+                m->dosah,
+                m->dostal,
+                modes[(uint8_t)m->mode],
+                strategy_buff,
+                flag_buff,
+                mob_paths[m - mobs]!=NULL?"YES":"NO"
+           );
+    enm->more_info = buff;
+}
+
+
 void draw_mob_call(int num,int curdir,int celx,int cely,char shiftup)
   {
   TMOB *p,*q;
-  int view,vw;
-  int view2,vw2;
+  TENEMY_FACE view;
+  int vw;
+  TENEMY_FACE view2;
+  int vw2;
   DRW_ENEMY drw1,drw2;
+  char buff[256], buff2[256];
 
   set_font(H_FLITT5,RGB555(31,31,0));
   CheckMobStoned(num-MOB_START);
@@ -1013,43 +1092,54 @@ void draw_mob_call(int num,int curdir,int celx,int cely,char shiftup)
   shiftup|=(p->stay_strategy & MOB_BIG);
 
   get_pos(p->locx-128,p->locy-128,&drw1.posx,&drw1.posy,curdir);
-  view=get_view(p,p->dir,p->anim_phase,curdir);
-  vw=p->cislo_vzoru+view+monster_block;
-  if (p->vlastnosti[VLS_KOUZLA] & SPL_INVIS) {drw1.txtr=NULL;vw=0;}else drw1.txtr=ablock(vw);
+  view=get_enemy_face(p,p->dir,p->anim_phase,curdir);
+  vw=p->cislo_vzoru+view.face+monster_block;
+    if ((p->vlastnosti[VLS_KOUZLA] & SPL_INVIS) && !true_seeing) {
+        drw1.txtr = NULL;
+        vw = 0;
+    } else {
+        drw1.txtr = ablock(vw);
+    }
   drw1.celx=celx;
   drw1.cely=cely;
-  drw1.mirror=get_view_mirror;
-  drw1.adjust=p->adjusting[view];
+  drw1.mirror=view.mirror;
+  drw1.adjust=p->adjusting[view.face];
   drw1.shiftup=shiftup;
   drw1.num=p->lives;
   drw1.palette=mob_select_palette(p);
   drw1.stoned= (p->vlastnosti[VLS_KOUZLA] & SPL_STONED)!=0;
   see_monster|=(~p->vlajky & MOB_PASSABLE);
+  fill_drw_enemy_struct(p, &drw1, buff, curdir);
   if (p->next)
      {
      CheckMobStoned(p->next-MOB_START);
      q=&mobs[p->next-MOB_START];
      get_pos(q->locx-128,q->locy-128,&drw2.posx,&drw2.posy,curdir);
-     view2=get_view(q,q->dir,q->anim_phase,curdir);
-     vw2=view2+q->cislo_vzoru+monster_block;
+     view2=get_enemy_face(q,q->dir,q->anim_phase,curdir);
+     vw2=view2.face+q->cislo_vzoru+monster_block;
      drw2.shiftup=shiftup;
      drw2.celx=celx;
      drw2.cely=cely;
      alock(vw);
      alock(vw+6*16+5);
-     if (q->vlastnosti[VLS_KOUZLA] & SPL_INVIS) {drw2.txtr=NULL;vw2=0;}else drw2.txtr=ablock(vw2);
-     drw2.mirror=get_view_mirror;
+        if ((q->vlastnosti[VLS_KOUZLA] & SPL_INVIS) && !true_seeing) {
+            drw2.txtr = NULL;
+            vw2 = 0;
+        } else {
+            drw2.txtr = ablock(vw2);
+        }
+     drw2.mirror=view2.mirror;
      alock(vw2);
      alock(vw2+6*16+5);
-     drw2.adjust=q->adjusting[view2];
+     drw2.adjust=q->adjusting[view2.face];
      drw2.num=q->lives;
      drw2.palette=mob_select_palette(q);
      drw2.stoned=(q->vlastnosti[VLS_KOUZLA] & SPL_STONED)!=0;
      see_monster|=(~q->vlajky & MOB_PASSABLE);
+     fill_drw_enemy_struct(q, &drw2, buff2, curdir);
      }
   else
      {
-     view2=-1;
      draw_enemy(&drw1);
      return;
      }
@@ -1433,7 +1523,7 @@ void mobs_hit(TMOB *p)
      for(i=0;i<POCET_POSTAV;i++)
      {
      THUMAN *p=&postavy[i];
-     if (p->used && p->sektor==asect && p->lives) pocet++;
+     if (p->used && p->sektor==asect && p->lives && p->inmaphash == current_map_hash) pocet++;
      }
   if (!pocet) abort();
   obet=1+rnd(pocet);
@@ -1443,7 +1533,7 @@ void mobs_hit(TMOB *p)
      i++;
      if (i>=POCET_POSTAV) i=0;
      p=&postavy[i];
-     if (p->used && p->sektor==asect && p->lives) obet--;
+     if (p->used && p->sektor==asect && p->lives && p->inmaphash == current_map_hash) obet--;
      }
   h=&postavy[i];
   if (h->utek)
@@ -1864,7 +1954,7 @@ char flee_monster_zac(TMOB *m)
   int i,j;
   word *cesta,*c,cntr;
   for(j=0;j<POCET_POSTAV;j++)
-     if (postavy[j].used && postavy[j].lives)
+     if (postavy[j].used && postavy[j].lives && postavy[j].inmaphash == current_map_hash)
      {
      ss=(s=postavy[j].sektor)<<2;
      for(i=0;i<4;i++,ss++)
@@ -1919,7 +2009,7 @@ char akce_moba_zac(TMOB *m)
            {
            THUMAN *p=&postavy[i];
 
-           if (p->used && p->lives && p->sektor==sect)
+           if (p->used && p->lives && p->sektor==sect && p->inmaphash == current_map_hash)
               {
               if (((m->vlajky & MOB_CASTING) && get_spell_track(m->casting))|| m->stay_strategy & MOB_ROGUE)
                     {stop_all_mobs_on_sector(m->sector);smeruj_moba(m,0);}
@@ -1942,7 +2032,7 @@ char akce_moba_zac(TMOB *m)
               {
               THUMAN *p=&postavy[j];
 
-              if (p->used && p->lives && p->sektor==sect && !(p->vlastnosti[VLS_KOUZLA] & SPL_INVIS))
+              if (p->used && p->lives && p->inmaphash == current_map_hash &&p->sektor==sect && !(p->vlastnosti[VLS_KOUZLA] & SPL_INVIS))
                  {
                  m->dir=i;
                  stop_mob(m);

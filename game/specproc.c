@@ -59,11 +59,11 @@ MAP_PROC(map_teleport)
      int i,j=-1;THUMAN *h;
      int bit=0;
 
-     for(i=0,h=postavy;i<POCET_POSTAV;i++,h++) if (h->used && h->sektor==sector && h->sektor==viewsector)
+     for(i=0,h=postavy;i<POCET_POSTAV;i++,h++) if (h->used && h->sektor==sector && h->sektor==viewsector && h->inmaphash == current_map_hash)
         {
         j=i;break;
         }
-     for(i=0,h=postavy;i<POCET_POSTAV;i++,h++) if (h->used && h->sektor==sector) bit|=1<<i;
+     for(i=0,h=postavy;i<POCET_POSTAV;i++,h++) if (h->used && h->sektor==sector && h->inmaphash == current_map_hash) bit|=1<<i;
      postavy_teleport_effect(teleport_target,h->direction,bit,j!=-1);
      side=1;
      auto_group();
@@ -538,7 +538,7 @@ static char mob_strelec(int event_type,TMOB *m)
         int i;
 
         for(i=0,h=postavy;i<POCET_POSTAV;i++,h++)
-           if (h->lives && h->used &&
+           if (h->lives && h->used  && h->inmaphash == current_map_hash&&
                abs(map_coord[h->sektor].x-map_coord[m->sector].x)<2 &&
                abs(map_coord[h->sektor].y-map_coord[m->sector].y)<2)
                  {

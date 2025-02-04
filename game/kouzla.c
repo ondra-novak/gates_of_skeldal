@@ -368,7 +368,7 @@ static void spell_vzplanuti3(int ss,int hit,int zivel)
       {
       THUMAN *h;int i;
 
-      for(i=0,h=postavy;i<POCET_POSTAV;i++,h++) if (h->used && h->lives && h->sektor==ss)
+      for(i=0,h=postavy;i<POCET_POSTAV;i++,h++) if (h->used && h->lives && h->sektor==ss && h->inmaphash == current_map_hash)
         {
         int ochrana=mgochrana(h->vlastnosti[VLS_OHEN+zivel]);
         player_hit(h,hit*ochrana/100,1);
@@ -871,6 +871,7 @@ void spell_pripojeni(int kolik,int cil,int owner)
      return;
      }
   p->sektor=postavy[owner].sektor;
+  p->inmaphash = postavy[owner].inmaphash;
   kolik--;
   for(i=0;i<POCET_POSTAV && kolik;i++)
      if (postavy[i].groupnum==p->groupnum && postavy[i].sektor==from_sect)
@@ -907,6 +908,7 @@ void spell_pripojenia(int owner)
         {
         postavy[i].sektor=postavy[owner].sektor;
         postavy[i].direction=postavy[owner].direction;
+        postavy[i].inmaphash = postavy[owner].inmaphash;
         }
      }
   auto_group();
@@ -1000,7 +1002,7 @@ void spell_teleport_sector(int cil,int owner)
       destroy_player_map();
       if (stricmp(TelepLocation.map,level_fname)!=0)
       {
-        int i;
+
 
         if (cil!=owner) return;
         postavy_teleport_effect(0,0,0,1);
@@ -1008,14 +1010,8 @@ void spell_teleport_sector(int cil,int owner)
         loadlevel.name[12]=0;
         loadlevel.start_pos=TelepLocation.sector;
         loadlevel.dir=TelepLocation.dir;
-        send_message(E_CLOSE_MAP);
         save_map=1;
-
-        for(i=0;i<POCET_POSTAV;i++) if (postavy[i].used)
-        {
-        postavy[i].sektor=TelepLocation.sector;
-        postavy[i].direction=TelepLocation.dir;
-        }
+        send_message(E_CLOSE_MAP);
         battle=0;
 
       }
@@ -1158,10 +1154,10 @@ static void spell_vahy_osudu(int zivel,char povaha)
 
   min=32767;
   for(i=0,h=postavy;i<POCET_POSTAV;i++,h++)
-     if (h->used && h->lives && min>h->lives) min=h->lives;
+     if (h->used && h->lives && min>h->lives && h->sektor == viewsector && h->inmaphash == current_map_hash) min=h->lives;
   for(i=0,m=mobs;i<MAX_MOBS;m++,i++)
      if (m->vlajky & MOB_LIVE && m->vlajky & MOB_IN_BATTLE && m->lives<min) min=m->lives;
-  for(i=0,h=postavy;i<POCET_POSTAV;i++,h++) if (h->used && h->lives)
+  for(i=0,h=postavy;i<POCET_POSTAV;i++,h++) if (h->used && h->lives  && h->sektor == viewsector && h->inmaphash == current_map_hash)
      {
      int obr=mgochrana(h->vlastnosti[VLS_OHEN+zivel]);
      if (!povaha || (int)rnd(100)<=obr)
@@ -1773,7 +1769,7 @@ char add_group_spell(int num,int sector,int owner,int mode,char noanim)
      else
         {
         for(i=0;i<POCET_POSTAV;i++)
-           if (postavy[i].used && postavy[i].sektor==sector) add_spell(num,i+1,owner,noanim),c=0;
+           if (postavy[i].used && postavy[i].sektor==sector && postavy[i].inmaphash == current_map_hash) add_spell(num,i+1,owner,noanim),c=0;
         }
      }
   return c;

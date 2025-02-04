@@ -399,7 +399,7 @@ static void do_script(void)
 
 static int found_place=0;
 
-
+/*
 static char flp_validate2(word sector)
   {
   TMOB *m;
@@ -416,7 +416,7 @@ static char flp_validate2(word sector)
   if (c==S_DIRA || ISTELEPORT(c) || c==S_LAVA || c==S_VODA ) return 0;
   return 1;
   }
-
+*/
 static char flp_validate(word sector)
   {
   TMOB *m;
@@ -454,8 +454,7 @@ static int select_mode = 0;
 static char load_index_map(int index)
   {
   TMA_LOADLEV x;
-  int lv,i;
-  THUMAN *h;
+  int lv;
 
 
   if (select_mode)
@@ -467,13 +466,14 @@ static char load_index_map(int index)
      return 1;
      }
   if (!strcmp(index_tab[last_index].mapname,level_fname)) return 0;
+  group_all();
   lv=find_leave_place(viewsector);
   if (lv<1)
      {
      bott_disp_text(texty[121]);
      return 0;
      }
-  for(i=0,h=postavy;i<POCET_POSTAV;i++,h++)
+/*  for(i=0,h=postavy;i<POCET_POSTAV;i++,h++)
     if (h->used && h->lives)
       if (h->sektor!=lv && !labyrinth_find_path(h->sektor,lv,(SD_PLAY_IMPS | SD_SECRET),flp_validate2,NULL))
         {
@@ -481,12 +481,11 @@ static char load_index_map(int index)
         bott_disp_text(int2ascii(i,c,10));
         return 0;
         }
+   */
   if (!GlobEvent(MAGLOB_LEAVEMAP,viewsector,viewdir)) return 0;
-  for(i=0,h=postavy;i<POCET_POSTAV;i++,h++)
-    if (h->used && h->lives) h->sektor=lv;
   viewsector=lv;
   strncpy(x.name,index_tab[index].mapname,12);
-  x.start_pos=0;
+  x.start_pos=lv;
   x.dir=0;
   macro_load_another_map(&x);
   return 0;
