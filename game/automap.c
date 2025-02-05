@@ -23,6 +23,7 @@
 #define AUTOMAP_LAVA RGB555(31,16,0)
 #define AUTOMAP_FORE RGB555(18,17,14)
 #define AUTOMAP_FORE_LVP RGB555(14,13,11)
+#define AUTOMAP_BKG RGB888(164,160,147)
 #define AUTOMAP_LINE1 RGB555(13,11,10)
 #define AUTOMAP_LINE2 RGB555(31,22,6)
 #define AUTOMAP_MOB RGB555(31,8,8)
@@ -422,7 +423,7 @@ static void draw_amap_sector(int x,int y,int sector,int mode,int turn,int line1,
               case S_DIRA:set_font(H_FSYMB,AUTOMAP_FONT_COLOR);print_symbol(x,y,'N');break;
               }
            }
-        else
+        else {
         for(j=0;j<4;j++)
            {
            i=(j+turn)&3;
@@ -441,6 +442,7 @@ static void draw_amap_sector(int x,int y,int sector,int mode,int turn,int line1,
                  }
               }
            }
+        }
 
   }
 
@@ -554,7 +556,7 @@ void draw_automap(int xr,int yr)
 
         x+=320;y+=197;
         draw_amap_sector(x,y,i,k,0,AUTOMAP_LINE1,AUTOMAP_LINE2);
-           if (map_coord[i].flags & MC_PLAYER && !noarrows)
+           if (k == 1 && (map_coord[i].flags & MC_PLAYER) && !noarrows)
               {
               int j,l=-1;
 
@@ -995,7 +997,7 @@ char map_target_select(int id,int xa,int ya,int xr,int yr)
 
   ya,xa;
   for (id=1;id<mapsize;id++)
-     if (map_coord[id].flags & (MC_AUTOMAP|MC_DISCLOSED))
+     if ((map_coord[id].flags & (MC_AUTOMAP|MC_DISCLOSED)) && (map_coord[id].flags & (MC_MARKED)) && map_coord[id].layer == cur_depth)
      {
      x1=(map_coord[id].x*8-map_xr);
      y1=(map_coord[id].y*8-map_yr);
@@ -1005,7 +1007,6 @@ char map_target_select(int id,int xa,int ya,int xr,int yr)
      y2=y1+8;
      if (xr>=x1 && xr<=x2 && yr>=y1 && yr<=y2)
         {
-        if (!labyrinth_find_path(viewsector,id,SD_PLAY_IMPS,path_ok,NULL,NULL)) return 0;
         last_selected=id;
         exit_wait=1;
         return 1;
@@ -1015,13 +1016,17 @@ char map_target_select(int id,int xa,int ya,int xr,int yr)
   }
 
 
-int select_teleport_target(void)
+int select_teleport_target(char nolimit)
   {
   *otevri_zavoru=1;
   unwire_proc();
   disable_all_map();
-  labyrinth_find_path(viewsector,65535,SD_PLAY_IMPS,path_ok,NULL,NULL);
-  map_coord[viewsector].flags|=MC_MARKED;
+  if (nolimit) {
+      enable_all_map();
+  } else {
+      labyrinth_find_path(viewsector,65535,SD_PLAY_IMPS,path_ok,NULL,NULL);
+      map_coord[viewsector].flags|=MC_MARKED;
+  }
   schovej_mysku();
   send_message(E_ADD,E_KEYBOARD,map_teleport_keyboard);
   show_automap(0);

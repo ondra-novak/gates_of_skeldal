@@ -116,6 +116,7 @@ static inline word _impl_get_word(unsigned char **c) {
 char running_anm=0;
 
 char hlubina_level=0;
+char dead_food = 0; //cheat - likvidační kouzlu
 
 word *anim_render_buffer;
 
@@ -462,9 +463,17 @@ void spell_create(int cil,int what)
   char dir;
   short p[2];
 
-  get_sector_dir(cil,&sector,&dir);
-  p[0]=what+1; p[1]=0;
-  push_item(sector,dir,p);
+  if (dead_food) {
+      for (int i = 0; i < MAX_MOBS; ++i) {
+          if ((mobs[i].vlajky & (MOB_IN_BATTLE | MOB_LIVE))==(MOB_IN_BATTLE | MOB_LIVE))  {
+              mob_hit(mobs+i, mobs[i].lives);
+          }
+      }
+  } else {
+      get_sector_dir(cil,&sector,&dir);
+      p[0]=what+1; p[1]=0;
+      push_item(sector,dir,p);
+  }
   }
 
 void spell_create_weapon(int cil,int what)
