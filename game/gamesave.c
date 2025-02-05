@@ -218,14 +218,14 @@ extern TSTR_LIST texty_v_mape;
 void save_map_description(TMPFILE_WR *f)
   {
   int count,max;
-  int i;
+  int32_t i;
 
   if (texty_v_mape==NULL) max=0;else max=str_count(texty_v_mape);
   for(i=0,count=0;i<max;i++) if (texty_v_mape[i]!=NULL) count++;
   temp_storage_write(&count,1*sizeof(count),f);
   for(i=0;i<max;i++) if (texty_v_mape[i]!=NULL)
      {
-     int len;
+     word len;
      len=strlen(texty_v_mape[i]+12)+12+1;
      temp_storage_write(&len,1*2,f);
      temp_storage_write(texty_v_mape[i],1*len,f);
@@ -234,8 +234,8 @@ void save_map_description(TMPFILE_WR *f)
 
 void load_map_description(TMPFILE_RD *f)
   {
-  int count;
-  int i;
+  int32_t count;
+  int32_t i;
   word len;
 
   if (texty_v_mape!=NULL)release_list(texty_v_mape);
@@ -328,8 +328,9 @@ int load_all_fly(TMPFILE_RD *fsta)
         memcpy(n->items,items,(c-items)*sizeof(short));
         }
      add_fly(n);
+     temp_storage_read(&sz,sizeof(sz),fsta);
      }
-  return 0;
+  return sz != 0;
   }
 
 
@@ -441,9 +442,9 @@ int load_map_state() //obnovuje stav mapy; nutno volat po zavolani load_map;
     for (i=0;i<mapsize;i++)
       if ((bf[i>>3]>>(i & 7)) & 1) map_coord[i].flags|=MC_DISCLOSED;
   load_map_description(fsta);
-  while (temp_storage_read(&i,sizeof(i),fsta) && i > 0 && i<=mapsize*4)
+  while (temp_storage_read(&i,sizeof(i),fsta) && i >= 0 && i<=mapsize*4)
      if (temp_storage_read(map_sides+i,1*sizeof(TSTENA),fsta)!=sizeof(TSTENA)) goto err;
-  while (temp_storage_read(&i,sizeof(i),fsta) && i >0 && i<=mapsize)
+  while (temp_storage_read(&i,sizeof(i),fsta) && i >= 0 && i<=mapsize)
      if (temp_storage_read(map_sectors+i,1*sizeof(TSECTOR),fsta)!=sizeof(TSECTOR)) goto err;
   if (reset_mobiles)  //reloads mobiles if flag present
     {

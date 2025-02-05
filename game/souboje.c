@@ -705,7 +705,7 @@ void wire_end_game()
   for(i=0;i<MAX_MOBS;i++) if (mobs[i].vlajky & MOB_LIVE) mobs[i].vlajky&=~MOB_IN_BATTLE;
 
   for (int i = 0; i < POCET_POSTAV; ++i) {
-      if (postavy[i].used && postavy[i].inmaphash != current_map_hash) {
+      if (postavy[i].used && postavy[i].inmaphash != current_map_hash && postavy[i].lives) {
           const char *mname = find_map_from_hash(postavy[i].inmaphash);
           if (mname != NULL) {
               cur_group = postavy[i].groupnum;

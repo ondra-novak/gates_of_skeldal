@@ -455,7 +455,7 @@ static PARSED_COMMAND parse_command(const char *cmd) {
 extern int ghost_walls;
 extern int nofloors;
 
-static int add_file_to_console(const char *name, LIST_FILE_TYPE , size_t, void *ctx) {
+static int add_file_to_console(const char *name, LIST_FILE_TYPE _, size_t __, void *ctx) {
     int *cnt = (void *)ctx;
     char buff[20] = "";
     for (int i = 0; i < 19; ++i) buff[i] = ' ';
