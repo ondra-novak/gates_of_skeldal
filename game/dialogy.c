@@ -277,7 +277,7 @@ static void goto_paragraph(int prgf)
      if (z->visited) z->first=1;
      if (z->alt==z->num || !z->visited)
         {
-        pc=((char *)ablock_copy(H_DIALOGY_DAT))+*((int *)ablock_copy(H_DIALOGY_DAT))*sizeof(T_PARAGRAPH)+8+z->position;
+        pc=((char *)ablock_copy(H_DIALOGY_DAT))+*((const int *)ablock(H_DIALOGY_DAT))*sizeof(T_PARAGRAPH)+8+z->position;
         last_pgf=prgf;
         z->visited=1;
         return;
@@ -391,7 +391,8 @@ static char *Get_string()
      {
      short i;
      pc++;
-     i=*(short *)pc;pc+=2;
+     i = (uint8_t)pc[0] + 256*pc[1];
+     pc+=2;
      if (i<=0) c=conv_text(texty[abs(i)]);else c=conv_text(level_texts[i]);
      return string_buffer;
      }
@@ -406,14 +407,14 @@ static short Get_short()
   if (*pc==P_SHORT)
      {
      pc++;
-     p=*(short *)pc;
+     p = (uint8_t)pc[0] + 256*pc[1];
      pc+=2;
      return p;
      }
   if (*pc==P_VAR)
      {
      pc++;
-     p=*(short *)pc;
+     p = (uint8_t)pc[0] + 256*pc[1];
      pc+=2;
      return varibles[p];
      }

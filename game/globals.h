@@ -1803,6 +1803,11 @@ char *map_hash_to_string_impl(char *c, uint32_t h, int sz);
 const char *find_map_from_hash_impl(char *c, uint32_t h, int sz);
 #define find_map_from_hash(h) (find_map_from_hash_impl((char *)alloca(31), h, 30))
 char can_select_player(THUMAN *p, char select_dead, char select_far);
+char generate_string_tables(const char *path);
+
+char *change_extension_support(char *buffer, const char *filename,char *new_extension);
+#define set_file_extension(filename, extension) change_extension_support((char *)alloca(strlen(filename)+strlen(extension)), (filename), (extension))
+
 
 
 //extras

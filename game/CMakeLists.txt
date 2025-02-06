@@ -33,6 +33,7 @@ chargen.c
 sndandmus.c  
 specproc.c
 console.c
+gen_stringtable.c
 advconfig.c
 temp_storage.cpp
 ${CMAKE_BINARY_DIR}/default_font.cpp

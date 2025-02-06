@@ -913,6 +913,18 @@ static void patch_error(int err)
 	showview(0,460,640,20);
 	}
 
+void init_DDL_manager() {
+
+    const char *ddlfile = build_pathname(2, gpathtable[SR_DATA],"SKELDAL.DDL");
+    ddlfile = local_strdup(ddlfile);
+
+    init_manager(ddlfile, NULL);
+    SEND_LOG("(GAME) Memory manager initialized. Using DDL: '%s'",ddlfile);
+
+    register_basic_data();
+
+}
+
 void init_skeldal(const INI_CONFIG *cfg)
   {
 
@@ -932,20 +944,15 @@ void init_skeldal(const INI_CONFIG *cfg)
 
   general_engine_init();
   atexit(done_skeldal);
-/*
-  install_dos_error(device_error,(char *)getmem(4096)+4096);*/
-  const char *ddlfile = build_pathname(2, gpathtable[SR_DATA],"SKELDAL.DDL");
-  ddlfile = local_strdup(ddlfile);
 
-  init_manager(ddlfile, NULL);
-  SEND_LOG("(GAME) Memory manager initialized. Using DDL: '%s'",ddlfile);
+  init_DDL_manager();
+
   texty_knihy=strdup(build_pathname(2,gpathtable[SR_MAP],"kniha.txt"));
 
   install_gui();
 
   if (patch_file!=NULL) patch_error(add_patch_file(patch_file));
 
-  register_basic_data();
 
   send_message(E_DONE,E_WATCH,timer);
   send_message(E_DONE,E_IDLE,redraw_desktop_call);
@@ -1588,6 +1595,7 @@ void show_help(const char *arg0) {
 
     printf("-f <file>       path to configuration file\n"
            "-a <adv>        path for adventure file (.adv)\n"
+           "-s <directory>  generate string-tables (for localization)\n"
            "-h              this help\n");
     exit(0);
 }
@@ -1600,6 +1608,8 @@ void quit_cb_exit_wait(void *_) {
     exit_wait = 1;
 }
 
+
+
 int main(int argc,char *argv[])
   {
   def_mman_group_table(gpathtable);
@@ -1607,11 +1617,13 @@ int main(int argc,char *argv[])
   turn_speed(1);
   const char *config_name = CONFIG_NAME;
   const char *adv_config_file = NULL;
-  for (int optchr = -1; (optchr = getopt(argc, argv, "hf:a:")) != -1; ) {
+  const char *gen_stringtable_path = NULL;
+  for (int optchr = -1; (optchr = getopt(argc, argv, "hf:a:s:")) != -1; ) {
       switch (optchr) {
           case 'f': config_name = local_strdup(optarg);break;
           case 'a': adv_config_file = local_strdup(optarg);break;
           case 'h': show_help(argv[0]);break;
+          case 's': gen_stringtable_path = local_strdup(optarg);break;
           default: show_help_short();
                    return 1;
       }
@@ -1634,6 +1646,14 @@ int main(int argc,char *argv[])
   if (!change_current_directory(groot)) {
       fprintf(stderr, "Can't change directory to %s", groot);
       return 1;
+  }
+
+
+  if (gen_stringtable_path) {
+      init_DDL_manager();
+      generate_string_tables(gen_stringtable_path);
+      printf("Done\n");
+      return 0;
   }
 
 

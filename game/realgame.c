@@ -157,7 +157,6 @@ char *change_extension_support(char *buffer, const char *filename,char *new_exte
     return buffer;
   }
 
-#define set_file_extension(filename, extension) change_extension_support((char *)alloca(strlen(filename)+strlen(extension)), (filename), (extension))
 
 
 uint32_t fnv1a_hash(const char *str) {
