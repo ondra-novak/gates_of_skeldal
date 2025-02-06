@@ -1643,7 +1643,7 @@ char get_spell_track(int num);
 void mob_cast(int num,TMOB *m,int mob_num);
 void thing_cast(int num,int postava,int sector,TMOB *victim,char noanim);//vyvolavaji veci
 void area_cast(int num,int sector,int owner,char noanim);
-int select_teleport_target(void);
+int select_teleport_target(char nolimit);
 char get_spell_teleport(int num);
 void spell_throw(int cil,int what); //to je procedura ktera umoznuje potvoram strilet
 void play_big_mgif_animation(int block);

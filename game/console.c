@@ -7,7 +7,6 @@
 #define console_max_lines  16
 
 void macro_drop_item(int sector,int smer,short item);
-
 /****/
 
 
@@ -366,6 +365,7 @@ static char display_game_status(void)
 void unaffect();
 extern char immortality;
 extern char nohassle;
+extern char dead_food;
 extern char pass_all_mobs;
 
 
@@ -519,8 +519,14 @@ static int process_on_off_command(const char *cmd, char on) {
         pass_all_mobs = on;
         return 1;
     }
+    if (stricmp(cmd, "dead-food") == 0) {
+        dead_food = on;
+        return 1;
+    }
     return 0;
 }
+
+void postavy_teleport_effect(int sector,int dir,int postava,char effect);
 
 static int process_actions(const char *command) {
     if (stricmp(command, "flute") == 0) {
@@ -552,7 +558,6 @@ static int process_actions(const char *command) {
     }
     if (stricmp(command, "echo-location") == 0) {
         for (int i = 1; i < mapsize; ++i) {
-            if (map_coord[i].flags & MC_NOAUTOMAP) continue;
             map_coord[i].flags |= MC_AUTOMAP;
         }
         play_fx_at(FX_MAP);
@@ -598,6 +603,28 @@ static int process_actions(const char *command) {
         printf("\n");
         return 1;
     }
+    if (stricmp(command, "beam-me-up") == 0) {
+        for (int i = 1; i < mapsize; ++i) {
+            map_coord[i].flags |= MC_AUTOMAP;
+        }
+        play_fx_at(FX_MAP);
+        int kdo = 0;
+        THUMAN *h = postavy;
+        for(int i=0;i<POCET_POSTAV;i++,h++) {
+           if (postavy[i].used && postavy[i].sektor == viewsector) kdo|=1<<i;
+        }
+        int sektor = select_teleport_target(1);
+        if (sektor) {
+            postavy_teleport_effect(sektor, viewdir, kdo, 1);
+            return 1;
+        } else {
+            unwire_proc();
+            wire_proc();
+        }
+        return 0;
+
+    }
+
     return 0;
 }
 

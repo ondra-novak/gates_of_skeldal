@@ -1478,12 +1478,13 @@ static char ask_who_proc(int id,int xa,int ya,int xr,int yr)
      p=&postavy[i];
      if (can_select_player(p, death_play, far_play)) {
            {
-           if (get_spell_teleport(magic_data->data1))
-              if ((magic_data->data2=select_teleport_target())==0)
+           if (get_spell_teleport(magic_data->data1)) {
+              if ((magic_data->data2=select_teleport_target(0))==0)
                  {
                  cancel_power(id,xa,ya,xr,yr);
                  return 1;
                  }
+           }
            magic_data->data1+=(i+1)<<9;
            magic_data->action=AC_MAGIC;
            if (battle) souboje_vybrano(AC_MAGIC);
@@ -1525,7 +1526,7 @@ char power(int id,int xa,int ya,int xr,int yr)
      }
   magic_data->action=AC_MAGIC;
   if (get_spell_teleport(magic_data->data1))
-     if ((magic_data->data2=select_teleport_target())==0)
+     if ((magic_data->data2=select_teleport_target(0))==0)
          {
          cancel_power(id,xa,ya,xr,yr);
          return 1;
