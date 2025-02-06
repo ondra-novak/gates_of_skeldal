@@ -31,12 +31,14 @@ char game_display_init(const INI_CONFIG_SECTION *display_section, const char *ti
     cfg.scale_quality = ini_get_string(display_section, "scale_quality", "auto");
     cfg.window_height = ini_get_int(display_section, "window_height", 480);
     cfg.window_width = ini_get_int(display_section, "window_width", 640);
-    cfg.crt_filter = ini_get_boolean(display_section, "crt_filter", 1) == 1;
 
-
-
-
-
+    const char *filter = ini_get_string(display_section, "crt_filter", "auto");
+    if (stricmp(filter,"none") == 0) cfg.crt_filter = SDLContext::CrtFilterType::none;
+    else if (stricmp(filter,"scanlines") == 0) cfg.crt_filter = SDLContext::CrtFilterType::scanlines;
+    else if (stricmp(filter,"scanlines_2") == 0) cfg.crt_filter = SDLContext::CrtFilterType::scanlines_2;
+    else if (stricmp(filter,"rgbmatrix_2") == 0) cfg.crt_filter = SDLContext::CrtFilterType::rgb_matrix_2;
+    else if (stricmp(filter,"rgbmatrix_3") == 0) cfg.crt_filter = SDLContext::CrtFilterType::rgb_matrix_3;
+    else cfg.crt_filter = SDLContext::CrtFilterType::autoselect;
 
 
     screen_pitch = 640;

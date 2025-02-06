@@ -15,10 +15,20 @@ public:
 
     SDLContext();
 
+    enum class CrtFilterType {
+        none,
+        autoselect,
+        scanlines,
+        scanlines_2,
+        rgb_matrix_2,
+        rgb_matrix_3
+
+    };
+
     struct VideoConfig {
         int window_width;
         int window_height;
-        bool crt_filter;
+        CrtFilterType  crt_filter;
         int composer;
         const char *scale_quality;
         bool fullscreen;
@@ -121,7 +131,7 @@ protected:
     mutable std::mutex _mx;
     int aspect_x = 4;
     int aspect_y = 3;
-    bool crt_filter_enabled = false;
+    CrtFilterType _crt_filter= CrtFilterType::autoselect;
     std::function<void()> _quit_callback;
 
     std::unique_ptr<SDL_Window, SDL_Deleter> _window;
@@ -173,7 +183,7 @@ protected:
     static SDL_Point to_source_point(const SDL_Rect &win_rec, const SDL_Point &win_pt) ;
     static SDL_Rect transition_rect(const SDL_Rect &beg, const SDL_Rect &end, float phase);
     static int transition_int(int beg, int end, float phase);
-    void generateCRTTexture(SDL_Renderer* renderer, SDL_Texture** texture, int width, int height);
+    void generateCRTTexture(SDL_Renderer* renderer, SDL_Texture** texture, int width, int height, CrtFilterType type);
     void signal_push();
 
 

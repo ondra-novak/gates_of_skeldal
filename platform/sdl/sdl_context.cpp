@@ -53,8 +53,18 @@ SDLContext::SDLContext() {
 
 }
 
-void SDLContext::generateCRTTexture(SDL_Renderer* renderer, SDL_Texture** texture, int width, int height) {
 
+void SDLContext::generateCRTTexture(SDL_Renderer* renderer, SDL_Texture** texture, int width, int height, CrtFilterType type) {
+
+    if (type == CrtFilterType::autoselect) {
+        if (height > 1680) type = CrtFilterType::rgb_matrix_3;
+        else if (height >= 1200) type = CrtFilterType::scanlines_2;
+        else type = CrtFilterType::scanlines;
+    }
+
+    if (type == CrtFilterType::scanlines || type == CrtFilterType::scanlines_2) {
+        width = 32;
+    }
     // Vytvoř novou texturu ve správné velikosti
     *texture = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_RGBA8888, SDL_TEXTUREACCESS_STREAMING, width, height);
     SDL_SetTextureBlendMode(*texture, SDL_BLENDMODE_MUL);
@@ -65,18 +75,66 @@ void SDLContext::generateCRTTexture(SDL_Renderer* renderer, SDL_Texture** textur
     int pitch;
     SDL_LockTexture(*texture, nullptr, &pixels, &pitch);
 
-    bool wider_lines = height > 1350;
-
     Uint32* pixelArray = (Uint32*)pixels;
-    Uint32 darkPixel = wider_lines?0x808080FF:0xA0A0A0FF;
-    Uint32 transparentPixel = wider_lines ?0xFFFFFFE0:0xFFFFFFC0;
-    int step = wider_lines ?3:2;
 
-    for (int y = 0; y < height; y++) {
-        Uint32 color = (y % step == 0) ? darkPixel : transparentPixel;
-        for (int x = 0; x < width; x++) {
-            pixelArray[y * (pitch / 4) + x] = color;
+    if (type == CrtFilterType::scanlines) {
+
+
+
+        Uint32 darkPixel = 0xA0A0A0FF;
+        Uint32 transparentPixel = 0xFFFFFFC0;
+
+        for (int y = 0; y < height; y++) {
+            Uint32 color = ((y & 1)== 0) ? darkPixel : transparentPixel;
+            for (int x = 0; x < width; x++) {
+                pixelArray[y * (pitch / 4) + x] = color;
+            }
         }
+    }
+    else if (type == CrtFilterType::scanlines_2) {
+
+
+        Uint32 darkPixel = 0x808080FF;
+        Uint32 transparentPixel = 0xFFFFFFE0;
+
+        for (int y = 0; y < height; y++) {
+            Uint32 color = (y % 3== 2) ? darkPixel : transparentPixel;
+            for (int x = 0; x < width; x++) {
+                pixelArray[y * (pitch / 4) + x] = color;
+            }
+        }
+    } else {
+
+        static Uint32 red_pixel = 0xFF8080A0;
+        static Uint32 green_pixel = 0x80FF80A0;
+        static Uint32 blue_pixel = 0x8080FFA0;
+        static Uint32 dark_pixel = 0x000000C0;
+        for (int y = 2; y < height; y++) {
+            if (type == CrtFilterType::rgb_matrix_2) {
+                for (int x = 2; x < width; x+=3) {
+                    Uint32 *pos = pixelArray+y*(pitch/4)+x-2;
+                    if ((y % 3) == 2) {
+                        pos[0] = pos[1] = pos[2] = dark_pixel;
+                    } else {
+                        pos[0] = red_pixel;
+                        pos[1] = green_pixel;
+                        pos[2] = blue_pixel;
+                    }
+                }
+            } else {
+                for (int x = 2; x < width; x+=3) {
+                    Uint32 *pos = pixelArray+y*(pitch/4)+x-2;
+                    if ((y & 3) == 3) {
+                        pos[0] = pos[1] = pos[2] = dark_pixel;
+                    } else {
+                        pos[0] = red_pixel;
+                        pos[1] = green_pixel;
+                        pos[2] = blue_pixel;
+                    }
+                }
+            }
+        }
+
     }
 
     // Odemkni texturu
@@ -97,7 +155,7 @@ void SDLContext::init_video(const VideoConfig &config, const char *title) {
     int height = config.window_height;
     aspect_x = config.aspect_x;
     aspect_y = config.aspect_y;
-    crt_filter_enabled = config.crt_filter;
+    _crt_filter = config.crt_filter ;
 
 
     _fullscreen_mode = config.fullscreen;
@@ -370,10 +428,10 @@ void SDLContext::update_screen() {
         SDL_SetTextureAlphaMod(_visible_texture, 255);
         SDL_RenderCopy(_renderer.get(), _visible_texture, NULL, &winrc);
     }
-    if (winrc.h > 900 && crt_filter_enabled) {
+    if (winrc.h >= 720 && _crt_filter != CrtFilterType::none) {
         if (!_crt_effect) {
             SDL_Texture *txt;
-            generateCRTTexture(_renderer.get(), &txt, 128, std::min<int>(1440, winrc.h));
+              generateCRTTexture(_renderer.get(), &txt, winrc.w, winrc.h, _crt_filter);
             _crt_effect.reset(txt);
         }
     }

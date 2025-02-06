@@ -14,7 +14,8 @@ SET(files basicobj.c
           strlite.c
           wav_mem.c
           strlists.c
-          music.cpp          
+          cztable.c
+          music.cpp
           swaper.c )
 
 add_library(skeldal_libs  ${files})

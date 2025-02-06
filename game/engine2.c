@@ -513,7 +513,7 @@ void enemy_draw(const void *src,void *trg,int shade,int scale,int maxspace,int c
 		int rwofs = pcx*(pcy-1);
 		int accu = 0;
 		int *w = ytable;
-		int sp = maxspace*2;
+		int sp = maxspace;
 
 		while (sp > 0 && rwofs >= 0) {
 			*w++ = rwofs;
@@ -700,7 +700,7 @@ void enemy_draw_transp(const void *src,void *trg,const void *shade,int scale,int
 		int rwofs = pcx*(pcy-1);
 		int accu = 0;
 		int *w = ytable;
-		int sp = maxspace*2;
+		int sp = maxspace;
 
 		while (sp > 0 && rwofs >= 0) {
 			*w++ = rwofs;
@@ -889,7 +889,7 @@ void enemy_draw_mirror_transp(const void *src,void *trg,const void *shade,int sc
 		int rwofs = pcx*(pcy-1);
 		int accu = 0;
 		int *w = ytable;
-		int sp = maxspace*2;
+		int sp = maxspace;
 
 		while (sp > 0 && rwofs >= 0) {
 			*w++ = rwofs;
@@ -1079,7 +1079,7 @@ void enemy_draw_mirror(const void *src,void *trg,int shade,int scale,int maxspac
 		int rwofs = pcx*(pcy-1);
 		int accu = 0;
 		int *w = ytable;
-		int sp = maxspace*2;
+		int sp = maxspace;
 
 		while (sp > 0 && rwofs >= 0) {
 			*w++ = rwofs;
