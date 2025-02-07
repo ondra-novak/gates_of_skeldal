@@ -259,19 +259,21 @@ void SDLContext::event_loop(std::stop_token stp) {
                 if (e.window.event == SDL_WINDOWEVENT_SIZE_CHANGED) {
                     _crt_effect.reset();
                 }
-         } else if (e.type == SDL_KEYDOWN) {
+         } else if (e.type == SDL_KEYDOWN || e.type == SDL_KEYUP) {
             _key_capslock = e.key.keysym.mod & KMOD_CAPS;
             _key_shift =e.key.keysym.mod & KMOD_SHIFT;
             _key_control  =e.key.keysym.mod & KMOD_CTRL;
-            if (e.key.keysym.sym == SDLK_RETURN && (e.key.keysym.mod & KMOD_ALT)) {
-                _fullscreen_mode = !_fullscreen_mode;
-                SDL_SetWindowFullscreen(_window.get(), _fullscreen_mode ? SDL_WINDOW_FULLSCREEN_DESKTOP : 0);
-            } else {
-                auto code =sdl_keycode_map.get_bios_code(e.key.keysym.scancode,
-                        e.key.keysym.mod & KMOD_SHIFT, e.key.keysym.mod & KMOD_CTRL);
-                if (code) {
-                    std::lock_guard _(_mx);
-                    _keyboard_queue.push(code);
+            if (e.type == SDL_KEYDOWN) {
+                if (e.key.keysym.sym == SDLK_RETURN && (e.key.keysym.mod & KMOD_ALT)) {
+                    _fullscreen_mode = !_fullscreen_mode;
+                    SDL_SetWindowFullscreen(_window.get(), _fullscreen_mode ? SDL_WINDOW_FULLSCREEN_DESKTOP : 0);
+                } else {
+                    auto code =sdl_keycode_map.get_bios_code(e.key.keysym.scancode,
+                            e.key.keysym.mod & KMOD_SHIFT, e.key.keysym.mod & KMOD_CTRL);
+                    if (code) {
+                        std::lock_guard _(_mx);
+                        _keyboard_queue.push(code);
+                    }
                 }
             }
         } else if (e.type == SDL_MOUSEMOTION) {

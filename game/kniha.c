@@ -498,6 +498,7 @@ static void seek_section(TMPFILE_RD *txt,int sect_number)
   do
      {
      while (c!='[' && c!=EOF) c=temp_storage_getc(txt);
+     if (c == EOF) break;
      if (c=='[')
        {
        i=-2;

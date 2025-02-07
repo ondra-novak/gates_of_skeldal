@@ -131,7 +131,7 @@ void add_window(int x,int y,int xs,int ys,int texture,int border,int txtx,int tx
   }
 
 
-void zalamovani(char *source,char *target,int maxxs,int *xs,int *ys)
+void zalamovani(const char *source,char *target,int maxxs,int *xs,int *ys)
   {
   strcpy(target,source);
   xs[0]=0;
@@ -1354,10 +1354,10 @@ TMPFILE_RD *enc_open(const char *filename)
       if (f==NULL) return NULL;
       encdata = load_file_to_string(f, &size);
       fclose(f);
-  }
-  for (int i = 0; i < size; ++i) {
-      last = (last + encdata[i]) & 0xFF;
-      encdata[i] = last;
+      for (int i = 0; i < size; ++i) {
+          last = (last + encdata[i]) & 0xFF;
+          encdata[i] = last;
+      }
   }
   temp_storage_store("__enc_temp", encdata, size);
   free(encdata);
@@ -1478,14 +1478,12 @@ static void smlouvat_enter(EVENT_MSG *msg,OBJREC *o)
     }
   }
 
-int smlouvat(int cena,int puvod,int pocet,int money,char mode)
+THAGGLERESULT smlouvat_dlg(int cena,int puvod,int pocet,int posledni, int money,char mode)
   {
-  int ponuka=0,posledni=0;
-  char text[255],*c,buffer[20];
-  int y,yu,xu;
-  int temp1,temp2;
+  char buffer[20];
+  int ponuka;
+  THAGGLERESULT res;
 
-  cena,puvod,pocet,money;text[0]=0;text[1]=0;
   set_font(H_FBOLD,RGB555(31,31,31));
   add_window(170,130,300,100,H_WINTXTR,3,20,20);
   define(-1,10,15,1,1,0,label,texty[241]);
@@ -1496,46 +1494,45 @@ int smlouvat(int cena,int puvod,int pocet,int money,char mode)
     on_control_event(smlouvat_enter);
   define(20,20,20,80,20,2,button,texty[239]);property(def_border(5,BAR_COLOR),NULL,NULL,BAR_COLOR);on_control_change(terminate_gui);
   define(30,110,20,80,20,2,button,texty[230]);property(def_border(5,BAR_COLOR),NULL,NULL,BAR_COLOR);on_control_change(terminate_gui);
-  do
     {
     redraw_window();
     schovej_mysku();set_font(H_FBOLD,RGB555(31,31,31));
-    c=text;yu=y=waktual->y+50;xu=waktual->x+10;
-    do {position(xu,y);outtext(c);y+=text_height(c)+1;c=strchr(c,0)+1;} while(*c);
     ukaz_mysku();
-    showview(xu,yu,280,y-yu);
     goto_control(10);
     escape();
-    temp1=1;
-    if (o_aktual->id==20) cena=-1;
-    else
+    res.message = 0;
+    res.hprice = posledni;
+    res.canceled = 1;
+    if (o_aktual->id!=20)
       {
+        res.canceled = 0;
       get_value(0,10,buffer);
-      if (buffer[0]==0) c=texty[240];
+      if (buffer[0]==0) res.message=texty[240];
       else
         {
-        if (sscanf(buffer,"%d",&ponuka)!=1) c=texty[237];
+        if (sscanf(buffer,"%d",&ponuka)!=1) res.message=texty[237];
         else
           {
-          if (ponuka>money && mode==1) c=texty[104];
+          if (ponuka>money && mode==1) {
+              message(1, 0, 0, texty[100], texty[104], texty[78]);
+              res.canceled = 1;
+          }
           else
             {
-            if (mode) temp1=smlouvat_nakup(cena,ponuka,posledni,puvod,pocet);
-            else temp1=smlouvat_prodej(cena,ponuka,posledni,puvod,pocet+1);
-            posledni=ponuka;
-            if (rnd(100)<50) c=texty[230+temp1];else c=texty[250+temp1];
+              int temp1;
+              if (mode) temp1=smlouvat_nakup(cena,ponuka,posledni,puvod,pocet);
+              else temp1=smlouvat_prodej(cena,ponuka,posledni,puvod,pocet+1);
+              res.hprice=ponuka;
+              if (temp1) {
+                  if (rnd(100)<50) res.message=texty[230+temp1];else res.message=texty[250+temp1];
+              }
             }
           }
         }
-      shadow_enabled=0;
       }
-    if (c) zalamovani(c,text,280,&temp2,&temp2);
     }
-  while (temp1!=0 && cena!=-1);
-  if (temp1==0) cena=ponuka;
   close_current();
-  shadow_enabled=1;
-  return cena;
+  return res;
   }
 
 //----------------- JRC LOGO ----------------------------------

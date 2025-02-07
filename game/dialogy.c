@@ -19,6 +19,7 @@
 #include <libs/pcx.h>
 #include "globals.h"
 #include <stdarg.h>
+#include "lang.h"
 
 typedef struct t_paragraph
   {
@@ -103,6 +104,7 @@ static char code_page=1;
 static char case_click(int id,int xa,int ya,int xr,int yr);
 static char ask_who_proc(int id,int xa,int ya,int xr,int yr);
 
+static TSTRINGTABLE *dialogy_strtable = NULL;
 
 #define CLK_DIALOG 3
 static T_CLK_MAP clk_dialog[CLK_DIALOG]=
@@ -288,9 +290,10 @@ static void goto_paragraph(int prgf)
   while (1);
   }
 
-static char *transfer_text(char *source,char *target)
+static char *transfer_text(const char *source,char *target)
   {
-  char *orgn=source,*ot=target;
+  const char *orgn=source;
+  char *ot=target;
   int num;
   while (*source)
      {
@@ -357,7 +360,7 @@ static char *transfer_text(char *source,char *target)
   return target;
   }
 
-static char *conv_text(char *source)
+static char *conv_text(const char *source)
   {
   if (string_buffer==NULL) string_buffer=getmem(STR_BUFF_SIZ);
   return transfer_text(source,string_buffer);
@@ -370,18 +373,23 @@ static char zjisti_typ()
 
 static char *Get_string()
   {
+    const char *start = (const char *)ablock(H_DIALOGY_DAT);
   char *c,i;
   if (*pc==P_STRING)
      {
+      int ofs = pc - start+1;
      pc++;
-     c=conv_text(pc);
+     const char *txt = stringtable_find(dialogy_strtable,ofs, pc);
+     c=conv_text(txt);
      do
         {
         pc+=strlen(pc)+1;
+        ofs = pc - start;
         if ((i=zjisti_typ())==P_STRING)
            {
+            const char *txt = stringtable_find(dialogy_strtable,ofs, pc);
            pc++;
-           c=transfer_text(pc,c);
+           c=transfer_text(txt,c);
            }
         }
      while(i==P_STRING);
@@ -1222,11 +1230,21 @@ static void cast_spell(int spell)
   add_spell(spell,cil,cil,1);
   }
 
+static void free_dialog_stringtable() {
+    stringtable_free(dialogy_strtable);
+}
 
 void do_dialog()
   {
   int i,p1,p2,p3;
   char *c;
+
+  if (!dialogy_strtable) {
+      dialogy_strtable = lang_load("dialogs.csv");
+      if (dialogy_strtable) {
+          atexit(free_dialog_stringtable);
+      }
+  }
 
   do
      {

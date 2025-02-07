@@ -14,12 +14,13 @@
 #include <libs/basicobj.h>
 #include <libs/mgfplay.h>
 #include <libs/inicfg.h>
-#include <platform/getopt.h>
 #include <platform/save_folder.h>
 #include "globals.h"
 #include "default_font.h"
 //
 #include "advconfig.h"
+#include "skeldal.h"
+#include "lang.h"
 
 #define CONFIG_NAME SKELDALINI
 
@@ -95,7 +96,7 @@ const void *pcx_15bit_autofade(const void *p, int32_t *s);
 const void *pcx_15bit_backgrnd(const void *p, int32_t *s);
 const void *pcx_8bit_decomp(const void *p, int32_t *s);
 
-char *texty_knihy;
+const char *texty_knihy;
 static char *patch_file=NULL;
 int cur_page=0;
 
@@ -793,7 +794,11 @@ void cti_texty(void)
     display_error(buff);
      exit(1);
      }
+
+  lang_patch_stringtable(&texty, "ui.csv", "");
   }
+
+
 
 
 void global_kbd(EVENT_MSG *msg,void **usr)
@@ -947,7 +952,16 @@ void init_skeldal(const INI_CONFIG *cfg)
 
   init_DDL_manager();
 
-  texty_knihy=strdup(build_pathname(2,gpathtable[SR_MAP],"kniha.txt"));
+  if (lang_get_folder()) {
+      texty_knihy = build_pathname(2, lang_get_folder(), "book.txt");
+      if (!check_file_exists(texty_knihy)) {
+          texty_knihy=strdup(build_pathname(2,gpathtable[SR_MAP],"kniha.txt"));
+      } else {
+          texty_knihy=strdup(texty_knihy);
+      }
+  } else {
+      texty_knihy=strdup(build_pathname(2,gpathtable[SR_MAP],"kniha.txt"));
+  }
 
   install_gui();
 
@@ -1576,32 +1590,22 @@ const char *configure_pathtable(const INI_CONFIG *cfg) {
     gpathtable[SR_VIDEO] = ini_get_string(paths, "video", "video");
     gpathtable[SR_SAVES] = ini_get_string(paths, "savegame", get_default_savegame_directory());
     gpathtable[SR_DATA]= ini_get_string(paths, "data", "./");
+    gpathtable[SR_LANG]= ini_get_string(paths, "lang", "./lang");
 
 
     return groot;
 }
 
 
-void show_help(const char *arg0) {
-    printf(
-            "Brany Skeldalu (Gates of Skeldal) portable game player\n"
-            "Copyright (c) 2025 Ondrej Novak. All rights reserved.\n\n"
-            "This work is licensed under the terms of the MIT license.\n"
-            "For a copy, see <https://opensource.org/licenses/MIT>.\n"
-            "\n"
-            "Usage:"
-    );
-    printf("%s [-f <file>] [-a <file>] [-h]\n\n", arg0);
-
-    printf("-f <file>       path to configuration file\n"
-           "-a <adv>        path for adventure file (.adv)\n"
-           "-s <directory>  generate string-tables (for localization)\n"
-           "-h              this help\n");
-    exit(0);
-}
-
-void show_help_short() {
-    printf("Use -h for help\n");
+static void (*display_error_cb)(const char *);
+void display_error(const char *format, ...) {
+    va_list lst;va_start(lst, format);
+    if (display_error_cb) {
+        char buff[1024];
+        vsnprintf(buff,sizeof(buff), format, lst);
+    } else {
+        fprintf(stderr, format, lst);
+    }
 }
 
 void quit_cb_exit_wait(void *_) {
@@ -1609,54 +1613,62 @@ void quit_cb_exit_wait(void *_) {
 }
 
 
+int skeldal_gen_string_table_entry_point(const SKELDAL_CONFIG *start_cfg, const char *save_path) {
+    def_mman_group_table(gpathtable);
 
-int main(int argc,char *argv[])
+    INI_CONFIG *cfg = ini_open(start_cfg->config_path);
+    if (cfg == NULL) {
+        start_cfg->show_error(concat2("Failed to open configuration file: ", start_cfg->config_path));
+        start_cfg->short_help();
+        return 1;
+    }
+
+    if (start_cfg->adventure_path) {
+        TSTR_LIST adv_config=read_config(start_cfg->adventure_path);
+        adv_patch_config(cfg, adv_config);
+        release_list(adv_config);
+    }
+
+    const char *groot = configure_pathtable(cfg);
+    if (!change_current_directory(groot)) {
+        start_cfg->show_error(concat2("Can't change directory to: ", groot));
+        return 1;
+    }
+
+    init_DDL_manager();
+    generate_string_tables(save_path);
+    printf("Done\n");
+    return 0;
+}
+
+int skeldal_entry_point(const SKELDAL_CONFIG *start_cfg)
   {
   def_mman_group_table(gpathtable);
-  zoom_speed(1);
-  turn_speed(1);
-  const char *config_name = CONFIG_NAME;
-  const char *adv_config_file = NULL;
-  const char *gen_stringtable_path = NULL;
-  for (int optchr = -1; (optchr = getopt(argc, argv, "hf:a:s:")) != -1; ) {
-      switch (optchr) {
-          case 'f': config_name = local_strdup(optarg);break;
-          case 'a': adv_config_file = local_strdup(optarg);break;
-          case 'h': show_help(argv[0]);break;
-          case 's': gen_stringtable_path = local_strdup(optarg);break;
-          default: show_help_short();
-                   return 1;
-      }
-  }
 
-  INI_CONFIG *cfg = ini_open(config_name);
+  display_error_cb = start_cfg->show_error;
+
+  INI_CONFIG *cfg = ini_open(start_cfg->config_path);
   if (cfg == NULL) {
-      fprintf(stderr, "Failed to open configuration file: %s\n", CONFIG_NAME);
-      show_help_short();
+      start_cfg->show_error(concat2("Failed to open configuration file: ", start_cfg->config_path));
+      start_cfg->short_help();
       return 1;
   }
 
-  if (adv_config_file) {
-      TSTR_LIST adv_config=read_config(adv_config_file);
+  if (start_cfg->adventure_path) {
+      TSTR_LIST adv_config=read_config(start_cfg->adventure_path);
       adv_patch_config(cfg, adv_config);
       release_list(adv_config);
   }
 
   const char *groot = configure_pathtable(cfg);
   if (!change_current_directory(groot)) {
-      fprintf(stderr, "Can't change directory to %s", groot);
+      start_cfg->show_error(concat2("Can't change directory to: ", groot));
       return 1;
   }
 
-
-  if (gen_stringtable_path) {
-      init_DDL_manager();
-      generate_string_tables(gen_stringtable_path);
-      printf("Done\n");
-      return 0;
+  if (start_cfg->lang_path) {
+      lang_set_folder(build_pathname(2, gpathtable[SR_LANG], start_cfg->lang_path));
   }
-
-
 
   start_check();
   purge_temps(1);

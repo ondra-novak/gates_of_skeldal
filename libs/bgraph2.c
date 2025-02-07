@@ -624,3 +624,160 @@ void rectangle(int x1,int y1,int x2,int y2,int color)
   ver_line32(x2,y1,y2);
   }
 
+
+
+void put_pixel(int x, int y, int c) {
+    word *addr = getadr32(x, y);
+    *addr = c;
+}
+
+
+
+/*--------------------------------------------------------------------------
+  draw_circle_quarter()
+
+  Draws one quarter of a circle of radius 'r' (using Bresenham’s algorithm)
+  centered at (cx, cy). The parameter 'quadrant' selects which quarter:
+      0 = top–left      (draws points in the direction of decreasing x and y)
+      1 = top–right     (increasing x, decreasing y)
+      2 = bottom–right  (increasing x and y)
+      3 = bottom–left   (decreasing x, increasing y)
+  The function calls put_pixel() to draw the pixels.
+  --------------------------------------------------------------------------*/
+static void draw_circle_quarter(int cx, int cy, int r, int quadrant, int color) {
+    int x = 0, y = r;
+    int d = 3 - 2 * r;
+    while (x <= y) {
+        switch (quadrant) {
+            case 0: /* Top-left quarter */
+                put_pixel(cx - x, cy - y, color);
+                put_pixel(cx - y, cy - x, color);
+                break;
+            case 1: /* Top-right quarter */
+                put_pixel(cx + x, cy - y, color);
+                put_pixel(cx + y, cy - x, color);
+                break;
+            case 2: /* Bottom-right quarter */
+                put_pixel(cx + x, cy + y, color);
+                put_pixel(cx + y, cy + x, color);
+                break;
+            case 3: /* Bottom-left quarter */
+                put_pixel(cx - x, cy + y, color);
+                put_pixel(cx - y, cy + x, color);
+                break;
+        }
+        if (d < 0) {
+            d += 4 * x + 6;
+        } else {
+            d += 4 * (x - y) + 10;
+            y--;
+        }
+        x++;
+    }
+}
+
+/*--------------------------------------------------------------------------
+  draw_rounded_rectangle()
+
+  Draws a filled, rounded rectangle with a stroke border. The parameters are:
+    - (x,y): Top–left coordinate of the bounding rectangle.
+    - (xs, ys): Width and height.
+    - radius: The radius of the corner arcs.
+    - stroke_color: The color of the border.
+    - fill_color: The color used for filling the interior.
+  --------------------------------------------------------------------------*/
+void draw_rounded_rectangle(int x, int y, int xs, int ys, int radius,
+                            int stroke_color, int fill_color) {
+    int i, j;
+
+    /* Clamp the radius if it is too large */
+    if (radius * 2 > xs)
+        radius = xs / 2;
+    if (radius * 2 > ys)
+        radius = ys / 2;
+
+    int rsq = radius * radius;  /* We'll use this to avoid taking square roots */
+
+    /* --- Fill the rounded rectangle --- */
+    for (j = y; j < y + ys; j++) {
+        for (i = x; i < x + xs; i++) {
+            int draw_pixel = 1;  /* flag: set to 0 if the pixel is outside the filled area */
+
+            if (radius > 0) {
+                /* Top-left corner */
+                if (i < x + radius && j < y + radius) {
+                    int cx = x + radius;
+                    int cy = y + radius;
+                    int dx = i - cx;
+                    int dy = j - cy;
+                    if (dx * dx + dy * dy > rsq)
+                        draw_pixel = 0;
+                }
+                /* Top-right corner */
+                else if (i >= x + xs - radius && j < y + radius) {
+                    int cx = x + xs - radius - 1;
+                    int cy = y + radius;
+                    int dx = i - cx;
+                    int dy = j - cy;
+                    if (dx * dx + dy * dy > rsq)
+                        draw_pixel = 0;
+                }
+                /* Bottom-left corner */
+                else if (i < x + radius && j >= y + ys - radius) {
+                    int cx = x + radius;
+                    int cy = y + ys - radius - 1;
+                    int dx = i - cx;
+                    int dy = j - cy;
+                    if (dx * dx + dy * dy > rsq)
+                        draw_pixel = 0;
+                }
+                /* Bottom-right corner */
+                else if (i >= x + xs - radius && j >= y + ys - radius) {
+                    int cx = x + xs - radius - 1;
+                    int cy = y + ys - radius - 1;
+                    int dx = i - cx;
+                    int dy = j - cy;
+                    if (dx * dx + dy * dy > rsq)
+                        draw_pixel = 0;
+                }
+            }
+
+            if (draw_pixel)
+                put_pixel(i, j, fill_color);
+        }
+    }
+
+    /* --- Draw the border (stroke) --- */
+    if (radius > 0) {
+        /* Draw the top and bottom horizontal lines (excluding the rounded corners) */
+        for (i = x + radius; i < x + xs - radius; i++) {
+            put_pixel(i, y, stroke_color);             /* Top edge */
+            put_pixel(i, y + ys - 1, stroke_color);       /* Bottom edge */
+        }
+        /* Draw the left and right vertical lines (excluding the rounded corners) */
+        for (j = y + radius; j < y + ys - radius; j++) {
+            put_pixel(x, j, stroke_color);              /* Left edge */
+            put_pixel(x + xs - 1, j, stroke_color);       /* Right edge */
+        }
+
+        /* Draw the four corner arcs */
+        /* Top-left corner */
+        draw_circle_quarter(x + radius, y + radius, radius, 0, stroke_color);
+        /* Top-right corner */
+        draw_circle_quarter(x + xs - radius - 1, y + radius, radius, 1, stroke_color);
+        /* Bottom-right corner */
+        draw_circle_quarter(x + xs - radius - 1, y + ys - radius - 1, radius, 2, stroke_color);
+        /* Bottom-left corner */
+        draw_circle_quarter(x + radius, y + ys - radius - 1, radius, 3, stroke_color);
+    } else {
+        /* If radius == 0, draw a normal (non–rounded) rectangle border */
+        for (i = x; i < x + xs; i++) {
+            put_pixel(i, y, stroke_color);
+            put_pixel(i, y + ys - 1, stroke_color);
+        }
+        for (j = y; j < y + ys; j++) {
+            put_pixel(x, j, stroke_color);
+            put_pixel(x + xs - 1, j, stroke_color);
+        }
+    }
+}

@@ -16,6 +16,7 @@ SET(files basicobj.c
           strlists.c
           cztable.c
           music.cpp
+          string_table.cpp
           swaper.c )
 
 add_library(skeldal_libs  ${files})

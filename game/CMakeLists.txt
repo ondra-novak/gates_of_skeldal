@@ -36,13 +36,8 @@ console.c
 gen_stringtable.c
 advconfig.c
 temp_storage.cpp
+lang.c
 ${CMAKE_BINARY_DIR}/default_font.cpp
 )
 
-add_executable(skeldal  ${files})
-target_link_libraries(skeldal 
-    skeldal_libs 
-    skeldal_platform
-    skeldal_sdl
-    skeldal_libs
-     ${SDL2_LIBRARIES} pthread)
+add_library(skeldal_main  ${files})

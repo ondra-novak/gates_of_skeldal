@@ -493,6 +493,13 @@ void auto_group()
         if (p->sektor==q->sektor && p->direction==q->direction && p->inmaphash == current_map_hash && q->used && q->lives)
           q->groupnum=p->groupnum;
      }
+
+    for(i=0;p=&postavy[i],i<POCET_POSTAV;i++) {
+        if (p->sektor == viewsector && p->direction == viewdir) {
+            cur_group = p->groupnum;
+            break;
+        }
+    }
   }
 /*
 int vyber_zacinajiciho(int att_player)
@@ -527,22 +534,38 @@ int vyber_prvniho(int att)
   return i;
   }
 */
-static int vyber_hrace(int att)
-  {
-  int gr,i;
-  THUMAN *h;
+static int vyber_hrace(int att) {
+    int gr;
+    THUMAN *h;
 
-  if (att>POCET_POSTAV || att<0)
-    gr=cur_group,att=0xff;
- else
-    gr=postavy[att].groupnum;
- h=postavy;
- for(i=0,h=postavy;i<POCET_POSTAV && (!h->used || !h->lives || !h->actions || h->groupnum!=gr) ;i++,h++);
- if (i==6)
-  if (att!=0xff) return att;else return group_sort[0];
- else
-   return i;
- }
+    if (att > POCET_POSTAV || att < 0)
+        gr = cur_group, att = 0xff;
+    else
+        gr = postavy[att].groupnum;
+    h = postavy;
+    int candidate0 = -1;
+    int candidate1 = -1;
+    int candidate2 = -1;
+    for (int i = POCET_POSTAV; i>0;) {
+        --i;
+        h = postavy+i;
+        if (h->used && h->inmaphash == current_map_hash) {
+            candidate0 = i;
+            if (h->groupnum == gr) {
+                candidate1 =i;
+                if (h->actions) {
+                    candidate2 = i;
+                }
+            }
+        }
+    }
+    if (candidate2>=0) return candidate2;
+    if (candidate1>=0) return candidate1;
+    if (candidate0>=0) return candidate0;
+    if (att != 0xFF) return att;
+    display_error("Can't select PC for battle");
+    return 0;
+}
 
 void zacatek_kola()
   {

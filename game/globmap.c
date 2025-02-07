@@ -248,7 +248,7 @@ static char test_kriterii(void)
                 break;
         default:
                 {
-                    hodn=temp_storage_find(text)>=0;
+                    hodn=temp_storage_find(concat2(text,".map"))>=0;
 /*                char c[200];
                 sprintf(c,"%s.TMP",text);
                 hodn=!check_file_exists(c);*/
@@ -356,6 +356,7 @@ static void preskoc_prikaz(void)
      switch (ODD)
         {
         case 0:cti_retezec(1,&text,0,0);ending=1;break;
+        case '\r':continue;
         case '\n':if (ending && uroven==0) return;break;
         case EOF: if (uroven!=0)ex_error(OD_OUT);return;break;
         case '{': if (last==OD_CRIT || last==OD_NEWLINE) uroven++;break;
@@ -422,7 +423,7 @@ static char flp_validate(word sector, void *ctx)
   int *found_place =  (int *)ctx;
   char c;
 
-  if (found_place) return 0;
+  if (*found_place) return 0;
   if (mob_map[sector])
      {
      m=mobs+mob_map[sector]-1;
@@ -485,7 +486,7 @@ static char load_index_map(int index)
   if (!GlobEvent(MAGLOB_LEAVEMAP,viewsector,viewdir)) return 0;
   viewsector=lv;
   strncpy(x.name,index_tab[index].mapname,12);
-  x.start_pos=lv;
+  x.start_pos=0;
   x.dir=0;
   macro_load_another_map(&x);
   return 0;

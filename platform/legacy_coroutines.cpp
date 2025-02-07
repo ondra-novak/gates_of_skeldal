@@ -40,8 +40,8 @@ struct MsgQueue {
 };
 
 static std::queue<MsgQueue> msg_queue;
+static int recursion_count = 0;
 
-static void flush_message_queue();
 
 static void task_after_wakeup(TaskInfo *info) {
     info->wake_up_msg = -1;
@@ -67,7 +67,6 @@ static void switch_to_task(TaskInfo *task) {
         task->resume_flag.notify_all();
         resume_master_flag.wait(false);
         resume_master_flag = false;
-        flush_message_queue();
     } else {
         if (task->exited) return ;
         TaskInfo *me = current_task_inst;
@@ -81,6 +80,7 @@ static void switch_to_task(TaskInfo *task) {
 }
 
 static void clean_task_table() {
+    if (recursion_count) return;
     for (auto iter = task_list.begin(); iter != task_list.end();) {
         if (iter->second->exited) {
             iter = task_list.erase(iter);
@@ -100,25 +100,23 @@ static void clean_up_current_task() {
     resume_master_flag.notify_all();
 }
 
-static void flush_message_queue() {
-    while (!msg_queue.empty()) {
-        auto m = msg_queue.front();
-        msg_queue.pop();
-        for (auto &[id, task]: task_list) {
-            if (task->wake_up_msg == m.msg->msg && task.get() != m.sender) {
-                EVENT_MSG cpy;
-                cpy.msg = m.msg->msg;
-                va_copy(cpy.data, m.msg->data);
-                cur_message = &cpy;
-                switch_to_task(task.get());
-                va_end(cpy.data);
-                cur_message = NULL;
-            }
+static void broadcast_message(EVENT_MSG *msg) {
+    ++recursion_count;
+    for (auto &[id, task]: task_list) {
+        if (task->wake_up_msg == msg->msg && task.get() != current_task_inst) {
+            EVENT_MSG cpy;
+            cpy.msg = msg->msg;
+            va_copy(cpy.data, msg->data);
+            cur_message = &cpy;
+            switch_to_task(task.get());
+            va_end(cpy.data);
+            cur_message = NULL;
         }
-        clean_task_table();
     }
-
+    --recursion_count;
+    clean_task_table();
 }
+
 
 int add_task(int stack,TaskerFunctionName fcname,...) {
     int id = get_new_task_id();
@@ -150,21 +148,21 @@ char is_running(int id_num) {
     return !iter->second->exited;
 }
 void unsuspend_task(EVENT_MSG *msg) {
-    if (current_task_inst) return;
     msg_queue.push({msg, current_task_inst});
-    flush_message_queue();
-
+    broadcast_message(msg);
 }
 void task_sleep(void) {
     if (current_task_inst) {
         switch_to_task(NULL);
     } else {
         auto now = std::chrono::system_clock::now();
+        recursion_count++;
         for (auto &[id, task]: task_list) {
             if (task->_wake_up_after < now && task->wake_up_msg == -1) {
                 switch_to_task(task.get());
             }
         }
+        recursion_count--;
         clean_task_table();
     }
 }

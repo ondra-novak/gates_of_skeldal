@@ -66,7 +66,7 @@ void SetWheelMapping(char up, char down);
 char get_control_key_state(void);
 char get_shift_key_state(void);
 char get_capslock_state(void);
-void display_error(const char *text);
+void display_error(const char *text,...);
 ///returns -1 if doesn't exists
 char check_file_exists(const char *pathname);
 FILE *fopen_icase(const char *pathname, const char *mode);

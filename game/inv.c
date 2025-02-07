@@ -18,7 +18,9 @@
 #include <libs/pcx.h>
 #include "globals.h"
 
+#include "lang.h"
 #include <assert.h>
+#include <ctype.h>
 #include <stddef.h>
 #include <string.h>
 
@@ -224,6 +226,36 @@ void load_items()
         }
      }
 
+     if (lang_get_folder()) {
+         TSTRINGTABLE *str_table = lang_load("items.csv");
+         if (str_table) {
+             for (int i = 0; i < item_count; ++i) {
+                 const char *trn = stringtable_find(str_table, i, NULL);
+                 if (trn) {
+                     char *trnw = local_strdup(trn);
+                     char *sep = strchr(trnw, '\n');
+                     if (sep != NULL) {
+                         *sep = 0;
+                         char *nx = sep+1;
+                         --sep;
+                         while (sep > trnw && isspace(*sep)) {
+                             *sep = 0;
+                             --sep;
+                         }
+                         sep = strchr(nx,0);
+                         --sep;
+                         while (sep > nx && isspace(*sep)) {
+                             *sep = 0;
+                             --sep;
+                         }
+                         strncpy(glob_items[i].popis, nx, sizeof(glob_items[i].popis)-1);
+                     }
+                     strncpy(glob_items[i].jmeno, trnw, sizeof(glob_items[i].jmeno)-1);
+                 }
+             }
+             stringtable_free(str_table);
+         }
+     }
   }
 
 void init_items()
@@ -2480,8 +2512,8 @@ static void rebuild_shops(const void *shop_ptr)
   TPRODUCT *prod_iter = (TPRODUCT *)(shop_iter+max_shops);
   shop_all_state.first_product = prod_iter;
   shop_all_state.count_states = products;
-  shop_all_state.first_state = (int32_t *)(prod_iter+products);
-  int32_t *state_iter = shop_all_state.first_state;
+  shop_all_state.first_state = (TSHOP_PRODUCT_STATE *)(prod_iter+products);
+  TSHOP_PRODUCT_STATE *state_iter = shop_all_state.first_state;
 
   for(i=0;i<max_shops;i++) {
       shop_list[i] = shop_iter;
@@ -2489,7 +2521,8 @@ static void rebuild_shops(const void *shop_ptr)
       shop_iter->list = prod_iter;
       for (int j = 0; j < shop_iter->products; ++j) {
           c = load_TPRODUCT(c, prod_iter);
-          *state_iter += prod_iter->pocet;
+          state_iter->count = prod_iter->pocet;
+          state_iter->previous_price = 0;
           ++prod_iter;
           ++state_iter;
       }
@@ -2515,10 +2548,16 @@ void load_shops(void)
   ablock_free(sh);
   }
 
-static int32_t *get_product_count(const TPRODUCT *p) {
+static uint16_t *get_product_count(const TPRODUCT *p) {
     int32_t index = p - shop_all_state.first_product;
     assert(index >= 0 && index < (int32_t)shop_all_state.count_states);
-    return shop_all_state.first_state + index;
+    return &shop_all_state.first_state[index].count;
+}
+
+static uint16_t *get_last_haggle_price(const TPRODUCT *p) {
+    int32_t index = p - shop_all_state.first_product;
+    assert(index >= 0 && index < (int32_t)shop_all_state.count_states);
+    return &shop_all_state.first_state[index].previous_price;
 }
 
 static void rebuild_keepers_items()
@@ -2634,6 +2673,26 @@ static void display_keepers_items()
   outtext(cur_shop->keeper);
   }
 
+static const char *shop_keeper_bubble=NULL;
+
+static void show_buble(int x, int y, int xs, const char *text) {
+    set_font(H_FTINY, NOSHADOW(0));
+    int newxs;
+    int newys;
+    char *buffer = (char *)alloca(strlen(text)+3);
+    zalamovani(text, buffer, xs-10, &newxs, &newys);
+    int lxs = newxs+10;
+    int lys = newys+10;
+    y-=newys+10;
+    x+=(xs-lxs)/2;
+     draw_rounded_rectangle(x,y,lxs, lys, 8,RGB888(0,0,0),RGB888(255,255,255));
+    while (*buffer) {
+        position(x+5,y+5);outtext(buffer);
+        y+= text_height(buffer);
+        buffer = strchr(buffer,0)+1;
+    }
+}
+
 static void redraw_shop()
   {
   update_mysky();
@@ -2648,6 +2707,11 @@ static void redraw_shop()
   info_box_below=NULL;
   if (shop_keeper_picture) put_picture(5,SCREEN_OFFLINE,shop_keeper_picture);
   ms_last_event.event_type=0x1;send_message(E_MOUSE,&ms_last_event);
+  if (shop_keeper_bubble) {
+      show_buble(5,SCREEN_OFFLINE+((word *)shop_keeper_picture)[1],
+                 ((word *)shop_keeper_picture)[0], shop_keeper_bubble);
+  }
+  shop_keeper_bubble=NULL;
   ukaz_mysku();
   showview(0,0,0,0);
   }
@@ -2770,10 +2834,20 @@ char shop_keeper_click(int id, int xa, int ya, int xr, int yr) {
                 }
                 if (p == 1) {
                     redraw_shop();
-                    price = smlouvat(price, pp->cena, *get_product_count(pp), money, 0);
-
+                    THAGGLERESULT hr = smlouvat_dlg(price, pp->cena,
+                            *get_product_count(pp), *get_last_haggle_price(pp), money, 0);
+                    if (hr.canceled) {
+                        price = -1;
+                    } else if (hr.message) {
+                        price = -1;
+                        shop_keeper_bubble = hr.message;
+                        *get_last_haggle_price(pp) = hr.hprice;
+                    } else {
+                        price = hr.hprice;
+                    }
                 }
                 if (price >= 0) {
+                    *get_last_haggle_price(pp) = 0;
                     play_sample_at_channel(H_SND_OBCHOD, 1, 100);
                     buy_item(z);
                     free(picked_item);
@@ -2826,22 +2900,26 @@ char shop_bag_click(int id,int xa,int ya,int xr,int yr)
   mouse_set_cursor(H_MS_DEFAULT);
   if (!price) return 0;
     if (price > money) {
-        p = message(2, 0, 0, "", texty[104], texty[230], texty[78]);
-        if (!p) {
-            redraw_shop();
-            price = smlouvat(price, pp->cena, *get_product_count(pp), money, 1);
-        } else {
-            price = -1;
-        }
+        p = message(2, 0, 0, "", texty[104], texty[230], texty[78])+1;
     } else {
         sprintf(s, texty[101], price);
         p = message(3, 0, 1, texty[118], s, texty[77], texty[230], texty[78]);
-        if (p == 1) {
-            redraw_shop();
-            price = smlouvat(price, pp->cena, *get_product_count(pp), money, 1);
-        } else if (p == 2) {
+    }
+    if (p == 1) {
+        redraw_shop();
+        THAGGLERESULT hr = smlouvat_dlg(price, pp->cena,
+                *get_product_count(pp), *get_last_haggle_price(pp), money, 1);
+        if (hr.canceled) {
             price = -1;
+        }else if (hr.message) {
+            price = -1;
+            shop_keeper_bubble = hr.message;
+            *get_last_haggle_price(pp) = hr.hprice;
+        } else {
+            price = hr.hprice;
         }
+    } else if (p == 2) {
+        price = -1;
     }
   if (price>=0)
         {
@@ -2869,12 +2947,23 @@ char shop_block_click(int id, int xa, int ya,int xr,int yr)
   return 1;
   }
 
+static void shop_keyboard_proc(EVENT_MSG *msg, void **_) {
+    if (msg->msg == E_KEYBOARD) {
+        int c = quit_request_as_escape(va_arg(msg->data,int));
+        switch(c>>8) {
+            case 1: _exit_shop(0,0,0,0,0);break;
+            default:break;
+        }
+    }
+}
+
 
 static int old_inv_view_mode;
 
 void unwire_shop()
   {
   send_message(E_DONE,E_MOUSE,shop_mouse_event);
+  send_message(E_DONE,E_KEYBOARD, shop_keyboard_proc);
   norefresh=0;
   wire_proc=wire_shop;
   inv_view_mode=old_inv_view_mode;
@@ -2896,6 +2985,7 @@ void wire_shop()
      last_shop=cur_shop;
      }
   send_message(E_ADD,E_MOUSE,shop_mouse_event);
+  send_message(E_ADD,E_KEYBOARD, shop_keyboard_proc);
   unwire_proc=unwire_shop;
   change_click_map(clk_shop,CLK_SHOP);
   if (shop_sector==viewsector) redraw_shop();else _exit_shop(0,0,0,0,0);
@@ -3008,10 +3098,14 @@ static void reroll_shop(TSHOP *p)
   pr=p->list;
   for(i=0;i<p->list_size;i++,pr++)
      {
-     if (pr->trade_flags & SHP_AUTOADD && *get_product_count(pr)<pr->max_pocet) (*get_product_count(pr))++;
+      uint16_t *count = get_product_count(pr);
+     if (pr->trade_flags & SHP_AUTOADD) (*count)++;
+     if ((pr->trade_flags & SHP_SELL) == 0) *count = 0;
+     if (*count > pr->max_pocet) *count = pr->max_pocet;
      if (pr->trade_flags & SHP_SPECIAL)
         {
-        poc_spec++;if (*get_product_count(pr)>0)  *get_product_count(pr)=0;
+        poc_spec++;
+        *count = 0;
         }
      }
   pr=p->list;
@@ -3022,8 +3116,12 @@ static void reroll_shop(TSHOP *p)
      for(j=0;i<r;j++) if (pr[j].trade_flags & SHP_SPECIAL) i++;
      j--;
      const TPRODUCT *sel = pr+j;
-     int maxp = MAX(sel->max_pocet,1);
-     *get_product_count(pr+j)=rnd(maxp)+1;
+     int maxp = sel->max_pocet;
+     if (maxp) {
+         *get_product_count(pr+j)=rnd(maxp)+1;
+     } else {
+         *get_product_count(pr+j) = 0;
+     }
      }
   }
 

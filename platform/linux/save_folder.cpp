@@ -9,7 +9,7 @@ static std::string get_default_savegame_dir() {
        if (home) {
            return std::filesystem::path(home) / ".local/share/" SAVEGAME_FOLDERNAME;
        } else {
-           display_error("$HOME has no value (user with no home)");
+           throw std::runtime_error("$HOME has no value (user with no home)");
            abort();
        }
 }

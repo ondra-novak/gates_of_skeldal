@@ -8,10 +8,6 @@
 #include "platform.h"
 
 
-void display_error(const char *text) {
-    std::cerr << "ERROR:" << text << std::endl;
-    abort();
-}
 
 
 static std::uint32_t gtick = get_game_tick_count();

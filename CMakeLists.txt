@@ -14,6 +14,9 @@ endif()
 
 include_directories(.)
 
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin/)
+set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib/)
+set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib/)
 
 include_directories( ${SDL2_INCLUDE_DIRS})
 SET(CMAKE_C_FLAGS  "${CMAKE_C_FLAGS} -funsigned-char")
@@ -21,3 +24,4 @@ enable_testing()
 add_subdirectory(libs)
 add_subdirectory(platform)
 add_subdirectory(game)
+

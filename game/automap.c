@@ -428,7 +428,16 @@ static void draw_amap_sector(int x,int y,int sector,int mode,int turn,int line1,
            {
            i=(j+turn)&3;
            if (!(q[i].flags & SD_TRANSPARENT)||(q[i].flags & SD_SECRET)) curcolor=line1;
-           else if (q[i].flags & SD_PLAY_IMPS) curcolor=line2;
+           else if ((q[i].flags & SD_PLAY_IMPS) && (
+                   true_seeing || (q[i].flags & SD_TRUESEE) == 0)) {
+               int nx = ss->step_next[i];
+               if (nx && !true_seeing) {
+                   if (map_sides[(nx*4)+((j+2)&3)].flags & SD_TRUESEE) {
+                       continue;
+                   }
+               }
+               curcolor=line2;
+           }
            else curcolor=AUTOMAP_FORE;
            if (q[i].flags & SD_INVIS) curcolor=AUTOMAP_FORE;
            if (curcolor!=AUTOMAP_FORE)

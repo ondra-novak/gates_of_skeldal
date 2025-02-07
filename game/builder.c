@@ -828,6 +828,7 @@ static int draw_basic_sector(int celx, int cely, int sector) {
 
     int tmask = true_seeing?SD_TRUESEE:0;
 
+
     w = &map_sides[sector * 4];
     q = &w[dirs[1]];
     obl = GET_OBLOUK(q);
@@ -836,13 +837,13 @@ static int draw_basic_sector(int celx, int cely, int sector) {
             show_cel2(celx, cely, ablock(num_ofsets[OBL_NUM] + obl), 0, 0, 1, ghost_walls );
         if (q->flags & SD_RIGHT_ARC && q->oblouk & 0x0f)
             show_cel2(celx, cely, ablock(num_ofsets[OBL2_NUM] + obl), 0, 0, 2, ghost_walls);
-        if (q->flags & SD_PRIM_VIS && q->prim)
+        if (q->flags & (SD_PRIM_VIS|tmask) && q->prim)
             show_cel2(celx, cely,
                     ablock(
                             num_ofsets[MAIN_NUM] + q->prim
                                     + (q->prim_anim >> 4)), 0, 0,
                     1 + (q->oblouk & SD_POSITION), ghost_walls | (q->flags & tmask));
-        if (q->flags & SD_SEC_VIS && q->sec) {
+        if (q->flags & (SD_SEC_VIS|tmask) && q->sec) {
             if (q->side_tag & SD_SHIFTUP) {
                 if (cely != 0) {
                     show_cel2(celx, cely - 1,
@@ -866,13 +867,13 @@ static int draw_basic_sector(int celx, int cely, int sector) {
         if (left_shiftup)
             show_cel(celx, cely, ablock(num_ofsets[LEFT_NUM] + left_shiftup), 0,
                     0, 2, ghost_walls), left_shiftup = 0;
-        if (q->flags & SD_PRIM_VIS && q->prim )
+        if (q->flags & (SD_PRIM_VIS|tmask) && q->prim )
             show_cel(-celx, cely,
                     ablock(
                             num_ofsets[LEFT_NUM] + q->prim
                                     + (q->prim_anim >> 4)), 0, 0,
                     2 + (q->oblouk & SD_POSITION), ghost_walls | (q->flags & tmask));
-        if (q->flags & SD_SEC_VIS && q->sec) {
+        if (q->flags & (SD_SEC_VIS|tmask) && q->sec) {
             if (q->side_tag & SD_SHIFTUP) {
                 if (celx != 0) {
                     left_shiftup = q->sec + (q->sec_anim >> 4);
@@ -898,13 +899,13 @@ static int draw_basic_sector(int celx, int cely, int sector) {
         if (right_shiftup)
             show_cel(celx, cely, ablock(num_ofsets[RIGHT_NUM] + right_shiftup),
                     0, 0, 3, ghost_walls), right_shiftup = 0;
-        if (q->flags & SD_PRIM_VIS && q->prim )
+        if (q->flags & (SD_PRIM_VIS|tmask) && q->prim )
             show_cel(celx, cely,
                     ablock(
                             num_ofsets[RIGHT_NUM] + q->prim
                                     + (q->prim_anim >> 4)), 0, 0,
                     3 + (q->oblouk & SD_POSITION), ghost_walls | (q->flags & tmask));
-        if (q->flags & SD_SEC_VIS && q->sec) {
+        if (q->flags & (SD_SEC_VIS|tmask) && q->sec) {
             if (q->side_tag & SD_SHIFTUP) {
                 if (celx != 0)
                     right_shiftup = q->sec + (q->sec_anim >> 4);
@@ -1009,22 +1010,22 @@ int draw_sloup_sector(int celx,int cely,int sector)
      show_cel2(celx,cely,ablock(num_ofsets[OBL_NUM]+obl),0,0,1, ghost_walls);
   if (q->flags & SD_RIGHT_ARC && q->oblouk)
      show_cel2(celx,cely,ablock(num_ofsets[OBL2_NUM]+obl),0,0,2, ghost_walls);
-  if (q->flags & SD_PRIM_VIS && q->prim  )
+  if (q->flags & (SD_PRIM_VIS|tmask) && q->prim  )
       show_cel2(celx,cely,ablock(num_ofsets[MAIN_NUM]+q->prim+(q->prim_anim>>4)),0,0,1+(q->oblouk & SD_POSITION), ghost_walls | (q->flags & tmask));
   if (celx<=0)
      {
      q=&w[dirs[0]];
-     if (q->flags & SD_PRIM_VIS && q->prim)
+     if (q->flags & (SD_PRIM_VIS|tmask) && q->prim)
       show_cel(-celx,cely,ablock(num_ofsets[LEFT_NUM]+q->prim+(q->prim_anim>>4)),0,0,2+(q->oblouk & SD_POSITION), ghost_walls| (q->flags & tmask));
      }
   if (celx>=0)
      {
      q=&w[dirs[2]];
-     if (q->flags & SD_PRIM_VIS && q->prim)
+     if (q->flags & (SD_PRIM_VIS|tmask) && q->prim)
       show_cel(celx,cely,ablock(num_ofsets[RIGHT_NUM]+q->prim+(q->prim_anim>>4)),0,0,3+(q->oblouk & SD_POSITION), ghost_walls | (q->flags & tmask));
      }
   q=&w[dirs[1]];
-  if (q->flags & SD_SEC_VIS && q->sec && cely!=0) {
+  if (q->flags & (SD_SEC_VIS|tmask) && q->sec && cely!=0) {
      if (q->flags & SD_SPEC)
       show_cel2(celx,cely-1,ablock(num_ofsets[MAIN_NUM]+q->sec+(q->sec_anim>>4)),0,0,2, ghost_walls| (q->flags & tmask));
      else

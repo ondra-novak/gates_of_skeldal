@@ -142,6 +142,7 @@ void put_image(const word *image,word *target,int start_line,int sizex,int sizey
 void put_picture2picture(const word *source,word *target,int xp,int yp);
 //#pragma aux put_picture2picture parm [ESI][EDI][EAX][EDX] modify [ECX]
 
-
+void draw_rounded_rectangle(int x, int y, int xs, int ys, int radius,
+                            int stroke_color, int fill_color);
 
 #define swap_int(a,b) do  {int c=a;a=b;b=c;} while (0);

@@ -19,7 +19,19 @@ typedef struct _temp_storage_file_rd {
     int skp = 0;
 } TMPFILE_RD;
 
-using FileSystem = std::map<std::string, std::vector<uint8_t>, std::less<> >;
+struct icompare {
+    using is_transparent = std::true_type;
+    bool operator()(const std::string_view &a, const std::string_view &b) const {
+        if (a.size() != b.size()) return a.size() < b.size();
+        for (std::size_t i = 0, cnt = a.size(); i < cnt; ++i) {
+            int cmp = toupper(a[i]) - toupper(b[i]);
+            if (cmp) return cmp < 0;
+        }
+        return false;
+    }
+};
+
+using FileSystem = std::map<std::string, std::vector<uint8_t>, icompare >;
 static FileSystem temp_fsystem;
 
 

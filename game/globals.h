@@ -114,7 +114,7 @@ static __inline int rangrnd(int a, int b) {return rnd(b-a+1)+a;}
 #define COL_RAMEC RGB555(31,31,26) //((31*32+31)*32+26)
 
 #undef RGB
-#define RGB(r,g,b) (((r)>>3)*2048+((g)>>3)*64+((b)>>3))
+#define RGB(r,g,b) RGB888(r,g,b)
 #define GET_R_COLOR(col) ((col & 0xF800)>>8)
 #define GET_G_COLOR(col) ((col & 0x07E0)>>3)
 #define GET_B_COLOR(col) ((col & 0x001F)<<3)
@@ -342,6 +342,7 @@ typedef enum skeldal_folders_tag {
     SR_DIALOGS,
     SR_SAVES,
     SR_WORK,
+    SR_LANG,
 
 
 SR_COUNT} SKELDAL_FOLDERS_TAG;
@@ -597,7 +598,7 @@ extern char set_halucination;
 extern int hal_sector;    //cislo sektoru a smeru pri halucinaci
 extern int hal_dir;
 extern char side_touched;    //promena se nastavuje na 1 pri kazdem uspesnem dotyku steny
-extern char *texty_knihy;     //jmeno souboru s textamy knihy
+extern const char *texty_knihy;     //jmeno souboru s textamy knihy
 extern int cur_page;         //cislo stranky v knize;
 extern int32_t game_time;              //hraci cas
 extern char autoattack;
@@ -1049,9 +1050,15 @@ typedef struct tshop
   const TPRODUCT *list;
   }TSHOP;
 
+
+typedef struct tshop_product_state_tag {
+    uint16_t count;
+    uint16_t previous_price;
+} TSHOP_PRODUCT_STATE;
+
 typedef struct tshop_all_state {
     const TPRODUCT *first_product;
-    int32_t *first_state;
+    TSHOP_PRODUCT_STATE *first_state;
     size_t count_states;
 } TSHOP_ALL_STATE;
 
@@ -1674,7 +1681,7 @@ void add_window(int x,int y,int xs,int ys,int texture,int border,int txtx,int tx
 int message(int butts,char def,char canc,char *keys,...);
 void type_text(EVENT_MSG *msg,void **data); //event procedura (parms: X,Y,TEXT,MAX_SPACE,MAX_CHARS);
 void type_text_v2(va_list args);//char *text_buffer,int x,int y,int max_size,int max_chars,int font,int color,void (*exit_proc)(char));
-void zalamovani(char *source,char *target,int maxxs,int *xs,int *ys);
+void zalamovani(const char *source,char *target,int maxxs,int *xs,int *ys);
 const void *col_load(const void *data, int32_t *size);
 void open_story_file(void);
 void write_story_text(char *text);
@@ -1701,9 +1708,15 @@ TMPFILE_RD *enc_open(const char *filename); //dekoduje a otevira TXT soubor (ENC
 void enc_close(TMPFILE_RD *fil);
 int load_string_list_ex(char ***list,const char *filename);
 
+typedef struct {
+    int hprice;
+    const char *message;
+    char canceled;
+} THAGGLERESULT;
+
 int smlouvat_nakup(int cena,int ponuka,int posledni,int puvod,int pocet);
 int smlouvat_prodej(int cena,int ponuka,int posledni,int puvod,int pocet);
-int smlouvat(int cena,int puvod,int pocet,int money,char mode);
+THAGGLERESULT smlouvat_dlg(int cena,int puvod,int pocet,int posledni, int money,char mode);
 
 void disable_intro(void);
 void show_jrc_logo(char *filename);

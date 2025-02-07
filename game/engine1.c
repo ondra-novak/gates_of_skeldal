@@ -36,8 +36,8 @@ short zooming_points[ZOOM_PHASES][4]
      {480,271,80,28},
      {460,259,90,31}
   };
-int zooming_step=1;
-int rot_phases=1;
+int zooming_step=2;
+int rot_phases=2;
 int yreq;
 int last_scale;
 char secnd_shade=1;

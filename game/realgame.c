@@ -18,6 +18,7 @@
 #include "globals.h"
 #include <libs/inicfg.h>
 
+#include "lang.h"
 #include <ctype.h>
 #include <string.h>
 
@@ -197,7 +198,7 @@ int load_map(char *filename)
   char snd_load=0;
   void *mob_template;
   int32_t mob_size;
-  int suc = 0;
+  int failed = 0;
 
   map_with_password=0;
   const char *mpath = build_pathname(2, gpathtable[SR_MAP], filename);
@@ -344,8 +345,11 @@ int load_map(char *filename)
   memset(minimap,0,sizeof(minimap));
   end_ptr=ofsts;
   const char *tpath=set_file_extension(mpath,".txt");
-  suc=load_level_texts(tpath);
-  if (!suc && level_texts!=NULL) create_playlist(level_texts[0]);
+  failed=load_level_texts(tpath);
+  if (!failed && level_texts!=NULL) {
+      lang_patch_stringtable(&level_texts, filename, "map_");
+      create_playlist(level_texts[0]);
+  }
   init_tracks();
   change_music(get_next_music_from_playlist());
   for(r=0;r<mapsize*4;r++) flag_map[r]=(char)map_sides[r].flags;
@@ -359,7 +363,7 @@ int load_map(char *filename)
   current_map_hash = fnv1a_hash(filename);
   const char * hash_str = map_hash_to_string(current_map_hash);
   temp_storage_store(hash_str, filename, strlen(filename));
-  return suc;
+  return failed;
   }
 
 void add_leaving_place(int sector)
@@ -1272,11 +1276,11 @@ void group_all(void)
      {
      if (cur_group!=1)
         {
-        for(i=0,h=postavy;i<POCET_POSTAV;i++,h++) if (h->used && h->groupnum==1 && h->sektor!=viewsector && h->inmaphash == current_map_hash) break;
+        for(i=0,h=postavy;i<POCET_POSTAV;i++,h++) if (h->used && h->groupnum==1 && h->sektor!=viewsector) break;
         if (i==POCET_POSTAV) cur_group=1;
         }
      for(i=0,h=postavy;i<POCET_POSTAV;i++,h++)
-        if (h->used && h->lives && h->sektor==viewsector && h->inmaphash == current_map_hash) h->groupnum=cur_group;
+        if (h->used && h->lives && h->sektor==viewsector) h->groupnum=cur_group;
      }
 
   bott_draw(0);
@@ -1570,7 +1574,7 @@ void step_zoom(char smer)
      int i;
      THUMAN *h;
      group_all();can_go=1;
-     for(i=0,h=postavy;i<POCET_POSTAV;i++,h++) if (h->groupnum!=cur_group && h->lives) break;
+     for(i=0,h=postavy;i<POCET_POSTAV;i++,h++) if (h->used && h->inmaphash == current_map_hash && h->groupnum!=cur_group && h->lives) break;
      if (i!=POCET_POSTAV)
         {
         bott_disp_text(texty[66]);

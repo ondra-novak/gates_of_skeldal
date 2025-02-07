@@ -18,6 +18,7 @@
 #include <libs/pcx.h>
 #include "globals.h"
 
+#include "lang.h"
 
 #define MUSIC "TRACK06.MUS"
 
@@ -366,7 +367,13 @@ int enter_menu(char open)
   return c;
   }
 
-char *get_next_title(signed char control,char *filename)
+static const char *end_titles_path(const char *fname) {
+    if (stricmp(fname,"TITULKY.TXT") == 0) fname = "end_titles.txt";
+    else if (stricmp(fname,"ENDTEXT.TXT") == 0) fname = "epilog.txt";
+    return lang_replace_path_if_exists(fname);
+}
+
+char *get_next_title(signed char control,const char  *filename)
   {
 
   static TMPFILE_RD *titles=NULL;
@@ -377,7 +384,10 @@ char *get_next_title(signed char control,char *filename)
   switch(control)
      {
      case 1:
-         path = build_pathname(2, gpathtable[SR_MAP],filename);
+         path = end_titles_path(filename);
+         if (path == NULL) {
+             path = build_pathname(2, gpathtable[SR_MAP],filename);
+         }
          path = local_strdup(path);
             titles=enc_open(path);
             if (titles==NULL)
@@ -395,8 +405,12 @@ char *get_next_title(signed char control,char *filename)
                 }
               }
             return (char *)titles;
-     case 0:if (titles!=NULL)temp_storage_gets(buffer,80,titles);
-            c=strchr(buffer,'\n');if (c!=NULL) *c=0;
+     case 0:if (titles!=NULL && temp_storage_gets(buffer,80,titles)) {
+                 c=strchr(buffer,'\n');if (c!=NULL) *c=0;
+                 c=strchr(buffer,'\r');if (c!=NULL) *c=0;
+            } else {
+                strcpy(buffer, "*KONEC");
+            }
             return buffer;
      case -1:if (titles!=NULL)enc_close(titles);
             break;
@@ -517,7 +531,7 @@ void titles(va_list args)
   {
     int32_t scr_linelen2 = GetScreenPitch();
   char send_back=va_arg(args,int);
-  char *textname=va_arg(args,char *);
+  const char *textname=va_arg(args,const char *);
 
   const void *picture;
   word *scr,*buff;
