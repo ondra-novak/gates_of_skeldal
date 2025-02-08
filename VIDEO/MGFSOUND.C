@@ -419,7 +419,7 @@ void interpret_line(FILE *f)
 
         c++;
         sscanf(c,"%23s",command);c=strchr(c,32);
-        strupr(command);
+        strupper(command);
         if (!strcmp(command,"ID"))
            {
            get_num(c,num);

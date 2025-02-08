@@ -16,7 +16,7 @@ main(int argc,char **argv)
 
   if (argc==3) help();
   init_manager(argv[1],NULL);
-  z=afile(strupr(argv[2]),read_group(0),&s);
+  z=afile(strupper(argv[2]),read_group(0),&s);
   if (z==NULL)
      {
      puts("File not found");

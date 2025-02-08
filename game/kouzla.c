@@ -1023,7 +1023,7 @@ void spell_teleport_sector(int cil,int owner)
     if (TelepLocation.map)
     {
       destroy_player_map();
-      if (stricmp(TelepLocation.map,level_fname)!=0)
+      if (istrcmp(TelepLocation.map,level_fname)!=0)
       {
 
 

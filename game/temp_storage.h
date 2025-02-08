@@ -27,6 +27,10 @@ void temp_storage_write(const void *data, uint32_t size, TMPFILE_WR *f);
 uint32_t temp_storage_read(void *data, uint32_t size, TMPFILE_RD *f);
 void temp_storage_skip(TMPFILE_RD *f, int bytes);
 
+#ifdef _MSC_VER
+#define __attribute__(__VA_ARG__)
+#endif
+
 int *temp_storage_internal_skip_ptr(TMPFILE_RD *f);
 int temp_storage_internal_begin_scanf(TMPFILE_RD *f, const char *format, ... ) __attribute__((format(scanf, 2, 3)));
 int temp_storage_internal_end_scanf(TMPFILE_RD *f, int r);

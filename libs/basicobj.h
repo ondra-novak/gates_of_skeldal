@@ -13,9 +13,9 @@ void xor_rectangle(int x,int y,int xs,int ys);
 
 // status lines
 void status_line(EVENT_MSG *msg,T_EVENT_ROOT **user_data);
-void *status_mem_info(EVENT_MSG *msg);
-void *mouse_xy(EVENT_MSG *msg);
-void *show_time(EVENT_MSG *msg);
+void status_mem_info(EVENT_MSG *msg);
+void mouse_xy(EVENT_MSG *msg);
+void show_time(EVENT_MSG *msg);
 
 // objects
 //void sample(OBJREC *o);

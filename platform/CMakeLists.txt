@@ -19,6 +19,10 @@ target_sources(skeldal_platform PRIVATE
 if(WIN32)
     target_sources(skeldal_platform PRIVATE
         windows/save_folder.cpp
+        windows/map_file.cpp
+    )
+    target_sources(skeldal PRIVATE
+        windows/app_start.cpp
     )
     target_compile_definitions(skeldal_platform PRIVATE PLATFORM_WINDOWS)
     message(STATUS "Building for Windows")
@@ -57,4 +61,5 @@ target_link_libraries(skeldal
     skeldal_platform
     skeldal_sdl
     skeldal_libs
-     ${SDL2_LIBRARIES} pthread)
+     ${SDL2_LIBRARIES} 
+     ${STANDARD_LIBRARIES})

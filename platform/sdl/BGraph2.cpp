@@ -21,9 +21,9 @@ char game_display_init(const INI_CONFIG_SECTION *display_section, const char *ti
     }
     cfg.fullscreen = ini_get_boolean(display_section, "fullscreen", 1) == 1;
     const char *comp = ini_get_string(display_section, "composer", "auto");
-    if (stricmp(comp, "hardware") == 0 || stricmp(comp, "hw") == 0) {
+    if (istrcmp(comp, "hardware") == 0 || istrcmp(comp, "hw") == 0) {
         cfg.composer = SDL_RENDERER_ACCELERATED;
-    } else if (stricmp(comp, "software") == 0 || stricmp(comp, "sw") == 0) {
+    } else if (istrcmp(comp, "software") == 0 || istrcmp(comp, "sw") == 0) {
         cfg.composer = SDL_RENDERER_SOFTWARE;
     } else {
         cfg.composer = 0;
@@ -33,11 +33,11 @@ char game_display_init(const INI_CONFIG_SECTION *display_section, const char *ti
     cfg.window_width = ini_get_int(display_section, "window_width", 640);
 
     const char *filter = ini_get_string(display_section, "crt_filter", "auto");
-    if (stricmp(filter,"none") == 0) cfg.crt_filter = SDLContext::CrtFilterType::none;
-    else if (stricmp(filter,"scanlines") == 0) cfg.crt_filter = SDLContext::CrtFilterType::scanlines;
-    else if (stricmp(filter,"scanlines_2") == 0) cfg.crt_filter = SDLContext::CrtFilterType::scanlines_2;
-    else if (stricmp(filter,"rgbmatrix_2") == 0) cfg.crt_filter = SDLContext::CrtFilterType::rgb_matrix_2;
-    else if (stricmp(filter,"rgbmatrix_3") == 0) cfg.crt_filter = SDLContext::CrtFilterType::rgb_matrix_3;
+    if (istrcmp(filter,"none") == 0) cfg.crt_filter = SDLContext::CrtFilterType::none;
+    else if (istrcmp(filter,"scanlines") == 0) cfg.crt_filter = SDLContext::CrtFilterType::scanlines;
+    else if (istrcmp(filter,"scanlines_2") == 0) cfg.crt_filter = SDLContext::CrtFilterType::scanlines_2;
+    else if (istrcmp(filter,"rgbmatrix_2") == 0) cfg.crt_filter = SDLContext::CrtFilterType::rgb_matrix_2;
+    else if (istrcmp(filter,"rgbmatrix_3") == 0) cfg.crt_filter = SDLContext::CrtFilterType::rgb_matrix_3;
     else cfg.crt_filter = SDLContext::CrtFilterType::autoselect;
 
 

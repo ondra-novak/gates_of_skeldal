@@ -5,7 +5,9 @@
 extern "C" {
 #endif
 
-typedef struct music_stream_t {} TMUSIC_STREAM;
+typedef struct music_stream_t {
+    char dummy;
+} TMUSIC_STREAM;
 
 typedef struct music_stream_info_t {
     int freq;

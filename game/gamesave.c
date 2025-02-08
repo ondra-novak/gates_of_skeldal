@@ -839,7 +839,7 @@ typedef struct load_specific_file_callback_data_t {
 
 static ENUM_ALL_STATUS_CALLBACK_RESULT load_specific_file_callback(FILE *f, const char *name, size_t datasize, void *ctx) {
     LOAD_SPECIFIC_FILE_CALLBACK_DATA *me = ctx;
-    if (stricmp(name, me->name) == 0) {
+    if (istrcmp(name, me->name) == 0) {
         void *d = getmem(datasize);
         if (fread(d, 1, datasize, f) != datasize) {
             free(d);
@@ -1377,7 +1377,7 @@ static void saveload_keyboard(EVENT_MSG *msg,void **_)
      }
   }
 
-void unwire_save_load()
+void unwire_save_load(void)
   {
     term_task_wait(clk_ask_name[0].id);
   if (back_texture!=NULL) free(back_texture);

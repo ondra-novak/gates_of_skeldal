@@ -2,7 +2,7 @@
 #include "advconfig.h"
 
 
-#include <alloca.h>
+#include <malloc.h>
 #include <string.h>
 
 
@@ -17,25 +17,25 @@ static void process_row(INI_CONFIG_SECTION *sec, const char *row) {
     const char *value = sep+1;
 
 
-    if (stricmp(key,"CESTA_GRAFIKA") == 0) {
+    if (istrcmp(key,"CESTA_GRAFIKA") == 0) {
         ini_replace_key(sec, "graphics", value);
-    } else if (stricmp(key, "CESTA_ZVUKY") == 0) {
+    } else if (istrcmp(key, "CESTA_ZVUKY") == 0) {
         ini_replace_key(sec, "sounds", value);
-    } else if (stricmp(key, "CESTA_FONTY") == 0) {
+    } else if (istrcmp(key, "CESTA_FONTY") == 0) {
         ini_replace_key(sec, "fonts", value);
-    } else if (stricmp(key, "CESTA_MAPY") == 0) {
+    } else if (istrcmp(key, "CESTA_MAPY") == 0) {
         ini_replace_key(sec, "maps", value);
-    } else if (stricmp(key, "CESTA_MUSIC") == 0) {
+    } else if (istrcmp(key, "CESTA_MUSIC") == 0) {
         ini_replace_key(sec, "music_adv", value);
-    } else if (stricmp(key, "CESTA_BGRAFIKA") == 0) {
+    } else if (istrcmp(key, "CESTA_BGRAFIKA") == 0) {
         ini_replace_key(sec, "gui", value);
-    } else if (stricmp(key, "CESTA_ITEMY") == 0) {
+    } else if (istrcmp(key, "CESTA_ITEMY") == 0) {
         ini_replace_key(sec, "items", value);
-    } else if (stricmp(key, "CESTA_ENEMY") == 0) {
+    } else if (istrcmp(key, "CESTA_ENEMY") == 0) {
         ini_replace_key(sec, "enemy", value);
-    } else if (stricmp(key, "CESTA_VIDEO") == 0) {
+    } else if (istrcmp(key, "CESTA_VIDEO") == 0) {
         ini_replace_key(sec, "video", value);
-    } else if (stricmp(key, "CESTA_DIALOGY") == 0) {
+    } else if (istrcmp(key, "CESTA_DIALOGY") == 0) {
         ini_replace_key(sec, "dialogs", value);
     }
 }

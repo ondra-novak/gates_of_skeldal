@@ -874,7 +874,7 @@ int main(int argc,char *argv[])
     puts("...nemohu najit WSKELDAL.INI\n");
     return 1;
     }
-  if (strlen(filename)>3 && stricmp(filename+strlen(filename)-3,"adv")==0)
+  if (strlen(filename)>3 && istrcmp(filename+strlen(filename)-3,"adv")==0)
   {
 	TSTR_LIST adv_cfg=read_config(filename);
 	config_file=merge_configs(config_file,adv_cfg);

@@ -25,7 +25,7 @@
 #include "globals.h"
 #include "engine1.h"
 #include <stdarg.h>
-#include <unistd.h>
+
 
 #define MES_MAXSIZE 500
 #define CHECK_BOX_ANIM 6
@@ -1555,7 +1555,7 @@ void show_jrc_logo(char *filename)
   word palette[256],*palw;
   int cntr,cdiff,cpalf,ccc;
 
-  change_music("?");
+  change_music(NULL);
   curcolor=0;bar32(0,0,639,479);
   showview(0,0,0,0);sleep_ms(1000);
   const char *s = build_pathname(2, gpathtable[SR_VIDEO],filename);

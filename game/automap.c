@@ -254,7 +254,7 @@ void psani_poznamek_event(EVENT_MSG *msg,void **data)
            {
            case 8:if (index) index--; text[index]=0;break;
            case 27:strcpy(text,save);
-                   [[fallthrough]];
+                   CASE_FALLTHROUGH;
            case 13:save_text_to_map(x,y,cur_depth,text);
                   send_message(E_DONE,E_MOUSE,psani_poznamek_event);
                   msg->msg=-2;

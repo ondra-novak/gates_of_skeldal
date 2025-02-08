@@ -1,6 +1,9 @@
 #ifndef _WAV_H
 
 #define _WAV_H
+
+#include <stdint.h>
+
 #define WAV_RIFF "RIFF"
 #define WAV_WAVE "WAVE"
 #define WAV_FMT  "fmt "

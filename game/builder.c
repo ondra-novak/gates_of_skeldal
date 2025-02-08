@@ -1329,7 +1329,7 @@ void redraw_scene()
   send_message(E_KOUZLO_ANM);
   }
 
-void refresh_scene()
+void refresh_scene(THE_TIMER *t)
   {
   redraw_scene();
   if (!cancel_render && !norefresh)

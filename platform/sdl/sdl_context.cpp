@@ -184,7 +184,7 @@ void SDLContext::init_video(const VideoConfig &config, const char *title) {
             SDL_RendererInfo rinfo;
             SDL_GetRendererInfo(renderer, &rinfo);
 
-            if (stricmp(config.scale_quality, "auto") == 0) {
+            if (istrcmp(config.scale_quality, "auto") == 0) {
                 if (rinfo.flags & SDL_RENDERER_ACCELERATED) {
                     SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, "best");
                 }

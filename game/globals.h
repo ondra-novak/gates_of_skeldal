@@ -6,6 +6,7 @@
 #include <string.h>
 #include <stdint.h>
 #include <stdlib.h>
+#include <malloc.h>
 #include <libs/memman.h>
 
 #define POCET_POSTAV 6
@@ -645,11 +646,11 @@ extern char marker; //tato promenna je 0, jen v pripade ze je 1 probehne assert
 
 //builder - skeldal
 
-void *game_keyboard(EVENT_MSG *msg,void **usr);
+void game_keyboard(EVENT_MSG *msg,void **usr);
 void calc_animations(void);
 int load_map(char *filename);
 void other_draw(void);
-void refresh_scene(void);
+void refresh_scene(THE_TIMER *t);
 const void *pcx_fade_decomp(const void *p, int32_t *s);
 const void *pcx_15bit_decomp(const void *p, int32_t *s);
 const void *pcx_15bit_autofade(const void *p, int32_t *s);
@@ -663,10 +664,11 @@ const void *load_mob_legacy_format(const void *p, int32_t *s);
 const void *load_spells_legacy_format(const void *p, int32_t *s);
 void wire_main_functs(void);
 void ukaz_kompas(char mode);
-void *timming(EVENT_MSG *msg,void **data);
+void timming(EVENT_MSG *msg,void **data);
 void do_timer(void);
 void hold_timer(int id,char hld);
-THE_TIMER *add_to_timer(int id,int delay,int maxcall,void *proc);
+typedef void (*TIMER_PROC)(THE_TIMER *t);
+THE_TIMER *add_to_timer(int id,int delay,int maxcall,TIMER_PROC proc);
 void delete_from_timer(int id);
 THE_TIMER *find_timer(int id);
 void objekty_mimo(void);
@@ -999,7 +1001,7 @@ int count_items_inside(short *place);
 int count_items_total(short *place);
 char put_item_to_inv(THUMAN *p,short *picked_items); //funkce vklada predmet(y) do batohu postavy
 void pick_set_cursor(void);         //nastavuje kurzor podle vlozeneho predmetu;
-void calc_fly(void);
+void calc_fly(THE_TIMER *t);
 void zmen_skupinu(THUMAN *p);
 void add_to_group(int num);
 void group_all(void);

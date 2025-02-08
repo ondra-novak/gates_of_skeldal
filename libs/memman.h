@@ -96,7 +96,7 @@ void close_manager(void);                 //uzavre manager a uvolni veskerou pam
 void undef_handle(int handle);        //uvolni hadle k dalsimu pouziti
 THANDLE_DATA *zneplatnit_block(int handle); //zneplatni data bloku
 THANDLE_DATA *get_handle(int handle); //vraci informace o rukojeti
-int find_handle(const char *name,void *decomp);   //hleda mezi rukojeti stejnou definici
+int find_handle(const char *name,ABLOCK_DECODEPROC decomp);   //hleda mezi rukojeti stejnou definici
 int test_file_exist(int group,char *filename); //testuje zda soubor existuje v ramci mmanageru
 const void *afile(char *filename,int group,int32_t *blocksize); //nahraje do pameti soubor registrovany v ramci mmanageru
 void *afile_copy(char *filename,int group,int32_t *blocksize); //nahraje do pameti soubor registrovany v ramci mmanageru

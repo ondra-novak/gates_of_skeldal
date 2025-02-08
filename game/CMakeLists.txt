@@ -41,3 +41,4 @@ ${CMAKE_BINARY_DIR}/default_font.cpp
 )
 
 add_library(skeldal_main  ${files})
+set_property(TARGET skeldal_main PROPERTY CXX_STANDARD 20)

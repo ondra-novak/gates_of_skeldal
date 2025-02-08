@@ -2,8 +2,9 @@
 
 #include <memory>
 #include <optional>
-#include <SDL2/SDL.h>
+#include <SDL.h>
 #include <thread>
+#include <mutex>
 #include <vector>
 #include <libs/mouse.h>
 #include <functional>

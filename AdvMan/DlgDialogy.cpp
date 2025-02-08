@@ -78,7 +78,7 @@ int DlgDialogy::GetDialogID(const char *name)
   char dialog[40];
   if (fscanf(f," %40[^\r\n\t (] ( %d )",dialog,&id)==2)
   {
-	if (stricmp(dialog,"DIALOG")==0)
+	if (istrcmp(dialog,"DIALOG")==0)
 	{
 	  fclose(f);
 	  return id;
@@ -204,13 +204,13 @@ int DlgDialogy::CompareItems(int item1, int item2)
 	{
 	  CString a=wList.GetItemText(item1,0);
 	  CString b=wList.GetItemText(item2,0);
-	  return stricmp(a,b);
+	  return istrcmp(a,b);
 	}
   case 1:
 	{
 	  CString a=wList.GetItemText(item1,1);
 	  CString b=wList.GetItemText(item2,1);
-	  return stricmp(a,b);
+	  return istrcmp(a,b);
 	}
   case 2:
 	{

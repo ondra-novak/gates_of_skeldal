@@ -293,9 +293,11 @@ void deinstall_event(T_EVENT_ROOT **tree,int32_t ev_num,EV_PROC proc,void *procd
   if (!p->calls) force_delete_curr(tree,r,p);
   }
 
+typedef void (*initproc)();
+
 void tree_basics(T_EVENT_ROOT **ev_tree,EVENT_MSG *msg)
 {
-  void (*q)();
+  initproc q;
 
   if (msg->msg==E_ADD || msg->msg==E_ADDEND)
      {
@@ -308,9 +310,10 @@ void tree_basics(T_EVENT_ROOT **ev_tree,EVENT_MSG *msg)
         install_event(ev_tree,msg,proc,msg->msg==E_ADDEND);
      return;
      }
+     
   if (msg->msg==E_INIT)
-     {
-      q = va_arg(msg->data, void (*)());
+     {      
+      q = va_arg(msg->data, initproc);
       q();
      return;
      }

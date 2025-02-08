@@ -200,7 +200,7 @@ long check_size(int gr)
   for(i=0;i<pocet;i++) if (script[i]!=NULL)
      {
      if (sscanf(script[i],"%d %s %s",&group,prikaz,work_buff)<1) group=gr+1;
-     strupr(prikaz);
+     strupper(prikaz);
      if (!strcmp(prikaz,COPY) && group==gr)
         {
         struct find_t ft;
@@ -494,7 +494,7 @@ char cascade_delete(char ignore_sav)
 
         if (c!=NULL)
            {
-           strupr(c);
+           strupper(c);
            if (!ignore_sav || strncmp(c,".SAV",4)) remove(f.name);
            }
         else remove(f.name);

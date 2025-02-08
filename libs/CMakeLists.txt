@@ -21,3 +21,4 @@ SET(files basicobj.c
 
 add_library(skeldal_libs  ${files})
 
+set_property(TARGET skeldal_libs PROPERTY CXX_STANDARD 20)

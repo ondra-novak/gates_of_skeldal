@@ -114,7 +114,7 @@ int32_t load_section(FILE *f,void **section, int *sct_type,int32_t *sect_size)
   }
 
 
-void prepare_graphics(int *ofs,char *names,int32_t size,void *decomp,int class)
+void prepare_graphics(int *ofs,char *names,int32_t size,ABLOCK_DECODEPROC  decomp,int class)
   {
   char *p,*end;
 
@@ -210,7 +210,7 @@ int load_map(char *filename)
   level_fname=(char *)getmem(strlen(filename)+1);
   strcpy(level_fname,filename);
   SEND_LOG("(GAME) Loading map: '%s'",level_fname);
-  strupr(level_fname);
+  strupper(level_fname);
   mob_template=NULL;
   mob_size=0;
   if (f==NULL) return -1;
@@ -406,7 +406,7 @@ void leave_current_map()
   destroy_fly_map();
   p=letici_veci;
   while (p!=NULL) {stop_fly(p,0);p=p->next;}
-  calc_fly();
+  calc_fly(0);
   save_map=1;
   free(map_sides);
   free(map_sectors);
@@ -560,7 +560,7 @@ TFLY *duplic_fly(TFLY *p)
   return q;
   }
 
-void calc_fly()
+void calc_fly(THE_TIMER *t)
   {
   LETICI_VEC *p,*q;
   short ss;
@@ -1393,7 +1393,7 @@ void sector0(void)
      }
   }
 
-static void tele_redraw()
+static void tele_redraw(THE_TIMER *_)
   {
   if (!running_anm) return;
   redraw_scene();
@@ -1442,7 +1442,7 @@ void postavy_teleport_effect(int sector,int dir,int postava,char effect)
   if (zavora) return;
   if (effect)
      {
-     void *c;
+     void (*c)(void);
 
      zavora=1;
      c=wire_proc;
@@ -1851,13 +1851,13 @@ void sleep_players(va_list args)
   }
 
 
-void *game_keyboard(EVENT_MSG *msg,void **usr)
+void game_keyboard(EVENT_MSG *msg,void **usr)
   {
   int c;
 
   usr;
-  if (pass_zavora) return NULL;
-  if (cur_mode==MD_END_GAME) return NULL;
+  if (pass_zavora) return ;
+  if (cur_mode==MD_END_GAME) return ;
   if (msg->msg==E_KEYBOARD)
      {
       c=quit_request_as_escape(va_arg(msg->data, int));
@@ -1917,7 +1917,6 @@ void *game_keyboard(EVENT_MSG *msg,void **usr)
               }*/
          }
      }
-  return &game_keyboard;
   }
 
 

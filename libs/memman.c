@@ -10,7 +10,7 @@
 #include <fcntl.h>
 #include <string.h>
 #include <sys/stat.h>
-#include <unistd.h>
+
 
 #define DPMI_INT 0x31
 #define LOAD_BUFFER 4096
@@ -42,7 +42,7 @@ void standard_mem_error(size_t size)
   {
   char buff[256];
   SEND_LOG("(ERROR) Memory allocation error detected, %lu bytes missing",size);
-  sprintf(buff,"Memory allocation error\n Application can't allocate %lu bytes of memory (%xh)\n",size,memman_handle);
+  sprintf(buff,"Memory allocation error\n Application can't allocate %lu bytes of memory (%xh)\n",(unsigned long)size,memman_handle);
   display_error(buff);
   exit(1);
   }
@@ -271,7 +271,7 @@ THANDLE_DATA *zneplatnit_block(int handle)
   return h;
   }
 
-static void heap_error() {
+static void heap_error(size_t s) {
     display_error("out of memory");
     abort();
 }
@@ -315,7 +315,7 @@ void *load_swaped_block(THANDLE_DATA *h)
   }
 
 
-int find_same(const char *name,void *decomp)
+int find_same(const char *name,ABLOCK_DECODEPROC decomp)
   {
   THANDLE_DATA *p;
   int i,j;
@@ -332,7 +332,7 @@ int find_same(const char *name,void *decomp)
   return -1;
   }
 
-int find_handle(const char *name,void *decomp)
+int find_handle(const char *name,ABLOCK_DECODEPROC decomp)
   {
   return find_same(name,decomp);
   }
@@ -364,7 +364,7 @@ THANDLE_DATA *def_handle(int handle,const char *filename,ABLOCK_DECODEPROC decom
      }
   memcpy(h->src_file,filename,12);
   h->seekpos=0;
-  strupr(h->src_file);
+  strupper(h->src_file);
   h->loadproc=decompress;
   if (filename[0])
       h->seekpos=get_file_entry(path,h->src_file);
@@ -385,7 +385,7 @@ const void *afile(char *filename,int group,int32_t *blocksize)
 
   d=alloca(strlen(filename)+1);
   strcpy(d,filename);
-  strupr(d);
+  strupper(d);
   if (mman_patch && test_file_exist_DOS(group,d)) entr=0;
   else entr=get_file_entry(group,d);
   if (entr!=0)
@@ -669,7 +669,7 @@ void display_status()
            if (h->src_file[0]) strncpy(nname,h->src_file,12);else strcpy(nname,"<local>");
            printf("%04Xh ... %12s %s %s %08lXh %6d %10d %6d \n",i*BK_MINOR_HANDLES+j,
            nname,names[h->status-1],
-           copys,(uintptr_t)h->blockdata,h->size,h->counter,h->lockcount);
+           copys,(unsigned long)h->blockdata,h->size,h->counter,h->lockcount);
            ln++;
            total_data+=h->size;
            if(h->status==BK_PRESENT)total_mem+=h->size;

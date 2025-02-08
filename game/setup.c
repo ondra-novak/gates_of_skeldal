@@ -28,7 +28,7 @@ char q_runsetup(char *parm)
   char c[6];
 
   strncpy(c,parm,6);
-  strupr(c);
+  strupper(c);
   return !strncmp(c,"/SETUP",6);
   }
 
@@ -46,7 +46,7 @@ static void checkbox_animator(THE_TIMER *t)
 
 static int effects[]={SND_GVOLUME,SND_MUSIC,SND_GFX,SND_TREBL,SND_BASS,SND_XBASS};
 
-static void do_setup_change()
+static void do_setup_change(void)
   {
   char c;
 
@@ -59,7 +59,7 @@ static void do_setup_change()
      }
   }
 
-static void change_zoom()
+static void change_zoom(void)
   {
   int id=o_aktual->id;
   int i;
@@ -68,7 +68,7 @@ static void change_zoom()
   zoom_speed((id-30)/10);
   }
 
-static void change_turn()
+static void change_turn(void)
   {
   int id=o_aktual->id;
   int i;
@@ -77,7 +77,7 @@ static void change_turn()
   turn_speed((id-60)/10);
   }
 
-static void unwire_setup();
+static void unwire_setup(void);
 
 static void setup_keyboard(EVENT_MSG *msg,void **_)
   {
@@ -91,7 +91,7 @@ static void setup_keyboard(EVENT_MSG *msg,void **_)
      }
   }
 
-static void wire_setup()
+static void wire_setup(void)
   {
   unwire_proc();
   unwire_proc=unwire_setup;
@@ -101,7 +101,7 @@ static void wire_setup()
   SEND_LOG("(GAME) Starting setup");
   }
 
-static void unwire_setup()
+static void unwire_setup(void)
   {
   show_names=f_get_value(0,90) & 1;
   enable_sort=f_get_value(0,100) & 1;
@@ -200,7 +200,7 @@ void new_setup()
   add_to_timer(TM_CHECKBOX,4,-1,checkbox_animator);
   }
 
-void game_setup_()
+void game_setup_(void)
   {
   wire_setup();
   new_setup();

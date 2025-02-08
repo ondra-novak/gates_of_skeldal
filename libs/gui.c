@@ -26,7 +26,7 @@ word desktop_y_size;
 char force_redraw_desktop=0;
 static char change_flag=0,f_cancel_event=0;
 const word *default_font;
-void empty()
+void empty(void)
   {
   }
 
@@ -339,7 +339,7 @@ void define(int id,int x,int y,int xs,int ys,char align,void (*initproc)(OBJREC 
   o->call_done=empty1;
   o->autoresizex=0;
   o->autoresizey=0;
-  o->on_event=empty;
+  o->on_event=empty3;
   o->on_enter=empty;
   o->on_exit=empty;
   o->on_change=empty;
@@ -767,16 +767,16 @@ void uninstall_gui(void)
 //send_message(E_GUI,cislo,E_UDALOST,data....)
 
 
-void on_control_change(void (*proc)())
+void on_control_change(void (*proc)(void))
   {
   o_end->on_change=proc;
   }
 
-void on_control_enter(void (*proc)())
+void on_control_enter(void (*proc)(void))
   {
   o_end->on_enter=proc;
   }
-void on_control_exit(void (*proc)())
+void on_control_exit(void (*proc)(void))
 {
   o_end->on_exit=proc;
   }
@@ -920,28 +920,29 @@ void close_current()
   close_window(waktual);
   }
 
+typedef void (*PROG)(void);
+
 void background_runner(EVENT_MSG *msg,void **prog)
   {
-  void (*p)();
+  PROG *prog_ptr = (PROG *)(prog);
 
 
   if (msg->msg==E_INIT)
      {
-     *prog = va_arg(msg->data, void (*)());
+     *prog_ptr = va_arg(msg->data, PROG);
      return;
      }
   if (msg->msg==E_DONE)
      {
-     *prog=NULL;
+     *prog_ptr=NULL;
      return;
-     }
-    p=*prog;
-    p();
+     }    
+    (*prog_ptr)();
 
   msg->msg=-2;
   }
 
-void run_background(void (*p)())
+void run_background(PROG p)
   {
   send_message(E_ADD,E_IDLE,background_runner,p);
   }

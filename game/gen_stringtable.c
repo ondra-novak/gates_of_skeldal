@@ -58,7 +58,7 @@ void cti_texty(void);
 
 static int convert_map_strings_1(const char *source_name, LIST_FILE_TYPE type, size_t sz, void *context) {
     int l = strlen(source_name);
-    if (stricmp(source_name+l-4,".map")) return 0;
+    if (istrcmp(source_name+l-4,".map")) return 0;
     source_name = set_file_extension(source_name, ".txt");
     const char *target_name = set_file_extension(concat2("map_", source_name),".csv");
     const char *target_path = *(const char **)context;
