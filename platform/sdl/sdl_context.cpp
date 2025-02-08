@@ -8,6 +8,7 @@
 #include <cmath>
 #include <iostream>
 #include <stdexcept>
+#include <sstream>
 void SDLContext::SDL_Deleter::operator ()(SDL_Window* window) {
     SDL_DestroyWindow(window);
 }
@@ -508,7 +509,7 @@ SDL_Rect SDLContext::get_window_aspect_rect() const {
     SDL_Rect w;
     int ww;
     int wh;
-    SDL_GetWindowSizeInPixels(_window.get(), &ww, &wh);
+    SDL_GetWindowSize(_window.get(), &ww, &wh);
     if (aspect_x && aspect_y) {
         int apw  = wh * aspect_x / aspect_y;
         int aph =  ww * aspect_y / aspect_x;
@@ -575,7 +576,6 @@ void SDLContext::set_quit_callback(std::function<void()> fn) {
 }
 
 SDLContext::AudioInfo SDLContext::init_audio(const AudioConfig &config, SDL_AudioCallback cb, void *cb_ctx) {
-    char buff[256];
     _audio.reset();
     SDL_AudioSpec aspec = {};
     aspec.callback = cb;
@@ -587,8 +587,19 @@ SDLContext::AudioInfo SDLContext::init_audio(const AudioConfig &config, SDL_Audi
     SDL_AudioSpec obtaied = {};
     auto id = SDL_OpenAudioDevice(config.audioDevice, 0, &aspec, &obtaied, SDL_AUDIO_ALLOW_FREQUENCY_CHANGE|SDL_AUDIO_ALLOW_SAMPLES_CHANGE);
     if (id < 1) {
-        snprintf(buff, sizeof(buff), "SDL Error create audio: %s\n", SDL_GetError());
-        throw std::runtime_error(buff);
+        std::ostringstream err;
+        err << "SDL Error create audio:" << SDL_GetError() << "\n";
+        int n = SDL_GetNumAudioDevices(0);
+        if (n == 0) err << "No audio devices are available" << "\n";
+        else {
+            err << "Available audio devices:";
+            char sep = ' ';
+            for (int i = 0; i < n; ++i) {
+                err << sep << SDL_GetAudioDeviceName(i, 0);
+                sep = ',';
+            }
+        }
+        throw std::runtime_error(err.str());
     }
     _audio.reset(reinterpret_cast<void *>(id));
 

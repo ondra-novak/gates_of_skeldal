@@ -1117,7 +1117,7 @@ char sleep_regenerace(THUMAN *p)
   }
 
 
-void real_regeneration()
+void real_regeneration(THE_TIMER *t)
   {
   int i;
   THUMAN *p;

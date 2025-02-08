@@ -671,7 +671,7 @@ typedef void (*TIMER_PROC)(THE_TIMER *t);
 THE_TIMER *add_to_timer(int id,int delay,int maxcall,TIMER_PROC proc);
 void delete_from_timer(int id);
 THE_TIMER *find_timer(int id);
-void objekty_mimo(void);
+void objekty_mimo(THE_TIMER *t);
 void mouse_set_cursor(int cursor);
 #define FONT_TSHADOW 0x10000
 #define FONT_TSHADOW_GRAY 0x30000
@@ -1006,7 +1006,7 @@ void zmen_skupinu(THUMAN *p);
 void add_to_group(int num);
 void group_all(void);
 const void *build_items_called(const void *p, int32_t *s);
-void real_regeneration(void); //regenerace postav behem hry v realu (pouze kondice a mana)
+void real_regeneration(THE_TIMER *t); //regenerace postav behem hry v realu (pouze kondice a mana)
 char sleep_regenerace(THUMAN *p);  //regenerace postav behem spani
 char check_jidlo_voda(THUMAN *p);
 void prepocitat_postavu(THUMAN *human_selected);

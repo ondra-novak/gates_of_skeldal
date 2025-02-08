@@ -507,7 +507,7 @@ void clrscr(void)
 
 
 
-void back_music(void)
+void back_music(THE_TIMER *t)
   {
   mix_back_sound(0);
   }
@@ -577,7 +577,7 @@ void timming(EVENT_MSG *msg,void **data)
         THE_TIMER *z;
 
         z=&timer_tree;while(z->next!=p && z->next!=NULL) z=z->next;
-        if (z->next==NULL) return NULL;
+        if (z->next==NULL) return;
         }
      q=p;
      }
@@ -639,7 +639,7 @@ void hold_timer(int id,char hld)
   SEND_LOG("(TIMER) Timer hold id: %d status: %s",id,hld?"Hold":"Unhold");
   }
 
-THE_TIMER *add_to_timer(int id,int delay,int maxcall,void *proc)
+THE_TIMER *add_to_timer(int id,int delay,int maxcall,TIMER_PROC proc)
   {
   THE_TIMER *q;
 

@@ -237,7 +237,7 @@ void chveni(int i)
   pos=!pos;
   }
 
-void objekty_mimo()
+void objekty_mimo(THE_TIMER *t)
   {
   schovej_mysku();
   ukaz_kompas(1);
