@@ -362,7 +362,7 @@ THANDLE_DATA *def_handle(int handle,const char *filename,ABLOCK_DECODEPROC decom
      h->seekpos=i;
      return h;
      }
-  memcpy(h->src_file,filename,12);
+  strncpy(h->src_file,filename,sizeof(h->src_file));
   h->seekpos=0;
   strupper(h->src_file);
   h->loadproc=decompress;
@@ -669,7 +669,7 @@ void display_status()
            if (h->src_file[0]) strncpy(nname,h->src_file,12);else strcpy(nname,"<local>");
            printf("%04Xh ... %12s %s %s %08lXh %6d %10d %6d \n",i*BK_MINOR_HANDLES+j,
            nname,names[h->status-1],
-           copys,(unsigned long)h->blockdata,h->size,h->counter,h->lockcount);
+           copys,(unsigned long)(uintptr_t)h->blockdata,h->size,h->counter,h->lockcount);
            ln++;
            total_data+=h->size;
            if(h->status==BK_PRESENT)total_mem+=h->size;

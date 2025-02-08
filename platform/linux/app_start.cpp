@@ -17,7 +17,7 @@ void show_help(const char *arg0) {
 
     printf("-f <file>       path to configuration file\n"
            "-a <adv>        path for adventure file (.adv)\n"
-           "-l <lang>       set language (cz|en)"
+           "-l <lang>       set language (cz|en)\n"
            "-s <directory>  generate string-tables (for localization) and exit\n"
            "-h              this help\n");
     exit(0);

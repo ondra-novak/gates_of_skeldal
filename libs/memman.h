@@ -42,7 +42,7 @@ typedef struct meminfo {
 
 typedef struct thandle_data
   {
-  char src_file[12];  //12
+  char src_file[16];  //12
   int32_t seekpos;       //16
   const void *blockdata;    //20
   char flags;        //21
