@@ -363,7 +363,7 @@ char mgif_play(const void *mgif) //dekoduje a zobrazi frame
   const char *pc;
   char *ff;
 //  int acts,size,act,csize;
-  const void *scr_sav;
+  const void *scr_sav = 0;
   int scr_act=-1;
 
 

@@ -173,7 +173,7 @@ EVENT_MSG *task_wait_event(int32_t event_number) {
     return cur_message;
 }
 int q_any_task() {
-    return task_list.size();
+    return (int)task_list.size();
 }
 char task_quitmsg() {
     if (current_task_inst == NULL) return 0;

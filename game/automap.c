@@ -764,7 +764,7 @@ void draw_medium_map(void)
   {
   int xr, yr;
   int xp, yp;
-  int xc,yc,x,y;
+  int xc=0,yc=0,x=0,y=0;
   int j,i,k,layer;
   //char c=" ";
 

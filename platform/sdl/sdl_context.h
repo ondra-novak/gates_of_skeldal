@@ -8,6 +8,7 @@
 #include <vector>
 #include <libs/mouse.h>
 #include <functional>
+#include "unique_value.h"
 
 #include <queue>
 
@@ -124,7 +125,7 @@ protected:
     };
 
     struct SDL_Audio_Deleter {
-        void operator()(void *x);
+        void operator()(SDL_AudioDeviceID x);
     };
 
 
@@ -142,7 +143,7 @@ protected:
     std::unique_ptr<SDL_Texture, SDL_Deleter> _texture;
     std::unique_ptr<SDL_Texture, SDL_Deleter> _texture2;
     std::unique_ptr<SDL_Texture, SDL_Deleter> _crt_effect;
-    std::unique_ptr<void, SDL_Audio_Deleter> _audio;
+    unique_value<SDL_AudioDeviceID, SDL_Audio_Deleter> _audio;
     SDL_Texture *_visible_texture;
     SDL_Texture *_hidden_texture;
 

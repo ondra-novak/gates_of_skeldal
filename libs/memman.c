@@ -666,7 +666,7 @@ void display_status()
            int k;
 
            for(k=0;k<5;k++) copys[k]=h->flags & (1<<k)?flags[k]:'.';
-           if (h->src_file[0]) strcopy_n(nname,h->src_file,12);else strcpy(nname,"<local>");
+           if (h->src_file[0]) strcopy_n(nname,h->src_file,sizeof(nname));else strcpy(nname,"<local>");
            printf("%04Xh ... %12s %s %s %08lXh %6d %10d %6d \n",i*BK_MINOR_HANDLES+j,
            nname,names[h->status-1],
            copys,(unsigned long)(uintptr_t)h->blockdata,h->size,h->counter,h->lockcount);

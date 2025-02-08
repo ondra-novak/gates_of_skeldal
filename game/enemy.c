@@ -1363,7 +1363,7 @@ extern char att_player;
 void mob_hit(TMOB *mm,int dostal)
   {
   int ch;
-	int mob_dostal,mob_dostal_pocet;
+	int mob_dostal=0,mob_dostal_pocet=0;
 
   if (mm->vlajky & MOB_PASSABLE) return;
   if (dostal>mm->vlastnosti[VLS_MAXHIT]) dostal=mm->vlastnosti[VLS_MAXHIT];

@@ -78,7 +78,7 @@ int build_tables()
            case 128:while (fgetc(source)!='\n');
                     fgetc(source);
                     i=fscanf(source,"%[^\n]",global_name);
-                    strcopy_n(kouzla_tab[cur_spell].spellname,global_name,29);
+                    strcopy_n(kouzla_tab[cur_spell].spellname,global_name,sizeof(kouzla_tab[cur_spell].spellname));
                     printf("(%3d, 0x%05X) %s\n",cur_spell, kouzla_tab[cur_spell].start,global_name);
                     break;
            case 129:add_prog_command(0xff);

@@ -352,7 +352,7 @@ inline bool CSVReader<Source>::readRow(const CSVFieldIndexMapping<T> &mapping,T 
                     } else {
                         static_assert(std::is_same_v<TVal, bool>);
                         CSVState st = read(buff);
-                        std::transform(buff.begin(), buff.end(), buff.begin(), [](char c) -> char { return std::tolower(c); });
+                        std::transform(buff.begin(), buff.end(), buff.begin(), [](char c) -> char { return static_cast<char>(std::tolower(c)); });
                         if (buff == "y" || buff == "t" || buff =="true" || buff == "yes" || buff == "on") {
                             target.*ptr = true;
                         } else if (buff == "n" || buff == "f" || buff =="false" || buff == "no" || buff == "off") {

@@ -1207,7 +1207,7 @@ static void play_wav(int wav,int sector)
 static void play_random_sound(int sector,int dir,int pos)
   {
   int seed;
-  int v;
+  int v=0;
 
   seed=rand();
   srand(sector+dir);
@@ -1264,7 +1264,7 @@ void fletna_glob_add_note(uint8_t note)
   if (strlen(globFletnaStr)<250) strcat(globFletnaStr,globNotes[note]);
 }
 
-static char compareMelody(const char *m1,const char *m2)
+static int compareMelody(const char *m1,const char *m2)
 {
   while (*m1 && *m2)
   {

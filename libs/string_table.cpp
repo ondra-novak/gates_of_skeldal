@@ -30,7 +30,7 @@ TSTRINGTABLE *stringtable_load(const char *filename) {
     CSVRecord rec;
     std::unique_ptr<TSTRINGTABLE> tbl = std::make_unique<TSTRINGTABLE>();
     while (reader.readRow(mapping, rec)) {
-        windows2kamenik(rec.string.data(), rec.string.size(), rec.string.data());
+        windows2kamenik(rec.string.data(), (int)rec.string.size(), rec.string.data());
         tbl->_strings[rec.index] = rec.string;
     }
     return tbl.release();

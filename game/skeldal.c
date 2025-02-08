@@ -672,7 +672,7 @@ static void kill_timer(void)
   timer_tree.next=NULL;
   }
 
-void *user_timer(EVENT_MSG *msg,void **usr)
+void user_timer(EVENT_MSG *msg,void **usr)
   {
   int x;
   static int lastvalue=0;
@@ -685,7 +685,6 @@ void *user_timer(EVENT_MSG *msg,void **usr)
      lastvalue+=x;
      if (x) send_message(E_TIMER,x);
      }
-  return &user_timer;
   }
 
 void do_timer(void)
@@ -1305,7 +1304,7 @@ static void game_big_circle(char enforced)
   char s[13];
 
   purge_playlist();
-  s[12]=0;strcopy_n(s,loadlevel.name,12);
+  strcopy_n(s,loadlevel.name,sizeof(s));
   err=load_map(s);
   if (!enforced)
      {
@@ -1363,7 +1362,7 @@ static void game_big_circle(char enforced)
     enter_game();
 
     leave_current_map();
-    s[12]=0;strcopy_n(s,loadlevel.name,12);
+    strcopy_n(s,loadlevel.name,sizeof(s));
     if (s[0]!=0)err=load_map(s);
     memset(GlobEventList,0,sizeof(GlobEventList));
 
@@ -1384,9 +1383,9 @@ static void new_game(int argc, char *argv[])
   load_shops();
   open_story_file();
   if (argc<2)
-     strcopy_n(loadlevel.name,default_map,12);
+     strcopy_n(loadlevel.name,default_map,sizeof(loadlevel.name));
   else
-     strcopy_n(loadlevel.name,argv[1],12);
+     strcopy_n(loadlevel.name,argv[1],sizeof(loadlevel.name));
   if (argc>2)
      {
      sscanf(argv[2],"%d",&sect);
