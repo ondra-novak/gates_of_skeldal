@@ -7,7 +7,7 @@
 
 #include <cstring>
 #include <iostream>
-
+#include <array>
 #include <thread>
 
 #define countof(array) (sizeof(array)/sizeof(array[0]))
@@ -96,7 +96,7 @@ void set_channel_volume(int channel,int left,int right) {
     vp.left = l;
     vp.right = r;
     sound_mixer.visit_track(channel, [&](WaveMixer<2> &mx){
-        mx.set_channel_volumes_fade(make_channel_volume(vp.left, vp.right), {2e-4,2e-4});
+        mx.set_channel_volumes_fade(make_channel_volume(vp.left, vp.right), {2e-4f,2e-4f});
     });
 }
 

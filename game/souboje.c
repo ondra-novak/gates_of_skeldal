@@ -114,10 +114,10 @@ void (*after_spell_wire)();
 short *poradi=NULL;
 short *prave_hraje;
 
-void wire_programming();
-void unwire_programming();
-void wire_jadro_souboje();
-void unwire_jadro_souboje();
+void wire_programming(void);
+void unwire_programming(void);
+void wire_jadro_souboje(void);
+void unwire_jadro_souboje(void);
 
 uint8_t sel_zivel=0;
 static char prekvapeni=0;
@@ -443,7 +443,7 @@ void rozhodni_o_poradi()
   *r++=0;
   prave_hraje=poradi;
   }
-void hrat_souboj()
+void hrat_souboj(THE_TIMER *_)
   {
   static int counter=0;
 	char cond=ms_last_event.y>378 && ms_last_event.x>510 && cur_mode!=MD_PRESUN;
@@ -459,7 +459,7 @@ void hrat_souboj()
 			 }
      showview(0,0,0,0);
      if (neco_v_pohybu==2) neco_v_pohybu=0; else neco_v_pohybu=2;
-     calc_fly();mob_animuj();
+     calc_fly(NULL);mob_animuj();
      if (d_action!=NULL) do_delay_actions();
      }
   if (cond) ukaz_mysku();
@@ -768,8 +768,8 @@ void konec_presunu(EVENT_MSG *msg,void **unused)
      }
   }
 
-void wire_presun_postavy();
-void unwire_presun_postavy()
+void wire_presun_postavy(void);
+void unwire_presun_postavy(void)
   {
   disable_click_map();
   send_message(E_DONE,E_KEYBOARD,game_keyboard);
@@ -782,7 +782,7 @@ void unwire_presun_postavy()
   hromadny_utek=0;
   }
 
-void wire_presun_postavy()
+void wire_presun_postavy(void)
   {
   unwire_proc();
 
@@ -1370,7 +1370,7 @@ void jadro_souboje(EVENT_MSG *msg,void **unused) //!!!! Jadro souboje
      }
  }
 
-void wire_jadro_souboje()
+void wire_jadro_souboje(void)
   {
   int battlespeed=gamespeed-gamespeed*gamespeedbattle/5;
   recalc_volumes(viewsector,viewdir);
@@ -1383,7 +1383,7 @@ void wire_jadro_souboje()
   pgm_help=10;
   }
 
-void unwire_jadro_souboje()
+void unwire_jadro_souboje(void)
   {
   delete_from_timer(TM_SCENE);
   send_message(E_DONE,E_IDLE,jadro_souboje);
@@ -1411,7 +1411,7 @@ void fill_rune(char *d,int i)
 static void *runebar;
 static char *rune_name=NULL;
 
-void display_rune_bar()
+void display_rune_bar(THE_TIMER *_)
   {
   short coords[][2]={{3,26},{32,26},{61,26},{90,26},{18,64},{47,64},{76,64}};
   char c;
@@ -1437,14 +1437,14 @@ void display_rune_bar()
 
 
 
-void rune_bar_redrawing()
+void rune_bar_redrawing(THE_TIMER *_)
   {
   redraw_scene();
   if (!norefresh && !cancel_render)
      {
      schovej_mysku();
      program_draw();
-     display_rune_bar();
+     display_rune_bar(NULL);
      ukaz_mysku();
      showview(0,0,0,0);
      }
@@ -1471,9 +1471,9 @@ void display_power_bar_tm(THE_TIMER *tm)
   display_power_bar(1);
   }
 
-void wire_select_rune();
-void unwire_select_rune();
-void wire_select_power();
+void wire_select_rune(void);
+void unwire_select_rune(void);
+void wire_select_power(void);
 
 char cancel_power(int id,int xa,int ya,int xr,int yr)
   {
@@ -1598,7 +1598,7 @@ char runes_mask(int id,int xa,int ya,int xr,int yr)
   }
   if (cc<0) rune_name=NULL;
   free(runebar);runebar=NULL;
-  display_rune_bar();
+  display_rune_bar(NULL);
   return 1;
   }
 
@@ -1614,7 +1614,7 @@ char cancel_runes(int id,int xa,int ya,int xr,int yr)
   return 1;
   }
 
-void unwire_select_rune()
+void unwire_select_rune(void)
   {
   wire_proc=wire_select_rune;
   delete_from_timer(TM_DELAIER);
@@ -1623,7 +1623,7 @@ void unwire_select_rune()
   free(runebar);runebar=NULL;
   }
 
-void wire_select_rune()
+void wire_select_rune(void)
   {
   THUMAN *p;
   HUM_ACTION *c;
@@ -1653,13 +1653,13 @@ void wire_select_rune_fly()
   cancel_render=1;
   }
 
-void unwire_select_power()
+void unwire_select_power(void)
   {
   rune_name=NULL;
   delete_from_timer(TM_DELAIER);
   }
 
-void wire_select_power()
+void wire_select_power(void)
   {
   THUMAN *p;
   int i;
@@ -1727,7 +1727,7 @@ void program_draw()
   }
 
 
-void souboje_redrawing()
+void souboje_redrawing(THE_TIMER *_)
   {
   if (neco_v_pohybu) calc_mobs();
   calc_animations();
@@ -1926,7 +1926,7 @@ char mask_click(int id,int xa,int ya,int xr,int yr)
      switch(d)
         {
         case AC_RUN: postavy[select_player].utek=5+postavy[select_player].actions;
-                     [[fallthrough]];
+                CASE_FALLTHROUGH;
         case AC_ATTACK:
         case AC_STAND:
         case AC_ARMOR:
@@ -2042,7 +2042,7 @@ void programming_keyboard(EVENT_MSG *msg,void **unused)
 
   }
 
-void unwire_programming()
+void unwire_programming(void)
   {
   disable_click_map();
   send_message(E_DONE,E_KEYBOARD,programming_keyboard);
@@ -2053,7 +2053,7 @@ void unwire_programming()
 
 
 
-void wire_programming()
+void wire_programming(void)
   {
   schovej_mysku();
   after_spell_wire=wire_programming;
@@ -2080,7 +2080,7 @@ void wait_to_stop(EVENT_MSG *msg,void **unused)
         unwire_proc();
         calc_mobs();
         mouse_set_default(H_MS_DEFAULT);
-        refresh_scene();
+        refresh_scene(0);
         cancel_render=1;
         if (prekvapeni) zahajit_kolo(1);else wire_programming();
         msg->msg=-2;

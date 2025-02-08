@@ -1029,7 +1029,7 @@ int draw_sloup_sector(int celx,int cely,int sector)
      if (q->flags & SD_SPEC)
       show_cel2(celx,cely-1,ablock(num_ofsets[MAIN_NUM]+q->sec+(q->sec_anim>>4)),0,0,2, ghost_walls| (q->flags & tmask));
      else
-      show_cel2(celx,cely-1,ablock(num_ofsets[MAIN_NUM]+q->sec+(q->sec_anim>>4)),(q->xsec<<1)+celx*(points[0][0][cely].x-points[0][0][cely-1].x)/2,q->ysec<<1,0, ghost_walls| (q->flags & tmask));
+      show_cel2(celx,cely-1,ablock(num_ofsets[MAIN_NUM]+q->sec+(q->sec_anim>>4)),(q->xsec<<1)+celx*(viewport_geometry[0][0][cely].x-viewport_geometry[0][0][cely-1].x)/2,q->ysec<<1,0, ghost_walls| (q->flags & tmask));
   }
   return 0;
   }
@@ -1075,10 +1075,10 @@ void draw_sector(int celx,int cely,int s)
 void back_clear(int celx,int color)
   {
   int x1,y1,x2,y2,xc;
-  y1=points[0][0][VIEW3D_Z].y+MIDDLE_Y+SCREEN_OFFLINE;
-  y2=points[0][1][VIEW3D_Z].y+MIDDLE_Y+SCREEN_OFFLINE;
-  x2=points[0][1][VIEW3D_Z].x+MIDDLE_X;
-  x1=-points[0][1][VIEW3D_Z].x+MIDDLE_X;
+  y1=viewport_geometry[0][0][VIEW3D_Z].y+MIDDLE_Y+SCREEN_OFFLINE;
+  y2=viewport_geometry[0][1][VIEW3D_Z].y+MIDDLE_Y+SCREEN_OFFLINE;
+  x2=viewport_geometry[0][1][VIEW3D_Z].x+MIDDLE_X;
+  x1=-viewport_geometry[0][1][VIEW3D_Z].x+MIDDLE_X;
   xc=(x2-x1+2)*celx;
   x1=x1+xc-1;
   x2=x2+xc;
@@ -1329,7 +1329,7 @@ void redraw_scene()
   send_message(E_KOUZLO_ANM);
   }
 
-void refresh_scene()
+void refresh_scene(THE_TIMER *t)
   {
   redraw_scene();
   if (!cancel_render && !norefresh)

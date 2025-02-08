@@ -121,15 +121,15 @@ double ini_get_value_double(const char *value, int *conv_ok) {
 int ini_get_value_boolean(const char *value) {
     int r = -1;
     if (value != NULL) {
-        if (stricmp(value, "true") == 0
-                || stricmp(value, "1") == 0
-                || stricmp(value, "on") == 0
-                || stricmp(value, "yes") == 0) {
+        if (istrcmp(value, "true") == 0
+                || istrcmp(value, "1") == 0
+                || istrcmp(value, "on") == 0
+                || istrcmp(value, "yes") == 0) {
             r = 1;
-        } else if (stricmp(value, "false") == 0
-                || stricmp(value, "0") == 0
-                || stricmp(value, "off") == 0
-                || stricmp(value, "no") == 0) {
+        } else if (istrcmp(value, "false") == 0
+                || istrcmp(value, "0") == 0
+                || istrcmp(value, "off") == 0
+                || istrcmp(value, "no") == 0) {
             r = 0;
         } else {
             r = -1;

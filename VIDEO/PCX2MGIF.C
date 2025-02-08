@@ -676,7 +676,7 @@ char *get_pcx_name(char *name,int x)
                  sprintf(s,"%s%05d.pcx",s,x);
                  }
      else sprintf(s,"%s%04d.pcx",s,x);
-     strupr(s);
+     strupper(s);
      }
   else
      {
@@ -805,7 +805,7 @@ void script_compress(char *script_name)
         int j=lowq;
         ungetc(i,scr);
         i=fscanf(scr,"%s %d %d %d %d",s,&j,&min_fr,&max_fr,&colorq);
-        strupr(s);
+        strupper(s);
         if (!strcmp(s,"FRAMESTEP")) frame_step=j;
         else
         if (!strcmp(s,"STATIC")) statpic=j;

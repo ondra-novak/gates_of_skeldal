@@ -368,8 +368,8 @@ int enter_menu(char open)
   }
 
 static const char *end_titles_path(const char *fname) {
-    if (stricmp(fname,"TITULKY.TXT") == 0) fname = "end_titles.txt";
-    else if (stricmp(fname,"ENDTEXT.TXT") == 0) fname = "epilog.txt";
+    if (istrcmp(fname,"TITULKY.TXT") == 0) fname = "end_titles.txt";
+    else if (istrcmp(fname,"ENDTEXT.TXT") == 0) fname = "epilog.txt";
     return lang_replace_path_if_exists(fname);
 }
 
@@ -430,7 +430,7 @@ static int insert_next_line(int ztrata)
      if (title_mode!=TITLE_KONEC) c=get_next_title(0,NULL);else c[0]=0;
      if (c[0]=='*')
         {
-        strupr(c);
+        strupper(c);
         if (!strcmp(c+1,"HEAD"))
            {
            title_mode=TITLE_HEAD;
@@ -633,7 +633,7 @@ void konec_hry()
   task_id=add_task(8196,titles,0,"TITULKY.TXT");
   task_wait_event(E_KEYBOARD);
   if (is_running(task_id)) term_task(task_id);
-  change_music("?");
+  change_music(NULL);
   curcolor=0;
   bar32(0,0,639,479);
   ukaz_mysku();

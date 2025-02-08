@@ -956,7 +956,7 @@ static void start_install()
   char error=0,autostart;
   get_value(0,60,target_path);
   if (find_object(waktual,70)!=NULL) autostart=f_get_value(0,70); else autostart=1;
-  strupr(target_path);
+  strupper(target_path);
   if (validate_path(target_path)==0)
      {
      msg_box("Incorrect path",'\x1',"The path is incorrect. Don't use long filenames!","OK",NULL);

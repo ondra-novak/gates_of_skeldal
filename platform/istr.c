@@ -1,7 +1,7 @@
 #include "platform.h"
 
 #include <ctype.h>
-int stricmp(const char *a, const char *b) {
+int istrcmp(const char *a, const char *b) {
     while (*a && *b) {
         char ca = toupper(*a);
         char cb = toupper(*b);
@@ -15,7 +15,7 @@ int stricmp(const char *a, const char *b) {
     return 0;
 }
 
-void strupr(char *c) {
+void strupper(char *c) {
     while (*c) {
         *c = toupper(*c);
         ++c;

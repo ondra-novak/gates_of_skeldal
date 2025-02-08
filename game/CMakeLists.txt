@@ -1,5 +1,5 @@
 add_custom_command(OUTPUT ${CMAKE_BINARY_DIR}/default_font.base64
-                   COMMAND base64 ${CMAKE_CURRENT_LIST_DIR}/boldcz.fon -w 0  > ${CMAKE_BINARY_DIR}/default_font.base64
+                   COMMAND file_to_base64 ${CMAKE_CURRENT_LIST_DIR}/boldcz.fon  > ${CMAKE_BINARY_DIR}/default_font.base64
                    DEPENDS ${CMAKE_CURRENT_LIST_DIR}/boldcz.fon)
 
 
@@ -41,3 +41,4 @@ ${CMAKE_BINARY_DIR}/default_font.cpp
 )
 
 add_library(skeldal_main  ${files})
+set_property(TARGET skeldal_main PROPERTY CXX_STANDARD 20)

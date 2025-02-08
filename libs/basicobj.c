@@ -241,16 +241,16 @@ void draw_status_line(char *c)
   showview(0,y-2,SCR_WIDTH_X-1,ysize+5);
   }
 
-void *status_mem_info(EVENT_MSG *msg)
+void status_mem_info(EVENT_MSG *msg)
   {
-  return NULL;
+  
   }
 
-void *status_idle(EVENT_MSG *msg)
+void status_idle(EVENT_MSG *msg)
   {
-  if (msg->msg==E_INIT) return &status_idle;
+  if (msg->msg==E_INIT) return;
   send_message(E_STATUS_LINE,msg->msg);
-  return NULL;
+  return;
   }
 
 static int enter_event_msg_to(EVENT_MSG *msg, void *ctx) {
@@ -299,29 +299,29 @@ void status_line(EVENT_MSG *msg, T_EVENT_ROOT **user_data) {
     return;
 }
 
-void *mouse_xy(EVENT_MSG *msg)
+void mouse_xy(EVENT_MSG *msg)
   {
   char **c = va_arg(msg->data, char **);
 
-  if (msg->msg==E_INIT) return &mouse_xy;
+  if (msg->msg==E_INIT) return;
   sprintf(*c," X: %d Y: %d",ms_last_event.x,ms_last_event.y);
   *c=strchr(*c,'\0');
-  return NULL;
+  return ;
   }
 
-void *show_time(EVENT_MSG *msg)
+void show_time(EVENT_MSG *msg)
   {
     char **c = va_arg(msg->data, char **);
   time_t t;
   struct tm cas;
 
-  if (msg->msg==E_INIT) return &show_time;
+  if (msg->msg==E_INIT) return;
   t=time(NULL);
   cas=*localtime(&t);
 
   sprintf(*c,"%02d:%02d:%02d ",cas.tm_hour,cas.tm_min,cas.tm_sec);
   *c=strchr(*c,'\0');
-  return NULL;
+  return ;
   }
 //------------------------------------------
 
@@ -684,7 +684,7 @@ void input_line_init(OBJREC *o,va_list len)
 
 void input_line_draw(int x1,int y1, int x2, int y2, OBJREC *o)
   {
-  char d[2]=" \0";
+  char d[2]=" ";
   int x;
   char *c;
   int len;

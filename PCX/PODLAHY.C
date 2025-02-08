@@ -32,7 +32,7 @@ struct tbarva palette[256];
 
 char datapath[]="";
 extern struct all_view showtabs;
-extern t_points points;
+extern t_points viewport_geometry;
 
 void do_events()
   {
@@ -103,11 +103,11 @@ void draw_it_all_f()
   int i,m,y,m2,s;
 
   y=0;s=0;
-  m2=(360-MIDDLE_Y)-points[0][0][VIEW3D_Z].y;
+  m2=(360-MIDDLE_Y)-viewport_geometry[0][0][VIEW3D_Z].y;
   shadow_max=m2;
   for (i=0;i<VIEW3D_Z;i++)
      {
-     m=points[0][0][i].y-points[0][0][i+1].y;
+     m=viewport_geometry[0][0][i].y-viewport_geometry[0][0][i+1].y;
      while (draw_one_line_f(y++,m,s) && y<m2);
      s=!s;
      }
@@ -149,11 +149,11 @@ void draw_it_all_c()
   int i,m,y,m2,s;
 
   y=0;s=0;
-  m2=MIDDLE_Y+points[0][1][VIEW3D_Z].y;
+  m2=MIDDLE_Y+viewport_geometry[0][1][VIEW3D_Z].y;
   shadow_max=m2;
   for (i=0;i<VIEW3D_Z;i++)
      {
-     m=points[0][1][i+1].y-points[0][1][i].y;
+     m=viewport_geometry[0][1][i+1].y-viewport_geometry[0][1][i].y;
      while (draw_one_line_c(y++,m,s) && y<m2);
      s=!s;
      }

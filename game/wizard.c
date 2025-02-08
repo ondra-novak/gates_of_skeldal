@@ -217,7 +217,7 @@ static char purge_map()
   _dos_findclose(&rc);*/
   wzprintf("\r\n Zadej jmeno tempu (all - vse):");gets(buffer);
   if (buffer[0]==0) return 0;
-  strupr(buffer);
+  strupper(buffer);
   concat(c,pathtable[SR_TEMP],buffer);
   if (strcmp(buffer,ALL) && check_file_exists_ex(c))
      {

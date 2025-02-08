@@ -55,7 +55,7 @@ static char prepare=1;
 static void PrepareTabs()
   {
   unsigned int i;
-  for (i=0;i<256;i++) {xlatkm2win[i]=i;xlatwin2km[i]=i;}
+  for (i=0;i<256;i++) {xlatkm2win[i]=(char)i;xlatwin2km[i]=(char)i;}
   for (i=0;i<sizeof(czxlattab)/sizeof(czxlattab[0]);i++)
 	{
 	xlatkm2win[czxlattab[i].kamenik]=czxlattab[i].windows;
@@ -68,14 +68,14 @@ static void PrepareTabs()
 void windows2kamenik(const char *src, int size, char *trg)
   {
   if (prepare) PrepareTabs();
-  if (size<0) size=strlen(src)+1;
+  if (size<0) size=(int)strlen(src)+1;
   for (int i=0;i<size;i++) *trg++=xlatwin2km[(unsigned char)*src++];
   }
 
 void kamenik2windows(const char *src, int size, char *trg)
   {
   if (prepare) PrepareTabs();
-  if (size<0) size=strlen(src)+1;
+  if (size<0) size=(int)strlen(src)+1;
   for (int i=0;i<size;i++) *trg++=xlatkm2win[(unsigned char)*src++];
   }
 

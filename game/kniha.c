@@ -303,8 +303,8 @@ static char read_set(TMPFILE_RD *txt,char *var,char *set)
         }
      }
   *cc=0;
-  strupr(set);
-  strupr(var);
+  strupper(set);
+  strupper(var);
   return c;
   }
 
@@ -370,7 +370,7 @@ static char read_tag(TMPFILE_RD *txt)
   i=temp_storage_scanf(txt,"%[^> ] %c",var,&c);
   while(c<33 && i!=EOF) c=i=temp_storage_getc(txt);
   if (c!='>') temp_storage_ungetc(txt);
-  strupr(var);
+  strupper(var);
   if (!strcmp(var,PARAGRAPH))
      {
      break_line();

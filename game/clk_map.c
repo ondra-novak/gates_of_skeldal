@@ -45,10 +45,10 @@ char clk_touch_vyk(int sector,int side,int xr,int yr)
   x2=v->xpos+v->xs/2;
   y1=320-(v->ypos+v->ys);
   y2=320-(v->ypos);
-  x1+=MIDDLE_X-points[0][1][1].x;
-  x2+=MIDDLE_X-points[0][1][1].x;
-  y1+=MIDDLE_Y+points[0][1][1].y;
-  y2+=MIDDLE_Y+points[0][1][1].y;
+  x1+=MIDDLE_X-viewport_geometry[0][1][1].x;
+  x2+=MIDDLE_X-viewport_geometry[0][1][1].x;
+  y1+=MIDDLE_Y+viewport_geometry[0][1][1].y;
+  y2+=MIDDLE_Y+viewport_geometry[0][1][1].y;
   if (x1<=xr && xr<=x2 && y1<=yr && yr<=y2)
      {
      if (picked_item==NULL)
@@ -113,18 +113,18 @@ char clk_touch(int id,int xa,int ya,int xr,int yr)
      y2=ya+y1/2;
      y1=y2-y1;
      x1=x2-x1;
-     x1+=MIDDLE_X-points[0][1][1].x;
-     x2+=MIDDLE_X-points[0][1][1].x;
-     y1+=MIDDLE_Y+points[0][1][1].y;
-     y2+=MIDDLE_Y+points[0][1][1].y;
+     x1+=MIDDLE_X-viewport_geometry[0][1][1].x;
+     x2+=MIDDLE_X-viewport_geometry[0][1][1].x;
+     y1+=MIDDLE_Y+viewport_geometry[0][1][1].y;
+     y2+=MIDDLE_Y+viewport_geometry[0][1][1].y;
      ext=1;
      }
   else if (map_sides[id].sec==0)
      {
-     x1=MIDDLE_X-points[0][0][1].x;
-     y1=MIDDLE_Y+points[0][1][1].y;
+     x1=MIDDLE_X-viewport_geometry[0][0][1].x;
+     y1=MIDDLE_Y+viewport_geometry[0][1][1].y;
      x2=640-x1;
-     y2=MIDDLE_Y+points[0][0][1].y;
+     y2=MIDDLE_Y+viewport_geometry[0][0][1].y;
      ext=((map_sides[id].flags & SD_THING_IMPS) && !(map_sides[id].oblouk & SD_ITPUSH));
      }
   else return 0;

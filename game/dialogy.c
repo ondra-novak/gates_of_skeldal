@@ -731,7 +731,7 @@ void wire_dialog_drw()
   ukaz_mysku();
   showview(0,0,0,0);
   }
-void unwire_dialog()
+void unwire_dialog(void)
   {
   send_message(E_DONE,E_KEYBOARD,key_check);
   disable_click_map();
@@ -1230,7 +1230,7 @@ static void cast_spell(int spell)
   add_spell(spell,cil,cil,1);
   }
 
-static void free_dialog_stringtable() {
+static void free_dialog_stringtable(void) {
     stringtable_free(dialogy_strtable);
 }
 

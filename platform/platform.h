@@ -7,6 +7,20 @@
 
 #define BGSWITCHBIT 0x8000
 
+#ifdef _MSC_VER
+#pragma warning(disable: 4244)
+#pragma warning(disable: 4996)
+#pragma warning(disable: 4459)
+#pragma warning(disable: 4267)
+#pragma warning(disable: 4100)
+#pragma warning(disable: 4456)
+#pragma warning(disable: 4457)
+#pragma warning(disable: 4702)
+#define CASE_FALLTHROUGH 
+#else 
+#define CASE_FALLTHROUGH [[fallthrough]]
+#endif
+
 
 #define SKELDALINI "skeldal.ini"
 
@@ -72,11 +86,11 @@ char check_file_exists(const char *pathname);
 FILE *fopen_icase(const char *pathname, const char *mode);
 const char *file_icase_find(const char *pathname);
 
-int stricmp(const char *a, const char *b);
+int istrcmp(const char *a, const char *b);
 int imatch(const char *haystack, const char *needle);
 #define MIN(a, b) ((a)<(b)?(a):(b))
 #define MAX(a, b) ((a)>(b)?(a):(b))
-void strupr(char *c);
+void strupper(char *c);
 const char * int2ascii(int i, char *c, int radix);
 
 int get_timer_value(void);

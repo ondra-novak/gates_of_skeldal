@@ -940,7 +940,7 @@ LRESULT WINAPI BrowserDlgProc(HWND hDlg, UINT msg, WPARAM wParam, LPARAM lParam)
           if (sel!=-1) mode=ComboBox_GetItemData(list,sel);
           if (mode==0)
           {
-            if (strlen(name)<5 || stricmp(name+strlen(name)-4,".map")!=0) strcat(name,".map");
+            if (strlen(name)<5 || istrcmp(name+strlen(name)-4,".map")!=0) strcat(name,".map");
             if (strlen(name)>12) 
             {
               MessageBox(hDlg,"Jmeno mapy je prilis dlouhe (max 8 znaku bez pripony nebo 12 znaku s priponou)",0,MB_OK|MB_ICONEXCLAMATION);

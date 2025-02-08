@@ -1,5 +1,6 @@
 #pragma once
 #include <iterator>
+#include <string_view>
 
 
 class base64_t {
@@ -7,7 +8,7 @@ public:
 
     constexpr base64_t(const char *charset, char terminator):_terminator(terminator) {
         for (int i = 0; i < 64; ++i) _charset[i] = charset[i];
-        for (char &c: _charmap) c=-1;
+        for (char &c: _charmap) c=static_cast<char>(-1);
         for (unsigned int i = 0; i < 64;++i) {
             int c = _charset[i]-32;
             _charmap[c] = static_cast<char>(i);

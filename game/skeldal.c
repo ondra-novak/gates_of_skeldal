@@ -524,13 +524,13 @@ void back_music(void)
   puts("\x7");
   }
 */
-void *timming(EVENT_MSG *msg,void **data)
+void timming(EVENT_MSG *msg,void **data)
   {
   THE_TIMER *p,*q;
   int i,j;
 
   data;
-  if (msg->msg==E_INIT) return &timming;
+  if (msg->msg==E_INIT) return ;
   *otevri_zavoru=1;
   j=va_arg(msg->data,int);
   for (i=0;i<j;i++)
@@ -582,7 +582,7 @@ void *timming(EVENT_MSG *msg,void **data)
      q=p;
      }
   }
-  return NULL;
+  return ;
   }
 
 void delete_from_timer(int id)

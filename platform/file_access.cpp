@@ -1,5 +1,6 @@
 #include "platform.h"
-
+#include <string.h>
+#include <wchar.h>
 #include <cstdarg>
 #include <filesystem>
 #include "../libs/logfile.h"
@@ -8,11 +9,15 @@
 std::filesystem::path break_and_compose_path(const std::string_view &pathname, char sep) {
     auto p = pathname.rfind(sep);
     if (p == pathname.npos) {
-        if (pathname == "." || pathname == "..") return std::filesystem::canonical(".");
-        else if (pathname.empty()) return std::filesystem::current_path().root_path();
-        else if (pathname == std::filesystem::current_path().root_name())
-            return pathname;
-        else return std::filesystem::current_path()/pathname;
+        if (pathname == "." || pathname == "..") {
+            return std::filesystem::canonical(".");
+        } else if (pathname.empty()) {
+            return std::filesystem::current_path().root_path();
+        } else if (pathname == std::filesystem::current_path().root_name()) {
+            return std::filesystem::current_path().root_path();
+        } else {
+            return std::filesystem::current_path()/pathname;
+        }
 
     }
     return break_and_compose_path(pathname.substr(0,p), sep) / pathname.substr(p+1);
@@ -44,7 +49,11 @@ std::filesystem::path try_to_find_file(const std::filesystem::path &p) {
             while (iter != end) {
                 const std::filesystem::directory_entry &e = *iter;
                 auto fn = e.path().filename();
-                if (stricmp(n.c_str(), fn.c_str()) == 0) {
+                #ifdef _WIN32
+                if (_wcsicmp(n.c_str(), fn.c_str()) == 0) {
+                #else
+                if (istrcmp(n.c_str(), fn.c_str()) == 0) {
+                #endif
                     return e.path();
                 }
                 ++iter;
@@ -65,13 +74,13 @@ char check_file_exists(const char *pathname) {
 const char *file_icase_find(const char *pathname) {
     static std::string p;
     std::filesystem::path path = try_to_find_file(convert_pathname_to_path(pathname));
-    p = path;
+    p = path.string();
     return p.c_str();
 }
 
 FILE *fopen_icase(const char *pathname, const char *mode) {
     std::filesystem::path path = try_to_find_file(convert_pathname_to_path(pathname));
-    return fopen(path.c_str(), mode);
+    return fopen(path.string().c_str(), mode);
 }
 
 static thread_local std::string build_pathname_buffer;
@@ -86,7 +95,7 @@ const char * build_pathname(size_t nparts, const char *part1, ...) {
     for (size_t i = 1; i < nparts; ++i) {
         p = p / va_arg(lst, const char *);
     }
-    build_pathname_buffer = p;
+    build_pathname_buffer = p.string();
     SEND_LOG("(BUILD_PATHNAME) %s", build_pathname_buffer.c_str());
     return build_pathname_buffer.c_str();
 }
@@ -112,8 +121,13 @@ int list_files(const char *directory, int type, LIST_FILES_CALLBACK cb, void *ct
             int r = 0;
             const auto &entry = *iter;
             const char *name;
-            if (type & file_type_just_name) name = entry.path().filename().c_str();
-            else name = entry.path().filename().c_str();
+            std::string tmp;
+            if (type & file_type_just_name) {
+                tmp = entry.path().filename().string();
+            } else {
+                tmp = entry.path().string();
+            }
+             name = tmp.c_str();
             if (entry.is_regular_file(ec) && (type & file_type_normal)) {
                 r = cb(name, file_type_normal, entry.file_size(ec), ctx);
             } else if (entry.is_directory(ec)) {

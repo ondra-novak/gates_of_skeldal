@@ -177,7 +177,7 @@ static char purge_map()
   _dos_findclose(&rc);*/
   wzprintf("\r\n Zadej jmeno tempu (all - vse):");gets(buffer);
   if (buffer[0]==0) return 0;
-  strupr(buffer);
+  strupper(buffer);
   concat(c,pathtable[SR_TEMP],buffer);
   if (strcmp(buffer,ALL) && check_file_exists_ex(c))
      {
@@ -461,7 +461,7 @@ static int add_file_to_console(const char *name, LIST_FILE_TYPE _, size_t __, vo
     for (int i = 0; i < 19; ++i) buff[i] = ' ';
     buff[19] = 0;
     int l = strlen(name);
-    if (l > 3 && stricmp(name+l-4,".MAP") == 0) {
+    if (l > 3 && istrcmp(name+l-4,".MAP") == 0) {
         if (l>19) l = 19;
         memcpy(buff, name, l);
         wzprintf("%s", buff);
@@ -475,51 +475,51 @@ static int add_file_to_console(const char *name, LIST_FILE_TYPE _, size_t __, vo
 }
 
 static int process_on_off_command(const char *cmd, char on) {
-    if (stricmp(cmd, "inner-eye") == 0) {
+    if (istrcmp(cmd, "inner-eye") == 0) {
         show_debug = on;
         return 1;
     }
-    if (stricmp(cmd, "hunter-instinct") == 0) {
+    if (istrcmp(cmd, "hunter-instinct") == 0) {
         show_lives = on;
         return 1;
     }
-    if (stricmp(cmd, "no-hassle") == 0) {
+    if (istrcmp(cmd, "no-hassle") == 0) {
         nohassle=on;
         return 1;
     }
-    if (stricmp(cmd, "iron-skin") == 0) {
+    if (istrcmp(cmd, "iron-skin") == 0) {
         immortality=on;
         return 1;
     }
-    if (stricmp(cmd, "spirit-wander") == 0) {
+    if (istrcmp(cmd, "spirit-wander") == 0) {
         cur_group=on?10:postavy[0].groupnum;
         return 1;
     }
-    if (stricmp(cmd, "ghost-walls") == 0) {
+    if (istrcmp(cmd, "ghost-walls") == 0) {
         ghost_walls = on;
         return 1;
     }
-    if (stricmp(cmd, "true-seeing") == 0) {
+    if (istrcmp(cmd, "true-seeing") == 0) {
         true_seeing = on;
         return 1;
     }
-    if (stricmp(cmd, "walking-in-air") == 0) {
+    if (istrcmp(cmd, "walking-in-air") == 0) {
         nofloors = on;
         return 1;
     }
-    if (stricmp(cmd, "enemy-insight") == 0) {
+    if (istrcmp(cmd, "enemy-insight") == 0) {
         show_mob_info = on;
         return 1;
     }
-    if (stricmp(cmd, "enemy-walk-diagonal") == 0) {
+    if (istrcmp(cmd, "enemy-walk-diagonal") == 0) {
         game_extras = on?(game_extras | EX_WALKDIAGONAL):(game_extras & ~EX_WALKDIAGONAL);
         return 1;
     }
-    if (stricmp(cmd, "ghost-form") == 0) {
+    if (istrcmp(cmd, "ghost-form") == 0) {
         pass_all_mobs = on;
         return 1;
     }
-    if (stricmp(cmd, "dead-food") == 0) {
+    if (istrcmp(cmd, "dead-food") == 0) {
         dead_food = on;
         return 1;
     }
@@ -529,41 +529,41 @@ static int process_on_off_command(const char *cmd, char on) {
 void postavy_teleport_effect(int sector,int dir,int postava,char effect);
 
 static int process_actions(const char *command) {
-    if (stricmp(command, "flute") == 0) {
+    if (istrcmp(command, "flute") == 0) {
         bott_draw_fletna();
         return 1;
     }
-    if (stricmp(command, "global-map") == 0) {
+    if (istrcmp(command, "global-map") == 0) {
         wire_global_map();
         return 1;
     }
-    if (stricmp(command, "status") == 0) {
+    if (istrcmp(command, "status") == 0) {
         display_game_status();
         return 1;
     }
-    if (stricmp(command, "offlers-blessing") == 0) {
+    if (istrcmp(command, "offlers-blessing") == 0) {
         money=150000;
         play_fx_at(FX_MONEY);
         return 1;
     }
-    if (stricmp(command, "i-require-gold") == 0) {
+    if (istrcmp(command, "i-require-gold") == 0) {
         money+=1;
         play_fx_at(FX_MONEY);
         return 1;
     }
-    if (stricmp(command, "to-the-moon") == 0) {
+    if (istrcmp(command, "to-the-moon") == 0) {
         money+=100000;
         play_fx_at(FX_MONEY);
         return 1;
     }
-    if (stricmp(command, "echo-location") == 0) {
+    if (istrcmp(command, "echo-location") == 0) {
         for (int i = 1; i < mapsize; ++i) {
             map_coord[i].flags |= MC_AUTOMAP;
         }
         play_fx_at(FX_MAP);
         return 1;
     }
-    if (stricmp(command, "rise-and-shine") == 0) {
+    if (istrcmp(command, "rise-and-shine") == 0) {
         int r = 0;
         for (int i = 0; i < POCET_POSTAV; ++i) {
             THUMAN *p = postavy+i;
@@ -579,7 +579,7 @@ static int process_actions(const char *command) {
         return r;
 
     }
-    if (stricmp(command, "ascent") == 0) {
+    if (istrcmp(command, "ascent") == 0) {
         int lev = postavy[0].exp;
         for (int i = 0; i < POCET_POSTAV; ++i) {
             THUMAN *p = postavy+i;
@@ -592,18 +592,18 @@ static int process_actions(const char *command) {
         }
         return 1;
     }
-    if (stricmp(command, "by-the-power-of-grayskull") == 0) {
+    if (istrcmp(command, "by-the-power-of-grayskull") == 0) {
         memset(runes,0xFF, sizeof(runes));
         play_fx_at(FX_MAGIC);
         return 1;
     }
-    if (stricmp(command, "world-list") == 0) {
+    if (istrcmp(command, "world-list") == 0) {
         int cnt = 0;
         list_files(gpathtable[SR_MAP], file_type_normal|file_type_just_name, add_file_to_console, &cnt);
         printf("\n");
         return 1;
     }
-    if (stricmp(command, "beam-me-up") == 0) {
+    if (istrcmp(command, "beam-me-up") == 0) {
         for (int i = 1; i < mapsize; ++i) {
             map_coord[i].flags |= MC_AUTOMAP;
         }
@@ -652,14 +652,14 @@ static void wiz_find_monster(const char *name) {
 }
 
 static int process_with_params(const char *cmd, const char *args) {
-    if (stricmp(cmd, "locate") == 0) {
+    if (istrcmp(cmd, "locate") == 0) {
         if (args[0] == 0) return 0;
         wiz_find_item(args);
         wiz_find_monster(args);
         console_add_line("");
         return 1;
     }
-    if (stricmp(cmd, "summon") == 0) {
+    if (istrcmp(cmd, "summon") == 0) {
         if (args[0] == 'i') {
             char *end;
             unsigned long  id = strtoul(args+1, &end, 10);
@@ -673,16 +673,16 @@ static int process_with_params(const char *cmd, const char *args) {
         }
         return 0;
     }
-    if (stricmp(cmd, "say") == 0) {
+    if (istrcmp(cmd, "say") == 0) {
         console_add_line(args);
         return 1;
     }
-    if (stricmp(cmd, "speed") == 0) {
+    if (istrcmp(cmd, "speed") == 0) {
         long v = strtol(args, NULL, 10);
         if (v > 0) timerspeed_val = v;
         return v > 0;
     }
-    if (stricmp(cmd, "portal-jump") == 0) {
+    if (istrcmp(cmd, "portal-jump") == 0) {
         if (check_file_exists(build_pathname(2,gpathtable[SR_MAP], args))) {
             TMA_LOADLEV lev;
             strncpy(lev.name,args,12);
@@ -702,8 +702,8 @@ static int process_command(PARSED_COMMAND cmd) {
     }
     int onoff = -1;
     if (cmd.args) {
-        if (stricmp(cmd.args, "on") == 0) onoff = 1;
-        else if (stricmp(cmd.args, "off") == 0) onoff = 0;
+        if (istrcmp(cmd.args, "on") == 0) onoff = 1;
+        else if (istrcmp(cmd.args, "off") == 0) onoff = 0;
     } else {
         return process_actions(cmd.command);
     }

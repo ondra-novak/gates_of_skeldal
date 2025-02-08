@@ -695,7 +695,7 @@ static char validate_character(THUMAN *h)
   return 1;
   }
  */
-static void empty_proc()
+static void empty_proc(void)
   {
   }
 

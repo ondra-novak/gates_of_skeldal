@@ -11,7 +11,7 @@
 #include <libs/strlite.h>
 
 #include <string.h>
-#include <unistd.h>
+
 #define PL_RANDOM 1
 #define PL_FORWARD 2
 #define PL_FIRST 3
@@ -463,7 +463,7 @@ void create_playlist(char *playlist)
   c=playlist;
   while (*c && *c==32) c++;
   sscanf(c,"%s",mode);
-  strupr(mode);
+  strupper(mode);
   shift=1;
   if (!strcmp(mode,"RANDOM")) play_list_mode=PL_RANDOM;
   else if (!strcmp(mode,"FORWARD")) play_list_mode=PL_FORWARD;

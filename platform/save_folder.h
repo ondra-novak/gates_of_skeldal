@@ -4,7 +4,7 @@
 extern "C" {
 #endif
 
-#define SAVEGAME_FOLDERNAME "Skeldal";
+#define SAVEGAME_FOLDERNAME "Skeldal"
 
 const char *get_default_savegame_directory(void);
 

@@ -1,3 +1,5 @@
+#include <string_view>
+
 #include "music.h"
 #include <platform/platform.h>
 

@@ -191,7 +191,7 @@ void proved_d(char *code,char *text)
   if (*code!=0xff)fscanf(dlg,"%[^\n]",text);
   if (*code==0)
      {
-     strupr(text);
+     strupper(text);
      if (!strncmp(text,"GOTO",4))
         {
         int n;

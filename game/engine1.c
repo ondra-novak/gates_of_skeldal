@@ -2,6 +2,7 @@
 #include <libs/types.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <malloc.h>
 
 
 #include <libs/memman.h>
@@ -15,16 +16,16 @@
 #include <string.h>
 #define CTVR 128
 
-t_points points;
+t_points viewport_geometry;
 struct all_view showtabs;
 static char backgrnd_mode=0;
 
 static int lclip,rclip;
 
 ZOOMINFO zoom;
-char zooming_xtable[ZOOM_PHASES][VIEW_SIZE_X];
-short zooming_ytable[ZOOM_PHASES][VIEW_SIZE_Y];
-short zooming_points[ZOOM_PHASES][4]
+static char zooming_xtable[ZOOM_PHASES][VIEW_SIZE_X];
+static short zooming_ytable[ZOOM_PHASES][VIEW_SIZE_Y];
+static short zooming_points[ZOOM_PHASES][4]
   ={
      {620,349,10,3},
      {600,338,20,7},
@@ -36,9 +37,9 @@ short zooming_points[ZOOM_PHASES][4]
      {480,271,80,28},
      {460,259,90,31}
   };
-int zooming_step=2;
-int rot_phases=2;
-int yreq;
+static int zooming_step=2;
+static int rot_phases=1;
+//int yreq;
 int last_scale;
 char secnd_shade=1;
 
@@ -99,11 +100,11 @@ void lodka64b(void *source,void *target,void *background,void *xlat,int32_t xysi
 //#pragma aux lodka64b parm [ESI][EDI][EAX][EBX][ECX] modify [EAX EDX]
 */
 
-void *p,*p2,*pozadi,*podlaha,*strop,*sit;int i;
-void (*zooming)(void *source,int32_t target,word *background,void *xlat,int32_t xysize);
-void (*turn)(int32_t lbuf,void *src1,void *src2,int size1);
-word *GetBuffer2nd();
-word *background;
+//void *p,*p2,*pozadi,*podlaha,*strop,*sit;int i;
+//void (*zooming)(void *source,int32_t target,word *background,void *xlat,int32_t xysize);
+//void (*turn)(int32_t lbuf,void *src1,void *src2,int size1);
+//word *GetBuffer2nd();
+//word *background;
 char nofloors=0,show_names=0,show_lives=0;
 
 
@@ -231,10 +232,10 @@ void calc_points(void)
   x2=START_X2+2*START_X1*j;y2=START_Y2;
   for (i=0;i<VIEW3D_Z+1;i++)
      {
-     points[j][0][i].x=x1;
-     points[j][0][i].y=y1;
-     points[j][1][i].x=x2;
-     points[j][1][i].y=y2;
+     viewport_geometry[j][0][i].x=x1;
+     viewport_geometry[j][0][i].y=y1;
+     viewport_geometry[j][1][i].x=x2;
+     viewport_geometry[j][1][i].y=y2;
      x2=(int)(x2-x2/FACTOR_3D);
      y2=(int)(y2-y2/FACTOR_3D);
      x1=(int)(x1-x1/FACTOR_3D);
@@ -285,9 +286,9 @@ void create_tables(void)
 
   for (y=0;y<VIEW3D_Z+1;y++)
      {
-     showtabs.y_table[y].vert_size=points[1][0][y].y-points[1][1][y].y;
-     showtabs.y_table[y].vert_total=(points[1][0][y].y+MIDDLE_Y);
-     showtabs.y_table[y].drawline=((points[1][0][y].y+MIDDLE_Y));
+     showtabs.y_table[y].vert_size=viewport_geometry[1][0][y].y-viewport_geometry[1][1][y].y;
+     showtabs.y_table[y].vert_total=(viewport_geometry[1][0][y].y+MIDDLE_Y);
+     showtabs.y_table[y].drawline=((viewport_geometry[1][0][y].y+MIDDLE_Y));
      calc_y_buffer(showtabs.y_table[y].zoom_table,TXT_SIZE_Y,showtabs.y_table[y].vert_size,TAB_SIZE_Y);
      }
 
@@ -296,21 +297,21 @@ void create_tables(void)
      {
      int rozdil1,rozdil2,rozdil3;
 
-     if (points[x][0][y+1].x>MIDDLE_X) showtabs.z_table[x][y].used=0;
+     if (viewport_geometry[x][0][y+1].x>MIDDLE_X) showtabs.z_table[x][y].used=0;
      else
         {
         showtabs.z_table[x][y].used=1;
-        rozdil1=points[x][0][y].x-points[x][0][y+1].x;
-        rozdil2=rozdil1-MIDDLE_X+points[x][0][y+1].x;
-        rozdil3=points[0][0][y].x-points[0][0][y+1].x;
+        rozdil1=viewport_geometry[x][0][y].x-viewport_geometry[x][0][y+1].x;
+        rozdil2=rozdil1-MIDDLE_X+viewport_geometry[x][0][y+1].x;
+        rozdil3=viewport_geometry[0][0][y].x-viewport_geometry[0][0][y+1].x;
         if (rozdil2<0)
            {
-           showtabs.z_table[x][y].xpos=MIDDLE_X-points[x][0][y].x;
+           showtabs.z_table[x][y].xpos=MIDDLE_X-viewport_geometry[x][0][y].x;
            showtabs.z_table[x][y].txtoffset=0;
            }
         else
            {
-           showtabs.z_table[x][y].xpos=MIDDLE_X-points[x][0][y].x;
+           showtabs.z_table[x][y].xpos=MIDDLE_X-viewport_geometry[x][0][y].x;
            showtabs.z_table[x][y].txtoffset=(TXT_SIZE_X_3D*rozdil2/rozdil1);
            }
         showtabs.z_table[x][y].point_total=rozdil1;
@@ -324,23 +325,23 @@ void create_tables(void)
      {
      int rozdil1,rozdil2;
 
-     if (x && points[x-1][0][y].x>TXT_SIZE_X) showtabs.z_table[x][y].used=0;
+     if (x && viewport_geometry[x-1][0][y].x>TXT_SIZE_X) showtabs.z_table[x][y].used=0;
      else
        {
         showtabs.x_table[x][y].used=1;
-        rozdil1=points[1][0][y+1].x-points[0][0][y+1].x;
-        rozdil2=-MIDDLE_X+points[x][0][y+1].x;
+        rozdil1=viewport_geometry[1][0][y+1].x-viewport_geometry[0][0][y+1].x;
+        rozdil2=-MIDDLE_X+viewport_geometry[x][0][y+1].x;
         if (rozdil2<0)
            {
-           showtabs.x_table[x][y].xpos=MIDDLE_X-points[x][0][y+1].x;
+           showtabs.x_table[x][y].xpos=MIDDLE_X-viewport_geometry[x][0][y+1].x;
            showtabs.x_table[x][y].txtoffset=0;
            showtabs.x_table[x][y].max_x=rozdil1;
            }
         else
            {
-           showtabs.x_table[x][y].xpos=MIDDLE_X-points[x][0][y+1].x;
+           showtabs.x_table[x][y].xpos=MIDDLE_X-viewport_geometry[x][0][y+1].x;
            showtabs.x_table[x][y].txtoffset=(TXT_SIZE_X*rozdil2/rozdil1);
-           showtabs.x_table[x][y].max_x=MIDDLE_X-points[x-1][0][y+1].x;
+           showtabs.x_table[x][y].max_x=MIDDLE_X-viewport_geometry[x-1][0][y+1].x;
            }
         if (x!=0)showtabs.x_table[x][y].xpos2=VIEW_SIZE_X-(showtabs.x_table[x][y].xpos+rozdil1);
                 showtabs.x_table[x][y].point_total=rozdil1;
@@ -356,32 +357,32 @@ void create_tables(void)
 
       strd=CF_XMAP_SIZE>>1;
       y1=(VIEW_SIZE_Y-y)-MIDDLE_Y;
-      yp=1;while (points[0][0][yp].y>y1) yp++;
+      yp=1;while (viewport_geometry[0][0][yp].y>y1) yp++;
       if (x<strd)
         {
-        xl=-points[strd-x][0][0].x;xr=-points[strd-x-1][0][0].x;
+        xl=-viewport_geometry[strd-x][0][0].x;xr=-viewport_geometry[strd-x-1][0][0].x;
         }
       else if (x==strd)
         {
-        xl=-points[0][0][0].x;xr=+points[0][0][0].x;
+        xl=-viewport_geometry[0][0][0].x;xr=+viewport_geometry[0][0][0].x;
         }
       else if (x>strd)
         {
-        xl=+points[x-strd-1][0][0].x;xr=+points[x-strd][0][0].x;
+        xl=+viewport_geometry[x-strd-1][0][0].x;xr=+viewport_geometry[x-strd][0][0].x;
         }
       else {
           continue;
       }
       y1=(VIEW_SIZE_Y-y)-MIDDLE_Y;
-      xl=xl*(y1+1)/points[0][0][0].y+MIDDLE_X;
-      xr=xr*(y1+1)/points[0][0][0].y+MIDDLE_X;
+      xl=xl*(y1+1)/viewport_geometry[0][0][0].y+MIDDLE_X;
+      xr=xr*(y1+1)/viewport_geometry[0][0][0].y+MIDDLE_X;
       if (xl<0) xl=0;
       if (xr<0) xr=0;
       if (xl>639) xl=639;
       if (xr>639) xr=639;
       showtabs.f_table[x][y].lineofs=(y1+MIDDLE_Y)*2*scr_linelen2+xl*2;
       showtabs.f_table[x][y].linesize=xr-xl+(xl!=xr);
-      showtabs.f_table[x][y].counter=(y1-points[0][0][yp].y);
+      showtabs.f_table[x][y].counter=(y1-viewport_geometry[0][0][yp].y);
       showtabs.f_table[x][y].txtrofs=(y1+MIDDLE_Y-VIEW_SIZE_Y+F_YMAP_SIZE)*1280+xl*2;
       }
 
@@ -392,31 +393,31 @@ void create_tables(void)
 
       strd=CF_XMAP_SIZE>>1;
       y1=y-MIDDLE_Y;
-      yp=1;while (points[0][1][yp].y<y1) yp++;
+      yp=1;while (viewport_geometry[0][1][yp].y<y1) yp++;
       if (x<strd)
         {
-        xl=-points[strd-x][1][0].x;xr=-points[strd-x-1][1][0].x;
+        xl=-viewport_geometry[strd-x][1][0].x;xr=-viewport_geometry[strd-x-1][1][0].x;
         }
       else if (x==strd)
         {
-        xl=-points[0][1][0].x;xr=+points[0][1][0].x;
+        xl=-viewport_geometry[0][1][0].x;xr=+viewport_geometry[0][1][0].x;
         }
       else if (x>strd)
         {
-        xl=+points[x-strd-1][1][0].x;xr=+points[x-strd][1][0].x;
+        xl=+viewport_geometry[x-strd-1][1][0].x;xr=+viewport_geometry[x-strd][1][0].x;
         }
       else {
           continue;
       }
-      xl=xl*(y1-2)/points[0][1][0].y+MIDDLE_X;
-      xr=xr*(y1-2)/points[0][1][0].y+MIDDLE_X;
+      xl=xl*(y1-2)/viewport_geometry[0][1][0].y+MIDDLE_X;
+      xr=xr*(y1-2)/viewport_geometry[0][1][0].y+MIDDLE_X;
       if (xl<0) xl=0;
       if (xr<0) xr=0;
       if (xl>639) xl=639;
       if (xr>639) xr=639;
       showtabs.c_table[x][y].lineofs=(y1+MIDDLE_Y)*2*scr_linelen2+xl*2;
       showtabs.c_table[x][y].linesize=xr-xl+(xl!=xr);
-      showtabs.c_table[x][y].counter=points[0][1][yp].y-y1;
+      showtabs.c_table[x][y].counter=viewport_geometry[0][1][yp].y-y1;
       showtabs.c_table[x][y].txtrofs=(y1+MIDDLE_Y)*1280+xl*2;
       }
 
@@ -603,8 +604,8 @@ void show_cel(int celx,int cely,const void *stena,int xofs,int yofs,char rev, in
      xofs-=(txtsx>>1)*TXT_SIZE_X/TXT_SIZE_X_3D;yofs-=txtsy>>1;
      }
   rev&=1;
-  yss=(points[0][0][cely].y-points[0][0][cely+1].y)*xofs/TXT_SIZE_X;
-  ysd=(points[0][1][cely].y-points[0][1][cely+1].y)*xofs/TXT_SIZE_X;
+  yss=(viewport_geometry[0][0][cely].y-viewport_geometry[0][0][cely+1].y)*xofs/TXT_SIZE_X;
+  ysd=(viewport_geometry[0][1][cely].y-viewport_geometry[0][1][cely+1].y)*xofs/TXT_SIZE_X;
   yofs=yofs*(yd->vert_size-yss+ysd)/TXT_SIZE_Y+yss;
   xofs=xofs*x3d->point_total/TXT_SIZE_X;
   if (txtsx>x3d->point_total && celx)
@@ -626,7 +627,7 @@ void show_cel(int celx,int cely,const void *stena,int xofs,int yofs,char rev, in
   if (x+realsx>640) realsx=640-x;
   if (realsx<=0) return;
   yofs=yd->drawline-yofs;
-  yofs+=(plac==1)?(-yp->vert_size+points[0][0][cely+1].y-points[0][0][cely].y):((plac==2)?(yd->vert_size):0);
+  yofs+=(plac==1)?(-yp->vert_size+viewport_geometry[0][0][cely+1].y-viewport_geometry[0][0][cely].y):((plac==2)?(yd->vert_size):0);
   if (yofs>360)
      {
      int r=yofs-360,ui;
@@ -737,7 +738,7 @@ void draw_floor_ceil(int celx,int cely,char f_c,const void *txtr)
   txtr=(void *)((word *)txtr+3);
   if (f_c==0) //podlaha
      {
-     y=(VIEW_SIZE_Y-MIDDLE_Y)-points[0][0][cely].y+1;
+     y=(VIEW_SIZE_Y-MIDDLE_Y)-viewport_geometry[0][0][cely].y+1;
      if (y<1) y=1;
      txtr=(void *)((word *)txtr);
      fcdraw(txtr,GetBuffer2nd()+SCREEN_OFFSET,&showtabs.f_table[celx+3][y]);
@@ -749,7 +750,7 @@ void draw_floor_ceil(int celx,int cely,char f_c,const void *txtr)
      }
   else
      {
-     y=points[0][1][cely].y+MIDDLE_Y+1;
+     y=viewport_geometry[0][1][cely].y+MIDDLE_Y+1;
      if (y<0) y=0;
      fcdraw(txtr,GetBuffer2nd()+SCREEN_OFFSET,&showtabs.c_table[celx+3][y]);
 /*     if (debug)
@@ -941,7 +942,7 @@ void clear_buff(word *background,word backcolor,int lines)
 
   if (background!=NULL) put_picture(0,SCREEN_OFFLINE,background);else lines=0;
   if (lines!=360)
-	for (i=lines;i<360;i++)
+	for (int i=lines;i<360;i++)
      clear_color(GetBuffer2nd()+SCREEN_OFFSET+scr_linelen2*i,640,backcolor);
 
 }
@@ -950,7 +951,7 @@ void clear_screen(word *screen, word color)
 {
     int32_t scr_linelen2 = GetScreenPitch();
 
-for (i=0;i<480;i++) clear_color(screen+scr_linelen2*i,640,color);
+for (int i=0;i<480;i++) clear_color(screen+scr_linelen2*i,640,color);
 }
 
 void general_engine_init()
@@ -973,12 +974,12 @@ void map_pos(int celx,int cely,int posx,int posy,int posz,int *x,int *y)
      posx=CTVR-posx;
      celx=-celx;
      }
-  p1=(points[0][0][cely].y-points[0][1][cely].y);
-  p2=(points[0][0][cely+1].y-points[0][1][cely+1].y);
+  p1=(viewport_geometry[0][0][cely].y-viewport_geometry[0][1][cely].y);
+  p2=(viewport_geometry[0][0][cely+1].y-viewport_geometry[0][1][cely+1].y);
   last_scale=p=posy*(p2-p1)/CTVR+p1;
-  *y=points[0][0][cely].y-(posy*(points[0][0][cely].y-points[0][0][cely+1].y)/CTVR)-p*posz/CTVR;
-  xr=points[celx][0][cely].x-(posy*(points[celx][0][cely].x-points[celx][0][cely+1].x)/CTVR);
-  if (celx) xl=points[celx-1][0][cely].x-(posy*(points[celx-1][0][cely].x-points[celx-1][0][cely+1].x)/CTVR);
+  *y=viewport_geometry[0][0][cely].y-(posy*(viewport_geometry[0][0][cely].y-viewport_geometry[0][0][cely+1].y)/CTVR)-p*posz/CTVR;
+  xr=viewport_geometry[celx][0][cely].x-(posy*(viewport_geometry[celx][0][cely].x-viewport_geometry[celx][0][cely+1].x)/CTVR);
+  if (celx) xl=viewport_geometry[celx-1][0][cely].x-(posy*(viewport_geometry[celx-1][0][cely].x-viewport_geometry[celx-1][0][cely+1].x)/CTVR);
   else xl=-xr;
   *x=xl+((xr-xl)*posx/CTVR);
   if (negate2) *x=-*x;
@@ -1200,14 +1201,14 @@ void set_lclip_rclip(int celx,int cely,int lc,int rc)
      {
      if (rc)
         {
-        x=points[celx][0][cely].x+MIDDLE_X;
-        xs=points[celx][0][cely].x-points[celx][0][cely+1].x;
+        x=viewport_geometry[celx][0][cely].x+MIDDLE_X;
+        xs=viewport_geometry[celx][0][cely].x-viewport_geometry[celx][0][cely+1].x;
         rclip=x-rc*xs/TXT_SIZE_X_3D;
         if (rclip>640) rclip=640;
         }
      if (celx>0 && lc)
         {
-        lclip=points[celx-1][0][cely].x+MIDDLE_X;
+        lclip=viewport_geometry[celx-1][0][cely].x+MIDDLE_X;
         if (lclip>rclip) lclip=rclip;
         }
 
@@ -1217,14 +1218,14 @@ void set_lclip_rclip(int celx,int cely,int lc,int rc)
      if (lc)
         {
         int cc=-celx;
-        x=-points[cc][0][cely].x+MIDDLE_X;
-        xs=points[cc][0][cely].x-points[cc][0][cely+1].x;
+        x=-viewport_geometry[cc][0][cely].x+MIDDLE_X;
+        xs=viewport_geometry[cc][0][cely].x-viewport_geometry[cc][0][cely+1].x;
         lclip=x+lc*xs/TXT_SIZE_X_3D;
         if (lclip<0) lclip=0;
         }
      if (celx<0 && rc)
         {
-        rclip=-points[(-celx)-1][0][cely].x+MIDDLE_X;
+        rclip=-viewport_geometry[(-celx)-1][0][cely].x+MIDDLE_X;
         if (rclip<lclip) rclip=lclip;
         }
      }
@@ -1380,8 +1381,8 @@ void draw_item2(int celx,int cely,int xpos,int ypos,  const void *txtr,int index
   celx--;
   asc=(celx<0);
   abc=abs(celx);if (asc) abc--;
-  x=points[abc][0][cely+1].x;
-  y=points[abc][0][cely+1].y;
+  x=viewport_geometry[abc][0][cely+1].x;
+  y=viewport_geometry[abc][0][cely+1].y;
   xs=showtabs.x_table[0][cely].max_x;
   ys=showtabs.y_table[cely+1].vert_size;
   xpos+=indextab[7-index][0];
@@ -1433,14 +1434,9 @@ int zoom_speed(int zoomspeed)
   switch (zoomspeed)
      {
      case 0:zooming_step=0;break;
-     case 1:zooming_step=2;break;
-     case 2:zooming_step=1;break;
-     case -1: switch (zooming_step)
-        {
-        case 0:return 0;
-        case 1:return 2;
-        case 2:return 1;
-        }
+     case 1:zooming_step=1;break;
+     case 2:zooming_step=2;break;
+     case -1: return zooming_step;
      }
   return zoomspeed;
   }
@@ -1455,7 +1451,7 @@ int turn_speed(int turnspeed)
      case 2:rot_phases=2;break;
      case -1: return rot_phases;
      }
-  return rot_phases;
+  return turnspeed;
   }
 
 void set_backgrnd_mode(int mode)

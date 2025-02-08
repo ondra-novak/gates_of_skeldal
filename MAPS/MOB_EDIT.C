@@ -460,7 +460,7 @@ void check_mobs_name()
   for(i=0;i<6 && s[i];i++) if (s[i]==32) s[i]='_';
   for(;i<6;i++) s[i]='_';
   s[i]=0;
-  strupr(s);
+  strupper(s);
   set_value(0,100,s);
   c_set_value(0,180,0);
   c_set_value(0,185,0);
@@ -674,7 +674,7 @@ void mob_sound_call(int mob)
      for(j=0;j<MOB_SOUNDS-1;j++)
         {
         get_value(0,20+j,s);
-        strupr(s);
+        strupper(s);
         if (s[0]) moblist[i].sounds[j]=add_mob_sound(s)+1;else moblist[i].sounds[j]=0;
         }
      moblist[i].vlajky&=~0x40;

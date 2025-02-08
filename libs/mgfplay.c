@@ -335,7 +335,7 @@ static void done_mgif_player()
   free(f);
   free(temp);
   mix_back_sound(3);
-  change_music("?");
+  change_music(NULL);
   }
 
 static void init_load_buffer(int size)

@@ -450,7 +450,7 @@ static void change_dir()
   c_set_value(0,9,0);
   send_message(E_GUI,9,E_CONTROL,2);
   i=strlen(last_path);
-  strupr(last_path);
+  strupper(last_path);
   if (i!=0 && last_path[i-1]!='\\')
      {
      strcat(last_path,"\\");

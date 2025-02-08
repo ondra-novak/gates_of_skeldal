@@ -2,7 +2,6 @@ SET(files error.cpp
 )
 
 add_library(skeldal_platform STATIC)
-add_executable(skeldal)
 
 target_sources(skeldal_platform PRIVATE
     legacy_coroutines.cpp
@@ -19,6 +18,13 @@ target_sources(skeldal_platform PRIVATE
 if(WIN32)
     target_sources(skeldal_platform PRIVATE
         windows/save_folder.cpp
+        windows/map_file.cpp
+    )
+    add_executable(skeldal WIN32)
+    target_sources(skeldal PRIVATE
+        windows/app_start.cpp
+        windows/skeldal.manifest
+        windows/skeldal.rc
     )
     target_compile_definitions(skeldal_platform PRIVATE PLATFORM_WINDOWS)
     message(STATUS "Building for Windows")
@@ -29,16 +35,18 @@ elseif(UNIX AND NOT APPLE)
         linux/save_folder.cpp
         linux/map_file.cpp
     )
+    add_executable(skeldal)
     target_sources(skeldal PRIVATE
         linux/app_start.cpp
     )
     target_compile_definitions(skeldal_platform PRIVATE PLATFORM_LINUX)
     message(STATUS "Building for Linux")
 
-elseif(APPLE)
+elseif(APPLE)   
     target_sources(skeldal_platform PRIVATE
         mac_os/save_folder.cpp
     )
+    add_executable(skeldal)
     target_sources(skeldal PRIVATE
         linux/app_start.cpp
     )
@@ -57,4 +65,5 @@ target_link_libraries(skeldal
     skeldal_platform
     skeldal_sdl
     skeldal_libs
-     ${SDL2_LIBRARIES} pthread)
+     ${SDL2_LIBRARIES} 
+     ${STANDARD_LIBRARIES})

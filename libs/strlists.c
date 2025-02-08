@@ -49,7 +49,7 @@ void string_list_init(OBJREC *o,va_list params)
   }
 
 
-void string_list_change()
+void string_list_change(void)
   {
   OBJREC *o1,*o2;
   STRING_LIST_DATA *p;
@@ -93,7 +93,7 @@ void string_list_draw(int x1,int y1,int x2,int y2,OBJREC *o)
   STRING_LIST_DATA *p;
   int y;
   char savech[]=" ";
-  int znh,i,j,max;
+  int znh,i,j,max = 1;
   TSTR_LIST ls;
   int savcolor=curcolor;
 

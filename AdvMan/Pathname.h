@@ -24,10 +24,10 @@
 enum PathNameNullEnum {PathNull};
 
 #define PathNameCompare(op) bool operator op (const Pathname &other) const \
-{if (IsNull() || other.IsNull()) return false;else return stricmp(_fullpath,other._fullpath) op 0;}\
+{if (IsNull() || other.IsNull()) return false;else return istrcmp(_fullpath,other._fullpath) op 0;}\
   bool operator op (const char *other) const \
 {ASSERT(other[0]!=0);\
-  if (IsNull() || other==NULL) return false;else return stricmp(_fullpath,other) op 0;}
+  if (IsNull() || other==NULL) return false;else return istrcmp(_fullpath,other) op 0;}
 
 #ifndef _UNICODE
 

@@ -43,8 +43,7 @@ void temp_storage_store(const char *name, const void *data, int32_t size) {
     v.resize(size+1);
     v[size] = 0;
     v.resize(size);
-    std::copy(b,e, v.begin());
-    v[size] = 0;
+    std::copy(b,e, v.begin());    
 }
 
 int32_t temp_storage_find(const char *name) {

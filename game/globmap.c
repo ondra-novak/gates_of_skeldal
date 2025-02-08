@@ -19,7 +19,6 @@
 #include "globals.h"
 
 #include <string.h>
-#include <unistd.h>
 #define GLOBMAP "GLOBMAP.DAT"
 
 #define ODDELOVACE ";:=,\n\r{}"

@@ -1,14 +1,14 @@
-cmake_minimum_required(VERSION 3.28)
+cmake_minimum_required(VERSION 3.24)
 project(skeldal)
 
 # Najít SDL2 knihovnu
 find_package(SDL2 REQUIRED)
 
 if (MSVC)
-    add_compile_options(/W4 /EHsc /DNOMINMAX)
+    add_compile_options(/W4 /EHsc /DNOMINMAX /J)
     set(STANDARD_LIBRARIES "")
 else()
-    add_compile_options(-Wall -Wextra -Werror -Wno-unused-parameter -Wno-unused-value -Wno-extern-c-compat)
+    add_compile_options(-Wall -Wextra -Werror -Wno-unused-parameter -Wno-unused-value -Wno-extern-c-compat -funsigned-char)
     set(STANDARD_LIBRARIES "pthread")
 endif()
 
@@ -19,7 +19,6 @@ set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib/)
 set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib/)
 
 include_directories( ${SDL2_INCLUDE_DIRS})
-SET(CMAKE_C_FLAGS  "${CMAKE_C_FLAGS} -funsigned-char")
 enable_testing()
 add_subdirectory(libs)
 add_subdirectory(platform)
