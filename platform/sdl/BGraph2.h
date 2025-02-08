@@ -1,6 +1,7 @@
 #include <stdint.h>
 #include "../config.h"
 
+#include <stddef.h>
 #ifndef __BGRAPH_DX_WRAPPER_
 #define __BGRAPH_DX_WRAPPER_
 
@@ -23,6 +24,7 @@ void game_display_close(void);
 void game_display_update_rect(unsigned short x,unsigned short y,unsigned short xs,unsigned short ys);
 char game_display_is_quit_requested();
 void game_display_cancel_quit_request();
+void game_display_set_icon(const void *icon_data, size_t icon_size);
 
 void *DxPrepareWalk(int ypos);
 void DxZoomWalk(void *handle, int ypos, int *points,float phase, void *lodka);

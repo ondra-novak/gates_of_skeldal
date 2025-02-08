@@ -206,7 +206,7 @@ static char test_kriterii(void)
   char last_op=0;
   char not_op=0;
   char text[128];
-  char hodn;
+  char hodn = 0;
   char vysl=0;
   char symb,*c;
 
@@ -427,7 +427,7 @@ static char flp_validate(word sector, void *ctx)
      {
      m=mobs+mob_map[sector]-1;
      if (m->vlajky & ~MOB_PASSABLE) return 0;
-     if (!m->next)
+     if (m->next)
         if (mobs[m->next-1].vlajky & ~MOB_PASSABLE) return 0;
      }
   c=map_sectors[sector].sector_type;
@@ -484,7 +484,7 @@ static char load_index_map(int index)
    */
   if (!GlobEvent(MAGLOB_LEAVEMAP,viewsector,viewdir)) return 0;
   viewsector=lv;
-  strncpy(x.name,index_tab[index].mapname,12);
+  strcopy_n(x.name,index_tab[index].mapname,12);
   x.start_pos=0;
   x.dir=0;
   macro_load_another_map(&x);

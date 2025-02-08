@@ -118,7 +118,9 @@ void load_macros(int size,void *data)
   macro_state_block.states = (uint8_t *)(macros+count_s);
   macro_state_block.count = count_m;
   TMULTI_ACTION *m_iter = (TMULTI_ACTION *)(macro_state_block.states + count_m);
+#ifndef NDEBUG
   TMULTI_ACTION *m_end = m_iter + count_m;
+#endif
   first_macro = m_iter;
 
   iter = data;
@@ -603,8 +605,8 @@ static void ma_move_group(int where,int turn,char effect)
   else
      {
      THUMAN *h=postavy;
-     int i;
-     int sctr;
+     int i=0;
+     int sctr=0;
      char kdo=0;
      for(i=0;i<POCET_POSTAV;i++,h++)
         if (get_player_triggered(i)) kdo|=1<<i,sctr=postavy[i].sektor;

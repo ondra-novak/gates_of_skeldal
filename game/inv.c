@@ -248,9 +248,9 @@ void load_items()
                              *sep = 0;
                              --sep;
                          }
-                         strncpy(glob_items[i].popis, nx, sizeof(glob_items[i].popis)-1);
+                         strcopy_n(glob_items[i].popis, nx, sizeof(glob_items[i].popis)-1);
                      }
-                     strncpy(glob_items[i].jmeno, trnw, sizeof(glob_items[i].jmeno)-1);
+                     strcopy_n(glob_items[i].jmeno, trnw, sizeof(glob_items[i].jmeno)-1);
                  }
              }
              stringtable_free(str_table);
@@ -270,7 +270,7 @@ static short expand_itemlist(void)
 
   if (item_count>32766)
      {
-     int i,j;
+     int i,j = 0;
 
      for(i=it_count_orgn;i<item_count;i++)
         {
@@ -1377,7 +1377,7 @@ static T_INV_SCRIPT script[]=
 
 static int calc_value(int parm,int lenght)
   {
-  int32_t l;
+  int32_t l = 0;
   if (parm>=0) l=*(int32_t *)(((char *)human_selected)+parm);
   else
      switch (parm)

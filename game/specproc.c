@@ -223,13 +223,6 @@ static void show_liane(THE_TIMER *t)
 
 
 
-static const float Snapper=3<<22;
-
-static __inline int toInt(float fval)
-  {
-	fval += Snapper;
-	return ( (*(int *)&fval)&0x007fffff ) - 0x00400000;
-  }
 
 static void OtocObrazPodleMatice(float mx[3][2], word *picture)
   {
@@ -243,8 +236,8 @@ static void OtocObrazPodleMatice(float mx[3][2], word *picture)
 	  {
 	  int oldx=x-320;
 	  int oldy=y-180;
-	  int newx=toInt(oldx*mx[0][0]+oldy*mx[1][0]+320);
-	  int newy=toInt(oldx*mx[0][1]+oldy*mx[1][1]+180);
+	  int newx=(int)(oldx*mx[0][0]+oldy*mx[1][0]+320);
+	  int newy=(int)(oldx*mx[0][1]+oldy*mx[1][1]+180);
 	  if (newx>=0 && newx<640 && newy>=0 && newy<360)
 		trg[x]=picture[newx+640*newy];
 	  else

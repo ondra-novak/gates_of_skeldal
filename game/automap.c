@@ -143,7 +143,8 @@ void save_text_to_map(int x,int y,int depth,char *text)
   char c[512],*d;
   if (text[0]==0) return;
   memset(c,1,sizeof(c));
-  strcpy(c+12,text);
+  strncpy(c+12,text,sizeof(c)-13);
+  c[511] = 0;
   if (texty_v_mape==NULL) texty_v_mape=create_list(8);
   d=texty_v_mape[str_add(&texty_v_mape,c)];
   x=(x-320)+map_xr;

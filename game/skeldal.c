@@ -16,7 +16,7 @@
 #include <libs/inicfg.h>
 #include <platform/save_folder.h>
 #include "globals.h"
-#include "default_font.h"
+#include "resources.h"
 //
 #include "advconfig.h"
 #include "skeldal.h"
@@ -691,10 +691,9 @@ void *user_timer(EVENT_MSG *msg,void **usr)
 void do_timer(void)
   {
   EVENT_MSG msg;
-  char x;
 
   msg.msg=E_IDLE;
-  otevri_zavoru=&x;
+  *otevri_zavoru=1;
   user_timer(&msg,NULL);
   }
 
@@ -865,7 +864,7 @@ void swap_error_exception(void)
   exit(0);
   }
 
-void *boldcz;
+const void *boldcz;
 
 #define ERR_WINX 320
 #define ERR_WINY 100
@@ -946,6 +945,7 @@ void init_skeldal(const INI_CONFIG *cfg)
      exit(1);
      }
   showview = game_display_update_rect;
+  game_display_set_icon(getWindowIcon(), getWindowIconSize());
 
   general_engine_init();
   atexit(done_skeldal);
@@ -1065,7 +1065,7 @@ extern char running_battle;
 	ReloadMapInfo *minfo=va_arg(msg->data, ReloadMapInfo *);
 	const char *fname=minfo->fname;
 	int sektor=minfo->sektor;
-	strncpy(loadlevel.name,fname,sizeof(loadlevel.name));
+	strcopy_n(loadlevel.name,fname,sizeof(loadlevel.name));
 	loadlevel.start_pos=sektor;
     for(i=0;i<POCET_POSTAV;i++)postavy[i].sektor=loadlevel.start_pos;
     SEND_LOG("(WIZARD) Load map '%s' %d",loadlevel.name,loadlevel.start_pos);
@@ -1140,7 +1140,7 @@ static int do_config_skeldal(int num,int numdata,char *txt)
             sound_detection=0;
             break;
      case 6:snd_mixing=numdata;break;
-     case 7:strncpy(default_map,txt,20);default_map[19]='\0';break;
+     case 7:strcopy_n(default_map,txt,20);default_map[19]='\0';break;
      case 8:gamespeed=numdata;break;
      case 9:level_preload=numdata;break;
 //     case 10:system(txt);break;
@@ -1305,7 +1305,7 @@ static void game_big_circle(char enforced)
   char s[13];
 
   purge_playlist();
-  s[12]=0;strncpy(s,loadlevel.name,12);
+  s[12]=0;strcopy_n(s,loadlevel.name,12);
   err=load_map(s);
   if (!enforced)
      {
@@ -1363,7 +1363,7 @@ static void game_big_circle(char enforced)
     enter_game();
 
     leave_current_map();
-    s[12]=0;strncpy(s,loadlevel.name,12);
+    s[12]=0;strcopy_n(s,loadlevel.name,12);
     if (s[0]!=0)err=load_map(s);
     memset(GlobEventList,0,sizeof(GlobEventList));
 
@@ -1384,9 +1384,9 @@ static void new_game(int argc, char *argv[])
   load_shops();
   open_story_file();
   if (argc<2)
-     strncpy(loadlevel.name,default_map,12);
+     strcopy_n(loadlevel.name,default_map,12);
   else
-     strncpy(loadlevel.name,argv[1],12);
+     strcopy_n(loadlevel.name,argv[1],12);
   if (argc>2)
      {
      sscanf(argv[2],"%d",&sect);
@@ -1490,7 +1490,7 @@ static void start(va_list args)
    schovej_mysku();
    if (!any_save())
     {
-    show_jrc_logo("LOGO.PCX");
+//    show_jrc_logo("LOGO.PCX");
     play_anim(7);
     }
    skip_intro=0;
@@ -1573,7 +1573,7 @@ const char *configure_pathtable(const INI_CONFIG *cfg) {
 
     static char default_subpaths[DEFAULT_SUBPATHS][DEFAULT_SUBPATHS_LEN];
     for (int i = 0; i < DEFAULT_SUBPATHS; ++i) {
-        strncpy(default_subpaths[i],  build_pathname(2, "graphics", sub_paths[i]), DEFAULT_SUBPATHS_LEN);
+        strcopy_n(default_subpaths[i],  build_pathname(2, "graphics", sub_paths[i]), DEFAULT_SUBPATHS_LEN);
     }
 
     const INI_CONFIG_SECTION *paths = ini_section_open(cfg, "paths");
@@ -1603,6 +1603,7 @@ void display_error(const char *format, ...) {
     if (display_error_cb) {
         char buff[1024];
         vsnprintf(buff,sizeof(buff), format, lst);
+        display_error_cb(buff);
     } else {
         fprintf(stderr, format, lst);
     }

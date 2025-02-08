@@ -16,8 +16,8 @@
 #pragma warning(disable: 4456)
 #pragma warning(disable: 4457)
 #pragma warning(disable: 4702)
-#define CASE_FALLTHROUGH 
-#else 
+#define CASE_FALLTHROUGH
+#else
 #define CASE_FALLTHROUGH [[fallthrough]]
 #endif
 
@@ -88,6 +88,7 @@ const char *file_icase_find(const char *pathname);
 
 int istrcmp(const char *a, const char *b);
 int imatch(const char *haystack, const char *needle);
+const char *strcopy_n(char *target, const char *source, int target_size);
 #define MIN(a, b) ((a)<(b)?(a):(b))
 #define MAX(a, b) ((a)>(b)?(a):(b))
 void strupper(char *c);

@@ -179,7 +179,7 @@ int load_pcx(const char *pcx,int32_t fsize,int conv_type,char **buffer, ... )
   return sz;
 
 }
-
+/*
 int open_pcx(const char *filename,int type,char **buffer,...)
   {
   FILE *pcx;
@@ -193,12 +193,15 @@ int open_pcx(const char *filename,int type,char **buffer,...)
   fseek(pcx,0,SEEK_SET);
   src=(char *)getmem(fsize);
   fread(src,1,fsize,pcx);
+  va_list lst;
+  va_start(lst, buffer);
+  int
   fsize=load_pcx(src,fsize,type,buffer,*((int *)&buffer+1),*((int *)&buffer+2),*((int *)&buffer+3));
   fclose(pcx);
   free(src);
   return fsize;
   }
-
+*/
 /*void initmode32b();
 
 main()

@@ -1,1 +1,0 @@
-DWORD ShowRichView(HWND hWnd, const char *resourceName, const char *resourceType, bool modal);

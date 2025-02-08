@@ -103,3 +103,13 @@ int imatch(const char *text, const char *hledany) {
 
     return 1; // Všechny části byly nalezeny ve správném pořadí
 }
+
+const char *strcopy_n(char *target, const char *source, int target_size) {
+    const char *ret = target;
+    while (target_size>1 && *source) {
+        *target++ = *source++;
+        --target_size;
+    }
+    *target = 0;
+    return ret;
+}

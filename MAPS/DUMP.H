@@ -1,1 +1,0 @@
-void save_dump();

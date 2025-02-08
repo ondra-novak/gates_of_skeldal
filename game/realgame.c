@@ -1692,7 +1692,7 @@ int check_path(word **path,word tosect)
   {
   word *p,*n,ss;
   char ok;
-  int i;
+  int i=0;
 
   p=*path;
   n=p+1;ok=0;
@@ -1735,7 +1735,7 @@ static unsigned int get_path_len(const word *w) {
 
 void recall()
   {
-  int tosect;
+  int tosect = 0;
   unsigned int max,i;
   int j;
   word *paths[POCET_POSTAV];

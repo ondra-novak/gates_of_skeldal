@@ -359,7 +359,7 @@ static reload_mobs()
   {
   extern char reset_mobiles;
   reset_mobiles=1;
-  strncpy(loadlevel.name,level_fname,12);
+  strcopy_n(loadlevel.name,level_fname,12);
   loadlevel.start_pos=viewsector;
   loadlevel.name[12]=0;
   loadlevel.dir=viewdir;

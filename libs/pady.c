@@ -58,36 +58,36 @@ typedef struct vzor
 TVZOR zena=
   {
   "hkrdtnbflmpsvz",
-  "a o¢u£–y˜",
+  "aï¿½oï¿½uï¿½ï¿½yï¿½",
   1,
-  "-","y","ˆ","u","o","ˆ","ou"
+  "-","y","ï¿½","u","o","ï¿½","ou"
   };
 //Vzor pro zena
 
 TVZOR natasa=
   {
-  "c‡ƒj¤©¨Ÿ‘",
-  "a ",
+  "cï¿½ï¿½jï¿½ï¿½ï¿½ï¿½ï¿½",
+  "aï¿½",
   1,
-  "-","i","ˆ","u","o","ˆ","ou"
+  "-","i","ï¿½","u","o","ï¿½","ou"
   };
 //Vzor pro zena koncici mekkou souhlaskou a a
 
 TVZOR ruze=
   {
-  "c‡ƒj¤©¨Ÿ‘",
-  "e‚i¡o¢u£–",
+  "cï¿½ï¿½jï¿½ï¿½ï¿½ï¿½ï¿½",
+  "eï¿½iï¿½oï¿½uï¿½ï¿½",
   1,
-  "-","e","i","i","e","i","¡"
+  "-","e","i","i","e","i","ï¿½"
   };
 //Vzor pro ruze s mekkou koncovkou
 
 TVZOR ruze2=
   {
   "dtn",
-  "i¡ˆ",
+  "iï¿½ï¿½",
   1,
-  "-","e","i","i","e","i","¡"
+  "-","e","i","i","e","i","ï¿½"
   };
 //Vzor pro ruze s tvrdou koncovkou d,t,n s mekkou samohlaskou
 
@@ -95,9 +95,9 @@ TVZOR ruze2=
 TVZOR pisen=
   {
   "*",
-  "c‡ƒj¤©¨Ÿ‘flmsx",
+  "cï¿½ï¿½jï¿½ï¿½ï¿½ï¿½ï¿½flmsx",
   0,
-  "-","e","i","-","i","i","¡"
+  "-","e","i","-","i","i","ï¿½"
   };
 //vzor pisen
 
@@ -106,7 +106,7 @@ TVZOR kost=
   "*",
   "hkrdtnbpvz",
   0,
-  "-","i","i","-","i","i","¡"
+  "-","i","i","-","i","i","ï¿½"
   };
 //vzor kost
 
@@ -142,17 +142,17 @@ TVZOR quasimodo=
 
 TVZOR pritel=
   {
-  "e‚",
-  "c‡ƒj¤©¨Ÿ‘bflmpsvz",
+  "eï¿½",
+  "cï¿½ï¿½jï¿½ï¿½ï¿½ï¿½ï¿½bflmpsvz",
   0,
   "-","e","i","e","i","i","em"
   };
-//vzor pritel pro vzor muz pro obojetne souhlasky ze samohlaskou e, ‚
+//vzor pritel pro vzor muz pro obojetne souhlasky ze samohlaskou e, ï¿½
 
 TVZOR muz=
   {
   "*",
-  "c‡ƒj¤©¨Ÿ‘",
+  "cï¿½ï¿½jï¿½ï¿½ï¿½ï¿½ï¿½",
   0,
   "-","e","i","e","i","i","em"
   };
@@ -172,7 +172,7 @@ TVZOR fenix=
 TVZOR predseda=
   {
   "hkrdtnbpvz",
-  "a o¢u£–y˜",
+  "aï¿½oï¿½uï¿½ï¿½yï¿½",
   1,
   "a","y","ovi","u","o","ovi","ou"
   };
@@ -181,8 +181,8 @@ TVZOR predseda=
 
 TVZOR soudce=
   {
-  "c‡ƒj¤©¨Ÿ‘flmsx",
-  "e‚i¡o¢u£–",
+  "cï¿½ï¿½jï¿½ï¿½ï¿½ï¿½ï¿½flmsx",
+  "eï¿½iï¿½oï¿½uï¿½ï¿½",
    1,
   "e","e","i","e","e","i","em"
   };
@@ -192,7 +192,7 @@ TVZOR soudce=
 TVZOR soudce2=
   {
   "dtn",
-  "ˆi¡",
+  "ï¿½iï¿½",
    1,
   "e","e","i","e","e","i","em"
   };
@@ -213,17 +213,17 @@ char test_vzor(TVZOR *vz,char *jmeno)
   return 1;
   }
 
-//tato funkce se vola p©ed odejmut¡m ur‡it‚ho znaku.
-//Pokud to toti‘ je zmˆk‡ovac¡ samohl ska, mus¡ se p©¡padn‚ d,t,n
-//zmˆk‡it p©ed touto samohl skou.
+//tato funkce se vola pï¿½ed odejmutï¿½m urï¿½itï¿½ho znaku.
+//Pokud to totiï¿½ je zmï¿½kï¿½ovacï¿½ samohlï¿½ska, musï¿½ se pï¿½ï¿½padnï¿½ d,t,n
+//zmï¿½kï¿½it pï¿½ed touto samohlï¿½skou.
 void odejmi_znak(char *znak)
   {
-  if (znak[0]=='ˆ' || znak[0]=='¡' || znak[0]=='i')
+  if (znak[0]=='ï¿½' || znak[0]=='ï¿½' || znak[0]=='i')
         switch (znak[-1])
            {
-           case 'd': znak[-1]='ƒ';break;
-           case 't': znak[-1]='Ÿ';break;
-           case 'n': znak[-1]='¤';break;
+           case 'd': znak[-1]='ï¿½';break;
+           case 't': znak[-1]='ï¿½';break;
+           case 'n': znak[-1]='ï¿½';break;
            }
   }
 
@@ -233,13 +233,13 @@ void odejmi_znak(char *znak)
 //Zdenek => Zdenka
 void uprav_e_nakonci(char *konec)
   {
-  char samohlasky[]="a e‚i¡o¢u£y˜";
-  char pismena[]="flmn¤r©s¨xpv";
+  char samohlasky[]="aï¿½eï¿½iï¿½oï¿½uï¿½yï¿½";
+  char pismena[]="flmnï¿½rï¿½sï¿½xpv";
   char *c;
 
   c=konec-2;
   if (strchr(samohlasky,c[2])!=NULL && strchr(samohlasky,c[1])==NULL && strchr(pismena,c[-1])!=NULL)
-     if (c[0] =='e'|| c[0]=='‚'|| c[0] =='ˆ')
+     if (c[0] =='e'|| c[0]=='ï¿½'|| c[0] =='ï¿½')
         {
         odejmi_znak(c);
         strcpy(c,c+1);
@@ -257,7 +257,7 @@ void ziskej_pad(char *buffer,char *jmeno,TVZOR *vz,char pad)
   end=strchr(buffer,0)-vz->chrdel;
   odejmi_znak(end); //odejme znak, pokud je => znak 0 neni znak cesky.
   strcpy(end,vz->pady[pad]);
-  if (pad && !vz->chrdel && end[-2]=='–') end[-2]='o';
+  if (pad && !vz->chrdel && end[-2]=='ï¿½') end[-2]='o';
   uprav_e_nakonci(end);
   return;
   }
@@ -269,23 +269,23 @@ void uprav_dvojice(char *jmeno)
   {
   static char *dvojice[]=
         {
-        "ƒe","dˆ",
-        "Ÿe","tˆ",
-        "¤e","nˆ",
-        "ƒi","di",
-        "Ÿi","ti",
-        "¤i","ni",
-        "ƒ¡","d¡",
-        "Ÿ¡","t¡",
-        "¤¡","n¡",
-        "rˆ","©e",
-        "sˆ","¨e",
-        "cˆ","‡e",
-        "kˆ","ce",
-        "¨ˆ","¨e",
-        "‘ˆ","‘e",
-        "‡ˆ","‡e",
-        "©ˆ","©e",
+        "ï¿½e","dï¿½",
+        "ï¿½e","tï¿½",
+        "ï¿½e","nï¿½",
+        "ï¿½i","di",
+        "ï¿½i","ti",
+        "ï¿½i","ni",
+        "ï¿½ï¿½","dï¿½",
+        "ï¿½ï¿½","tï¿½",
+        "ï¿½ï¿½","nï¿½",
+        "rï¿½","ï¿½e",
+        "sï¿½","ï¿½e",
+        "cï¿½","ï¿½e",
+        "kï¿½","ce",
+        "ï¿½ï¿½","ï¿½e",
+        "ï¿½ï¿½","ï¿½e",
+        "ï¿½ï¿½","ï¿½e",
+        "ï¿½ï¿½","ï¿½e",
         };
 
   while (*jmeno)
@@ -295,7 +295,7 @@ void uprav_dvojice(char *jmeno)
         {
         if (!strncmp(jmeno,dvojice[i],2))
            {
-           strncpy(jmeno,dvojice[i+1],2);
+           strcopy_n(jmeno,dvojice[i+1],2);
            break;
            }
         }
@@ -309,8 +309,8 @@ char *jmena_padu[]=
   "kdo",
   "bez",
   "k",
-  "vid¡m",
-  "vol m",
+  "vidï¿½m",
+  "volï¿½m",
   "o",
   "s"
   };
@@ -322,7 +322,7 @@ void show_table(char *jmeno,TVZOR *vz,char tabnum)
   char *buff;
 
   buff=alloca(strlen(jmeno)+20);
-  printf("%d. mo‘nost\n\n",tabnum);
+  printf("%d. moï¿½nost\n\n",tabnum);
   for(i=0;i<7;i++)
      {
      if (i)
@@ -334,15 +334,15 @@ void show_table(char *jmeno,TVZOR *vz,char tabnum)
      uprav_dvojice(buff);
      printf("  %d. %-6s %s\n",i+1,jmena_padu[i],buff);
      }
-  printf("**** Kl vesu ****\n");
+  printf("**** Klï¿½vesu ****\n");
   getche();
   }
 
 //Tato funkce vypise celkovy vysledek.
 void notabs(int i)
   {
-  if (i) printf("Program na¨el %d mo‘most%s.\n",i,(i!=1?(i>1 && i<5?"i":"¡"):""));
-  else printf("Program bohu‘el nena¨el ‘ dnou mo‘nost jak sklo¤ovat toto jm‚no.\n");
+  if (i) printf("Program naï¿½el %d moï¿½most%s.\n",i,(i!=1?(i>1 && i<5?"i":"ï¿½"):""));
+  else printf("Program bohuï¿½el nenaï¿½el ï¿½ï¿½dnou moï¿½nost jak skloï¿½ovat toto jmï¿½no.\n");
   puts("-------------------------------------------------------------------------");
   }
 
@@ -384,20 +384,20 @@ void hlavni()
   char pohlavi;
   do
   {
-  printf("Zadej jm‚no. Vy‘aduje se min 3 znaky v ‡e¨tinˆ kodu kamenick˜ch \n");
-  printf("Jm‚no nesm¡ m¡t v¡c ne‘ 50 znak–, a nesm¡ obsahovat mezery:\n");
-  printf("Pi¨ mal˜mi p¡smeny, pouze prvn¡ pismeno m–‘e b˜t velk‚:\n");
-  printf("(pouh‚ 'x' je odchod z programu)\n");
+  printf("Zadej jmï¿½no. Vyï¿½aduje se min 3 znaky v ï¿½eï¿½tinï¿½ kodu kamenickï¿½ch \n");
+  printf("Jmï¿½no nesmï¿½ mï¿½t vï¿½c neï¿½ 50 znakï¿½, a nesmï¿½ obsahovat mezery:\n");
+  printf("Piï¿½ malï¿½mi pï¿½smeny, pouze prvnï¿½ pismeno mï¿½ï¿½e bï¿½t velkï¿½:\n");
+  printf("(pouhï¿½ 'x' je odchod z programu)\n");
   jmeno_chyba:
   gets(jmeno);
   if (jmeno[0]=='x' && jmeno[1]==0) return;
   if (strlen(jmeno)<3)
      {
-     printf("Jm‚no mus¡ b˜t min 3 znaky dlouh‚\n");
+     printf("Jmï¿½no musï¿½ bï¿½t min 3 znaky dlouhï¿½\n");
      goto jmeno_chyba;
      }
   chyba:
-  printf("Jsi mu‘ nebo ‘ena? (M/Z nebo M/F nebo X):");
+  printf("Jsi muï¿½ nebo ï¿½ena? (M/Z nebo M/F nebo X):");
   pohlavi=getchar();
   while (getchar()!='\n');
   puts("");
@@ -414,11 +414,11 @@ main()
   {
   hlavni();
   puts("");
-  puts("Pokud jsi objevil p©irozen‚ jm‚no (tj re ln‚ jm‚no), kter‚ program\n"
-       "nedok zal vysklo¤ovat, po¨li mi jeho znˆn¡ na adresu:\n"
+  puts("Pokud jsi objevil pï¿½irozenï¿½ jmï¿½no (tj reï¿½lnï¿½ jmï¿½no), kterï¿½ program\n"
+       "nedokï¿½zal vyskloï¿½ovat, poï¿½li mi jeho znï¿½nï¿½ na adresu:\n"
        "xnovako1@cs.felk.cvut.cz\n");
-  puts("Verze Latin2 se p©ipravuje...\n"
-       "O slovensk‚ verzi se zat¡m neuva‘uje...\n");
-  puts("Napsal: Ond©ej Nov k za 2 a p–l hodiny ve WATCOM C\n"
-       "Zdroj ky maj¡ povahu PUBLIC DOMAIN\n");
+  puts("Verze Latin2 se pï¿½ipravuje...\n"
+       "O slovenskï¿½ verzi se zatï¿½m neuvaï¿½uje...\n");
+  puts("Napsal: Ondï¿½ej Novï¿½k za 2 a pï¿½l hodiny ve WATCOM C\n"
+       "Zdrojï¿½ky majï¿½ povahu PUBLIC DOMAIN\n");
   }

@@ -205,14 +205,14 @@ const void *load_spells_legacy_format(const void *p, int32_t *s) {
     k = (np);
     for (int i = 0; i < count; ++i) {
         char *b = (char *)k;
-        char traceon = *(k->spellname-1);    //traceon was there;
+        char traceon = b[offsetof(TKOUZLO, spellname)-1];    //traceon was there;
         size_t bofs = offsetof(TKOUZLO, traceon);
         size_t eofs = offsetof(TKOUZLO, spellname)-1;
         memmove(b+bofs+1, b+bofs, eofs-bofs);\
         k->traceon = traceon;
         const char *new_name = stringtable_find(strtable, i, NULL);
         if (new_name) {
-            strncpy(k->spellname,new_name,sizeof(k->spellname)-1);
+            strcopy_n(k->spellname,new_name,sizeof(k->spellname)-1);
         }
         ++k;
     }
@@ -435,7 +435,7 @@ static void spell_vzplanuti2(THE_TIMER *tt)
 static void spell_vzplanuti(int cil,int count,int hit,char mode,char zivel)
   {
   THE_TIMER *tt;
-  int sector,smer;
+  int sector = 0,smer = 0;
   int i,o,d;
   if (cil<0)
     {
@@ -467,7 +467,7 @@ static void spell_vzplanuti(int cil,int count,int hit,char mode,char zivel)
 void spell_create(int cil,int what)
   {
   word sector=0;
-  char dir;
+  char dir = 0;
   short p[2];
 
   if (dead_food) {
@@ -508,7 +508,7 @@ void spell_create_weapon(int cil,int what)
 void spell_throw(int cil,int what)
   {
   word sector=0;
-  char dir;
+  char dir = 0;
   LETICI_VEC *fly;
 
   get_sector_dir(cil,&sector,&dir);
@@ -1029,7 +1029,7 @@ void spell_teleport_sector(int cil,int owner)
 
         if (cil!=owner) return;
         postavy_teleport_effect(0,0,0,1);
-        strncpy(loadlevel.name,TelepLocation.map,12);
+        strcopy_n(loadlevel.name,TelepLocation.map,12);
         loadlevel.name[12]=0;
         loadlevel.start_pos=TelepLocation.sector;
         loadlevel.dir=TelepLocation.dir;
@@ -1102,7 +1102,7 @@ void spell_teleport_sector(int cil,int owner)
 
 static void spell_summon(int cil)
   {
-  short sector,i,rn,rno,slc;
+  short sector = 0,i,rn,rno,slc;
   int stdir,p;
 
   if (cil>0) sector=postavy[cil-1].sektor;
@@ -1664,11 +1664,11 @@ void call_spell(int i)
                 TelepLocation.map = 0;
                 break;
             default: {
-                char *d =
+                const char *d =
                         "Chyba v popisu kouzel: Program narazil na neznamou instrukci %d (%02X) pri zpracovani kouzla s cislem %d. Kouzlo bylo ukon�eno";
-                char *c = alloca(strlen(d) + 20);
-                sprintf(c, d, *(c - 1), *(c - 1), p->num);
-                bott_disp_text(c);
+                char *buff = alloca(strlen(d) + 20);
+                sprintf(buff, d, *(c - 1), *(c - 1), p->num);
+                bott_disp_text(buff);
                 spell_end(i, p->cil, p->owner);
                 return;
             }

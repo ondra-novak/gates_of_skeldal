@@ -27,7 +27,7 @@ char q_runsetup(char *parm)
   {
   char c[6];
 
-  strncpy(c,parm,6);
+  strcopy_n(c,parm,6);
   strupper(c);
   return !strncmp(c,"/SETUP",6);
   }

@@ -243,7 +243,7 @@ void draw_status_line(char *c)
 
 void status_mem_info(EVENT_MSG *msg)
   {
-  
+
   }
 
 void status_idle(EVENT_MSG *msg)
@@ -530,6 +530,7 @@ void radio_butts_init(OBJREC *o,va_list params)
   q=(int32_t *)getmem(cnt+8);
   o->userptr=(void *)q;
   *q++=1;*q++=rcount;
+  z = (char *)q;
   va_copy(d, params);
   va_arg(d, int);
   for (i=0;i<rcount;i++)

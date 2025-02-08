@@ -301,7 +301,7 @@ static reload_mobs()
   {
   extern char reset_mobiles;
   reset_mobiles=1;
-  strncpy(loadlevel.name,level_fname,12);
+  strcopy_n(loadlevel.name,level_fname,12);
   loadlevel.start_pos=viewsector;
   loadlevel.name[12]=0;
   loadlevel.dir=viewdir;
@@ -685,7 +685,7 @@ static int process_with_params(const char *cmd, const char *args) {
     if (istrcmp(cmd, "portal-jump") == 0) {
         if (check_file_exists(build_pathname(2,gpathtable[SR_MAP], args))) {
             TMA_LOADLEV lev;
-            strncpy(lev.name,args,12);
+            strcopy_n(lev.name,args,12);
             lev.start_pos = 0;
             macro_load_another_map(&lev);
             return 1;
@@ -779,12 +779,14 @@ static void wzprintf(const char *text,...)
     while (d != NULL) {
         *d = 0;
         strncat(wzprint_line,c, console_max_characters);
+        wzprint_line[console_max_characters] = 0;
         console_add_line(wzprint_line);
         c = d+1;
         d = strchr(c, '\n');
         wzprint_line[0] = 0;
     }
     strncat(wzprint_line, c, console_max_characters);
+    wzprint_line[console_max_characters] = 0;
 
   }
 

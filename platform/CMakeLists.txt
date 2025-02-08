@@ -29,7 +29,6 @@ if(WIN32)
     target_compile_definitions(skeldal_platform PRIVATE PLATFORM_WINDOWS)
     message(STATUS "Building for Windows")
 
-
 elseif(UNIX AND NOT APPLE)
     target_sources(skeldal_platform PRIVATE
         linux/save_folder.cpp
@@ -40,6 +39,11 @@ elseif(UNIX AND NOT APPLE)
         linux/app_start.cpp
     )
     target_compile_definitions(skeldal_platform PRIVATE PLATFORM_LINUX)
+    add_custom_command(
+        TARGET skeldal POST_BUILD
+        COMMAND ${CMAKE_COMMAND} -E copy
+                ${CMAKE_CURRENT_LIST_DIR}/linux/skeldal.sh
+                ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/skeldal.sh)
     message(STATUS "Building for Linux")
 
 elseif(APPLE)   

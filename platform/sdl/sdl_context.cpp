@@ -7,6 +7,7 @@
 
 #include <cmath>
 #include <iostream>
+#include <fstream>
 #include <stdexcept>
 #include <sstream>
 void SDLContext::SDL_Deleter::operator ()(SDL_Window* window) {
@@ -612,4 +613,18 @@ void SDLContext::pause_audio(bool pause) {
 
 void SDLContext::close_audio() {
     _audio.reset();
+}
+
+void SDLContext::set_window_icon(const void *icon_data, size_t icon_size) {
+    SDL_Surface *surface = SDL_LoadBMP_RW(SDL_RWFromConstMem(icon_data, icon_size), 1);
+    if (surface == 0) {
+        char buff[256];
+        snprintf(buff,sizeof(buff),"Can't load icon: %s", SDL_GetError());
+        display_error(buff);
+        std::ofstream x("test.dat", std::ios::out|std::ios::binary|std::ios::trunc);
+        x.write(reinterpret_cast<const char *>(icon_data), icon_size);
+    } else {
+        SDL_SetWindowIcon(_window.get(), surface);
+    }
+
 }

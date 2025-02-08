@@ -47,6 +47,8 @@ public:
 
     void init_video(const VideoConfig &config, const char *title);
 
+    void set_window_icon(const void *icon_data, size_t icon_size);
+
     void close_video();
 
     AudioInfo init_audio(const AudioConfig &config, SDL_AudioCallback cb, void *cb_ctx);

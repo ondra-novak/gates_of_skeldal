@@ -323,7 +323,7 @@ static int get_data_handle(char *filename,void *dec)
 
 static void insert_picture(char *filename,int align,int line,int lsize)
   {
-  int x, y;
+  int x=0, y=0;
   const short *psiz;
   char *c=write_buff;
 
@@ -391,7 +391,7 @@ static char read_tag(TMPFILE_RD *txt)
      while (c!='>')
         {
         c=read_set(txt,var,set);
-        if (!strcmp(var,SRC)) strncpy(pic_name,set,49);
+        if (!strcmp(var,SRC)) strcopy_n(pic_name,set,49);
         else if (!strcmp(var,ALIGN))
            {
            if (!strcmp(set,ALEFT)) alig=1;

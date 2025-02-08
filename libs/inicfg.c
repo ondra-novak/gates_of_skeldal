@@ -43,7 +43,7 @@ TSTR_LIST merge_configs(TSTR_LIST target, TSTR_LIST source)
   buff[255]=0;
   for (i=0;i<str_count(source);i++) if (source[i])
   {
-	strncpy(buff,source[i],255);
+	strcopy_n(buff,source[i],255);
 	c=strchr(buff,' ');
 	if (c!=NULL)
 	{

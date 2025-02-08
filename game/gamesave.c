@@ -623,7 +623,7 @@ int save_basic_info()
   s.out_filter=get_snd_effect(SND_OUTFILTER);
   s.autosave=autosave_enabled;
 	s.game_flags=(enable_glmap!=0);
-  strncpy(s.level_name,level_fname,12);
+  strcopy_n(s.level_name,level_fname,12);
   for(i=0;i<5;i++) s.runes[i]=runes[i];
   if (picked_item!=NULL)
      for(i=1,p=picked_item;*p;i++,p++);else i=0;
@@ -712,7 +712,7 @@ int load_basic_info()
   set_snd_effect(SND_OUTFILTER,s.out_filter);
   if (level_fname==NULL || strncmp(s.level_name,level_fname,12))
      {
-     strncpy(loadlevel.name,s.level_name,12);
+     strcopy_n(loadlevel.name,s.level_name,12);
      loadlevel.start_pos=viewsector;
      loadlevel.dir=viewdir;
      send_message(E_CLOSE_MAP);
@@ -760,7 +760,7 @@ int save_game(int slotnum,char *gamename)
   ssn=alloca(strlen(sn)+3);
   sprintf(ssn,sn,slotnum);
   gn=alloca(SAVE_NAME_SIZE);
-  strncpy(gn,gamename,SAVE_NAME_SIZE);
+  strcopy_n(gn,gamename,SAVE_NAME_SIZE);
   if ((r=save_shops())!=0) return r;
   if ((r=save_basic_info())!=0) return r;
   save_book();

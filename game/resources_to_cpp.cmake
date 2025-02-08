@@ -1,0 +1,5 @@
+file(READ ${IN_FONT} FONT_CONTENT)
+file(READ ${IN_ICON} ICON_CONTENT)
+
+configure_file(${TEMPLATE} ${OUT} @ONLY)
+

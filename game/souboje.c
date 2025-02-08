@@ -733,7 +733,7 @@ void wire_end_game()
           if (mname != NULL) {
               cur_group = postavy[i].groupnum;
               TMA_LOADLEV lv;
-              strncpy(lv.name,mname, sizeof(lv.name)-1);
+              strcopy_n(lv.name,mname, sizeof(lv.name)-1);
               lv.start_pos = -postavy[i].sektor;
               lv.dir = postavy[i].direction;
               macro_load_another_map(&lv);
@@ -902,7 +902,7 @@ void utek_postavy(THUMAN *p)
 
 int trace_path(int sector,int dir)
   {
-  int mm,p,c=5;
+  int mm,p=0,c=5;
   int r=rnd(2);
   do
      {
@@ -2247,7 +2247,7 @@ char zasah_veci(int sector,TFLY *fl)
      mob2=m1->next-MOB_START;
      if (mob2>=0)
         {
-        int x1,y1;
+        int x1=0,y1=0;
         m2=&mobs[mob2];
         switch (fl->smer)
            {

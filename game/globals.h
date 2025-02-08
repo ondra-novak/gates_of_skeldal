@@ -1721,7 +1721,7 @@ int smlouvat_prodej(int cena,int ponuka,int posledni,int puvod,int pocet);
 THAGGLERESULT smlouvat_dlg(int cena,int puvod,int pocet,int posledni, int money,char mode);
 
 void disable_intro(void);
-void show_jrc_logo(char *filename);
+//void show_jrc_logo(char *filename);
 
 
 //dialogy

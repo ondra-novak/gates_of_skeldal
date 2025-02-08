@@ -247,7 +247,7 @@ void absolute_window(WINDOW *w,OBJREC *o, int *x, int *y)
 
   void draw_object(WINDOW *w,OBJREC *o,char show)
   {
-  int x, y;
+  int x = 0, y = 0;
   int ok;
 //  WINDOW *ws;
 
@@ -533,7 +533,7 @@ void close_window(WINDOW *w)
 
 char mouse_in_object(MS_EVENT *ms,OBJREC *o, WINDOW *w)
   {
-  int x1, y1, x2, y2;
+  int x1=0, y1=0, x2=0, y2=0;
 
   absolute_window(w,o,&x1,&y1);
   x2=x1+o->xs;
@@ -936,7 +936,7 @@ void background_runner(EVENT_MSG *msg,void **prog)
      {
      *prog_ptr=NULL;
      return;
-     }    
+     }
     (*prog_ptr)();
 
   msg->msg=-2;

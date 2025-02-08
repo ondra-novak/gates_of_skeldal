@@ -314,9 +314,9 @@ static char pick_item_corpse(TMOB *m,char query)
 static char seber_predmet(TMOB *m)
   {
   short *p=NULL,*q;
-  int i,j,c,z;
+  int i,j,c,z = 0;
 
-  for(j=0,c=0;j<MOBS_INV;j++,c+=(m->inv[j]==0));
+  for(j=0,c=0;j<MOBS_INV;c+=(m->inv[j]==0),++j);
   i=0;
   do
      {
@@ -535,7 +535,7 @@ char je_mozne_videt(int sector1, int sector2, int flag) {
 int q_vidis_postavu(int sector,int dir,TMOB *p,int *otocit_se,char ret)
   {
   int i,z=-1;
-  int xs,ys,nd,d,dis=255;
+  int xs,ys,nd=0,d,dis=255;
 
   if (p->vlastnosti[VLS_KOUZLA] & SPL_BLIND) return -1;
   if (p->vlastnosti[VLS_KOUZLA] & SPL_FEAR) return -1;
@@ -558,7 +558,7 @@ int q_vidis_postavu(int sector,int dir,TMOB *p,int *otocit_se,char ret)
      if (ok)
         if (je_mozne_videt(sector,postavy[i].sektor,SD_MONST_IMPS | SD_PLAY_IMPS))
            {
-            int alt;
+            int alt = 0;
             if (ys>=abs(xs)) {nd=0;alt=xs>0?3:1;}
             else if (xs>=abs(ys)) {nd=3;alt=ys>0?0:2;}
             else if (ys<=(-abs(xs))) {nd=2;alt=xs>0?1:3;}
@@ -1198,7 +1198,7 @@ static int mob_check_teleport(int sect,int num)
 
 void mob_step_next(int num,int sect,int dir,char *change)
   {
-  int c,numm,d;
+  int c,numm,d = 0;
   TMOB *p;
 
   *change+=128;
@@ -1387,7 +1387,7 @@ void mob_hit(TMOB *mm,int dostal)
      bott_draw(0);
      if (mm->lives<1)
         {
-        int xpos;
+        int xpos = 0;
         switch (viewdir)
            {
            case 0:xpos=-(mm->locx-128);break;

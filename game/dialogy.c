@@ -159,7 +159,7 @@ static void dialog_anim(va_list args)
   const void *anm;
   void *aptr;
   char hid;
-  int spdc=0,cntr=rep,tm,tm2;
+  int spdc=0,cntr=rep,tm = 0,tm2 = 0;
 
   int32_t scr_linelen2 = GetScreenPitch();
   loc_anim_render_buffer=PIC_Y*scr_linelen2+PIC_X;
@@ -216,7 +216,7 @@ static void run_anim(char *name,int speed,int rep)
 static void error(char *text)
   {
   char buff[256];
-  sprintf(buff,"%s v odstavci %d\r\nLocal_pgf=%d / DIALOG : %d / SENTENCE : %d\r\n",text,last_pgf+local_pgf,local_pgf,local_pgf/128,last_pgf);
+  sprintf(buff,"%.125s v odstavci %d\r\nLocal_pgf=%d / DIALOG : %d / SENTENCE : %d\r\n",text,last_pgf+local_pgf,local_pgf,local_pgf/128,last_pgf);
 //  MessageBox(NULL,buff,NULL,MB_OK|MB_ICONSTOP|MB_SYSTEMMODAL);
   SEND_LOG("(DIALOGS) Dialog error detected at %d:%d",local_pgf/128,last_pgf);
   SEND_LOG("(DIALOGS) Error description: %s",text);
@@ -312,7 +312,7 @@ static char *transfer_text(const char *source,char *target)
                     if (*source=='l')
                        {
                        sn_nums[0]=sn_nums[num];
-                       strcpy(sn_nams[0],sn_nams[num]);
+                       strcopy_n(sn_nams[0],sn_nams[num],sizeof(sn_nams[0]));
                        sn_rods[0]=sn_rods[num];
                        }
                     break;
@@ -554,14 +554,14 @@ static void lecho(char *c)
 static void save_name(int pos)
   {
   sn_nums[pos]=sn_nums[0];
-  strcpy(sn_nams[pos],sn_nams[0]);
+  strcopy_n(sn_nams[pos],sn_nams[0],sizeof(sn_nams[pos]));
   sn_rods[pos]=sn_rods[0];
   }
 
 static void load_name(int pos)
   {
   sn_nums[0]=sn_nums[pos];
-  strcpy(sn_nams[0],sn_nams[pos]);
+  strcopy_n(sn_nams[0],sn_nams[pos],sizeof(sn_nams[0]));
   sn_rods[0]=sn_rods[pos];
   }
 
@@ -1260,7 +1260,7 @@ void do_dialog()
      case 134:p1=Get_short();p2=Get_short();nahodne(VLS_SMAGIE,p1,p2);break;
      case 135:p1=Get_short();p2=Get_short();nahodne(VLS_SILA,p1,p2);break;
      case 136:p1=Get_short();p2=Get_short();nahodne(VLS_OBRAT,p1,p2);break;
-     case 137:c=Get_string();p1=Get_short();strncpy(sn_nams[0],c,32);sn_rods[0]=p1;break;
+     case 137:c=Get_string();p1=Get_short();strcopy_n(sn_nams[0],c,32);sn_rods[0]=p1;break;
      case 138:iff=Get_short();break;
      case 139:goto_paragraph(Get_short());break;
      case 140:p1=Get_short();if (iff) goto_paragraph(p1);break;

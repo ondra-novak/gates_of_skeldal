@@ -225,3 +225,8 @@ char  game_display_is_quit_requested() {
 void game_display_cancel_quit_request() {
     return get_sdl_global_context().cancel_quit_request();
 }
+
+void game_display_set_icon(const void *icon_data, size_t icon_size) {
+    auto &sdl = get_sdl_global_context();
+    sdl.set_window_icon(icon_data, icon_size);
+}

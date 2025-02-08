@@ -422,7 +422,7 @@ static int title_lines[640][2];
 
 static int insert_next_line(int ztrata)
   {
-  char *c;
+  char *c = 0;
   int ll=-1;
   RedirectScreenBufferSecond();
   do

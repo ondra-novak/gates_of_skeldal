@@ -544,7 +544,7 @@ char labyrinth_find_path(word start,word konec,int flag,char (*proc)(word, void 
   ok_flags[start>>3]|=1<<(start & 0x7);
   for(*stk_free++=start;stk_free!=stk_cur;stk_cur++)
      {
-     uint8_t i;word s,d,ss;
+     uint8_t i;word s=0,d=0,ss=0;
      s=(ss=Lo(*stk_cur))<<2;
      for(i=0;i<4;i++) if (!(map_sides[s+i].flags & flag))
         {
@@ -1181,7 +1181,7 @@ void fletna_pridej_notu(char note)
   {
   note+=65;
   fletna_str[pos]=note;
-  if (pos==13) memcpy(fletna_str,fletna_str+1,pos);
+  if (pos==13) memmove(fletna_str,fletna_str+1,pos-1);
   else pos++;
   }
 
@@ -1535,6 +1535,7 @@ THAGGLERESULT smlouvat_dlg(int cena,int puvod,int pocet,int posledni, int money,
   return res;
   }
 
+#if 0
 //----------------- JRC LOGO ----------------------------------
 
 #define SHOWDELAY 125
@@ -1611,3 +1612,4 @@ void show_jrc_logo(char *filename)
   showview(0,0,0,0);
   free(pcx);
   }
+#endif

@@ -719,13 +719,7 @@ void create_minimap(int sector, int smer)
   }
 
 
-static const float Snapper=3<<22;
 
-static __inline int toInt( float fval )
-{
-	fval += Snapper;
-	return ( (*(int *)&fval)&0x007fffff ) - 0x00400000;
-}
 
 
 static const void *check_autofade(const void *image, char ceil, int dark)
@@ -755,9 +749,9 @@ static const void *check_autofade(const void *image, char ceil, int dark)
 		  int r=*imgdata>>11;
 		  int g=(*imgdata>>5) & 0x3F;
 		  int b=*imgdata & 0x1F;
-		  r=toInt(r+factor*(br-r));
-		  g=toInt(g+factor*(bg-g));
-		  b=toInt(b+factor*(bb-b));
+		  r=(int)(r+factor*(br-r));
+		  g=(int)(g+factor*(bg-g));
+		  b=(int)(b+factor*(bb-b));
 		  *imgdata=(r<<11)|(g<<5)|b;
 		  imgdata++;
 		}
@@ -954,8 +948,8 @@ void draw_players(int sector,int dir,int celx,int cely)
      {
      int i;
      THUMAN *p;
-     char freep[5];
-     int j,d,pp=0,f;
+     char freep[5]= {0,0,0,0,0};
+     int j,d,pp=0,f=0;
 
      memset(freep,0,sizeof(freep));
      for(i=0,pp=0;i<POCET_POSTAV;i++)

@@ -287,7 +287,7 @@ void unpack_save(void *in)
   s.items_added=0;
   s.glob_flags=0;
   s.game_time=0;
-  strncpy(s.level_name,mapname,12);
+  strcopy_n(s.level_name,mapname,12);
   memset(s.runes,0,sizeof(s.runes));
   }
 
@@ -583,7 +583,7 @@ void begin_program(char *sourceadv,char *targetadv)
     cprintf("Vystupni dobrodruzstvi %s musi obsahovat polozku DEFAULT_MAP\n\r", targetadv);
     exit(1);
     }
-  strncpy(mapname,c,12);mapname[12]=0;
+  strcopy_n(mapname,c,12);mapname[12]=0;
   c=get_text_field(trg,"CESTA_MAPY");
   if (c==NULL)
     {
