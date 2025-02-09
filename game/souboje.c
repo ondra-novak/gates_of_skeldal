@@ -1372,6 +1372,7 @@ void jadro_souboje(EVENT_MSG *msg,void **unused) //!!!! Jadro souboje
            viewdir=postavy[i].direction;
            build_player_map();
 		   GlobEvent(MAGLOB_AFTERBATTLE,viewsector,viewdir);
+		   autosave();
            }
         msg->msg=-2;
         }

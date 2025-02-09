@@ -339,7 +339,12 @@ char clk_saveload(int id,int xa,int ya,int xr,int yr)
   if (cur_mode==MD_ANOTHER_MAP) unwire_proc(),wire_proc();
   unwire_proc();
   cancel_render=1;
-  wire_save_load(id);
+  if (id == 1) {
+      do_save_dialog();
+      wire_proc();
+  } else {
+      wire_save_load(id);
+  }
   return 1;
   }
 

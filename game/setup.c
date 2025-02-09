@@ -180,7 +180,7 @@ void new_setup()
         case 0:c_default(show_names);break;
         case 1:c_default(enable_sort);break;
         case 2:c_default(autoattack);break;
-        case 3:c_default(autosave_enabled);break;
+        case 3:c_default(1);break;
         case 4:c_default(level_preload);break;
         }
      }

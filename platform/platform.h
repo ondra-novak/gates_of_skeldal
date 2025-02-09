@@ -88,6 +88,7 @@ FILE *fopen_icase(const char *pathname, const char *mode);
 const char *file_icase_find(const char *pathname);
 
 int istrcmp(const char *a, const char *b);
+int istrncmp(const char *a, const char *b, size_t sz);
 int imatch(const char *haystack, const char *needle);
 const char *strcopy_n(char *target, const char *source, int target_size);
 #define MIN(a, b) ((a)<(b)?(a):(b))

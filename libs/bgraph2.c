@@ -50,15 +50,15 @@ void rel_position_x(word x)
   }
 
 
-void outtext(const char *text)
+void outtext_ex(const char *text, int space)
   {
-  byte pos;
+  int pos;
 
   if (fontdsize)
      while (*text)
      {
      char2_32(writepos,curfont,*text);
-     pos=(charsize(curfont,*text) & 0xff)<<1;
+     pos=((charsize(curfont,*text) & 0xff)<<1)+space;
      writepos+=pos;
      writeposx+=pos;text++;
      }
@@ -66,11 +66,15 @@ void outtext(const char *text)
    while (*text)
      {
      char_32(writepos,curfont,*text);
-     pos=charsize(curfont,*text) & 0xff;
+     pos=(charsize(curfont,*text) & 0xff)+space;
      writepos+=pos;
      writeposx+=pos;text++;
      }
   }
+void outtext(const char *text) {
+    outtext_ex(text,0);
+
+}
 
 void outtext_w_nl(const char *text)
   {

@@ -50,7 +50,7 @@ char *pathtable[]=
 char **texty;
 
 char skip_intro=0;
-char autosave_enabled=0;
+char autosave_enabled=1;
 int32_t game_time=0;
 int charmin=3;
 int charmax=3;
@@ -1429,7 +1429,7 @@ static void wire_load_saved(void)
 
 static void load_saved_game(void)
   {
-  signed char game;
+  char *game;
 
   err:
   loadlevel.name[0]=0;
@@ -1442,12 +1442,13 @@ static void load_saved_game(void)
   update_mysky();
   {
       EVENT_MSG *msg = task_wait_event(E_CLOSE_MAP);
-      game = msg?va_arg(msg->data, int):-1;
+      const char *cgame = msg?va_arg(msg->data, const char *):NULL;
+      game = cgame?strdup(cgame):NULL;
   }
   unwire_proc();
   disable_click_map();
   task_wait_event(E_TIMER);
-  if (game!=-1)
+  if (game!=NULL)
       {
       reinit_kouzla_full();
       open_story_file();
@@ -1458,6 +1459,7 @@ static void load_saved_game(void)
         task_wait_event(E_CLOSE_MAP);
         send_message(E_DONE,E_IDLE,load_error_report);
         exit_wait=0;
+        free(game);
         goto err;
         }
       pick_set_cursor();
@@ -1467,6 +1469,7 @@ static void load_saved_game(void)
       game_big_circle(1);
       exit_wait=1;
       }
+  free(game);
   }
 
 static int any_save_callback(const char *c, LIST_FILE_TYPE _, size_t __, void *___) {

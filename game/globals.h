@@ -1413,6 +1413,7 @@ void build_fly_map(void);
 void destroy_fly_map(void);
 void destroy_all_fly();
 void stop_fly(LETICI_VEC *p,char zvuk);
+void herni_cas(char *s);
 
 
 
@@ -1421,10 +1422,13 @@ void leave_current_map(void);
 int save_map_state(void); //uklada stav mapy pro savegame (neuklada aktualni pozici);
 int load_map_state(void); //obnovuje stav mapy; nutno volat po zavolani load_map;
 void restore_current_map(void); //pouze obnovuje ulozeny stav aktualni mapy
-int load_game(int slotnum);
-int save_game(int slotnum,char *gamename);
+int load_game(const char *fname);
+int save_game(int game_time,char *gamename, char skip_if_exists);
 void wire_save_load(char save);
-#define autosave() if (autosave_enabled) save_game(9,"AUTOSAVE");
+void do_save_dialog();
+char ask_save_dialog(char *name_buffer, size_t name_size);
+void do_autosave();
+#define autosave() if (autosave_enabled) do_autosave();
 extern char autosave_enabled;
 int load_map_automap(char *mapfile);
  /* ^^^ Tato funkce zmeni mapu, bez zmeny grafiky a stavu cele hry.

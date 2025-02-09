@@ -15,6 +15,22 @@ int istrcmp(const char *a, const char *b) {
     return 0;
 }
 
+int istrncmp(const char *a, const char *b, size_t sz) {
+    while (*a && *b && sz) {
+        char ca = toupper(*a);
+        char cb = toupper(*b);
+        if (ca<cb) return -1;
+        if (ca>cb) return 1;
+        ++a;
+        ++b;
+        --sz;
+    }
+    if (sz == 0) return 0;
+    if (*a) return 1;
+    if (*b) return -1;
+    return 0;
+}
+
 void strupper(char *c) {
     while (*c) {
         *c = toupper(*c);
