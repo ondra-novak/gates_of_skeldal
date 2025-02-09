@@ -685,7 +685,7 @@ static int process_with_params(const char *cmd, const char *args) {
     if (istrcmp(cmd, "portal-jump") == 0) {
         if (check_file_exists(build_pathname(2,gpathtable[SR_MAP], args))) {
             TMA_LOADLEV lev;
-            strcopy_n(lev.name,args,12);
+            strcopy_n(lev.name,args,sizeof(lev.name));
             lev.start_pos = 0;
             macro_load_another_map(&lev);
             return 1;
