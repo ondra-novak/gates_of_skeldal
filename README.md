@@ -16,6 +16,13 @@ cmake ..
 make all
 ```
 
+### Fix scripting bug in BILA_VEZ.MAP (white tower)
+
+A script error in the White Tower map in the puzzle located on the top floor of the tower has been fixed. The repository includes a corrected file BILA_VEZ.MAP, replace the original file in the "MAPS" directory of the original installation with this file.
+
+This fix will only work with the new code. (It will not work in earlier releases of the game, i.e. in the DOS, Windows, Android and iOS versions). The reason is that a new scripting action has been introduced to enable this fix, which will ensure the correct evaluation of the puzzle
+
+
 ## RUN
 
 You need original DOS version files (distrubuted on CD) or Windows port files.
