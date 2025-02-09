@@ -281,7 +281,11 @@ static __inline int rangrnd(int a, int b) {return rnd(b-a+1)+a;}
 
 #define SAVE_NAME_SIZE 32
 
-#define mgochrana(x) (100-(x))
+static inline int mgochrana(int x) {
+    if (x > 100) return 100;
+    return 100-x;
+}
+//#define mgochrana(x) (100-(x))
 //#define mgochrana(x) (1000/(10+(x)))
 
 //typy sektoru

@@ -351,16 +351,17 @@ void zacni_souboj(TMOB *p,int d,short sector)
 
 
 
-int vypocet_zasahu(short *utocnik,short *obrance, int chaos,int  zbran,int bonusplus)
+int vypocet_zasahu(short *utocnik,short *obrance, int chaos,int  zbran,int external_force)
   {
   int zasah,mutok,flg;
   flg=obrance[VLS_KOUZLA];
+  short attack_attribute = MAX(utocnik[VLS_SILA], utocnik[VLS_OBRAT]);
   if (game_extras & EX_ALTERNATEFIGHT)
   	{
 	int postih=(chaos+1)/2;
-	int testutok=rangrnd(utocnik[VLS_UTOK_L],utocnik[VLS_UTOK_H])+utocnik[VLS_OBRAT]/4+bonusplus;
+	int testutok=rangrnd(utocnik[VLS_UTOK_L],utocnik[VLS_UTOK_H])+utocnik[VLS_OBRAT]/4+external_force;
 	int testobrana=rangrnd(obrance[VLS_OBRAN_L],obrance[VLS_OBRAN_H])+obrance[VLS_OBRAT]/(4*postih)+(flg & SPL_INVIS?rangrnd(5,15):0);
-	int utok=rangrnd(utocnik[VLS_UTOK_L],utocnik[VLS_UTOK_H])+utocnik[VLS_SILA]/10+bonusplus;
+	int utok=rangrnd(utocnik[VLS_UTOK_L],utocnik[VLS_UTOK_H])+attack_attribute/10+external_force;
 	int obrana=rangrnd(obrance[VLS_OBRAN_L],obrance[VLS_OBRAN_H])+obrance[VLS_OBRAT]/(10*postih);
 	int zv;
 	mutok=rangrnd(utocnik[VLS_MGSIL_L],utocnik[VLS_MGSIL_H]);
@@ -383,33 +384,40 @@ int vypocet_zasahu(short *utocnik,short *obrance, int chaos,int  zbran,int bonus
 	{
 	int utok,obrana;
 	int ospod;
-	int x,y,z,zv;
+	int attack_roll,defense_roll,mag_att_roll,mg_def;
 
-	chaos=(chaos+1)/2;
+	chaos=(chaos+1)/2;   //chaos - pocet postav, 0=>1, 1=>1,2=>1,3=>2,4=>2,5=>3,6=>3
+	//nizsi obrana je snizena o pocet postav na poli
+	//0-2=>no change, 3-4=>/2, 5-6=>/3
 	ospod=obrance[VLS_OBRAN_L]/chaos;
-	x=rnd(utocnik[VLS_UTOK_H]-utocnik[VLS_UTOK_L]+1);
-	y=rnd(obrance[VLS_OBRAN_H]-ospod+1);
-	z=rnd(utocnik[VLS_MGSIL_H]-utocnik[VLS_MGSIL_L]+1);
-	dhit=utok=utocnik[VLS_UTOK_L]+x+(utocnik[VLS_SILA]*15+(utocnik[VLS_OBRAT])*10)/150+bonusplus;
-	obrana=ospod+y+(obrance[VLS_OBRAT]/5)+(flg & SPL_INVIS?10:0);
-	mutok=utocnik[VLS_MGSIL_L]+z;
-	zv=obrance[VLS_OHEN+utocnik[VLS_MGZIVEL]];
-	zv=mgochrana(zv);
-	mutok=zv*mutok/100;
+	attack_roll=rnd(utocnik[VLS_UTOK_H]-utocnik[VLS_UTOK_L]+1);
+	defense_roll=rnd(obrance[VLS_OBRAN_H]-ospod+1);
+	mag_att_roll=rnd(utocnik[VLS_MGSIL_H]-utocnik[VLS_MGSIL_L]+1);
+
+	//hit=attack_roll+max(str,dex)+external_force
+	dhit=utok=utocnik[VLS_UTOK_L]+attack_roll+attack_attribute/5+external_force;
+	//def=defense_roll+dex/5+(10 if invisible)
+	obrana=ospod+defense_roll+(obrance[VLS_OBRAT]/5)+(flg & SPL_INVIS?10:0);
+	//mg_attack = magic_roll
+	mutok=utocnik[VLS_MGSIL_L]+mag_att_roll;
+	//mg_deffense (100-x)
+	mg_def=mgochrana(obrance[VLS_OHEN+utocnik[VLS_MGZIVEL]]);
+	//adjust magic attack
+	mutok=mg_def*mutok/100;
 	dmzhit=mutok;
 	zasah=utok-(ddef=obrana);
 	}
   if (zasah<0) zasah=0;
   if (zasah>0) zasah+=utocnik[VLS_DAMAGE],zasah=MAX(zasah,1);
   ddostal=zasah;
+  if (flg & SPL_SANC) zasah/=2;
   zasah=zasah+mutok;
   if (zasah>0)
 	{
 	zasah+=zbran;
 	if (zasah<1) zasah=1;
 	}
-  if (flg & SPL_SANC) zasah/=2;
-  if (flg & SPL_HSANC) zasah/=4;
+  if (flg & SPL_HSANC) zasah/=2;
   if (flg & SPL_TVAR) zasah=-zasah;
   return zasah;
   }

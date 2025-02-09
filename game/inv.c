@@ -2049,30 +2049,20 @@ int weigth_defect(THUMAN *p)
   return wf;
 }
 
-static char check_double_wield(int newplace,short item)
-  {
-  short *p,i,*q1,*q2;
-  short *z1,*z2;
-  short opplace=newplace==PO_RUKA_L?PO_RUKA_R:PO_RUKA_L;
-  short item2=human_selected->wearing[opplace];
-
-  if (!item || !item2) return 0;
-  if (glob_items[item-1].druh!=TYP_UTOC || glob_items[item2-1].druh!=TYP_UTOC ) return 0;
-  p=human_selected->vlastnosti;
-  q1=glob_items[item-1].podminky;
-  q2=glob_items[item2-1].podminky;
-  z1=glob_items[item-1].zmeny;
-  z2=glob_items[item2-1].zmeny;
-  for(i=0;i<4;i++)
-     {
-     int chk=(*q1+*q2)-(human_selected->vlastnosti[VLS_OBRAT]/2);   //cim vyssi obratnost tim spis double wield
-     if (*p<chk) return 1;
-     if (*p+*z1+*z2<chk) return 1;
-     q1++;p++;q2++;
-     z1++;z2++;
-     }
-  return 0;
-  }
+static char check_double_wield()  {
+    short i1 = human_selected->wearing[PO_RUKA_L];
+    short i2 = human_selected->wearing[PO_RUKA_R];
+    if (!i1 || !i2) return 0;
+    const TITEM *it1 = glob_items+i1;
+    const TITEM *it2 = glob_items+i2;
+    for (int i = VLS_SILA; i <=VLS_OBRAT; ++i) {
+        if ((it1->podminky[i] + it2->podminky[i] > human_selected->vlastnosti[i])
+            && (MAX(it1->podminky[i], it2->podminky[i]) > human_selected->vlastnosti[VLS_OBRAT])) {
+            return 1;
+        }
+    }
+    return 0;
+}
 
 void zkontroluj_postavu()
   {
@@ -2081,9 +2071,11 @@ void zkontroluj_postavu()
   p=human_selected->wearing;
   for(i=0;i<HUMAN_PLACES;i++,p++)
      if (*p && !muze_nosit(p[0])) remove_item(human_selected,i);
-  if (check_double_wield(PO_RUKA_R,human_selected->wearing[PO_RUKA_R]))
+  if (check_double_wield())
      remove_item(human_selected,PO_RUKA_L);
+  prepocitat_postavu(human_selected);
   }
+
 
 
 
@@ -2163,8 +2155,6 @@ char human_click(int id,int xa,int ya,int xr,int yr)
         case PL_RUKA :if (place==PO_RUKA_L)
                       if (human_selected->wearing[PO_RUKA_R] && glob_items[human_selected->wearing[PO_RUKA_R]-1].umisteni==PL_OBOUR)
                          remove_item(human_selected,PO_RUKA_R);
-                      if (check_double_wield(place,*picked_item))
-                       remove_item(human_selected,place==PO_RUKA_L?PO_RUKA_R:PO_RUKA_L);
                       break;
         }
      human_selected->wearing[place]=*picked_item;
@@ -2182,6 +2172,11 @@ char human_click(int id,int xa,int ya,int xr,int yr)
       }
   play_sample_at_channel(H_SND_WEAR,1,100);
   prepocitat_postavu(human_selected);
+  if (check_double_wield()) {
+      if (place == PO_RUKA_L) remove_item(human_selected, PO_RUKA_R);
+      else remove_item(human_selected, PO_RUKA_L);
+      prepocitat_postavu(human_selected);
+  }
   zkontroluj_postavu();
   pick_set_cursor();
   inv_redraw();
