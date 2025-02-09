@@ -26,9 +26,8 @@ void SDLContext::SDL_Deleter::operator ()(SDL_Texture* texture) {
     SDL_DestroyTexture(texture);
 }
 
-void SDLContext::SDL_Audio_Deleter::operator()(void *x) {
-    SDL_AudioDeviceID id = reinterpret_cast<std::uintptr_t>(x);
-    SDL_CloseAudioDevice(id);
+void SDLContext::SDL_Audio_Deleter::operator()(SDL_AudioDeviceID x) {
+    SDL_CloseAudioDevice(x);
 }
 
 struct SDL_INIT_Context {
@@ -602,12 +601,12 @@ SDLContext::AudioInfo SDLContext::init_audio(const AudioConfig &config, SDL_Audi
         }
         throw std::runtime_error(err.str());
     }
-    _audio.reset(reinterpret_cast<void *>(id));
+    _audio.reset(id);
 
     return {obtaied.freq};
 }
 void SDLContext::pause_audio(bool pause) {
-    SDL_AudioDeviceID id = reinterpret_cast<std::intptr_t>(_audio.get());
+    SDL_AudioDeviceID id = _audio.get();
     SDL_PauseAudioDevice(id, pause?1:0);
 }
 

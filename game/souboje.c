@@ -741,7 +741,7 @@ void wire_end_game()
           if (mname != NULL) {
               cur_group = postavy[i].groupnum;
               TMA_LOADLEV lv;
-              strcopy_n(lv.name,mname, sizeof(lv.name)-1);
+              strcopy_n(lv.name,mname, sizeof(lv.name));
               lv.start_pos = -postavy[i].sektor;
               lv.dir = postavy[i].direction;
               macro_load_another_map(&lv);
@@ -1976,7 +1976,7 @@ void fix_group_direction()
      if (postavy[i].used && postavy[i].groupnum==g && !postavy[i].programovano) postavy[i].direction=viewdir;
   }
 
-void souboje_turn(char smer)
+void souboje_turn(int smer)
   {
     if (pass_zavora) return;
   norefresh=1;

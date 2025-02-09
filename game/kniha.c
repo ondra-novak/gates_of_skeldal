@@ -283,12 +283,12 @@ static char read_set(TMPFILE_RD *txt,char *var,char *set)
   do
      c=temp_storage_getc(txt);
   while (c<33);
-  if (c=='"') temp_storage_scanf(txt,"%[^\"]%c%c",set,&d,&d);
-  else if (c=='\'') temp_storage_scanf(txt,"%[^']%c%c",set,&d,&d);
+  if (c=='"') temp_storage_scanf(txt,"%[^\"]%c%c",set,&d,&c);
+  else if (c=='\'') temp_storage_scanf(txt,"%[^']%c%c",set,&d,&c);
   else
      {
       temp_storage_ungetc(txt);
-      temp_storage_scanf(txt,"%[^> ]%c",set,&d);
+      temp_storage_scanf(txt,"%[^> ]%c",set,&c);
      }
   while(c<33 && c!=EOF) c=temp_storage_getc(txt);
   if (c!='>') temp_storage_ungetc(txt);
@@ -308,7 +308,7 @@ static char read_set(TMPFILE_RD *txt,char *var,char *set)
   return c;
   }
 
-static int get_data_handle(char *filename,void *dec)
+static int get_data_handle(char *filename,ABLOCK_DECODEPROC  dec)
   {
   int i;
 
@@ -492,7 +492,7 @@ static void read_text(TMPFILE_RD *txt)
 
 static void seek_section(TMPFILE_RD *txt,int sect_number)
   {
-  int c=0,i;
+  int c=0,i=0;
 
   winconv=0;
   do

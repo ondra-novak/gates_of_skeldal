@@ -90,7 +90,7 @@ int main(int argc, char **argv) {
 
 }
 
-int WinMain(HINSTANCE,HINSTANCE ,LPSTR, INT) {
+int __stdcall WinMain(HINSTANCE,HINSTANCE ,LPSTR, INT) {
 
     int argc;
     LPWSTR *szArglist = CommandLineToArgvW(GetCommandLineW(), &argc);

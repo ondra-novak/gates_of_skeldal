@@ -592,7 +592,7 @@ void global_map_point(EVENT_MSG *msg,void **_)
      }
   }
 
-void unwire_global_map()
+void unwire_global_map(void)
   {
   purge_index_tab();
   send_message(E_DONE,E_MOUSE,global_map_point);
@@ -601,7 +601,7 @@ void unwire_global_map()
   }
 
 
-void wire_global_map()
+void wire_global_map(void)
   {
   unwire_proc();
   schovej_mysku();
@@ -614,14 +614,14 @@ void wire_global_map()
   change_click_map(NULL,0);
   }
 
-static void *old_wire_save;
+static void (*old_wire_save)(void);
 static int old_viewsector;
-static void empty_unwire()
+static void empty_unwire(void)
   {
 
   }
 
-static void unwire_automap_file()
+static void unwire_automap_file(void)
   {
   load_map_automap(level_fname);
   wire_proc=old_wire_save;

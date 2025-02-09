@@ -16,6 +16,7 @@
 #pragma warning(disable: 4456)
 #pragma warning(disable: 4457)
 #pragma warning(disable: 4702)
+#pragma warning(disable: 4100)
 #define CASE_FALLTHROUGH
 #else
 #define CASE_FALLTHROUGH [[fallthrough]]

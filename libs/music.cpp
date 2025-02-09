@@ -17,10 +17,10 @@ class MUSStreamParser: public IMusicStream {
 public:
 
     MUSStreamParser(const char *name) {
-        data = map_file_to_memory(file_icase_find(name), &sz);
-        if (data) {
+        _data = map_file_to_memory(file_icase_find(name), &sz);
+        if (_data) {
             _loaded = true;
-            iter = reinterpret_cast<const uint8_t *>(data);
+            iter = reinterpret_cast<const uint8_t *>(_data);
             chans = read_short();
             freq = read_int();
             iter += 4;
@@ -32,7 +32,7 @@ public:
     }
 
     ~MUSStreamParser() {
-        if (data) unmap_file(data, sz);
+        if (_data) unmap_file(_data, sz);
     }
     MUSStreamParser(const MUSStreamParser &) = delete;
     MUSStreamParser& operator=(const MUSStreamParser &) = delete;
@@ -60,7 +60,7 @@ public:
 
 protected:
     bool _loaded = false;
-    void *data;
+    void *_data;
     std::size_t sz;
 
     std::int16_t chans;

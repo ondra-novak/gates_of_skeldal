@@ -803,7 +803,7 @@ char uloz_sip(int id,int xa,int ya,int xr,int yr);
 
 char info_box_drawed=0;
 void *info_box_below=NULL;
-void *inv_keyboard(EVENT_MSG *msg,void **usr);
+void inv_keyboard(EVENT_MSG *msg,void **usr);
 
 T_CLK_MAP clk_inv_view[]=
   {
@@ -1742,7 +1742,7 @@ void inv_item_info_box(EVENT_MSG *msg,void **data)
      }
   }
 
-void unwire_inv_mode()
+void unwire_inv_mode(void)
   {
   send_message(E_DONE,E_KEYBOARD,inv_keyboard);
   send_message(E_DONE,E_MOUSE,inv_item_info_box);
@@ -2184,7 +2184,7 @@ char human_click(int id,int xa,int ya,int xr,int yr)
   }
 
 
-void *inv_keyboard(EVENT_MSG *msg,void **usr)
+void inv_keyboard(EVENT_MSG *msg,void **usr)
   {
   char c;
 
@@ -2210,7 +2210,6 @@ void *inv_keyboard(EVENT_MSG *msg,void **usr)
               break;
         }
      }
-  return &inv_keyboard;
   }
 
 
@@ -2236,9 +2235,9 @@ static int fly_count; //vyuziti mapy
 void draw_fly_items(int celx,int cely,int sector,int side)
   {
   LETICI_VEC *p;
-  int xpos,ypos;
+  int xpos=0,ypos=0;
   const short *pic;
-  short picnum;char turn,smr;
+  short picnum;char turn=0,smr=0;
   TITEM *it;
   int i;
 
@@ -2380,8 +2379,8 @@ char shop_keeper_click(int id, int xa, int ya,int xr,int yr);
 char shop_block_click(int id, int xa, int ya,int xr,int yr);
 char shop_change_player(int id, int xa, int ya,int xr,int yr);
 char _exit_shop(int id, int xa, int ya,int xr,int yr);
-void unwire_shop();
-void wire_shop();
+void unwire_shop(void);
+void wire_shop(void);
 
 
 
@@ -2955,7 +2954,7 @@ static void shop_keyboard_proc(EVENT_MSG *msg, void **_) {
 
 static int old_inv_view_mode;
 
-void unwire_shop()
+void unwire_shop(void)
   {
   send_message(E_DONE,E_MOUSE,shop_mouse_event);
   send_message(E_DONE,E_KEYBOARD, shop_keyboard_proc);
@@ -2964,7 +2963,7 @@ void unwire_shop()
   inv_view_mode=old_inv_view_mode;
   }
 
-void wire_shop()
+void wire_shop(void)
   {
   int32_t size;
   static TSHOP *last_shop=NULL;

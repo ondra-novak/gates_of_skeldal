@@ -49,15 +49,15 @@ void temp_storage_store(const char *name, const void *data, int32_t size) {
 int32_t temp_storage_find(const char *name) {
     auto iter = temp_fsystem.find(std::string_view(name));
     if (iter == temp_fsystem.end()) return -1;
-    return iter->second.size();
+    return static_cast<int32_t>(iter->second.size());
 }
 
 int32_t temp_storage_retrieve(const char *name, void *data, int32_t size) {
     auto iter = temp_fsystem.find(std::string_view(name));
     if (iter == temp_fsystem.end()) return -1;
-    size = std::min<int32_t>(size, iter->second.size());
+    size = std::min<int32_t>(size, static_cast<int32_t>(iter->second.size()));
     std::copy(iter->second.begin(), iter->second.end(), reinterpret_cast<uint8_t *>(data));
-    return iter->second.size();
+    return static_cast<int32_t>(iter->second.size());
 
 }
 
@@ -109,7 +109,7 @@ uint32_t temp_storage_read(void *data, uint32_t size, TMPFILE_RD *f) {
     d = d.substr(p.size());
     auto b = reinterpret_cast<uint8_t *>(data);
     std::copy(p.begin(), p.end(), b);
-    return p.size();
+    return static_cast<uint32_t>(p.size());
 }
 
 void temp_storage_skip(TMPFILE_RD *f, int bytes) {
@@ -136,7 +136,7 @@ char *temp_storage_gets(char *buff, size_t sz, TMPFILE_RD *f) {
     if (pos > d.size()) pos = d.size(); else ++pos;
     if (pos == 0) return NULL;
     if (pos > sz - 1) pos = sz - 1;
-    temp_storage_read(buff, pos, f);
+    temp_storage_read(buff, static_cast<int32_t>(pos), f);
     buff[pos] = 0;
     return buff;
 }
