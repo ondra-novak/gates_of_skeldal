@@ -67,7 +67,7 @@ typedef struct s_save
   int32_t glob_flags;
   int32_t game_time;
   char runes[5];
-  char level_name[12];
+  char level_name[13];
   short picks;  //pocet_sebranych predmetu v mysi
   short items_added; //pocet_pridanych predmetu
   int sleep_long;
@@ -623,7 +623,7 @@ int save_basic_info()
   s.out_filter=get_snd_effect(SND_OUTFILTER);
   s.autosave=autosave_enabled;
 	s.game_flags=(enable_glmap!=0);
-  strcopy_n(s.level_name,level_fname,12);
+  strcopy_n(s.level_name,level_fname,sizeof(s.level_name));
   for(i=0;i<5;i++) s.runes[i]=runes[i];
   if (picked_item!=NULL)
      for(i=1,p=picked_item;*p;i++,p++);else i=0;
@@ -710,9 +710,9 @@ int load_basic_info()
   set_snd_effect(SND_LSWAP,s.stereing);
   set_snd_effect(SND_SWAP,s.swapchans);
   set_snd_effect(SND_OUTFILTER,s.out_filter);
-  if (level_fname==NULL || strncmp(s.level_name,level_fname,12))
+  if (level_fname==NULL || strcmp(s.level_name,level_fname))
      {
-     strcopy_n(loadlevel.name,s.level_name,12);
+     strcopy_n(loadlevel.name,s.level_name,sizeof(loadlevel.name));
      loadlevel.start_pos=viewsector;
      loadlevel.dir=viewdir;
      send_message(E_CLOSE_MAP);
