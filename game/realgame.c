@@ -187,7 +187,7 @@ const char *find_map_from_hash_impl(char *c, uint32_t h, int sz) {
 }
 
 
-int load_map(char *filename)
+int load_map(const char *filename)
   {
   FILE *f;
   void *temp;

@@ -239,6 +239,7 @@ void chveni(int i)
 
 void objekty_mimo(THE_TIMER *t)
   {
+    if (cur_mode == MD_END_GAME) return;
   schovej_mysku();
   ukaz_kompas(1);
   anim_sipky(0,0);
@@ -1304,6 +1305,26 @@ void debug_print()
 
   }
 
+void death_screen() {
+    trans_bar(0, 0, 640, 480, 0);
+    int xs;
+    int ys;
+    int y = 160;
+    const char *t = texty[65];
+    char buff[strlen(t)+4];
+    set_font(H_FBOLD, RGB555_ALPHA(31,31,31));
+    zalamovani(t,buff, 440, &xs, &ys);
+    t = buff;
+    while (*t) {
+        set_aligned_position(320, y, 1, 1, t);
+        outtext(t);
+        y+=2*text_height(t);
+        t = t+strlen(t)+1;
+    }
+
+
+}
+
 void redraw_scene()
   {
   if (norefresh) return;
@@ -1318,9 +1339,13 @@ void redraw_scene()
   if (battle || (game_extras & EX_ALWAYS_MINIMAP)) draw_medium_map();
   if (show_debug) debug_print();
   other_draw();
+  if (cur_mode == MD_END_GAME) {
+      death_screen();
+  }
   ukaz_mysku();
   global_anim_counter++;
   send_message(E_KOUZLO_ANM);
+
   }
 
 void refresh_scene(THE_TIMER *t)

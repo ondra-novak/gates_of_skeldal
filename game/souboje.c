@@ -557,7 +557,7 @@ static int vyber_hrace(int att) {
     for (int i = POCET_POSTAV; i>0;) {
         --i;
         h = postavy+i;
-        if (h->used && h->inmaphash == current_map_hash) {
+        if (h->used && h->lives && h->inmaphash == current_map_hash) {
             candidate0 = i;
             if (h->groupnum == gr) {
                 candidate1 =i;
@@ -750,8 +750,8 @@ void wire_end_game()
       }
   }
 
-  bott_disp_text(texty[65]);
-  bott_text_forever();
+/*  bott_disp_text(texty[65]);
+  bott_text_forever();*/
   add_to_timer(TM_SCENE,gamespeed,-1,refresh_scene);
   add_to_timer(TM_FLY,gamespeed,-1,calc_fly);
   disable_click_map();
@@ -2460,7 +2460,6 @@ char player_check_death(THUMAN *p, char afterround)
         }
      p->groupnum=0;
      p->lives=0;
-     if (p->level>1) p->exp=level_map[p->level-2];
      p->kondice=0;
      p->mana=0;
      SEND_LOG("(GAME) Character '%s' died. R.I.P.",p->jmeno);

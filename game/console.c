@@ -624,6 +624,19 @@ static int process_actions(const char *command) {
         return 0;
 
     }
+    if (istrcmp(command, "dispel-magic") == 0) {
+         unaffect();
+         return 1;
+    }
+    if (istrcmp(command, "echoes-of-the-past") == 0) {
+        const char *lname = local_strdup(level_fname);
+        leave_current_map();
+        temp_storage_delete(lname);
+        load_map(lname);
+        return 1;
+    }
+
+
 
     return 0;
 }
@@ -651,6 +664,9 @@ static void wiz_find_monster(const char *name) {
     }
 }
 
+
+
+
 static int process_with_params(const char *cmd, const char *args) {
     if (istrcmp(cmd, "locate") == 0) {
         if (args[0] == 0) return 0;
@@ -669,8 +685,31 @@ static int process_with_params(const char *cmd, const char *args) {
                     return 1;
                 }
             }
-
+        } if (args[0] == 'm') {
+            char *end;
+            unsigned long  id = strtoul(args+1, &end, 10);
+            if (*end == 0) {
+                ablock(H_ENEMY);
+                size_t cnt = get_handle_size(H_ENEMY)/sizeof(TMOB);
+                if (id < cnt) {
+                    int choosen_id = -1;
+                    for (int i = 0; i < MAX_MOBS; ++i) {
+                        if (mobs[i].vlajky & MOB_LIVE) continue;
+                        choosen_id = i;
+                    }
+                    if (choosen_id >= 0) {
+                        const TMOB *t =(TMOB *)ablock(H_ENEMY);
+                        int sect = map_sectors[viewsector].step_next[viewdir];
+                        if (sect) {
+                            load_enemy_to_map(choosen_id, sect, (viewdir+2) & 3, t+id);
+                            return 1;
+                        }
+                    }
+                }
+            }
+            return 0;
         }
+
         return 0;
     }
     if (istrcmp(cmd, "say") == 0) {

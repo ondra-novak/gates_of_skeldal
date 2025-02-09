@@ -652,7 +652,7 @@ extern char marker; //tato promenna je 0, jen v pripade ze je 1 probehne assert
 
 void game_keyboard(EVENT_MSG *msg,void **usr);
 void calc_animations(void);
-int load_map(char *filename);
+int load_map(const char *filename);
 void other_draw(void);
 void refresh_scene(THE_TIMER *t);
 const void *pcx_fade_decomp(const void *p, int32_t *s);
@@ -848,8 +848,8 @@ void draw_placed_items_normal(int celx,int cely,int sect,int side);
 #define SPL_TVAR 0x4            //hrac ma kouzlo nastav tvar
 #define SPL_DRAIN 0x8           //hrac kazdym utokem drainuje nepritele
 #define SPL_MANASHIELD 0x10     //hrac je chranen stitem z many
-#define SPL_SANC 0x20           //hraci je kazde zraneni snizeno na polovic
-#define SPL_HSANC 0x40          //hrac nikdy nedostane zraneni vetsi nez 18
+#define SPL_SANC 0x20           //resistance to fyzical attack
+#define SPL_HSANC 0x40          //resistance to all attack
 #define SPL_BLIND 0x80          //hrac je slepy
 #define SPL_REGEN 0x100         //hrac ma regeneraci pri boji
 #define SPL_ICE_RES 0x200       //hrac je chranen proti ledu
@@ -1826,7 +1826,7 @@ char generate_string_tables(const char *path);
 
 char *change_extension_support(char *buffer, const char *filename,char *new_extension);
 #define set_file_extension(filename, extension) change_extension_support((char *)alloca(strlen(filename)+strlen(extension)), (filename), (extension))
-
+void load_enemy_to_map(int i, int sector, int dir, const TMOB *t);
 
 
 //extras

@@ -134,44 +134,56 @@ void add_window(int x,int y,int xs,int ys,int texture,int border,int txtx,int tx
 void zalamovani(const char *source,char *target,int maxxs,int *xs,int *ys)
   {
   strcpy(target,source);
+  char *x = target;
+  while (*x) {
+      if (*x == '\n') *x = 0;
+      ++x;
+  }
+  ++x;
+  *x = 0;
   xs[0]=0;
   ys[0]=0;
-  if ((xs[0]=text_width(target))>maxxs)
-     {
-     char c[2]=" ";
-     char *ls,*ps,*cs;
-     int sum;
+  x = target;
+  while (*x) {
+      char *nextx = x + strlen(x)+1;
+      if ((xs[0]=text_width(x))>maxxs)
+         {
+         char c[2]=" ";
+         char *ls,*ps,*cs;
+         int sum;
 
-     cs=ps=target;
-     do
-        {
-        ls=NULL;
-        sum=0;
-        while (sum<maxxs || ls==NULL)
-           {
-           c[0]=*ps++;
-           if (c[0]==0) {ls=NULL;break;}
-           if (c[0]==32) ls=ps-1;
-           sum+=text_width(c);
-           }
-        if (ls!=NULL)
-           {
-           *ls=0;
-           ps=ls+1;ls=NULL;
-           }
-        ys[0]+=text_height(cs);
-        cs=ps;
-        }
-     while (c[0]);
-     xs[0]=maxxs;
-     *ps=0;
-     }
-  else
-     {
-     char *c;
-     c=target;c=strchr(c,0);c++;*c=0;
-     ys[0]=text_height(target);
-     }
+         cs=ps=target;
+         do
+            {
+            ls=NULL;
+            sum=0;
+            while (sum<maxxs || ls==NULL)
+               {
+               c[0]=*ps++;
+               if (c[0]==0) {ls=NULL;break;}
+               if (c[0]==32) ls=ps-1;
+               if (c[0]=='\n') {ls = ps-1;break;}
+               sum+=text_width(c);
+               }
+            if (ls!=NULL)
+               {
+               *ls=0;
+               ps=ls+1;ls=NULL;
+               }
+            ys[0]+=text_height(cs);
+            cs=ps;
+            }
+         while (c[0]);
+         xs[0]=maxxs;
+         *ps=0;
+         }
+      else
+         {
+         ys[0]+=text_height(x);
+         }
+      x = nextx;
+  }
+
   }
 
 static T_CLK_MAP message_win[]=

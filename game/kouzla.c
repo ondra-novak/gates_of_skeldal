@@ -1468,7 +1468,8 @@ void call_spell(int i)
   c+=p->start;
   twins=0;
   do {
-        switch (twins = twins == 3 ? 0 : twins, *c++) {
+      twins = twins == 3 ? 0 : twins;
+        switch (*c++) {
             case S_zivel:
                 p->pc = GET_WORD(c)
                 ;

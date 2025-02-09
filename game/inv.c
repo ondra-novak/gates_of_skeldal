@@ -2055,6 +2055,7 @@ static char check_double_wield()  {
     if (!i1 || !i2) return 0;
     const TITEM *it1 = glob_items+i1;
     const TITEM *it2 = glob_items+i2;
+    if (it1->typ_zbrane!=TYP_UTOC || it2->typ_zbrane!=TYP_UTOC ) return 0;
     for (int i = VLS_SILA; i <=VLS_OBRAT; ++i) {
         if ((it1->podminky[i] + it2->podminky[i] > human_selected->vlastnosti[i])
             && (MAX(it1->podminky[i], it2->podminky[i]) > human_selected->vlastnosti[VLS_OBRAT])) {

@@ -54,7 +54,7 @@ char going[]={0,0,1,0,1,1};
 
 static word *mob_paths[MAX_MOBS];
 static word *mob_path_ptr[MAX_MOBS];
-static int monster_block;
+static int monster_block = 0;
 
 void *sound_template=NULL;
 
@@ -2261,3 +2261,33 @@ void regen_all_mobs()
     m->lives=m->vlastnosti[VLS_MAXHIT];
   }
 
+
+void load_enemy_to_map(int i, int sector, int dir, const TMOB *t) {
+    mobs[i]=*t;
+    if (~mobs[i].vlajky & MOB_MOBILE) mob_map[ sector]=i+MOB_START;
+    if (mobs[i].palette>0)mobs[i].palette=rnd(mobs[i].palette);else mobs[i].palette=abs(mobs[i].palette);
+    mobs[i].sector=sector;
+    mobs[i].dir=dir;
+    mobs[i].home_pos=sector;
+    mobs[i].vlajky|=MOB_LIVE;
+
+    char s[20];
+
+    sprintf(s,"%s.SEQ",mobs[i].mobs_name);
+    int h = find_handle(s, NULL);
+    int *grptr = &h;
+    if (h == -1) {
+        grptr = &end_ptr;
+        def_handle(grptr[0]++,s,NULL,SR_ENEMIES);
+        mobs[i].cislo_vzoru=*grptr-monster_block;
+        register_mob_graphics(*grptr,mobs[i].mobs_name,mobs[i].anim_counts,ablock(grptr[0]-1));
+        grptr[0]+=6*16;
+        register_mob_sounds(*grptr,mobs[i].sounds);
+        grptr[0]+=4;
+        sprintf(s,"%s.COL",mobs[i].mobs_name);
+        def_handle(grptr[0],s,col_load,SR_ENEMIES);
+        grptr[0]++;
+    } else {
+        mobs[i].cislo_vzoru=(h+1)-monster_block;
+    }
+}

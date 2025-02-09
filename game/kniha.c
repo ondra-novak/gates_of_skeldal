@@ -278,18 +278,20 @@ static char read_set(TMPFILE_RD *txt,char *var,char *set)
   int c;
   char *cc;
   char d;
+  char e;
 
   temp_storage_scanf(txt,"%[^=]%c",var,&d);
   do
      c=temp_storage_getc(txt);
   while (c<33);
-  if (c=='"') temp_storage_scanf(txt,"%[^\"]%c%c",set,&d,&c);
-  else if (c=='\'') temp_storage_scanf(txt,"%[^']%c%c",set,&d,&c);
+  if (c=='"') temp_storage_scanf(txt,"%[^\"]%c%c",set,&d,&e);
+  else if (c=='\'') temp_storage_scanf(txt,"%[^']%c%c",set,&d,&e);
   else
      {
       temp_storage_ungetc(txt);
-      temp_storage_scanf(txt,"%[^> ]%c",set,&c);
+      temp_storage_scanf(txt,"%[^> ]%c",set,&e);
      }
+  c = e;
   while(c<33 && c!=EOF) c=temp_storage_getc(txt);
   if (c!='>') temp_storage_ungetc(txt);
   cc=strchr(var,0);
