@@ -910,3 +910,4 @@ char load_codelocks(TMPFILE_RD *fsta)
   return !temp_storage_read(codelock_memory,sizeof(codelock_memory)*1,fsta);
   }
 
+

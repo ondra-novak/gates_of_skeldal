@@ -40,6 +40,7 @@
 #define A_OPEN_TELEPORT 15
 #define A_CLOSE_TELEPORT 16
 #define A_CODELOCK_LOG2 17
+#define A_CODELOCK_LOG3 18
 
 #define MAX_FLY_SECT 4
 
@@ -886,6 +887,11 @@ int do_action(int action_numb,int sector, int direct,int flags, int nosend)
                  bott_disp_text(level_texts[sector]);
                  ok=1;
                  return 0;
+     case A_CODELOCK_LOG3:
+                 q->flags|=SD_PRIM_VIS;
+                 check_codelock_log(sector,flags);
+                 ok=1;
+                 break;
      case A_CODELOCK_LOG2:
                  check_codelock_log(sector,flags);
                  q->flags^=SD_PRIM_VIS;

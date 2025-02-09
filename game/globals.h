@@ -1359,7 +1359,6 @@ char save_load_trigger(short load); //uklada/obnovuje trigger vlajky. -1 uklada,
 char save_codelocks(TMPFILE_WR *fsta); //uklada do savegame nastaveni kodovych zamku (128 bytu);
 char load_codelocks(TMPFILE_RD *fsta); //obnovuje ze savegame nastaveni kodovych zamku (128 bytu);
 
-
 typedef struct letici_vec
   {
   struct letici_vec *next;
