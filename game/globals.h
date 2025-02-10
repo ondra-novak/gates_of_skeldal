@@ -627,26 +627,7 @@ extern int autoopendata;
 
 extern char doNotLoadMapState;
 
-//debug !!!!!
-extern int dhit;
-extern int ddef;
-extern int ddostal;
-extern int dlives;
-extern int dmzhit;
-extern int dsee;
-extern char show_debug;
-extern char *debug_text;
-extern char map_with_password;
-extern int debug_enabled;
-extern char marker; //tato promenna je 0, jen v pripade ze je 1 probehne assert
-#define MARKER_SET() {SEND_LOG("(MARKER) Marker Sets",0,0);marker=1;}
-#define MARKER_RESET() {SEND_LOG("(MARKER) Marker Resets",0,0);marker=0;}
-#define MARKER_HIT(action) if (marker) \
-                       {                \
-                       SEND_LOG("(MARKER) Marker hit!",0,0);\
-                       action;\
-                       MARKER_RESET();\
-                       }
+extern char log_combat;
 
 //builder - skeldal
 
@@ -1617,6 +1598,7 @@ THUMAN *isplayer(int sector,THUMAN *h,char death);
      Death=1 pocita i mrtvoly
   */
 int trace_path(int sector,int dir); //zjistuje zda je mozne strilet
+void wzprintf(const char *text,...) __attribute__((format(printf, 1, 2)));
 
 
 int numplayers(int sector,char death);

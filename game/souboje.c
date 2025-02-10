@@ -317,7 +317,6 @@ char q_zacit_souboj(TMOB *p,int d,short sector)
   int i;
 
   if (p->vlastnosti[VLS_KOUZLA] & (SPL_STONED | SPL_FEAR)) return 0;
-  dsee++;
 //  if (battle) return 1;
   prekvapeni=0;
   if (d>p->dosah) return 0;
@@ -356,6 +355,13 @@ int vypocet_zasahu(short *utocnik,short *obrance, int chaos,int  zbran,int exter
   int zasah,mutok,flg;
   flg=obrance[VLS_KOUZLA];
   short attack_attribute = MAX(utocnik[VLS_SILA], utocnik[VLS_OBRAT]);
+  int utok,obrana;
+  int ospod;
+  int attack_roll,defense_roll,mag_att_roll,mg_def;
+  int dmzhit = 0;
+  int ddostal = 0;
+  int disadv = 0;
+  /*
   if (game_extras & EX_ALTERNATEFIGHT)
   	{
 	int postih=(chaos+1)/2;
@@ -380,45 +386,68 @@ int vypocet_zasahu(short *utocnik,short *obrance, int chaos,int  zbran,int exter
   	dmzhit=mutok;
 	zasah=utok-obrana;
 	}
-  else
+  else*/
 	{
-	int utok,obrana;
-	int ospod;
-	int attack_roll,defense_roll,mag_att_roll,mg_def;
 
-	chaos=(chaos+1)/2;   //chaos - pocet postav, 0=>1, 1=>1,2=>1,3=>2,4=>2,5=>3,6=>3
+	disadv=(chaos+1)/2;   //chaos - pocet postav, 0=>1, 1=>1,2=>1,3=>2,4=>2,5=>3,6=>3
 	//nizsi obrana je snizena o pocet postav na poli
 	//0-2=>no change, 3-4=>/2, 5-6=>/3
-	ospod=obrance[VLS_OBRAN_L]/chaos;
-	attack_roll=rnd(utocnik[VLS_UTOK_H]-utocnik[VLS_UTOK_L]+1);
-	defense_roll=rnd(obrance[VLS_OBRAN_H]-ospod+1);
-	mag_att_roll=rnd(utocnik[VLS_MGSIL_H]-utocnik[VLS_MGSIL_L]+1);
+	ospod=obrance[VLS_OBRAN_L]/disadv;
+	attack_roll=utocnik[VLS_UTOK_L]+rnd(utocnik[VLS_UTOK_H]-utocnik[VLS_UTOK_L]+1);
+	defense_roll=ospod+rnd(obrance[VLS_OBRAN_H]-ospod+1);
+	mag_att_roll=utocnik[VLS_MGSIL_L]+rnd(utocnik[VLS_MGSIL_H]-utocnik[VLS_MGSIL_L]+1);
 
 	//hit=attack_roll+max(str,dex)+external_force
-	dhit=utok=utocnik[VLS_UTOK_L]+attack_roll+attack_attribute/5+external_force;
+	utok=attack_roll+attack_attribute/5+external_force;
 	//def=defense_roll+dex/5+(10 if invisible)
-	obrana=ospod+defense_roll+(obrance[VLS_OBRAT]/5)+(flg & SPL_INVIS?10:0);
+	obrana=defense_roll+(obrance[VLS_OBRAT]/5)+(flg & SPL_INVIS?10:0);
 	//mg_attack = magic_roll
-	mutok=utocnik[VLS_MGSIL_L]+mag_att_roll;
+	mutok=mag_att_roll+(mag_att_roll?(utocnik[VLS_SMAGIE]/5):0);
 	//mg_deffense (100-x)
-	mg_def=mgochrana(obrance[VLS_OHEN+utocnik[VLS_MGZIVEL]]);
+	mg_def=obrance[VLS_OHEN+utocnik[VLS_MGZIVEL]];
 	//adjust magic attack
-	mutok=mg_def*mutok/100;
-	dmzhit=mutok;
-	zasah=utok-(ddef=obrana);
+	dmzhit=mgochrana(mg_def)*mutok/100;
+	zasah=utok-obrana;
 	}
   if (zasah<0) zasah=0;
-  if (zasah>0) zasah+=utocnik[VLS_DAMAGE],zasah=MAX(zasah,1);
+  int damage = utocnik[VLS_DAMAGE]+zbran;
+  if (zasah<0 || damage<0) damage = 0;
   ddostal=zasah;
-  if (flg & SPL_SANC) zasah/=2;
-  zasah=zasah+mutok;
-  if (zasah>0)
-	{
-	zasah+=zbran;
-	if (zasah<1) zasah=1;
-	}
-  if (flg & SPL_HSANC) zasah/=2;
-  if (flg & SPL_TVAR) zasah=-zasah;
+  zasah+=damage;
+  if (log_combat) {
+      wzprintf("Combat: Attack roll (%d-%d) = %d, "
+               "Defense disadv.: %d*2/(%d+1)=%d , "
+               "Defense roll (%d-%d) = %d, "
+               "Magic roll (%d-%d) = %d\n",
+               (int)utocnik[VLS_UTOK_L],(int)utocnik[VLS_UTOK_H],attack_roll,
+               (int)obrance[VLS_OBRAN_L],chaos, ospod,
+               ospod,(int)obrance[VLS_OBRAN_H], defense_roll,
+               (int)utocnik[VLS_MGSIL_L],(int)utocnik[VLS_MGSIL_H], mag_att_roll);
+      wzprintf("Combat: phys.hit: %d(att.roll) + %d(%s)/5 +%d(ext.force) - %d(def.roll)-%d(%s)/5 + %d(damage)=%d(%d)\n",
+                attack_roll, attack_attribute,
+                attack_attribute==utocnik[VLS_SILA]?texty[10]:texty[13],
+                        external_force, defense_roll, (int)obrance[VLS_OBRAT],
+                        texty[13], damage, utok-obrana,  zasah);
+      if (mag_att_roll) {
+          wzprintf("Combat: %d(magic roll) + %d(%s)/5 = %d, magic resistance = %d(%s), magic hit: %d * (100 - %d)/100 = %d\n",
+                  mag_att_roll, (int)utocnik[VLS_SMAGIE], texty[11], mutok, mg_def,texty[22+utocnik[VLS_MGZIVEL]], mutok, mg_def, dmzhit);
+
+      }
+  }
+  if (flg & SPL_SANC) {
+      zasah/=2;
+      if (log_combat) wzprintf("Physical resistance applied: %d/2 = %d", ddostal, zasah);
+      ddostal = zasah;
+  }
+  zasah=zasah+dmzhit;
+  if (flg & SPL_HSANC) {
+      zasah/=2;
+      if (log_combat) wzprintf("Total resistance applied: %d/2 = %d", ddostal, zasah);
+  }
+  if (flg & SPL_TVAR) {
+      if (log_combat) wzprintf("Set Face spell applied: %d = -%d (heal)", zasah, zasah);
+      zasah=-zasah;
+  }
   return zasah;
   }
 
@@ -952,7 +981,7 @@ void hod_dykou(THUMAN *p,int where,int bonus)
   picked_item[1]=0;
   v=throw_fly(320,100,0);
   v->ypos=ps;
-  v->hit_bonus=(p->vlastnosti[VLS_OBRAT]*3+p->vlastnosti[VLS_SILA]*2)/30+bonus;
+  v->hit_bonus=p->vlastnosti[VLS_OBRAT]/10+bonus;
   v->damage=0;
   for(i=0;i<p->inv_size;i++)
      {
@@ -971,6 +1000,11 @@ void hod_dykou(THUMAN *p,int where,int bonus)
      }
   if(i==p->inv_size) p->wearing[where]=0;
   picked_item=pp;
+  if (log_combat) {
+      wzprintf("%s throws: ext.force: %d(%s)/10+%d(bonus) = %d\n",
+              p->jmeno, p->vlastnosti[VLS_OBRAT], texty[13],
+              bonus, v->hit_bonus);
+  }
   }
 
 void vystrel_sip(THUMAN *p,int bonus)
@@ -978,7 +1012,7 @@ void vystrel_sip(THUMAN *p,int bonus)
   short *pp;
   int ps;
   int i;
-  int x;
+  int attack_roll;
   LETICI_VEC *v;
   TITEM *t;
 
@@ -1002,8 +1036,8 @@ void vystrel_sip(THUMAN *p,int bonus)
   p->sipy--;
   v=throw_fly(320,100,1);
   v->ypos=ps;
-  x=rnd(p->vlastnosti[VLS_UTOK_H]-p->vlastnosti[VLS_UTOK_L]);
-  v->hit_bonus=x+p->vlastnosti[VLS_UTOK_L]+(p->vlastnosti[VLS_SILA]*10+p->vlastnosti[VLS_OBRAT]*15)/150+bonus;
+  attack_roll=p->vlastnosti[VLS_UTOK_L]+rnd(p->vlastnosti[VLS_UTOK_H]-p->vlastnosti[VLS_UTOK_L]);
+  v->hit_bonus=attack_roll+(p->vlastnosti[VLS_OBRAT]/5)+bonus;
   v->damage=p->vlastnosti[VLS_DAMAGE];
   picked_item=pp;
   t->zmeny[VLS_MGSIL_H]=p->vlastnosti[VLS_MGSIL_H]; //adjust zmen v magickem utoku
@@ -1011,6 +1045,15 @@ void vystrel_sip(THUMAN *p,int bonus)
   t->zmeny[VLS_MGZIVEL]=p->vlastnosti[VLS_MGZIVEL];
   play_sample_at_sector(H_SND_SIP1+rnd(2),0,0,0,0);
   neco_v_pohybu=1;
+
+  if (log_combat) {
+      wzprintf("%s shoots: attack_roll (%d-%d)=%d, ext.force: %d + %d(%s)/5+%d(bonus) = %d\n",
+              p->jmeno, p->vlastnosti[VLS_UTOK_L], p->vlastnosti[VLS_UTOK_H],
+              attack_roll,
+              attack_roll, p->vlastnosti[VLS_OBRAT], texty[13],
+              bonus, v->hit_bonus);
+  }
+
   }
 
 char is_useable_weapon(int i)
@@ -1313,7 +1356,9 @@ void jadro_souboje(EVENT_MSG *msg,void **unused) //!!!! Jadro souboje
                 case AC_THROW:
                              {
                              int x,y;
-                             memcpy(&picked_item,&p->provadena_akce->data2,sizeof(short *));
+                             picked_item = getmem(sizeof(short)*2);
+                             picked_item[0] = p->provadena_akce->data2;
+                             picked_item[1] = 0;
                              x=p->provadena_akce->data1;
                              y=(x>>8)*2;x=(x & 0xff)*4;
                              prejdi_na_pohled(p);
@@ -1800,7 +1845,9 @@ void zrusit_akce()
      if (c->action==AC_THROW)
         {
         poloz_vsechny_predmety();
-        memcpy(&picked_item,&c->data2,sizeof(short *));
+        picked_item = getmem(sizeof(short)*2);
+        picked_item[0] = c->data2;
+        picked_item[1] = 0;
         c++;
         }
      else c++;
@@ -1818,10 +1865,13 @@ char souboje_clk_throw(int id,int xa,int ya,int xr,int yr)
 
   if (postavy[select_player].actions==0) return 0;
   if (picked_item==NULL) return 0;
+  if (picked_item[1] != 0) return 0;
   postavy[select_player].direction=viewdir;
   c=postavy[select_player].zvolene_akce;while (c->action) c++;
   c->action=AC_THROW;
-  memcpy(&c->data2,&picked_item,sizeof(short *));picked_item=NULL;
+  c->data2 = picked_item[0];
+  free(picked_item);
+  picked_item = NULL;
   c->data1=xa/4+(ya/2)*256;
   c++;
   c->action=0;
@@ -2396,6 +2446,9 @@ void send_experience(TMOB *p,int dostal)
   if (p->lives<=0)
      {
      int i;
+     if (log_combat && p->bonus) {
+         wzprintf("Group experience: %d\n", p->bonus);
+     }
      for(i=0;i<POCET_POSTAV;i++) if (postavy[i].used && postavy[i].lives)
                                    {
                                    postavy[i].exp+=p->bonus;
@@ -2407,7 +2460,14 @@ void send_experience(TMOB *p,int dostal)
         player_check_death(postavy+select_player,0);
         }
      }
-  if (dostal>0) postavy[select_player].exp+=(int32_t)((float)p->experience*(float)dostal/p->vlastnosti[VLS_MAXHIT]);
+  if (dostal>0) {
+      int exp = ((float)p->experience*(float)dostal/p->vlastnosti[VLS_MAXHIT]);
+      if (log_combat && p->bonus) {
+          wzprintf("%s experience: %d\n", postavy[select_player].jmeno, p->bonus);
+      }
+
+      postavy[select_player].exp+=(int32_t)exp;
+  }
   check_player_new_level(&postavy[select_player]);
   }
 

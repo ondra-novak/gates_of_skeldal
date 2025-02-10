@@ -186,7 +186,6 @@ static void mob_reload(EVENT_MSG *msg,void **_){
         play_sample_at_sector(H_SND_TELEPOUT,viewsector,m->home_pos,0,0);
         add_spectxtr(m->home_pos,H_TELEP_PCX,14,1,0);
         refresh_mob_map();
-        debug_text="New monster arrived to the dungeon !";
         SEND_LOG("(RELOAD) Mob reloaded: '%s' at sector %d",m->name,m->home_pos);
         free_path(m-mobs);
         }
@@ -1360,65 +1359,76 @@ void mob_check_death(int num,TMOB *p)
   }
 extern char att_player;
 
-void mob_hit(TMOB *mm,int dostal)
-  {
-  int ch;
-	int mob_dostal=0,mob_dostal_pocet=0;
+void mob_hit(TMOB *mm, int dostal) {
+    int ch;
+    int mob_dostal = 0, mob_dostal_pocet = 0;
 
-  if (mm->vlajky & MOB_PASSABLE) return;
-  if (dostal>mm->vlastnosti[VLS_MAXHIT]) dostal=mm->vlastnosti[VLS_MAXHIT];
-  mm->headx=mm->locx;
-  mm->heady=mm->locy;
-  mm->lives-=dostal;
-  mob_dostal_pocet=dostal;
-  mm->dostal+=dostal;
-  if (dostal>0) mm->vlajky|=MOB_IN_BATTLE;
-  //mm->stay_strategy|=MOB_WALK | MOB_WATCH;
-  mm->dialog_flags|=0x2;
-  if (mm->lives>mm->vlastnosti[VLS_MAXHIT]) mm->lives=mm->vlastnosti[VLS_MAXHIT];
-  dlives=mm->lives;
-  if (dostal>0)
-     {
-     ddostal=dostal;
-     send_experience(mm,dostal);
-     att_player=select_player;
-     if (dostal<mm->lives) ch=dostal*3/mm->lives;else ch=2;
-     mob_dostal=ch+1;
-     bott_draw(0);
-     if (mm->lives<1)
-        {
-        int xpos = 0;
-        switch (viewdir)
-           {
-           case 0:xpos=-(mm->locx-128);break;
-           case 1:xpos=-(mm->locy-128);break;
-           case 2:xpos=(mm->locx-128);break;
-           case 3:xpos=(mm->locy-128);break;
-           }
-        add_spectxtr(mm->sector,H_KILL,10,1,xpos*23/10);
-        mm->anim_phase=MOB_DEATH;
+    if (mm->vlajky & MOB_PASSABLE)
+        return;
+    if (dostal > mm->vlastnosti[VLS_MAXHIT])
+        dostal = mm->vlastnosti[VLS_MAXHIT];
+    mm->headx = mm->locx;
+    mm->heady = mm->locy;
+    mm->lives -= dostal;
+    mob_dostal_pocet = dostal;
+    mm->dostal += dostal;
+    if (dostal > 0)
+        mm->vlajky |= MOB_IN_BATTLE;
+    //mm->stay_strategy|=MOB_WALK | MOB_WATCH;
+    mm->dialog_flags |= 0x2;
+    if (mm->lives > mm->vlastnosti[VLS_MAXHIT])
+        mm->lives = mm->vlastnosti[VLS_MAXHIT];
+    if (log_combat) wzprintf("%s was hit: %d, lives: %d\n", mm->name, dostal, mm->lives);
+    if (dostal > 0) {
+        send_experience(mm, dostal);
+        att_player = select_player;
+        if (dostal < mm->lives)
+            ch = dostal * 3 / mm->lives;
+        else
+            ch = 2;
+        mob_dostal = ch + 1;
+        bott_draw(0);
+        if (mm->lives < 1) {
+            int xpos = 0;
+            switch (viewdir) {
+                case 0:
+                    xpos = -(mm->locx - 128);
+                    break;
+                case 1:
+                    xpos = -(mm->locy - 128);
+                    break;
+                case 2:
+                    xpos = (mm->locx - 128);
+                    break;
+                case 3:
+                    xpos = (mm->locy - 128);
+                    break;
+            }
+            add_spectxtr(mm->sector, H_KILL, 10, 1, xpos * 23 / 10);
+            mm->anim_phase = MOB_DEATH;
+        } else
+            mm->anim_phase = MOB_TO_HIT;
+        mm->anim_counter = 0;
+        mm->mode = MBA_NONE;
+        mob_sound_event(mm, MBS_HIT);
+        battle |= dostal > 0;
+        if (vybrana_zbran > -1)  //utok zbrani?
+                {
+            int druh;
+            if (vybrana_zbran != 0)  //neni to utok holyma rukama
+                    {
+                TITEM *it;
+                it = &glob_items[vybrana_zbran - 1];
+                druh = it->typ_zbrane;
+            } else
+                druh = TPW_OST;
+            send_weapon_skill(druh);
+            vybrana_zbran = -1;
         }
-     else mm->anim_phase=MOB_TO_HIT;
-     mm->anim_counter=0;
-     mm->mode=MBA_NONE;
-     mob_sound_event(mm,MBS_HIT);
-     battle|=dostal>0;
-     if (vybrana_zbran>-1)  //utok zbrani?
-        {
-        int druh;
-        if (vybrana_zbran!=0)  //neni to utok holyma rukama
-           {
-           TITEM *it;
-           it=&glob_items[vybrana_zbran-1];
-           druh=it->typ_zbrane;
-           }
-        else druh=TPW_OST;
-        send_weapon_skill(druh);
-        vybrana_zbran=-1;
-        }
-     }
-	if (mob_dostal_pocet>0)draw_blood(1,mob_dostal,mob_dostal_pocet);
-	}
+    }
+    if (mob_dostal_pocet > 0)
+        draw_blood(1, mob_dostal, mob_dostal_pocet);
+}
 
 
 void mob_strelba(TMOB *p)
@@ -2169,6 +2179,7 @@ int utok_na_sektor(THUMAN *p,TMOB *mm,int ch,int bonus)
   if (mm->vlastnosti[VLS_KOUZLA] & SPL_OKO)  //oko za oko pro potvoru
      {
      p->lives-=dostal;
+     if (log_combat) wzprintf("%s was hit (eye for an eye): %d\n", p->jmeno, dostal);
      player_check_death(p,0);
      }
   if (dostal)
@@ -2177,18 +2188,22 @@ int utok_na_sektor(THUMAN *p,TMOB *mm,int ch,int bonus)
      play_sample_at_sector(H_SND_SWHIT1+rnd(2),viewsector,viewsector,0,0);
      if (p->vlastnosti[VLS_KOUZLA] & SPL_DRAIN)
         {
-        p->lives+=dostal*8/(rnd(16)+16);
+         int drain_roll = rnd(16)+16;
+         int drain = dostal*8/drain_roll;
+        p->lives+=drain;
+        if (log_combat) wzprintf("%s received (live drain): %d(hit) x 8 / %d(drain_roll) = %d HP\n",
+                p->jmeno, dostal, drain_roll, drain);
         if (p->lives>p->vlastnosti[VLS_MAXHIT]) p->lives=p->vlastnosti[VLS_MAXHIT];
         }
      }
   else
      {
-     ddostal=0;
+     dostal=0;
      play_sample_at_sector(H_SND_SWMISS1+rnd(2),viewsector,viewsector,0,0);
      }
   mm->vlajky|=MOB_IN_BATTLE;
   neco_v_pohybu=1;
-  return ddostal;
+  return dostal;
   }
 
 void sleep_enemy(char regen)

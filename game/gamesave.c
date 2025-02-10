@@ -942,7 +942,9 @@ static char is_same_prefix(const char *name, const char *prev_name) {
 }
 
 static int get_all_savegames_callback(const char *name, LIST_FILE_TYPE  type , size_t size, void *ctx) {
-    if (istrncmp(name, "sav.", 4) != 0) return 1;
+    if (istrncmp(name, "sav.", 4) != 0
+            && istrcmp(name+strlen(name)-4,".sav") != 0)
+            return 0;
     TSAVEGAME_CB_STATE *st = (TSAVEGAME_CB_STATE *)ctx;
     if (st->prefix_len == 0 || strncmp(name, st->prefix, st->prefix_len) == 0) {
         str_replace(&(st->files), st->count, name);
@@ -1006,7 +1008,7 @@ static void load_specific_file(int slot_num,char *filename,void **out,int32_t *s
 static TSAVEGAME_LIST get_all_savegames(unsigned long kampan) {
     //sav.creation_time.game_save_time
     char prefix[50];
-    snprintf(prefix,500,"sav.%010lx.",kampan);
+    snprintf(prefix,50,"sav.%010lx.",kampan);
     TSAVEGAME_CB_STATE st;
     st.files = create_list(32);
     st.prefix = kampan?prefix:NULL;

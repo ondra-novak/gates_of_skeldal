@@ -89,17 +89,8 @@ word minimap[VIEW3D_Z+1][VIEW3D_X*2+1];
 
 
 
-//debug - !!!!
+char log_combat=0;
 
-int dhit=0;
-int ddef=0;
-int ddostal=0;
-int dlives=0;
-int dmzhit=0;
-int dsee=0;
-char show_debug=0;
-char *debug_text;
-char marker=0;
 
 
 SPECTXT_ARR spectxtr;
@@ -1275,35 +1266,6 @@ void render_scene(int sector, int smer)
   if (lodka) zobraz_lodku(ablock(H_LODKA),LODKA_POS,LODKA_SIZ);
   }
 
-void debug_print()
-  {
-  char s[256];
-  static char indx=50;
-  static int counter=0;
-
-  sprintf(s,"battle: %d waiting: %d lhit: %3d ldef: %3d hit: %3d magic-hit: %3d lives: %3d weapon: %d",
-             battle,  neco_v_pohybu,    dhit,       ddef,      ddostal,    dmzhit,   dlives, vybrana_zbran );
-  trans_bar(0,17,640,15,0);
-  position(0,17);set_font(H_FONT6,0x3ff);
-  if (debug_text!=NULL)
-     {
-      outtext(debug_text);
-      counter++;
-      if (counter==100)
-        {
-        counter=0;
-        debug_text=NULL;
-        }
-     }
-  else outtext(s);
-  if (dsee) indx--;
-  if (!indx)
-     {
-      dsee=0;
-      indx=10;
-     }
-
-  }
 
 void death_screen() {
     trans_bar(0, 0, 640, 480, 0);
@@ -1337,7 +1299,6 @@ void redraw_scene()
   if (one_buffer) RestoreScreen();
   OutBuffer2nd();
   if (battle || (game_extras & EX_ALWAYS_MINIMAP)) draw_medium_map();
-  if (show_debug) debug_print();
   other_draw();
   if (cur_mode == MD_END_GAME) {
       death_screen();

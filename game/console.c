@@ -10,7 +10,7 @@ void macro_drop_item(int sector,int smer,short item);
 /****/
 
 
-static void wzprintf(const char *text,...);
+void wzprintf(const char *text,...) __attribute__((format(printf, 1, 2)));
 static void wzputs(const char *text);
 
 char *side_flags[]=
@@ -476,7 +476,7 @@ static int add_file_to_console(const char *name, LIST_FILE_TYPE _, size_t __, vo
 
 static int process_on_off_command(const char *cmd, char on) {
     if (istrcmp(cmd, "inner-eye") == 0) {
-        show_debug = on;
+        log_combat = on;
         return 1;
     }
     if (istrcmp(cmd, "hunter-instinct") == 0) {
@@ -659,7 +659,7 @@ static void wiz_find_monster(const char *name) {
 
     for (size_t i = 0; i <cnt; ++i) {
         if (imatch(mobs[i].name, name)) {
-           wzprintf("m%d %s\n", i, mobs[i].name);
+           wzprintf("m%d %s\n", (int)i, mobs[i].name);
         }
     }
 }
@@ -806,7 +806,8 @@ void console_show(char show) {
 
 }
 
-static void wzprintf(const char *text,...)
+
+void wzprintf(const char *text,...)
   {
     char buff[console_max_characters+1];
     static char wzprint_line[console_max_characters+1];

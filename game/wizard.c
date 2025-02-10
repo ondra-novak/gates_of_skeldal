@@ -429,7 +429,7 @@ void wizard_kbd(EVENT_MSG *msg,void **usr)
      switch (c)
         {
         case 'C':
-        case '<':show_debug=!show_debug;break;
+        case '<':log_combat=!log_combat;break;
         case '=':show_lives=!show_lives;break;
         case '>':if (mman_action!=NULL) mman_action=NULL;else mman_action=mman_scan;break;
         case '@':set_immortality();set_nohassle();break;
