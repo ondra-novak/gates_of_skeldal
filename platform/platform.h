@@ -17,9 +17,19 @@
 #pragma warning(disable: 4457)
 #pragma warning(disable: 4702)
 #pragma warning(disable: 4100)
+//microsoft doesn't support FALLTHROUGH
 #define CASE_FALLTHROUGH
+
+//microsoft doesn't support VLA
+#define DECL_VLA(type, variable, count) type *variable = (type *)alloca((count)*sizeof(type)); 
+#define GET_VLA_SIZE(variable, count) ((count)*sizeof(*variable))
+
 #else
+//support FALLTHROUGH
 #define CASE_FALLTHROUGH [[fallthrough]]
+//support VLA
+#define DECL_VLA(type, variable, count) type variable[count];
+#define GET_VLA_SIZE(variable, count) sizeof(variable)
 #endif
 
 
@@ -90,6 +100,7 @@ const char *file_icase_find(const char *pathname);
 int istrcmp(const char *a, const char *b);
 int istrncmp(const char *a, const char *b, size_t sz);
 int imatch(const char *haystack, const char *needle);
+#define SAFESTRCOPY(target, source) strcopy_n(target, source, sizeof(target) )
 const char *strcopy_n(char *target, const char *source, int target_size);
 #define MIN(a, b) ((a)<(b)?(a):(b))
 #define MAX(a, b) ((a)>(b)?(a):(b))
@@ -104,7 +115,8 @@ typedef enum {
     file_type_normal = 1,
     file_type_directory = 2,
     file_type_dot = 4,
-    file_type_just_name = 8
+    file_type_just_name = 8,
+    file_type_need_timestamp = 16
 } LIST_FILE_TYPE;
 
 typedef int (*LIST_FILES_CALLBACK)(const char *, LIST_FILE_TYPE , size_t, void *);

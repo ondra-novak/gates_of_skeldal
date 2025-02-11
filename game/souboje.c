@@ -108,6 +108,8 @@ static char ask_who_proc(int id,int xa,int ya,int xr,int yr);
 void wire_programming();
 void souboje_vybrano(int d);
 void program_draw();
+static void souboje_turn(int smer);
+static char clk_fly_cursor(int id,int xa,int ya,int xr,int yr);
 
 void (*after_spell_wire)();
 
@@ -126,7 +128,7 @@ HUM_ACTION *magic_data;
 
 static int minwait=0,maxwait=-1;
 
-#define CLK_SOUBOJE 15
+#define CLK_SOUBOJE 16
 T_CLK_MAP clk_souboje[]=
   {
   {-1,337,0,357,14,go_map,2,H_MS_DEFAULT},
@@ -143,6 +145,7 @@ T_CLK_MAP clk_souboje[]=
   {-1,528,378,630,479,mask_click_help,1,-1},
   {-1,0,0,640,480,mask_click_help_clear,1,-1},
   {MS_GAME_WIN,0,17,639,377,souboje_clk_throw,2,-1},
+  {MS_GAME_WIN,0,17,639,377,clk_fly_cursor,8,-1},
   {-1,54,378,497,479,start_invetory,2+8,-1},
   };
 
@@ -350,17 +353,21 @@ void zacni_souboj(TMOB *p,int d,short sector)
 
 
 
-int vypocet_zasahu(short *utocnik,short *obrance, int chaos,int  zbran,int external_force)
+int vypocet_zasahu(const short *utocnik,const short *obrance, int chaos,int  zbran,int external_force, char enable_finesse_rule)
   {
   int zasah,mutok,flg;
   flg=obrance[VLS_KOUZLA];
-  short attack_attribute = MAX(utocnik[VLS_SILA], utocnik[VLS_OBRAT]);
+  short attbonus = enable_finesse_rule?MAX(utocnik[VLS_SILA], utocnik[VLS_OBRAT]):utocnik[VLS_SILA];
+  char finesse = utocnik[VLS_SILA] != attbonus;
+  attbonus/=5;
   int utok,obrana;
   int ospod;
   int attack_roll,defense_roll,mag_att_roll,mg_def;
   int dmzhit = 0;
   int ddostal = 0;
   int disadv = 0;
+  int obrbonus = obrance[VLS_OBRAT]/5;
+  int magbonus = utocnik[VLS_SMAGIE]/5;
   /*
   if (game_extras & EX_ALTERNATEFIGHT)
   	{
@@ -398,11 +405,11 @@ int vypocet_zasahu(short *utocnik,short *obrance, int chaos,int  zbran,int exter
 	mag_att_roll=utocnik[VLS_MGSIL_L]+rnd(utocnik[VLS_MGSIL_H]-utocnik[VLS_MGSIL_L]+1);
 
 	//hit=attack_roll+max(str,dex)+external_force
-	utok=attack_roll+attack_attribute/5+external_force;
+	utok=attack_roll+attbonus+external_force;
 	//def=defense_roll+dex/5+(10 if invisible)
-	obrana=defense_roll+(obrance[VLS_OBRAT]/5)+(flg & SPL_INVIS?10:0);
+	obrana=defense_roll+obrbonus+(flg & SPL_INVIS?10:0);
 	//mg_attack = magic_roll
-	mutok=mag_att_roll+(mag_att_roll?(utocnik[VLS_SMAGIE]/5):0);
+	mutok=mag_att_roll+(mag_att_roll?magbonus:0);
 	//mg_deffense (100-x)
 	mg_def=obrance[VLS_OHEN+utocnik[VLS_MGZIVEL]];
 	//adjust magic attack
@@ -411,44 +418,62 @@ int vypocet_zasahu(short *utocnik,short *obrance, int chaos,int  zbran,int exter
 	}
   if (zasah<0) zasah=0;
   int damage = utocnik[VLS_DAMAGE]+zbran;
-  if (zasah<0 || damage<0) damage = 0;
+  if (zasah<=0 || damage<=0) damage = 0;
   ddostal=zasah;
   zasah+=damage;
   if (log_combat) {
-      wzprintf("Combat: Attack roll (%d-%d) = %d, "
-               "Defense disadv.: %d*2/(%d+1)=%d , "
-               "Defense roll (%d-%d) = %d, "
-               "Magic roll (%d-%d) = %d\n",
-               (int)utocnik[VLS_UTOK_L],(int)utocnik[VLS_UTOK_H],attack_roll,
-               (int)obrance[VLS_OBRAN_L],chaos, ospod,
-               ospod,(int)obrance[VLS_OBRAN_H], defense_roll,
-               (int)utocnik[VLS_MGSIL_L],(int)utocnik[VLS_MGSIL_H], mag_att_roll);
-      wzprintf("Combat: phys.hit: %d(att.roll) + %d(%s)/5 +%d(ext.force) - %d(def.roll)-%d(%s)/5 + %d(damage)=%d(%d)\n",
-                attack_roll, attack_attribute,
-                attack_attribute==utocnik[VLS_SILA]?texty[10]:texty[13],
-                        external_force, defense_roll, (int)obrance[VLS_OBRAT],
-                        texty[13], damage, utok-obrana,  zasah);
-      if (mag_att_roll) {
-          wzprintf("Combat: %d(magic roll) + %d(%s)/5 = %d, magic resistance = %d(%s), magic hit: %d * (100 - %d)/100 = %d\n",
-                  mag_att_roll, (int)utocnik[VLS_SMAGIE], texty[11], mutok, mg_def,texty[22+utocnik[VLS_MGZIVEL]], mutok, mg_def, dmzhit);
-
+      wzprintf(">");
+      if (utocnik[VLS_UTOK_H]) {
+        wzprintf("Attack (physical): %d (roll %d-%d) + %d (%s/5) + %d (ext.force) = %d\n",
+                  attack_roll, (int)utocnik[VLS_UTOK_L],(int)utocnik[VLS_UTOK_H], 
+                  attbonus, finesse?texty[13]:texty[10],
+                  external_force,utok);
+        } else if (external_force) {
+            wzprintf("Attack (physical):  %d (ext.force)\n", external_force);
+        }      
+      if (obrance[VLS_OBRAN_H] && utok > 0) {
+           char chaos[50];
+           if (disadv > 1) snprintf(chaos, 50, ", disadvantage %d", disadv);
+           else strcpy(chaos,"");
+           wzprintf(" Defense (physical):  %d (roll %d-%d%s) + %d (%s/5) = %d\n",
+              defense_roll, ospod, obrance[VLS_OBRAN_H], chaos, obrbonus, texty[13], obrana);          
+      }
+      if (zasah>0) {
+          if (damage) {
+              wzprintf(" Psychical hit: %d - %d + %d (damage) + %d (weapon) = %d\n",
+                utok, obrana, utocnik[VLS_DAMAGE], zbran, zasah);        
+          } else {
+            wzprintf(" Psychical hit: %d - %d = %d\n",
+              utok, obrana, zasah);
+          }
       }
   }
   if (flg & SPL_SANC) {
       zasah/=2;
-      if (log_combat) wzprintf("Physical resistance applied: %d/2 = %d", ddostal, zasah);
+      if (log_combat) wzprintf( "Physical resistance applied: %d - %d (half)= %d\n", ddostal,ddostal - zasah, zasah);
       ddostal = zasah;
   }
-  zasah=zasah+dmzhit;
+  int total_hit = zasah+dmzhit;
+  if (log_combat) {
+    if ((int)utocnik[VLS_MGSIL_H]) {
+      wzprintf(" Attack (magical): %d (roll %d-%d) + %d (%s/5) = %d\n",
+          mag_att_roll,(int)utocnik[VLS_MGSIL_L],(int)utocnik[VLS_MGSIL_H], magbonus, texty[11], mutok);
+      wzprintf(" Magical hit: %d - %d (resistance %s: %d%%) = %d\n",
+          mutok, mutok - dmzhit, texty[22+utocnik[VLS_MGZIVEL]], mg_def, dmzhit);
+      wzprintf(" Total hit: %d (physical) + %d (magical) = %d\n",
+          zasah, dmzhit, total_hit);
+    }
+  }
   if (flg & SPL_HSANC) {
-      zasah/=2;
-      if (log_combat) wzprintf("Total resistance applied: %d/2 = %d", ddostal, zasah);
+      int tmp = total_hit;
+      total_hit/=2;
+      if (log_combat) wzprintf("Total resistance applied: %d - %d (half) = %d\n", tmp, total_hit - tmp);
   }
   if (flg & SPL_TVAR) {
-      if (log_combat) wzprintf("Set Face spell applied: %d = -%d (heal)", zasah, zasah);
-      zasah=-zasah;
+      if (log_combat) wzprintf("Set Face spell applied: %d = -%d (heal)\n", total_hit, -total_hit);
+      total_hit=-total_hit;
   }
-  return zasah;
+  return total_hit;
   }
 
 void rozhodni_o_poradi()
@@ -628,7 +653,7 @@ void zacatek_kola()
         if (p->kondice && p->lives && p->inmaphash == current_map_hash)
            {
            pc_gain_action(p);
-           p->actions=pc_get_actions(p);
+           p->actions=MAX(1, postavy[i].vlastnosti[VLS_POHYB]/15);
        //    if (p->actions) autostart_round=0;
            }
         else postavy[i].actions=0;
@@ -1181,14 +1206,22 @@ void pouzij_zbran(THUMAN *p,int ruka)
      mm=vyber_potvoru(p->sektor,p->direction,&chaos);
      if (mm>=0)
         {
-        TITEM *it=glob_items+itm-1;
+        TITEM *it=itm?glob_items+itm-1:NULL;
         m=mobs+mm;
         bott_draw(1);
         anim_mirror=ruka==0;
         prejdi_na_pohled(p);
         if (itm) play_weapon_anim(it->weapon_attack,it->hitpos);
-        if (utok_na_sektor(p,m,chaos,bonus)>0 && itm && (int)rnd(100)+1<it->magie)
-           thing_cast(it->spell,p-postavy,p->sektor,m,1);
+        if (utok_na_sektor(p,m,chaos,bonus,it==NULL || it->umisteni == PL_OBOUR?0:where)>0 && itm ) {
+          int roll = (int)rnd(100)+1;
+          char cast = roll <it->magie;
+          if (cast) {
+            if (log_combat) wzprintf(" Weapon cast: %s - %d (roll) > %d (probability)\n",it->jmeno, roll, it->magie);
+            thing_cast(it->spell,p-postavy,p->sektor,m,1);
+          }
+        }
+
+          
         }
      }
   else
@@ -1904,6 +1937,27 @@ char mask_click_help_clear(int id,int xa,int ya,int xr,int yr)
   return 1;
   }
 
+  static char clk_fly_cursor(int id,int xa,int ya,int xr,int yr)
+  {
+  id;
+
+  if (spell_cast)
+     {
+     spell_cast=0;
+     pick_set_cursor();
+     return 1;
+     }
+  if (xr<160) {
+    souboje_turn(-1);
+  } else if (xr > 480) {
+    souboje_turn(1);
+  } else {
+    return 0;
+  }
+  return 1;
+  }
+
+
 static void zahajit_kolo(char prekvapeni)
   {
   int i,j;
@@ -2027,7 +2081,7 @@ void fix_group_direction()
      if (postavy[i].used && postavy[i].groupnum==g && !postavy[i].programovano) postavy[i].direction=viewdir;
   }
 
-void souboje_turn(int smer)
+static void souboje_turn(int smer)
   {
     if (pass_zavora) return;
   norefresh=1;
@@ -2257,15 +2311,15 @@ char zasah_veci(int sector,TFLY *fl)
             if (m2 == NULL) {
                 mob_hit(m1,
                         vypocet_zasahu(it->zmeny, m1->vlastnosti, 1, fl->damage,
-                                fl->hit_bonus));
+                                fl->hit_bonus,0));
                 m1->dir = (fl->smer + 2) & 3;
             } else {
                 mob_hit(m1,
                         vypocet_zasahu(it->zmeny, m1->vlastnosti, 2, fl->damage,
-                                fl->hit_bonus));
+                                fl->hit_bonus,0));
                 mob_hit(m2,
                         vypocet_zasahu(it->zmeny, m1->vlastnosti, 2, fl->damage,
-                                fl->hit_bonus));
+                                fl->hit_bonus,0));
                 m1->dir = (fl->smer + 2) & 3;
                 m2->dir = (fl->smer + 2) & 3;
             }
@@ -2288,7 +2342,7 @@ char zasah_veci(int sector,TFLY *fl)
            short vlastnosti[VLS_MAX];
            memcpy(vlastnosti,p->vlastnosti,sizeof(vlastnosti));
 		   if (game_extras & EX_SHIELD_BLOCKING) PodporaStitu(p, vlastnosti);
-           death=player_hit(p,vypocet_zasahu(it->zmeny,vlastnosti,kolik,fl->damage,fl->hit_bonus),1);
+           death=player_hit(p,vypocet_zasahu(it->zmeny,vlastnosti,kolik,fl->damage,fl->hit_bonus,0),1);
            if (death && owner && hlubina_level) mobs[-owner-1].lives=0; //hlubina - nestvura je mrtva
            c=1;
            }
@@ -2318,7 +2372,7 @@ char zasah_veci(int sector,TFLY *fl)
         if (abs(x1-m1->locx+128)+abs(y1-m1->locy+128)>abs(x1-m2->locx+128)+abs(y1-m2->locy+128)) m1=m2;
         }
      if (m1->vlajky & MOB_PASSABLE) return 0;
-     mob_hit(m1,vypocet_zasahu(it->zmeny,m1->vlastnosti,(m2!=NULL)+1,fl->damage,fl->hit_bonus));
+     mob_hit(m1,vypocet_zasahu(it->zmeny,m1->vlastnosti,(m2!=NULL)+1,fl->damage,fl->hit_bonus,0));
      if (it->druh==TYP_VRHACI) fl->flags|=FLY_DESTROY;
      if (it->umisteni!=PL_SIP && !(it->flags & ITF_DESTROY))
            {
@@ -2347,7 +2401,7 @@ char zasah_veci(int sector,TFLY *fl)
            short vlastnosti[VLS_MAX];
            memcpy(vlastnosti,p->vlastnosti,sizeof(vlastnosti));
            if (game_extras & EX_SHIELD_BLOCKING) PodporaStitu(p, vlastnosti);else  uprav_podle_kondice(p,&kolik);
-           death=player_hit(p,vypocet_zasahu(it->zmeny,vlastnosti,kolik,fl->damage,fl->hit_bonus),1);
+           death=player_hit(p,vypocet_zasahu(it->zmeny,vlastnosti,kolik,fl->damage,fl->hit_bonus,0),1);
            if (death && owner && hlubina_level) mobs[-owner-1].lives=0; //hlubina - nestvura je mrtva
            c=1;
            }
@@ -2463,7 +2517,7 @@ void send_experience(TMOB *p,int dostal)
   if (dostal>0) {
       int exp = ((float)p->experience*(float)dostal/p->vlastnosti[VLS_MAXHIT]);
       if (log_combat && p->bonus) {
-          wzprintf("%s experience: %d\n", postavy[select_player].jmeno, p->bonus);
+          wzprintf("%s experience: %d\n", postavy[select_player].jmeno, exp);
       }
 
       postavy[select_player].exp+=(int32_t)exp;
@@ -2552,6 +2606,7 @@ char player_hit(THUMAN *p,int zraneni,char manashield)
      {
      THE_TIMER *tt;int h;
 
+     if (log_combat) wzprintf("%s was hit: %d, lives: %d\n", p->jmeno, zraneni, p->lives-zraneni);
      if (zraneni>p->lives) zraneni=p->lives;
      p->dostal=zraneni;
      if (manashield) manashield_check(p->vlastnosti,&p->lives,&p->mana,p->dostal);    //manashield pro hrace

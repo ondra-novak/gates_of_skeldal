@@ -1404,7 +1404,7 @@ int save_map_state(void); //uklada stav mapy pro savegame (neuklada aktualni poz
 int load_map_state(void); //obnovuje stav mapy; nutno volat po zavolani load_map;
 void restore_current_map(void); //pouze obnovuje ulozeny stav aktualni mapy
 int load_game(const char *fname);
-int save_game(int game_time,char *gamename, char skip_if_exists);
+int save_game(int game_time,char *gamename);
 void wire_save_load(char save);
 void do_save_dialog();
 char ask_save_dialog(char *name_buffer, size_t name_size);
@@ -1547,7 +1547,7 @@ void check_all_mobs_battle(void); //kontroluje zda je nekdo v battle
 void manashield_check(short *vls,short *lives,short *mana,int dostal);
 char track_mob(int sect,int dir);//trackuje pritomnost potvory v urcitem smeru
 void stop_all_mobs(void);
-int utok_na_sektor(THUMAN *p,TMOB *m,int chaos,int bonus);
+int utok_na_sektor(THUMAN *p,TMOB *m,int chaos,int bonus, int ruka);
 int vyber_potvoru(int sect,int dir,int *chaos); //vybere potvoru ze sektoru a smeru. Vraci take pocet potvor v promenne *chaos
 void load_enemies(short *data,int size,int *grptr,TMOB *template,int32_t tsize);
 char mob_test_na_bitvu(TMOB *p);  //nastavi p->vlajky|MOB_INBATTLE pokud potvora muze vstoupit do bitvy;
@@ -1572,7 +1572,7 @@ void zacni_souboj(TMOB *p,int delka,short sector);
 char q_zacit_souboj(TMOB *p,int d,short sector);
 void stop_mob(TMOB *p);
 void start_battle(void);
-int vypocet_zasahu(short *utocnik,short *obrance, int chaos,int  zbran,int bonusplus);
+int vypocet_zasahu(const short *utocnik,const short *obrance, int chaos,int  zbran,int bonusplus, char enable_finesse_rule);
 void rozhodni_o_smeru(TMOB *p);
 void krok_moba(TMOB *p);
 void pomala_regenerace_postavy(THUMAN *p);

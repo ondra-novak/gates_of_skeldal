@@ -69,6 +69,18 @@ int str_add(TSTR_LIST *list,const char *text)
   return i;
   }
 
+int str_move_list(TSTR_LIST to, TSTR_LIST from) {
+  int cnt1 = str_count(from);
+  int cnt2 = str_count(to);
+  int cnt = MIN(cnt1,cnt2);
+  for (int i = 0; i < cnt; ++i) {
+    if (to[i]) free(to[i]);
+    to[i] = from[i];
+    from[i] = NULL;
+  }
+  return cnt;
+}
+
 const char *str_insline(TSTR_LIST *list,int before,const char *text)
   {
   int i,count,punkt;

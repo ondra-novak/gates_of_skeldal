@@ -1273,7 +1273,7 @@ void death_screen() {
     int ys;
     int y = 160;
     const char *t = texty[65];
-    char buff[strlen(t)+4];
+    DECL_VLA(char, buff, strlen(t)+4);    
     set_font(H_FBOLD, RGB555_ALPHA(31,31,31));
     zalamovani(t,buff, 440, &xs, &ys);
     t = buff;

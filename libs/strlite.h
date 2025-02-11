@@ -19,6 +19,7 @@ void str_remove(TSTR_LIST *list,int line);
 void str_delfreelines(TSTR_LIST *list);
 int str_count(TSTR_LIST p);
 void release_list(TSTR_LIST list);
+int str_move_list(TSTR_LIST to, TSTR_LIST from);
 TSTR_LIST sort_list(TSTR_LIST list,int direction);
 TSTR_LIST read_directory(const char *mask,int view_type,int attrs);
 //void name_conv(const char *c);

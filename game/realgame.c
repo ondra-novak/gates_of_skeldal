@@ -1335,7 +1335,7 @@ char chod_s_postavama(char sekupit)
            {
            postavy[i].sektor=viewsector;
            postavy[i].direction=viewdir;
-           postavy[i].utek=1;
+           postavy[i].utek=0;
            postavy[i].kondice-=weigth_defect(postavy+i);
            if (postavy[i].kondice<0) postavy[i].kondice=0;
            group_nums[cur_group]=1;

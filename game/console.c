@@ -4,7 +4,7 @@
 
 #include <ctype.h>
 #define console_max_characters  120
-#define console_max_lines  16
+#define console_max_lines  300
 
 void macro_drop_item(int sector,int smer,short item);
 /****/
@@ -371,21 +371,22 @@ extern char pass_all_mobs;
 
 static char console_input_line[console_max_characters+1]  = "";
 static char *console_output_lines[console_max_lines] = {};
+static int console_top_line = 0;
 
 static const int console_x = 0;
-static const int console_y = 20;
+static const int console_y = SCREEN_OFFLINE;
 static const int console_width = 640;
-static const int console_height = 160;
+static const int console_height = 165;
 static const int console_padding = 3;
 static int console_blink = 0;
 static char console_visible = 0;
-
+#define CONSOLE_FONT H_FTINY
 
 void draw_console_window() {
     if (!console_visible) return;
     trans_bar(console_x, console_y, console_width, console_height, 0);
 
-    set_font(H_FLITT5, RGB888(255,255,128));
+    set_font(CONSOLE_FONT, RGB555(31,31,16));
     int y = console_y+console_height-text_height("X")-console_padding;
     position(console_x+console_padding, y);
     outtext("$ ");
@@ -395,14 +396,16 @@ void draw_console_window() {
     }
     ++console_blink;
 
-    set_font(H_FLITT5, RGB888(255,255,255));
+    set_font(CONSOLE_FONT, RGB555(31,31,31));
 
 
     y-=3*text_height("X")/2;
 
     for (int i = 0; i < console_max_lines;++i) {
+        int p = i + console_top_line;
+        if (p>=console_max_lines) break;
         position(console_x+console_padding,y);
-        if (console_output_lines[i]) outtext(console_output_lines[i]);
+        if (console_output_lines[p]) outtext(console_output_lines[p]);
         y-=text_height("X");
         if (y < console_y+console_padding) break;
     }
@@ -416,6 +419,7 @@ static void console_add_line(const char *line) {
     free(console_output_lines[console_max_lines-1]);
     memmove(console_output_lines+1,console_output_lines, (console_max_lines-1)*sizeof(char *));
     console_output_lines[0] = strdup(line);
+    
 }
 
 typedef struct {
@@ -755,7 +759,8 @@ static int process_command(PARSED_COMMAND cmd) {
 
 static void console_keyboard(EVENT_MSG *msg, void **_) {
     if (msg->msg == E_KEYBOARD) {
-        int c = va_arg(msg->data, int) & 0xFF;
+        int code = va_arg(msg->data, int);
+        int c = code & 0xFF;
         if (c == E_QUIT_GAME_KEY) return;
         if (c) {
             int len = strlen(console_input_line);
@@ -774,6 +779,7 @@ static void console_keyboard(EVENT_MSG *msg, void **_) {
                 char ok = process_command(cmd);
                 if (ok) {
                     console_add_line(console_input_line);
+                    console_top_line = 0;
                     console_input_line[0] = 0;
                 }
                 free(cmd.cmd_buffer);
@@ -783,6 +789,17 @@ static void console_keyboard(EVENT_MSG *msg, void **_) {
                 console_input_line[len+1] = 0;
                 msg->msg = -1;
             }
+        } else { 
+            switch (code >> 8) {
+                case 'I': console_top_line = MIN(console_max_lines-10, console_top_line+10);break;
+                case 'Q': console_top_line = MAX(0, console_top_line-10);break;
+                case 'H': console_top_line = MIN(console_max_lines-10, console_top_line+1);break;
+                case 'P': console_top_line = MAX(0, console_top_line-1);break;
+                case 'G': console_top_line = console_max_characters-10;
+                case 'O': console_top_line = 0;
+                default: return;
+            }
+            msg->msg = -1;
         }
     }
 }

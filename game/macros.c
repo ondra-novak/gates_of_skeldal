@@ -409,7 +409,7 @@ static void hit_1_player(int postava,const TMA_WOUND *w,int chaos)
      memset(vls,0,sizeof(vls));
      vls[VLS_UTOK_L]=w->minor;
      vls[VLS_UTOK_H]=w->major;
-     dostal=vypocet_zasahu(vls,h->vlastnosti,chaos,0,0);
+     dostal=vypocet_zasahu(vls,h->vlastnosti,chaos,0,0,0);
      }
   else
      {
@@ -419,7 +419,7 @@ static void hit_1_player(int postava,const TMA_WOUND *w,int chaos)
      vls[VLS_MGSIL_L]=w->minor;
      vls[VLS_MGSIL_H]=w->major;
      vls[VLS_MGZIVEL]=zivel;
-     dostal=vypocet_zasahu(vls,h->vlastnosti,chaos,0,0);
+     dostal=vypocet_zasahu(vls,h->vlastnosti,chaos,0,0,0);
      }
   player_hit(h,dostal,0);
   }

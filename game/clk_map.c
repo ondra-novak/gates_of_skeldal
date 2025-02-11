@@ -136,7 +136,7 @@ char clk_touch(int id,int xa,int ya,int xr,int yr)
   return 0;
  }
 
-char clk_fly_cursor(int id,int xa,int ya,int xr,int yr)
+static char clk_fly_cursor(int id,int xa,int ya,int xr,int yr)
   {
   id;
 

@@ -1449,7 +1449,12 @@ void mob_strelba(TMOB *p)
   t->zmeny[VLS_MGZIVEL]=p->vlastnosti[VLS_MGZIVEL];
   spell_throw(-((p-mobs)+1),i);
   letici_veci->flags &=~FLY_DESTROY;
-  letici_veci->hit_bonus=p->vlastnosti[VLS_UTOK_L]+rnd(p->vlastnosti[VLS_UTOK_H]-p->vlastnosti[VLS_UTOK_L]+1);
+  int att = p->vlastnosti[VLS_OBRAT]/5;
+  letici_veci->hit_bonus=p->vlastnosti[VLS_UTOK_L]+rnd(p->vlastnosti[VLS_UTOK_H]-p->vlastnosti[VLS_UTOK_L]+1) + att;
+  if (log_combat) {
+      wzprintf("%s shoots: %d (roll %d-%d) + %d (%s/5) = %d\n",
+         p->vlastnosti[VLS_UTOK_L],p->vlastnosti[VLS_UTOK_H],att,texty[13],letici_veci->hit_bonus);      
+  }
   letici_veci->damage=p->vlastnosti[VLS_DAMAGE];
   p->dostal=0;
   }
@@ -1556,12 +1561,13 @@ void mobs_hit(TMOB *p)
   spec=vlastnosti[VLS_KOUZLA];
   if (game_extras & EX_SHIELD_BLOCKING) PodporaStitu(h,vlastnosti);
   else uprav_podle_kondice(h,&pocet);
-  h->dostal=vypocet_zasahu(p->vlastnosti,vlastnosti,pocet,0,0);  //vypocet zasahu
+  h->dostal=vypocet_zasahu(p->vlastnosti,vlastnosti,pocet,0,0,1);  //vypocet zasahu
   if (h->dostal) p->dostal=0;
   if (spec & SPL_OKO)                    //oko za oko pro hrace
      {
      vybrana_zbran=-1;
      mob_hit(p,h->dostal);
+     if (log_combat) wzprintf("%s was hit (eye for an eye): %d\n", p->name, h->dostal);
      mob_check_death(p-mobs,p);
      }
   if (h->dostal && p->vlastnosti[VLS_KOUZLA] & SPL_KNOCK) knock_player_back(h,p->dir);
@@ -1569,6 +1575,7 @@ void mobs_hit(TMOB *p)
      {
      p->lives+=h->dostal;
      if (p->lives>p->vlastnosti[VLS_MAXHIT])p->lives=p->vlastnosti[VLS_MAXHIT];
+     if (log_combat) wzprintf("%s drained HP : %d, lives %d\n", p->name, h->dostal, p->lives);
      }
   dead=player_hit(h,h->dostal,1);
   if (h->lives>h->vlastnosti[VLS_MAXHIT])  h->lives=h->vlastnosti[VLS_MAXHIT];
@@ -2169,11 +2176,31 @@ static void knock_mob_back(TMOB *mm,int dir)
   recheck_button(sek,1);
   }
 
-int utok_na_sektor(THUMAN *p,TMOB *mm,int ch,int bonus)
+  static void remove_other_weapon_from_calc(THUMAN *p,  short *vlastnosti, int poz) {
+   int otherpoz = poz == PO_RUKA_L?PO_RUKA_R:PO_RUKA_L;
+   int itnum = p->wearing[otherpoz];
+   if (itnum == 0) return;
+   const TITEM *it = glob_items + itnum-1;
+   if (it->druh != TYP_UTOC) return;
+   int vls[] = {VLS_MGSIL_H,VLS_MGSIL_L,VLS_UTOK_H,VLS_UTOK_L,VLS_DAMAGE};
+   for (int i = 0; i < countof(vls); ++i) {
+      vlastnosti[vls[i]]  -= it->zmeny[vls[i]];
+   }
+ }
+ 
+
+int utok_na_sektor(THUMAN *p,TMOB *mm,int ch,int bonus, int ruka)
   {
   int dostal;
+  short vlastnosti[VLS_MAX];
+  const short *use_vls = p->vlastnosti;
 
-  dostal=vypocet_zasahu(p->vlastnosti,mm->vlastnosti,ch,bonus,0);
+  if (ruka == PO_RUKA_L || ruka == PO_RUKA_R) {
+      memcpy(vlastnosti, p->vlastnosti, sizeof(vlastnosti));
+      remove_other_weapon_from_calc(p, vlastnosti, ruka);
+      use_vls = vlastnosti;
+  }
+  dostal=vypocet_zasahu(use_vls,mm->vlastnosti,ch,bonus,0,ruka != PL_OBOUR);
   mob_hit(mm,dostal);
   if (dostal && p->vlastnosti[VLS_KOUZLA] & SPL_KNOCK) knock_mob_back(mm,p->direction);
   if (mm->vlastnosti[VLS_KOUZLA] & SPL_OKO)  //oko za oko pro potvoru

@@ -484,7 +484,7 @@ static char load_index_map(int index)
    */
   if (!GlobEvent(MAGLOB_LEAVEMAP,viewsector,viewdir)) return 0;
   viewsector=lv;
-  strcopy_n(x.name,index_tab[index].mapname,12);
+  strcopy_n(x.name,index_tab[index].mapname,sizeof(x.name));
   x.start_pos=0;
   x.dir=0;
   macro_load_another_map(&x);

@@ -121,21 +121,28 @@ int list_files(const char *directory, int type, LIST_FILES_CALLBACK cb, void *ct
             int r = 0;
             const auto &entry = *iter;
             const char *name;
+            size_t szortm = 0;
             std::string tmp;
             if (type & file_type_just_name) {
                 tmp = entry.path().filename().string();
             } else {
                 tmp = entry.path().string();
             }
+            if (type & file_type_need_timestamp) {
+                auto tm = std::chrono::clock_cast<std::chrono::system_clock>(entry.last_write_time(ec));
+                szortm = std::chrono::system_clock::to_time_t(tm);
+            } else {
+                szortm = entry.file_size(ec);
+            }
              name = tmp.c_str();
             if (entry.is_regular_file(ec) && (type & file_type_normal)) {
-                r = cb(name, file_type_normal, entry.file_size(ec), ctx);
+                r = cb(name, file_type_normal, szortm, ctx);
             } else if (entry.is_directory(ec)) {
                 int dot = entry.path().filename() == "." || entry.path().filename() == "..";
                 if (!dot && (type & file_type_directory)) {
-                    r = cb(name, file_type_directory, 0, ctx);
+                    r = cb(name, file_type_directory, szortm, ctx);
                 } else if (dot & (type & file_type_dot)) {
-                    r = cb(name, file_type_dot, 0, ctx);
+                    r = cb(name, file_type_dot, szortm, ctx);
                 }
             }
             if (r) return r;

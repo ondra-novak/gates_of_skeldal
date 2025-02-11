@@ -853,7 +853,7 @@ void prepocitat_postavu(THUMAN *human_selected)
           }
         p=sr1+VLS_DAMAGE;                     //vypocet damage (bez omezeni)
         q=&glob_items[c-1].zmeny[VLS_DAMAGE];
-	*(p++)+=*q++;
+	      *(p++)+=*q++;
         p=sr1+VLS_KOUZLA;                     //aplikace kouzel
         q=&glob_items[c-1].zmeny[VLS_KOUZLA];
         (*p++)|=*q++;
@@ -1357,8 +1357,7 @@ static T_INV_SCRIPT script[]=
   {0,37,NULL,0,97,1,0},
   {30,5,"%d-%d",pvls(VLS_UTOK_L),pvls(VLS_UTOK_H),2,2},
   {30,7,"%d-%d",pvls(VLS_OBRAN_L),pvls(VLS_OBRAN_H),2,2},
-  {28,9,"%d",INFO_AP,0,2,2},
-  {28,9,".%d",INFO_APF,0,2,0},
+  {30,9,"%d",INFO_AP,0,2,2},
   {17,5,NULL,0,18,1,0},
   {17,7,NULL,0,17,1,0},
   {17,9,NULL,0,20,1,0},
@@ -2055,7 +2054,7 @@ static char check_double_wield()  {
     if (!i1 || !i2) return 0;
     const TITEM *it1 = glob_items+i1;
     const TITEM *it2 = glob_items+i2;
-    if (it1->typ_zbrane!=TYP_UTOC || it2->typ_zbrane!=TYP_UTOC ) return 0;
+    if (it1->druh!=TYP_UTOC || it2->druh!=TYP_UTOC ) return 0;
     for (int i = VLS_SILA; i <=VLS_OBRAT; ++i) {
         if ((it1->podminky[i] + it2->podminky[i] > human_selected->vlastnosti[i])
             && (MAX(it1->podminky[i], it2->podminky[i]) > human_selected->vlastnosti[VLS_OBRAT])) {
