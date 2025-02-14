@@ -1450,10 +1450,11 @@ void mob_strelba(TMOB *p)
   spell_throw(-((p-mobs)+1),i);
   letici_veci->flags &=~FLY_DESTROY;
   int att = p->vlastnosti[VLS_OBRAT]/5;
-  letici_veci->hit_bonus=p->vlastnosti[VLS_UTOK_L]+rnd(p->vlastnosti[VLS_UTOK_H]-p->vlastnosti[VLS_UTOK_L]+1) + att;
+  int attack_roll = p->vlastnosti[VLS_UTOK_L]+rnd(p->vlastnosti[VLS_UTOK_H]-p->vlastnosti[VLS_UTOK_L]+1);
+  letici_veci->hit_bonus= attack_roll + att;
   if (log_combat) {
       wzprintf("%s shoots: %d (roll %d-%d) + %d (%s/5) = %d\n",
-         p->vlastnosti[VLS_UTOK_L],p->vlastnosti[VLS_UTOK_H],att,texty[13],letici_veci->hit_bonus);      
+         p->name, attack_roll, p->vlastnosti[VLS_UTOK_L],p->vlastnosti[VLS_UTOK_H],att,texty[13],letici_veci->hit_bonus);
   }
   letici_veci->damage=p->vlastnosti[VLS_DAMAGE];
   p->dostal=0;
@@ -2183,11 +2184,11 @@ static void knock_mob_back(TMOB *mm,int dir)
    const TITEM *it = glob_items + itnum-1;
    if (it->druh != TYP_UTOC) return;
    int vls[] = {VLS_MGSIL_H,VLS_MGSIL_L,VLS_UTOK_H,VLS_UTOK_L,VLS_DAMAGE};
-   for (int i = 0; i < countof(vls); ++i) {
+   for (size_t i = 0; i < countof(vls); ++i) {
       vlastnosti[vls[i]]  -= it->zmeny[vls[i]];
    }
  }
- 
+
 
 int utok_na_sektor(THUMAN *p,TMOB *mm,int ch,int bonus, int ruka)
   {

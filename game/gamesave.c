@@ -874,7 +874,7 @@ static int last_select=-1;
 static TSTR_LIST story_text=NULL;
 static void *back_texture=NULL;
 static int cur_story_pos=0;
-static char load_mode;
+//static char load_mode;
 
 #define SLOT_SPACE 33
 #define SLOT_FONT H_FBOLD
@@ -994,6 +994,7 @@ static int dedup_strings_prefix(TSTR_LIST lst, int count) {
 }
 
 
+/*
 static void load_specific_file(int slot_num,char *filename,void **out,int32_t *size) //call it in task!
   {
   FILE *slot;
@@ -1013,6 +1014,31 @@ static void load_specific_file(int slot_num,char *filename,void **out,int32_t *s
 
   LOAD_SPECIFIC_FILE_CALLBACK_DATA ctx;
   ctx.name = filename;
+
+  *out = NULL;
+  *size = 0;
+  if (enum_all_status(slot, &load_specific_file_callback, &ctx) == 0){
+      *out = ctx.data;
+      *size = ctx.size;
+  }
+  fclose(slot);
+  }
+*/
+static void load_specific_file(const char *filename,const char *name, void **out,int32_t *size) //call it in task!
+  {
+  FILE *slot;
+
+
+  slot=fopen_icase(build_pathname(2, gpathtable[SR_SAVES], filename),"rb");
+  if (slot==NULL)
+     {
+     *out=NULL;
+     return;
+     }
+  fseek(slot,SAVE_NAME_SIZE,SEEK_CUR);
+
+  LOAD_SPECIFIC_FILE_CALLBACK_DATA ctx;
+  ctx.name = name;
 
   *out = NULL;
   *size = 0;
@@ -1147,7 +1173,7 @@ static void redraw_story_bar(int pos)
   ukaz_mysku();
   showview(x,STORY_Y+SCREEN_OFFLINE,STORY_XS,STORY_YS);
   }
-
+/*
 static void read_story_task(va_list args)
   {
   int slot=va_arg(args,int);
@@ -1202,7 +1228,51 @@ static void read_story(int slot)
   if (slot!=-1)
      task_num=add_task(8196,read_story_task,slot);
   }
+*/
 
+static void read_story(const char *filename) {
+    void *text_data;
+    int32_t size;
+    TSTR_LIST ls;
+    char *c,*d;
+
+    load_specific_file(filename,STORY_BOOK,&text_data,&size);
+    if (text_data!=NULL)
+       {
+       ls=create_list(2);
+       c=text_data;
+       set_font(H_FONT6,0);
+       while (size>0)
+         {
+         int xs,ys;
+         d=c;
+         while (size>0 && *d!='\r' && *d!='\n') {d++;size--;};
+         if (!size) break;
+         *d=0;
+         {
+         char *e,*or;
+         or=e=getmem(strlen(c)+2);
+         zalamovani(c,e,STORY_XS,&xs,&ys);
+         while (*e)
+            {
+            str_add(&ls,e);
+            if (text_width(e)>STORY_XS) abort();
+            e=strchr(e,0)+1;
+            }
+          c=d+1;size--;
+         if (size > 0 &&(*c=='\n' || *c=='\r')) {c++;size--;};
+         free(or);
+         }
+         }
+       free(text_data);
+       }
+    else ls=NULL;
+    if (story_text!=NULL) release_list(story_text);
+    story_text=ls;
+    cur_story_pos=get_list_count();if (cur_story_pos<0) cur_story_pos=0;
+    redraw_story_bar(cur_story_pos);
+
+}
 
 static int get_list_count()
   {
@@ -1506,7 +1576,6 @@ T_CLK_MAP clk_save[]=
 
 static void select_slot(int i) {
     int rel = i-current_slot_list_top_line;
-    char unbright = 1;
     while (rel < 0) {
       --current_slot_list_top_line;
       schovej_mysku();
@@ -1514,20 +1583,23 @@ static void select_slot(int i) {
       showview(0,0,0,0);
       ukaz_mysku();
       rel++;
-      unbright = 0;
-    } 
+    }
     while (rel > SLOTS_MAX-1) {
       ++current_slot_list_top_line;
       schovej_mysku();
       redraw_load();
       showview(0,0,0,0);
       ukaz_mysku();
-      unbright = 0;
       rel--;
     }
-    if (last_select != -1) place_name(0,last_select-current_slot_list_top_line,1,0);
-    place_name(0,i-current_slot_list_top_line,1,1);
-    last_select = i;
+    if (last_select != i) {
+        if (last_select != -1) place_name(0,last_select-current_slot_list_top_line,1,0);
+        place_name(0,i-current_slot_list_top_line,1,1);
+        last_select = i;
+        if (last_select != -1 && last_select < (int)current_game_slot_list.count) {
+            read_story(current_game_slot_list.files[last_select]);
+        }
+    }
   }
 
 static void saveload_keyboard(EVENT_MSG *msg,void **_)
@@ -1539,7 +1611,7 @@ static void saveload_keyboard(EVENT_MSG *msg,void **_)
         {
         case 1:unwire_proc();wire_proc();break;
         case 'H':if (last_select>0) select_slot(last_select-1);break;
-        case 'P':if (last_select<current_game_slot_list.count-1) select_slot(last_select+1);break;
+        case 'P':if (last_select<(int)current_game_slot_list.count-1) select_slot(last_select+1);break;
         case 28:if (last_select>=0) load_save_pos_ingame(last_select);break;
         }
      }
@@ -1554,12 +1626,12 @@ static void saveload_keyboard_menu(EVENT_MSG *msg,void **_)
         {
         case 1:send_message(E_CLOSE_MAP,NULL);break;
         case 'H':if (last_select>0) select_slot(last_select-1);break;
-        case 'P':if (last_select<current_game_slot_list.count-1) select_slot(last_select+1);break;
-        case 28:if (last_select>= 0 && last_select < current_game_slot_list.count) {
+        case 'P':if (last_select<(int)current_game_slot_list.count-1) select_slot(last_select+1);break;
+        case 28:if (last_select>= 0 && last_select < (int)current_game_slot_list.count) {
             send_message(E_CLOSE_MAP, current_game_slot_list.files[last_select]);
             break;
         }
-        
+
      }
     }
   }
