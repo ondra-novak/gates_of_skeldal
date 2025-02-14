@@ -41,7 +41,7 @@
 static TMPFILE_WR *story=NULL;
 static char load_another;
 static unsigned long current_campaign = 0;
-static long prev_game_time_save = 0;
+static long prev_game_time_save = -999;
 
 char reset_mobiles=0;
 
@@ -617,14 +617,14 @@ int save_basic_info()
   s.game_time=game_time;
   s.enable_sort=enable_sort;
   s.sleep_long=sleep_ticks;
-  s.sample_vol=get_snd_effect(SND_GFX);
-  s.music_vol=get_snd_effect(SND_MUSIC);
-  s.xbass=get_snd_effect(SND_XBASS);
-  s.bass=get_snd_effect(SND_BASS);
-  s.treble=get_snd_effect(SND_TREBL);
-  s.stereing=get_snd_effect(SND_LSWAP);
-  s.swapchans=get_snd_effect(SND_SWAP);
-  s.out_filter=get_snd_effect(SND_OUTFILTER);
+  s.sample_vol=MIN(get_snd_effect(SND_GFX),255);
+  s.music_vol=MIN(get_snd_effect(SND_MUSIC),255);
+  s.xbass=MIN(get_snd_effect(SND_XBASS),255);
+  s.bass=MIN(get_snd_effect(SND_BASS),255);
+  s.treble=MIN(get_snd_effect(SND_TREBL),255);
+  s.stereing=MIN(get_snd_effect(SND_LSWAP),255);
+  s.swapchans=MIN(get_snd_effect(SND_SWAP),255);
+  s.out_filter=MIN(get_snd_effect(SND_OUTFILTER),255);
   s.autosave=autosave_enabled;
 	s.game_flags=(enable_glmap!=0);
   strcopy_n(s.level_name,level_fname,sizeof(s.level_name));

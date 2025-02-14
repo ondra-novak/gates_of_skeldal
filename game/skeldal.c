@@ -388,7 +388,7 @@ const void *load_mob_legacy_format(const void *p, int32_t *s) {
         d+=nx;
         ofs=nx;
         nx = sizeof(TMOB);
-        memcpy(d, c, nx - ofs); //last padding 1
+        memcpy(d, c, nx - ofs-1); //last padding 1
         c+=nx - ofs - 1;
     }
     *s = count * sizeof(TMOB);

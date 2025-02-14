@@ -37,7 +37,7 @@ static short zooming_points[ZOOM_PHASES][4]
      {480,271,80,28},
      {460,259,90,31}
   };
-static int zooming_step=2;
+static int zooming_step=1;
 static int rot_phases=1;
 //int yreq;
 int last_scale;
