@@ -541,6 +541,7 @@ LETICI_VEC *create_fly()
   p->items=NULL;
   p->item=0;
   p->lives=0;
+  p->anim_pos = 0;
   return p;
   }
 
@@ -1295,7 +1296,12 @@ void group_all(void)
 void destroy_player_map() //je nutne volat pred presunem postav
   {
   int i;
-  for(i=0;i<POCET_POSTAV;i++) map_coord[postavy[i].sektor].flags&=~(MC_DPLAYER | MC_SAFEPLACE);
+  for(i=0;i<POCET_POSTAV;i++) {
+      int s = postavy[i].sektor;
+      if (s > 0 && s < mapsize) {
+          map_coord[s].flags&=~(MC_DPLAYER | MC_SAFEPLACE);
+      }
+  }
   }
 
 void build_player_map()  //je nutne volat po presunu postav

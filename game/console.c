@@ -419,7 +419,7 @@ static void console_add_line(const char *line) {
     free(console_output_lines[console_max_lines-1]);
     memmove(console_output_lines+1,console_output_lines, (console_max_lines-1)*sizeof(char *));
     console_output_lines[0] = strdup(line);
-    
+
 }
 
 typedef struct {
@@ -789,14 +789,14 @@ static void console_keyboard(EVENT_MSG *msg, void **_) {
                 console_input_line[len+1] = 0;
                 msg->msg = -1;
             }
-        } else { 
+        } else {
             switch (code >> 8) {
                 case 'I': console_top_line = MIN(console_max_lines-10, console_top_line+10);break;
                 case 'Q': console_top_line = MAX(0, console_top_line-10);break;
                 case 'H': console_top_line = MIN(console_max_lines-10, console_top_line+1);break;
                 case 'P': console_top_line = MAX(0, console_top_line-1);break;
-                case 'G': console_top_line = console_max_characters-10;
-                case 'O': console_top_line = 0;
+                case 'G': console_top_line = console_max_characters-10;break;
+                case 'O': console_top_line = 0;break;
                 default: return;
             }
             msg->msg = -1;

@@ -425,23 +425,23 @@ int vypocet_zasahu(const short *utocnik,const short *obrance, int chaos,int  zbr
       wzprintf(">");
       if (utocnik[VLS_UTOK_H]) {
         wzprintf("Attack (physical): %d (roll %d-%d) + %d (%s/5) + %d (ext.force) = %d\n",
-                  attack_roll, (int)utocnik[VLS_UTOK_L],(int)utocnik[VLS_UTOK_H], 
+                  attack_roll, (int)utocnik[VLS_UTOK_L],(int)utocnik[VLS_UTOK_H],
                   attbonus, finesse?texty[13]:texty[10],
                   external_force,utok);
         } else if (external_force) {
             wzprintf("Attack (physical):  %d (ext.force)\n", external_force);
-        }      
+        }
       if (obrance[VLS_OBRAN_H] && utok > 0) {
            char chaos[50];
            if (disadv > 1) snprintf(chaos, 50, ", disadvantage %d", disadv);
            else strcpy(chaos,"");
            wzprintf(" Defense (physical):  %d (roll %d-%d%s) + %d (%s/5) = %d\n",
-              defense_roll, ospod, obrance[VLS_OBRAN_H], chaos, obrbonus, texty[13], obrana);          
+              defense_roll, ospod, obrance[VLS_OBRAN_H], chaos, obrbonus, texty[13], obrana);
       }
       if (zasah>0) {
           if (damage) {
               wzprintf(" Psychical hit: %d - %d + %d (damage) + %d (weapon) = %d\n",
-                utok, obrana, utocnik[VLS_DAMAGE], zbran, zasah);        
+                utok, obrana, utocnik[VLS_DAMAGE], zbran, zasah);
           } else {
             wzprintf(" Psychical hit: %d - %d = %d\n",
               utok, obrana, zasah);
@@ -467,7 +467,7 @@ int vypocet_zasahu(const short *utocnik,const short *obrance, int chaos,int  zbr
   if (flg & SPL_HSANC) {
       int tmp = total_hit;
       total_hit/=2;
-      if (log_combat) wzprintf("Total resistance applied: %d - %d (half) = %d\n", tmp, total_hit - tmp);
+      if (log_combat) wzprintf("Total resistance applied: %d - %d (half) = %d\n", tmp, total_hit - tmp, total_hit);
   }
   if (flg & SPL_TVAR) {
       if (log_combat) wzprintf("Set Face spell applied: %d = -%d (heal)\n", total_hit, -total_hit);
@@ -1221,7 +1221,7 @@ void pouzij_zbran(THUMAN *p,int ruka)
           }
         }
 
-          
+
         }
      }
   else

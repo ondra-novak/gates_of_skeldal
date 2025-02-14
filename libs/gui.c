@@ -362,7 +362,10 @@ void define(int id,int x,int y,int xs,int ys,char align,void (*initproc)(OBJREC 
   va_start(vlst, initproc);
   o->call_init(o,vlst);
   va_end(vlst);
-  if (o->datasize && o->data==NULL) o->data=(void *)getmem(o->datasize);
+  if (o->datasize && o->data==NULL) {
+      o->data=(void *)getmem(o->datasize);
+      memset(o->data,0,o->datasize);
+  }
   o->next=NULL;
   if (o_start==NULL)
      {

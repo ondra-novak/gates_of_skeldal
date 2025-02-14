@@ -378,17 +378,17 @@ const void *load_mob_legacy_format(const void *p, int32_t *s) {
         char *d = (char *)m;
         size_t ofs = 0;
         size_t nx = offsetof(TMOB,experience);
-        memcpy(d, c, nx);
+        memmove(d, c, nx);
         c+=nx-2; //first padding 2
         d+=nx;
         ofs=nx;
         nx = offsetof(TMOB, dialog_flags);
-        memcpy(d, c, nx - ofs);
+        memmove(d, c, nx - ofs);
         c+=nx - ofs -1; //second padding 1
         d+=nx;
         ofs=nx;
         nx = sizeof(TMOB);
-        memcpy(d, c, nx - ofs); //last padding 1
+        memmove(d, c, nx - ofs - 1); //last padding 1
         c+=nx - ofs - 1;
     }
     *s = count * sizeof(TMOB);
