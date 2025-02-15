@@ -11,11 +11,11 @@ extern "C" {
 }
 
 typedef struct _temp_storage_file_wr {
-    std::vector<uint8_t> *_data;
+    std::string *_data;
 } TMPFILE_WR;
 
 typedef struct _temp_storage_file_rd {
-    std::basic_string_view<uint8_t> _data;
+    std::string_view _data;
     int skp = 0;
 } TMPFILE_RD;
 
@@ -31,7 +31,7 @@ struct icompare {
     }
 };
 
-using FileSystem = std::map<std::string, std::vector<uint8_t>, icompare >;
+using FileSystem = std::map<std::string, std::string, icompare >;
 static FileSystem temp_fsystem;
 
 
@@ -40,8 +40,6 @@ void temp_storage_store(const char *name, const void *data, int32_t size) {
     auto e = b+size;
     auto &v =temp_fsystem[std::string(name)];
     v.clear();
-    v.resize(size+1);
-    v[size] = 0;
     v.resize(size);
     std::copy(b,e, v.begin());
 }
@@ -74,9 +72,7 @@ void temp_storage_clear() {
 TMPFILE_RD* temp_storage_open(const char *name) {
     auto iter = temp_fsystem.find(std::string_view(name));
     if (iter == temp_fsystem.end()) return NULL;
-    iter->second.push_back(0);      //put extra zero at the end
-    iter->second.resize(iter->second.size()-1);
-    return new TMPFILE_RD{std::basic_string_view<uint8_t>(iter->second.data(), iter->second.size())};
+    return new TMPFILE_RD{{iter->second.c_str(), iter->second.size()}};
 }
 
 TMPFILE_WR* temp_storage_create(const char *name) {
@@ -164,5 +160,5 @@ int temp_storage_internal_end_scanf(TMPFILE_RD *f, int r) {
 }
 
 void temp_storage_ungetc(TMPFILE_RD *f) {
-    f->_data = std::basic_string_view<uint8_t>(f->_data.data()-1, f->_data.size()+1);
+    f->_data = {f->_data.data()-1, f->_data.size()+1};
 }

@@ -1386,7 +1386,7 @@ void enc_close(TMPFILE_RD *fil)
 int load_string_list_ex(TSTR_LIST *list,const char *filename)
   {
   char c[1024],*p;
-  int i,j,lin=0;
+  int i=0,j,lin=0;
   TMPFILE_RD *f;
 
   f=enc_open(filename);

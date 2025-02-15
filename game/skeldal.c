@@ -385,7 +385,7 @@ const void *load_mob_legacy_format(const void *p, int32_t *s) {
         nx = offsetof(TMOB, dialog_flags);
         memmove(d, c, nx - ofs);
         c+=nx - ofs -1; //second padding 1
-        d+=nx;
+        d+=nx-ofs;
         ofs=nx;
         nx = sizeof(TMOB);
         memmove(d, c, nx - ofs - 1); //last padding 1
