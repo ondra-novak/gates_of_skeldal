@@ -4,6 +4,12 @@ The platform independed port of the game Gates Of Skeldal.
 
 WORK IN PROGRESS!!!
 
+#Disclaimer on Licensing
+
+**The source code of the game is licensed under the MIT License.**
+
+**However, the game assets, including but not limited to graphical files, audio files, maps, texts, video content, and similar materials, are protected by copyright law. Free distribution is permitted solely for the source code. Distribution of the game assets is not allowed without explicit permission.**
+
 ## BUILD
 
 Required SDL 2.0
