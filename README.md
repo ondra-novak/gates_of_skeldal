@@ -29,8 +29,6 @@ make all
 
 You need original DOS version files (distrubuted on CD) or Windows port files.
 
-You need to create or update `skeldal.ini` following file in the root of the game folder
-
 The `skeldal.ini` must be at current folder or you can specify config using command line option
 
 ```
