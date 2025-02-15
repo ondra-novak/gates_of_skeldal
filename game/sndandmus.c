@@ -365,7 +365,7 @@ static void build_dungeon_sound_map_in_dir(int sector, int side, int position, i
             if (d<32) {
                 for (int i = 0; i < 4; ++i) {
                     int nx = map_sectors[cursect].step_next[i];
-                    if (nx && (map_sides[cursect * 4 +i].flags & SD_TRANSPARENT)) {
+                    if (nx && nx < mapsize && (map_sides[cursect * 4 +i].flags & SD_TRANSPARENT)) {
                         if (current_sound_sector_map[nx].parts[position].visit_counter != counter) {
                             TSOUND_MAP_QUEUE *t = queue+(qend % countof(queue));
                             ++qend;

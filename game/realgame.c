@@ -68,6 +68,7 @@ TMAP_EDIT_INFO *map_coord;
 TSTR_LIST level_texts;
 int mapsize;
 int num_ofsets[10]; //tabulka ofsetu pro cisla sten k levelu
+int num_ofsets_count[10]; //count of items in each table
 char sekceid[]="<BLOCK>";
 char datapath;
 D_ACTION *d_action={NULL};
@@ -115,9 +116,10 @@ int32_t load_section(FILE *f,void **section, int *sct_type,int32_t *sect_size)
   }
 
 
-void prepare_graphics(int *ofs,char *names,int32_t size,ABLOCK_DECODEPROC  decomp,int class)
+int prepare_graphics(int *ofs,char *names,int32_t size,ABLOCK_DECODEPROC  decomp,int class)
   {
   char *p,*end;
+  int count = 0;
 
   end=names+size;
   p=names;
@@ -127,7 +129,9 @@ void prepare_graphics(int *ofs,char *names,int32_t size,ABLOCK_DECODEPROC  decom
      p=strchr(p,'\0');
      p++;
      (*ofs)++;
+     ++count;
      }
+     return count;
   }
 
 
@@ -187,6 +191,43 @@ const char *find_map_from_hash_impl(char *c, uint32_t h, int sz) {
     return c;
 }
 
+void sanitize_map() {
+   for(int i = 1; i < mapsize; ++i) {
+      for (int j = 0; j < 4;++j) {
+         int nx = map_sectors[i].step_next[j];
+         if (nx > mapsize) {
+            map_sectors[i].step_next[j] = i;
+         }
+      }
+      TSECTOR *sctr = map_sectors+i;
+      if (sctr->floor > num_ofsets_count[FLOOR_NUM]) {
+         sctr->floor = 0;
+      } if (sctr->ceil > num_ofsets_count[CEIL_NUM]) {
+         sctr->ceil = 0;
+      }
+   }
+   for (int i = 1, cnt = mapsize * 4; i < cnt; ++i) {
+      TSTENA *s = map_sides+i;
+      int max_side = MIN(num_ofsets_count[MAIN_NUM],MIN(num_ofsets_count[LEFT_NUM],num_ofsets_count[RIGHT_NUM]));
+      int max_obl = MIN(num_ofsets_count[OBL_NUM],num_ofsets_count[OBL2_NUM]);
+      if (s->prim > max_side) {
+         s->prim = 0;
+      }
+      if (s->sec > max_side) {
+         s->sec = 0;
+      }
+      if ((s->oblouk & 0x0F)> max_obl) {
+         s->oblouk &= ~0x0F;         
+      }
+      if (s->prim + (s->prim_anim & 0xF) > max_side)  {
+         s->prim_anim = max_side - (s->prim_anim & 0xF);
+      }
+      if (s->sec + (s->sec_anim & 0xF) > max_side)  {
+         s->sec_anim = max_side - (s->sec_anim & 0xF);
+      }
+   }
+     
+}
 
 int load_map(const char *filename)
   {
@@ -238,42 +279,43 @@ int load_map(const char *filename)
                   free(temp);
                   break;
          case A_STRMAIN:
-                  num_ofsets[0]=ofsts-1;
-                  prepare_graphics(&ofsts,temp,size,pcx_fade_decomp,SR_GRAFIKA);
+                  num_ofsets[MAIN_NUM]=ofsts-1;
+                  num_ofsets_count[MAIN_NUM]=prepare_graphics(&ofsts,temp,size,pcx_fade_decomp,SR_GRAFIKA);
                   free(temp);
                   break;
          case A_STRLEFT:
-                  num_ofsets[1]=ofsts-1;
-                  prepare_graphics(&ofsts,temp,size,pcx_fade_decomp,SR_GRAFIKA);
+                  num_ofsets[LEFT_NUM]=ofsts-1;
+                  num_ofsets_count[LEFT_NUM]=prepare_graphics(&ofsts,temp,size,pcx_fade_decomp,SR_GRAFIKA);
                   free(temp);
                   break;
          case A_STRRIGHT:
-                  num_ofsets[2]=ofsts-1;
-                  prepare_graphics(&ofsts,temp,size,pcx_fade_decomp,SR_GRAFIKA);
+                  num_ofsets[RIGHT_NUM]=ofsts-1;
+                  num_ofsets_count[RIGHT_NUM] = prepare_graphics(&ofsts,temp,size,pcx_fade_decomp,SR_GRAFIKA);
                   free(temp);
                   break;
          case A_STRCEIL:
-                  num_ofsets[3]=ofsts-1;
-                  prepare_graphics(&ofsts,temp,size,pcx_15bit_autofade,SR_GRAFIKA);
+                  num_ofsets[CEIL_NUM]=ofsts-1;
+                  num_ofsets_count[CEIL_NUM]=prepare_graphics(&ofsts,temp,size,pcx_15bit_autofade,SR_GRAFIKA);
                   free(temp);
                   break;
          case A_STRFLOOR:
-                  num_ofsets[4]=ofsts-1;
-                  prepare_graphics(&ofsts,temp,size,pcx_15bit_autofade,SR_GRAFIKA);
+                  num_ofsets[FLOOR_NUM]=ofsts-1;
+                  num_ofsets_count[FLOOR_NUM]=prepare_graphics(&ofsts,temp,size,pcx_15bit_autofade,SR_GRAFIKA);
                   free(temp);
                   break;
          case A_STRARC:
                   num_ofsets[OBL_NUM]=ofsts-1;
-                  prepare_graphics(&ofsts,temp,size,pcx_fade_decomp,SR_GRAFIKA);
+                  num_ofsets_count[OBL_NUM]=prepare_graphics(&ofsts,temp,size,pcx_fade_decomp,SR_GRAFIKA);
                   free(temp);
                   break;
          case A_STRARC2:
                   num_ofsets[OBL2_NUM]=ofsts-1;
-                  prepare_graphics(&ofsts,temp,size,pcx_fade_decomp,SR_GRAFIKA);
+                  num_ofsets_count[OBL2_NUM]=prepare_graphics(&ofsts,temp,size,pcx_fade_decomp,SR_GRAFIKA);
                   free(temp);
                   break;
          case A_MAPGLOB:
                   num_ofsets[BACK_NUM]=ofsts;
+                  num_ofsets_count[BACK_NUM]=1;
 				  memset(&mglob,0,sizeof(mglob));
                   memcpy(&mglob,temp,MIN((int)size,(int)sizeof(mglob)));
                   free(temp);
@@ -364,6 +406,7 @@ int load_map(const char *filename)
   current_map_hash = fnv1a_hash(filename);
   const char * hash_str = map_hash_to_string(current_map_hash);
   temp_storage_store(hash_str, filename, strlen(filename));
+  sanitize_map();
   return failed;
   }
 

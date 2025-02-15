@@ -380,7 +380,7 @@ static const int console_height = 165;
 static const int console_padding = 3;
 static int console_blink = 0;
 static char console_visible = 0;
-#define CONSOLE_FONT H_FTINY
+#define CONSOLE_FONT H_FLITT5
 
 void draw_console_window() {
     if (!console_visible) return;
@@ -584,15 +584,17 @@ static int process_actions(const char *command) {
 
     }
     if (istrcmp(command, "ascent") == 0) {
-        int lev = postavy[0].exp;
+        int lev = postavy[0].level;
         for (int i = 0; i < POCET_POSTAV; ++i) {
             THUMAN *p = postavy+i;
             if (p->used) lev = MAX(lev,p->level);
         }
         for (int i = 0; i < POCET_POSTAV; ++i) {
             THUMAN *p = postavy+i;
-            p->exp = level_map[lev-1];
-            check_player_new_level(p);
+            if (p->used) {
+                p->exp = level_map[lev-1];
+                check_player_new_level(p);
+            }
         }
         return 1;
     }
