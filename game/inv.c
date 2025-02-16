@@ -2049,11 +2049,11 @@ int weigth_defect(THUMAN *p)
 }
 
 static char check_double_wield()  {
-    short i1 = human_selected->wearing[PO_RUKA_L]-1;
-    short i2 = human_selected->wearing[PO_RUKA_R]-1;
+    short i1 = human_selected->wearing[PO_RUKA_L];
+    short i2 = human_selected->wearing[PO_RUKA_R];
     if (!i1 || !i2) return 0;
-    const TITEM *it1 = glob_items+i1;
-    const TITEM *it2 = glob_items+i2;
+    const TITEM *it1 = glob_items+i1-1;
+    const TITEM *it2 = glob_items+i2-1;
     if (it1->druh!=TYP_UTOC || it2->druh!=TYP_UTOC ) return 0;
     for (int i = VLS_SILA; i <=VLS_OBRAT; ++i) {
         if ((it1->podminky[i] + it2->podminky[i] > human_selected->vlastnosti[i])

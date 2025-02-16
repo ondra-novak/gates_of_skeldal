@@ -543,51 +543,53 @@ int q_vidis_postavu(int sector,int dir,TMOB *p,int *otocit_se,char ret)
      {
      char ok=0;
      THUMAN *ps=&postavy[i];
-     xs=map_coord[sector].x-map_coord[postavy[i].sektor].x;
-     ys=map_coord[sector].y-map_coord[postavy[i].sektor].y;
-     d=MAX(abs(xs),abs(ys));
-     if (d<=p->dohled && (!(ps->vlastnosti[VLS_KOUZLA] & SPL_INVIS)||p->vlajky & MOB_SENSE) && ps->used && ps->lives && ps->inmaphash == current_map_hash)
-        switch(dir)
-           {
-           case 0:ok=ys>=0;break;
-           case 1:ok=xs<=0;break;
-           case 2:ok=ys<=0;break;
-           case 3:ok=xs>=0;break;
-           }
-     if (ok)
-        if (je_mozne_videt(sector,postavy[i].sektor,SD_MONST_IMPS | SD_PLAY_IMPS))
-           {
-            int alt = 0;
-            if (ys>=abs(xs)) {nd=0;alt=xs>0?3:1;}
-            else if (xs>=abs(ys)) {nd=3;alt=ys>0?0:2;}
-            else if (ys<=(-abs(xs))) {nd=2;alt=xs>0?1:3;}
-            else if (xs<=(-abs(ys))) {nd=1;alt=ys>0?2:0;}
-            if (mob_check_next_sector(p->sector,nd,p->stay_strategy & MOB_BIG,p->vlajky & MOB_PASSABLE)==1)
+     if (ps->used && ps->inmaphash == current_map_hash) {
+      xs=map_coord[sector].x-map_coord[postavy[i].sektor].x;
+      ys=map_coord[sector].y-map_coord[postavy[i].sektor].y;
+      d=MAX(abs(xs),abs(ys));
+      if (d<=p->dohled && (!(ps->vlastnosti[VLS_KOUZLA] & SPL_INVIS)||p->vlajky & MOB_SENSE) && ps->used && ps->lives && ps->inmaphash == current_map_hash)
+         switch(dir)
             {
-              nd=alt;
-              if (mob_check_next_sector(p->sector,nd,p->stay_strategy & MOB_BIG,p->vlajky & MOB_PASSABLE)==1)
-              {
-                nd=(alt+2)&3;
-                if (mob_check_next_sector(p->sector,nd,p->stay_strategy & MOB_BIG,p->vlajky & MOB_PASSABLE)==1)
-                {
-                  nd=(alt+3)&3;
-                }
-              }
+            case 0:ok=ys>=0;break;
+            case 1:ok=xs<=0;break;
+            case 2:ok=ys<=0;break;
+            case 3:ok=xs>=0;break;
             }
-           }
-        else d=255;
-     else d=255;
-     if (d!=255)
-        {
-        d*=2;
-        if (xs!=0 && ys!=0) d+=3;//dej prednost tem co jsou na tve souradnici.
-        if (d<dis || (d==dis && rnd(10)<3))
-           {
-           dis=d;*otocit_se=nd;att_sect=postavy[i].sektor;
-           z=i;
-           }
-        }
-     }
+      if (ok)
+         if (je_mozne_videt(sector,postavy[i].sektor,SD_MONST_IMPS | SD_PLAY_IMPS))
+            {
+               int alt = 0;
+               if (ys>=abs(xs)) {nd=0;alt=xs>0?3:1;}
+               else if (xs>=abs(ys)) {nd=3;alt=ys>0?0:2;}
+               else if (ys<=(-abs(xs))) {nd=2;alt=xs>0?1:3;}
+               else if (xs<=(-abs(ys))) {nd=1;alt=ys>0?2:0;}
+               if (mob_check_next_sector(p->sector,nd,p->stay_strategy & MOB_BIG,p->vlajky & MOB_PASSABLE)==1)
+               {
+               nd=alt;
+               if (mob_check_next_sector(p->sector,nd,p->stay_strategy & MOB_BIG,p->vlajky & MOB_PASSABLE)==1)
+               {
+                  nd=(alt+2)&3;
+                  if (mob_check_next_sector(p->sector,nd,p->stay_strategy & MOB_BIG,p->vlajky & MOB_PASSABLE)==1)
+                  {
+                     nd=(alt+3)&3;
+                  }
+               }
+               }
+            }
+         else d=255;
+      else d=255;
+      if (d!=255)
+         {
+         d*=2;
+         if (xs!=0 && ys!=0) d+=3;//dej prednost tem co jsou na tve souradnici.
+         if (d<dis || (d==dis && rnd(10)<3))
+            {
+            dis=d;*otocit_se=nd;att_sect=postavy[i].sektor;
+            z=i;
+            }
+         }
+      }
+   }
   if (dis==255) dis=-2;
   if (ret)return z;else return dis/2;
   }

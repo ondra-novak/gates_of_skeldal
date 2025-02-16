@@ -618,6 +618,7 @@ void show_cel(int celx,int cely,const void *stena,int xofs,int yofs,char rev, in
   x=x3d->xpos+xofs;
   if (-x>realsx) return;
   p=stena;p+=SHADE_PAL+2*2+2;
+  zoom.texture_end = p + txtsx*txtsy;
   i=0;
   while (x<0)
      {
@@ -690,6 +691,7 @@ void show_cel2(int celx,int cely,const void *stena,int xofs,int yofs,char rev, i
   if (celx<=0) x=x3d->xpos+xofs; else x=x3d->xpos2+xofs;
   if (-x>realsx) return;
   p=stena;p+=SHADE_PAL+2*2+2;
+  zoom.texture_end = p + txtsx*txtsy;
   i=0;
   while (x<0)
      {

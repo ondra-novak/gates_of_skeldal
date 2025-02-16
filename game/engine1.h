@@ -57,6 +57,7 @@ typedef struct zoominfo
      word *palette;
      word ycount;
      word xmax;
+     const void *texture_end;
   }ZOOMINFO;
 
 

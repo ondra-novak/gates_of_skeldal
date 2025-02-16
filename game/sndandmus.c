@@ -544,7 +544,8 @@ void play_sample_at_sector(int sample,int listener,int source,int track, char lo
 	int oldtrack;
 
   if (!sound_enabled) return;
-  if (map_coord[listener].layer!=map_coord[source].layer) return;
+  if (listener<0 || listener>=mapsize || map_coord[listener].layer!=map_coord[source].layer) return;
+  if (source<0 || source >=mapsize) return;
   xd=map_coord[source].x;
   yd=map_coord[source].y;
   chan=find_free_channel(track);

@@ -149,7 +149,7 @@ void new_setup()
 
   mix_back_sound(256000-16384);
   memset(&ctl,0,sizeof(ctl));
-  change_click_map(setup,4);
+  change_click_map(setup,countof(setup));
   set_font(H_FBOLD,SETUP_COL2);
   default_font=curfont;
   memcpy(f_default,charcolors,sizeof(f_default));

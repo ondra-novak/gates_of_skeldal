@@ -925,15 +925,14 @@ void spell_pripojenia(int owner)
      {
      int sect;
      sect=postavy[i].sektor;
-     if (map_coord[sect].flags & MC_NOSUMMON)
+     if (sect > 0 && sect < mapsize && map_coord[sect].flags & MC_NOSUMMON) {
         if (h==NULL) h=postavy+i;else more=1;
-     else
-        {
+     } else {
         postavy[i].sektor=postavy[owner].sektor;
         postavy[i].direction=postavy[owner].direction;
         postavy[i].inmaphash = postavy[owner].inmaphash;
         }
-     }
+      }
   auto_group();
   if (more) bott_disp_text(texty[89]);
   else if (h!=NULL)

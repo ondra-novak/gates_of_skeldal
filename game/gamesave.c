@@ -208,7 +208,7 @@ void restore_items(TMPFILE_RD *f)
   int32_t i,j;
 
   for(i=0;i<mapsize*4;i++) if (map_items[i]!=NULL) free(map_items[i]);
-  memset(map_items,0,mapsize*16);
+  memset(map_items,0,mapsize*4*sizeof(*map_items));
   while(temp_storage_read(&i,sizeof(i),f) && i!=-1)
      {
      temp_storage_read(&j,sizeof(j),f);

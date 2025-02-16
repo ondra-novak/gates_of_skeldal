@@ -1193,7 +1193,7 @@ void fletna_pridej_notu(char note)
   {
   note+=65;
   fletna_str[pos]=note;
-  if (pos==13) memmove(fletna_str,fletna_str+1,pos-1);
+  if (pos==countof(fletna_str)) memmove(fletna_str,fletna_str+1,pos-1);
   else pos++;
   }
 
@@ -1415,7 +1415,7 @@ int load_string_list_ex(TSTR_LIST *list,const char *filename)
         return lin;
         }
      if (i==-1) break;
-     while ((j=temp_storage_getc(f))<33 && j!=EOF);
+     while ((j=temp_storage_getc(f))<33 && j!=EOF && j!='\n');
      if (j!=EOF) temp_storage_ungetc(f);
      if (temp_storage_gets(c,1022,f)==NULL)
         {

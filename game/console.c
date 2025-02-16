@@ -606,7 +606,7 @@ static int process_actions(const char *command) {
     if (istrcmp(command, "world-list") == 0) {
         int cnt = 0;
         list_files(gpathtable[SR_MAP], file_type_normal|file_type_just_name, add_file_to_console, &cnt);
-        printf("\n");
+        wzprintf("\n");
         return 1;
     }
     if (istrcmp(command, "beam-me-up") == 0) {

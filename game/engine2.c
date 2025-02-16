@@ -20,7 +20,7 @@ void sikma_zleva_##suffx(void)                               \
 	word cy = zoom.ycount;                                  \
 	const unsigned char *pixmap = zoom.texture;             \
 	const short *ytable = zoom.ytable;                      \
-	while (cy) {                                            \
+	while (cy && pixmap < (const unsigned char *)zoom.texture_end) {     \
 		const int32_t *xtable = zoom.xtable;                \
 		word cx = zoom.xmax;                                \
 		word *scr_iter = scr;                               \
@@ -48,7 +48,7 @@ void sikma_zprava_##suffx(void)                              \
 	word cy = zoom.ycount;                                  \
 	const unsigned char *pixmap = zoom.texture;             \
 	const short *ytable = zoom.ytable;                      \
-	while (cy) {                                            \
+	while (cy && pixmap < (const unsigned char *)zoom.texture_end) {     \
 		const int32_t *xtable = zoom.xtable;                \
 		word cx = zoom.xmax;                                \
 		word *scr_iter = scr;                               \

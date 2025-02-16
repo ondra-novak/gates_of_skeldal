@@ -10,6 +10,7 @@
 #include <fstream>
 #include <stdexcept>
 #include <sstream>
+#include <algorithm>
 void SDLContext::SDL_Deleter::operator ()(SDL_Window* window) {
     SDL_DestroyWindow(window);
 }
