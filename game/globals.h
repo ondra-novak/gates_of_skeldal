@@ -1691,6 +1691,7 @@ void animate_checkbox(int first_id,int last_id,int step);
 void fletna_pridej_notu(char note);
 void check_fletna(THE_TIMER *t);
 char fletna_get_buffer_pos(void);
+char fletna_can_add_timer();
 void check_global_fletna(THE_TIMER *t);
 void fletna_glob_add_note(uint8_t note);
 

@@ -415,7 +415,7 @@ static char sing_song_clk(int id,int xa,int ya,int xr,int yr)
         playing=0;
         if (standardflute)
         {
-        if (fletna_get_buffer_pos())
+        if (fletna_can_add_timer())
            {
            THE_TIMER *t;
            if (standardflute)

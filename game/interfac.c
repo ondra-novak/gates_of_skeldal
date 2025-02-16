@@ -1178,6 +1178,7 @@ void skeldal_soupak(OBJREC *o)
 
 static char fletna_str[13];
 static uint8_t pos=0;
+static uint8_t minnotes=6;
 
 // C  C# D  D# E  F  F# G  G# A  A# B  C
 // A  B  C  D  E  F  G  H  I  J  K  L  M
@@ -1193,7 +1194,7 @@ void fletna_pridej_notu(char note)
   {
   note+=65;
   fletna_str[pos]=note;
-  if (pos==countof(fletna_str)) memmove(fletna_str,fletna_str+1,pos-1);
+  if (pos==countof(fletna_str)-1) memmove(fletna_str,fletna_str+1,pos-1);
   else pos++;
   }
 
@@ -1262,6 +1263,10 @@ void check_fletna(THE_TIMER *t)
      play_random_sound(sec,dir,pos);
   pos=0;
   }
+
+char fletna_can_add_timer() {
+  return pos >=minnotes;
+}
 
 char fletna_get_buffer_pos()
   {
