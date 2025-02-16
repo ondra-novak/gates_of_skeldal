@@ -89,8 +89,23 @@ int DxGetResY() {
     return 480;
 }
 void setvesa_displaystart(int x,int y){
+    auto &sdl = get_sdl_global_context();
+    SDL_Rect hidden_from = {};
+    SDL_Rect hidden_where = {};
+    SDL_Rect visible_from = {0,0,640,480};
+    SDL_Rect visible_where = {x,y,640,480};
+    sdl.show_slide_transition(visible_from, visible_where, hidden_from, hidden_where);
 
 }
+
+void game_display_show_mouse(const unsigned short *mouse_image, int finger_x, int finger_y) {
+    get_sdl_global_context().show_mouse_cursor(mouse_image,{finger_x, finger_y});
+}
+void game_display_hide_mouse() {
+    get_sdl_global_context().hide_mouse_cursor();
+
+}
+
 void StripBlt(const void *data, unsigned int startline, uint32_t width) {
 
     unsigned short *start=startline*GetScreenPitch()+GetScreenAdr();

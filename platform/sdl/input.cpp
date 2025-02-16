@@ -30,6 +30,7 @@ void SetWheelMapping(char up, char down) { //todo
 
 void get_ms_event(MS_EVENT *event) {
     *event = get_sdl_global_context().getMsEvent();
+
 }
 
 void ShareCPU() {

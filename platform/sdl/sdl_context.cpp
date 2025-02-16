@@ -282,9 +282,14 @@ void SDLContext::event_loop(std::stop_token stp) {
             SDL_Rect winrc = get_window_aspect_rect();
             SDL_Point srcpt = to_source_point(winrc, mspt);
             ms_event.event = 1;
-            ms_event.event_type = 1;
+            ms_event.event_type |= 1;
             ms_event.x = srcpt.x;
             ms_event.y = srcpt.y;
+            if (_mouse) {
+                _mouse_rect.x = e.motion.x;
+                _mouse_rect.y = e.motion.y;
+                refresh_screen();
+            }
         } else if (e.type == SDL_MOUSEBUTTONDOWN || e.type == SDL_MOUSEBUTTONUP) {
             int button = e.button.button;
             int up =  e.type == SDL_MOUSEBUTTONUP?1:0;
@@ -296,7 +301,7 @@ void SDLContext::event_loop(std::stop_token stp) {
                 case 2: ms_event.tl3 = !up; shift = 5; break;
                 case 3: ms_event.tl2 = !up; shift = 3; break;
             }
-            ms_event.event_type = (1<<(shift+up));
+            ms_event.event_type |= (1<<(shift+up));
         }
 
     }
@@ -349,48 +354,7 @@ void SDLContext::signal_push() {
 
 }
 
-void SDLContext::update_screen() {
-    std::optional<BlendTransitionReq> blend_transition;
-    std::optional<SlideTransitionReq> slide_transition;
-    {
-        std::lock_guard _(_mx);
-        if (_display_update_queue.empty()) return;
-        QueueIter iter = _display_update_queue.data();
-        QueueIter end = iter + _display_update_queue.size();
-        while (iter != end) {
-            DisplayRequest req;
-            pop_item(iter, req);
-            switch (req) {
-                case DisplayRequest::update: {
-                    SDL_Rect r;
-                    pop_item(iter, r);
-                    std::string_view data = pop_data(iter, r.w*r.h*2);
-                    SDL_UpdateTexture(_texture.get(), &r, data.data(), r.w*2);
-                }
-                break;
-                case DisplayRequest::swap_render_buffers: {
-                    std::swap(_texture,_texture2);
-                }
-                break;
-                case DisplayRequest::swap_visible_buffers: {
-                    std::swap(_visible_texture,_hidden_texture);
-                    blend_transition.reset();
-                    slide_transition.reset();
-                }
-                break;
-                case DisplayRequest::blend_transition:
-                    blend_transition.emplace();
-                     pop_item(iter, *blend_transition);
-                break;
-                case DisplayRequest::slide_transition:
-                    slide_transition.emplace();
-                     pop_item(iter, *slide_transition);
-                break;
-            }
-        }
-        _display_update_queue.clear();
-
-    }
+void SDLContext::refresh_screen() {
     SDL_Rect winrc = get_window_aspect_rect();
     SDL_RenderClear(_renderer.get());
     if (slide_transition) {
@@ -438,8 +402,74 @@ void SDLContext::update_screen() {
             _crt_effect.reset(txt);
         }
     }
+    if (_mouse) {
+        SDL_Rect recalc_rect = to_window_rect(winrc, _mouse_rect);
+        SDL_Point f= to_window_point({0,0,winrc.w, winrc.h}, _mouse_finger);
+        recalc_rect.x = _mouse_rect.x - f.x;
+        recalc_rect.y = _mouse_rect.y - f.y;
+        SDL_RenderCopy(_renderer.get(), _mouse.get(), NULL, &recalc_rect);
+    }
     SDL_RenderCopy(_renderer.get(), _crt_effect.get(), NULL, &winrc);
     SDL_RenderPresent(_renderer.get());
+
+}
+
+void SDLContext::update_screen() {
+    {
+        std::lock_guard _(_mx);
+        if (_display_update_queue.empty()) return;
+        QueueIter iter = _display_update_queue.data();
+        QueueIter end = iter + _display_update_queue.size();
+        while (iter != end) {
+            DisplayRequest req;
+            pop_item(iter, req);
+            switch (req) {
+                case DisplayRequest::update: {
+                    SDL_Rect r;
+                    pop_item(iter, r);
+                    std::string_view data = pop_data(iter, r.w*r.h*2);
+                    SDL_UpdateTexture(_texture.get(), &r, data.data(), r.w*2);
+                }
+                break;
+                case DisplayRequest::show_mouse_cursor: {
+                    SDL_Rect r;
+                    pop_item(iter, r);
+                    std::string_view data = pop_data(iter, r.w*r.h*2);
+                    _mouse.reset(SDL_CreateTexture(_renderer.get(), SDL_PIXELFORMAT_ARGB1555, SDL_TEXTUREACCESS_STREAMING, r.w, r.h));
+                    SDL_SetTextureBlendMode(_mouse.get(), SDL_BLENDMODE_BLEND);
+                    _mouse_rect.w = r.w;
+                    _mouse_rect.h = r.h;
+                    SDL_UpdateTexture(_mouse.get(), NULL, data.data(), r.w*2);
+                }
+                break;
+                case DisplayRequest::hide_mouse_cursor: {
+                    _mouse.reset();
+                }
+                break;
+                case DisplayRequest::swap_render_buffers: {
+                    std::swap(_texture,_texture2);
+                }
+                break;
+                case DisplayRequest::swap_visible_buffers: {
+                    std::swap(_visible_texture,_hidden_texture);
+                    blend_transition.reset();
+                    slide_transition.reset();
+                }
+                break;
+                case DisplayRequest::blend_transition:
+                    blend_transition.emplace();
+                     pop_item(iter, *blend_transition);
+                break;
+                case DisplayRequest::slide_transition:
+                    slide_transition.emplace();
+                     pop_item(iter, *slide_transition);
+                break;
+            }
+        }
+        _display_update_queue.clear();
+
+    }
+    refresh_screen();
 }
 
 template<typename T>
@@ -625,5 +655,32 @@ void SDLContext::set_window_icon(const void *icon_data, size_t icon_size) {
     } else {
         SDL_SetWindowIcon(_window.get(), surface);
     }
+}
+
+extern "C" {
+void put_picture_ex(unsigned short x,unsigned short y,const void *p, unsigned short *target_addr, size_t pitch);
+}
+void SDLContext::show_mouse_cursor(const unsigned short *ms_hi_format, SDL_Point finger) {
+    std::lock_guard _(_mx);
+    signal_push();
+    push_item(DisplayRequest::show_mouse_cursor);
+    SDL_Rect rc;
+    rc.w= ms_hi_format[0];
+    rc.h =ms_hi_format[1];
+    _mouse_finger = finger;
+    push_item(rc);
+    auto sz = _display_update_queue.size();
+    auto imgsz = rc.w*rc.h;
+    _display_update_queue.resize(sz+imgsz*2);
+    unsigned short *trg = reinterpret_cast<unsigned short *>(_display_update_queue.data()+sz);
+    std::fill(trg, trg+imgsz, 0x8000);
+    put_picture_ex(0, 0, ms_hi_format, trg, rc.w);
+    std::transform(trg, trg+imgsz, trg, [](unsigned short &x)->unsigned short {return x ^ 0x8000;});
+}
+
+void SDLContext::hide_mouse_cursor() {
+    std::lock_guard _(_mx);
+    signal_push();
+    push_item(DisplayRequest::hide_mouse_cursor);
 
 }

@@ -46,18 +46,18 @@ This fix will only work with the new code. (It will not work in earlier releases
 
 ## Goals
 
-1)  to rewrite all Intel 386 depend code to independed variant.
-2)  tp rewrite all ASM code to C
-3)  tp improve C code by using up C20 features (original is C89)
-4)  a new code should be written in C++20
-5)  to fix all bugs, to run under valgrind and to use other tools to find bugs
-6)  to render using SDL - Fullscreen and Windowed
-7)  to implement sounds and music using SDL sound library
-8)  to define and polish platform API - to allow future ports.
-9)  Install/Setup GUI application - by using some platform independed library
-10)  Target platforms: Windows, Ubuntu/Debian/Linux, MacOS.
-11)  ADV (custom adventure) support for existing adventures
-12)  - later MapEdit and other tools
+ 1. to rewrite all Intel 386 depend code to independed variant.
+ 2. tp rewrite all ASM code to C
+ 3. tp improve C code by using up C20 features (original is C89)
+ 4. a new code should be written in C++20
+ 5. to fix all bugs, to run under valgrind and to use other tools to find bugs
+ 6. to render using SDL - Fullscreen and Windowed z
+ 7. to implement sounds and music using SDL sound library
+ 8. to define and polish platform API - to allow future ports.
+ 9. Install/Setup GUI application - by using some platform independed library
+10. Target platforms: Windows, Ubuntu/Debian/Linux, MacOS.
+11. ADV (custom adventure) support for existing adventures
+12.  - later MapEdit and other tools
 
 ## Considered changes in the game
 1) Campaigns - the player will have saved games sorted by campaign and the number of saved positions in a campaign will not be limited. The only limitation will be the number of campaigns to 10, as the graphics only allow for 10 positions.
@@ -72,10 +72,9 @@ This fix will only work with the new code. (It will not work in earlier releases
  2. Leaving a dead member on the map does not make them completely lost. It is possible to return to the map later and revive them.
  3. The "Reincarnation" spell can be used to revive characters lost due to falling into the abyss, drowning, burning, or any other means where the character's corpse is out of reach. In this case, the revived character is automatically transported to the caster's location.
  4. The "Merge 3" spell also applies to all character corpses
- 5. The "Mobility" attribute has a more subtle effect on the action points gained during combat. A character may gain one additional action point during combat after a certain number of rounds if their "Mobility" attribute number approaches the threshold. On the other hand, if their mobility is below 15, they may not gain any action points in that round.
- 6. The "Dexterity" attribute is on the opposite side of "Mobility" because it is primarily intended for use in shooting, where shooting takes longer (having to draw an arrow, aim, and fire) than a melee attack. To support this attribute, the rules for two-weapon combat have been changed. In order for a character to hold and fight with two weapons, the sum of the required attributes of both weapons must be met. For example, weapons with strength requirements of 20 and 30 mean having a strength of 50 to wield both. However, if a character has "Dexterity", they can use this attribute instead of the required attribute of the other weapon, with the higher number of the pair being considered, while still having to meet the requirements for both weapons individually. So to hold both weapons in the example above, they would need "Strength" = 30 and "Dexterity = 30"
- 7. Attacking with two melee weapons causes two attacks in one action.
- 8. When making a melee attack, the higher number from "Strength" and "Dexterity" is used as the attack attribute. However, this does not mean that a character with higher Dexterity can wield a weapon with a higher "Strength" attribute requirement. (Finesse rule)
+ 5. The "Dexterity" attribute is on the opposite side of "Mobility" because it is primarily intended for use in shooting, where shooting takes longer (having to draw an arrow, aim, and fire) than a melee attack. To support this attribute, the rules for two-weapon combat have been changed. In order for a character to hold and fight with two weapons, the sum of the required attributes of both weapons must be met. For example, weapons with strength requirements of 20 and 30 mean having a strength of 50 to wield both. However, if a character has "Dexterity", they can use this attribute instead of the required attribute of the other weapon, with the higher number of the pair being considered, while still having to meet the requirements for both weapons individually. So to hold both weapons in the example above, they would need "Strength" = 30 and "Dexterity = 30"
+ 6. Attacking with two melee weapons causes two attacks in one action.
+ 7. When making a melee attack, the higher number from "Strength" and "Dexterity" is used as the attack attribute. However, this does not mean that a character with higher Dexterity can wield a weapon with a higher "Strength" attribute requirement. (Finesse rule)
 
 
 ## Console commands

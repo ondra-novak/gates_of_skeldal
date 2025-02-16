@@ -20,14 +20,20 @@ void ukaz_mysku()
   visible--;
   if (!visible)
      {
+#ifdef FORCE_SOFTWARE_CURSOR
      show_ms_cursor(ms_last_event.x-h_x,ms_last_event.y-h_y);
+#else
+     game_display_show_mouse((const word *)get_registered_ms_cursor(),h_x, h_y);
+#endif
      }
   }
 
 void schovej_mysku()
   {
+#ifdef FORCE_SOFTWARE_CURSOR
   if (!visible)
      hide_ms_cursor();
+#endif
   visible++;
   }
 
@@ -57,6 +63,7 @@ void ms_idle_event(EVENT_MSG *info,void *user_data)
 
 void ms_draw_event(EVENT_MSG *info,void *user_data)
   {
+#ifdef FORCE_SOFTWARE_CURSOR
   MS_EVENT *ms_ev;
 
   user_data;
@@ -66,11 +73,13 @@ void ms_draw_event(EVENT_MSG *info,void *user_data)
      if (ms_ev->event_type & 1)
        if (!visible) move_ms_cursor(ms_ev->x-h_x,ms_ev->y-h_y,0);
      }
+#endif
   }
 
 
 void update_mysky(void)
   {
+#ifdef FORCE_SOFTWARE_CURSOR
   MS_EVENT x;
 
   get_ms_event(&x);
@@ -80,6 +89,7 @@ void update_mysky(void)
      x.event = 0;
      }
   if(!visible) move_ms_cursor(x.x-h_x,x.y-h_y,0);
+#endif
   }
 
 char je_myska_zobrazena()
@@ -94,12 +104,6 @@ void set_ms_finger(int x,int y)
   h_y=y;
   }
 
-void *mouse()
- {
- send_message(E_ADD,E_WATCH,ms_idle_event);
- send_message(E_ADD,E_MOUSE,ms_draw_event);
- return NULL;
- }
 
 short init_mysky()
   {
@@ -107,7 +111,10 @@ short init_mysky()
 //  i=install_mouse_handler();
 //  hranice_mysky(0,0,639,479);
   visible=1;
-  send_message(E_INIT,mouse);
+  send_message(E_ADD,E_WATCH,ms_idle_event);
+ #ifdef FORCE_SOFTWARE_CURSOR
+  send_message(E_ADD,E_MOUSE,ms_draw_event);
+ #endif
   return 0;
   }
 
@@ -116,7 +123,9 @@ short done_mysky()
 
 //  i=deinstall_mouse_handler();
   send_message(E_DONE,E_WATCH,ms_idle_event);
+#ifdef FORCE_SOFTWARE_CURSOR
   send_message(E_DONE,E_MOUSE,ms_draw_event);
+#endif
   return 0;
   }
 

@@ -25,6 +25,8 @@ void game_display_update_rect(unsigned short x,unsigned short y,unsigned short x
 char game_display_is_quit_requested();
 void game_display_cancel_quit_request();
 void game_display_set_icon(const void *icon_data, size_t icon_size);
+void game_display_show_mouse(const unsigned short *mouse_image, int finger_x, int finger_y);
+void game_display_hide_mouse();
 
 void *DxPrepareWalk(int ypos);
 void DxZoomWalk(void *handle, int ypos, int *points,float phase, void *lodka);

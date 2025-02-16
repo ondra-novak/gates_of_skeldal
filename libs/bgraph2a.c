@@ -315,11 +315,12 @@ chsend: and     eax,0ffffh
     }*/
   }
 
-void put_picture(word x,word y,const void *p)
+
+void put_picture_ex(word x,word y,const void *p, word *target_addr, size_t pitch)
 //#pragma aux put_picture parm [esi] [eax] [edi] modify [ebx ecx edx]
   {
-  int32_t scr_linelen2 = GetScreenPitch();
-  word *adr=GetScreenAdr()+scr_linelen2*y+x;
+  int32_t scr_linelen2 = pitch;
+  word *adr=target_addr+scr_linelen2*y+x;
   const word *data=p;
   word xs=data[0];
   word ys=data[1];
@@ -391,6 +392,10 @@ void put_picture(word x,word y,const void *p)
         }
     }
   }
+void put_picture(word x,word y,const void *p) {
+    put_picture_ex(x, y, p, GetScreenAdr(), GetScreenPitch());
+
+}
 void get_picture(word x,word y,word xs,word ys,void *p)
   {
   int32_t scr_linelen2 = GetScreenPitch();

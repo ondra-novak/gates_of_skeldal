@@ -51,6 +51,8 @@ void char2_32(word *posit,const word *font,char znak);
 word charsize(const word *font,char znak);
 //#pragma aux charsize parm [esi] [eax]
 void put_picture(word x,word y,const void *p);
+
+void put_picture_ex(word x,word y,const void *p, word *target_addr, size_t pitch);
 //#pragma aux put_picture parm [esi] [eax] [edi] modify [ebx ecx edx]
 void get_picture(word x,word y,word xs,word ys,void *p);
 //#pragma aux get_picture parm [esi] [eax] [ebx] [ecx] [edi] modify [edx]
@@ -113,6 +115,7 @@ void line32(word x1,word y1, word x2, word y2);
 void position(word x,word y);
 void show_ms_cursor(integer x,integer y);
 void *register_ms_cursor(const void *cursor);
+const void *get_registered_ms_cursor();
 void move_ms_cursor(integer newx,integer newy,char nodraw);
 void hide_ms_cursor(void);
 void redraw_ms_cursor_on_screen(void);

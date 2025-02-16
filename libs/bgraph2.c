@@ -508,6 +508,10 @@ void showview_lo(word x,word y,word xs,word ys)
 
 
 */
+
+const void *get_registered_ms_cursor() {
+    return mscursor;
+}
 void show_ms_cursor(integer x,integer y)
   {
   integer xs,ys;

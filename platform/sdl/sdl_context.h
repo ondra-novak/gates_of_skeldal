@@ -69,6 +69,7 @@ public:
         std::lock_guard _(_mx);
         MS_EVENT out = ms_event;
         ms_event.event = 0;
+        ms_event.event_type = 0;
         return out;
     }
 
@@ -91,6 +92,9 @@ public:
     void cancel_quit_request() {
         _quit_requested = false;
     }
+
+    void show_mouse_cursor(const unsigned short *ms_hi_format, SDL_Point finger);
+    void hide_mouse_cursor();
 
 protected:
 
@@ -121,7 +125,9 @@ protected:
         swap_render_buffers,
         swap_visible_buffers,
         blend_transition,
-        slide_transition
+        slide_transition,
+        show_mouse_cursor,  //< loads mouse cursor and shows it
+        hide_mouse_cursor,   //< clears mouse cursor
     };
 
     struct SDL_Audio_Deleter {
@@ -143,6 +149,7 @@ protected:
     std::unique_ptr<SDL_Texture, SDL_Deleter> _texture;
     std::unique_ptr<SDL_Texture, SDL_Deleter> _texture2;
     std::unique_ptr<SDL_Texture, SDL_Deleter> _crt_effect;
+    std::unique_ptr<SDL_Texture, SDL_Deleter> _mouse;
     unique_value<SDL_AudioDeviceID, SDL_Audio_Deleter> _audio;
     SDL_Texture *_visible_texture;
     SDL_Texture *_hidden_texture;
@@ -161,6 +168,8 @@ protected:
     std::vector<char> _display_update_queue;
     using QueueIter = const char *;
     std::queue<uint16_t> _keyboard_queue;
+    SDL_Rect _mouse_rect;
+    SDL_Point _mouse_finger;
 
     Uint32 _update_request_event;
 
@@ -190,6 +199,10 @@ protected:
     void generateCRTTexture(SDL_Renderer* renderer, SDL_Texture** texture, int width, int height, CrtFilterType type);
     void signal_push();
 
+
+    void refresh_screen();
+    std::optional<BlendTransitionReq> blend_transition;
+    std::optional<SlideTransitionReq> slide_transition;
 
 
 };
