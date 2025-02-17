@@ -1814,6 +1814,7 @@ char *change_extension_support(char *buffer, const char *filename,char *new_exte
 #define set_file_extension(filename, extension) change_extension_support((char *)alloca(strlen(filename)+strlen(extension)), (filename), (extension))
 void load_enemy_to_map(int i, int sector, int dir, const TMOB *t);
 
+void hide_boat();
 
 //extras
 #include "extras.h"

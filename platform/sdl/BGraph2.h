@@ -27,6 +27,17 @@ void game_display_cancel_quit_request();
 void game_display_set_icon(const void *icon_data, size_t icon_size);
 void game_display_show_mouse(const unsigned short *mouse_image, int finger_x, int finger_y);
 void game_display_hide_mouse();
+///Load sprite HI format, sprite_id can be any integer value- if sprite exists it is replaced
+void game_display_load_sprite(int sprite_id, const unsigned short *hi_image);
+///show and place sprite at given coordinates
+void game_display_place_sprite(int sprite_id, int x, int y);
+///show and place (and scale) sprite at given coordinates
+void game_display_scale_sprite(int sprite_id, int x, int y, int w, int h);
+void game_display_sprite_set_zindex(int sprite_id, int zindex);
+///hide sprite
+void game_display_hide_sprite(int sprite_id);
+///unload sprite and free index
+void game_display_unload_sprite(int sprite);
 
 void *DxPrepareWalk(int ypos);
 void DxZoomWalk(void *handle, int ypos, int *points,float phase, void *lodka);

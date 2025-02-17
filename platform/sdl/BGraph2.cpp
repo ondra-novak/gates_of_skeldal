@@ -245,3 +245,33 @@ void game_display_set_icon(const void *icon_data, size_t icon_size) {
     auto &sdl = get_sdl_global_context();
     sdl.set_window_icon(icon_data, icon_size);
 }
+
+///Load sprite HI format, returns ID of sprite
+void game_display_load_sprite(int sprite_id, const unsigned short *hi_image) {
+    auto &sdl = get_sdl_global_context();
+    return sdl.load_sprite(sprite_id, hi_image);
+}
+///show and place sprite at given coordinates
+void game_display_place_sprite(int sprite_id, int x, int y) {
+    auto &sdl = get_sdl_global_context();
+    sdl.place_sprite(sprite_id,x, y);
+}
+///show and place (and scale) sprite at given coordinates
+void game_display_scale_sprite(int sprite_id, int x, int y, int w, int h) {
+    auto &sdl = get_sdl_global_context();
+    sdl.scale_sprite(sprite_id, x, y, w,h);
+}
+///hide sprite
+void game_display_hide_sprite(int sprite_id) {
+    auto &sdl = get_sdl_global_context();
+    sdl.hide_sprite(sprite_id);
+}
+///unload sprite and free index
+void game_display_unload_sprite(int sprite_id) {
+    auto &sdl = get_sdl_global_context();
+    sdl.unload_sprite(sprite_id);
+}
+void game_display_sprite_set_zindex(int sprite_id, int zindex) {
+    auto &sdl = get_sdl_global_context();
+    sdl.sprite_set_zindex(sprite_id, zindex);
+}

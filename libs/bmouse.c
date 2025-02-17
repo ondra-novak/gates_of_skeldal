@@ -13,6 +13,7 @@ char visible=0;
 MS_EVENT ms_last_event;
 integer h_x,h_y=0;
 
+static const void *cur_hw_mouse = NULL;
 
 void ukaz_mysku()
   {
@@ -23,7 +24,11 @@ void ukaz_mysku()
 #ifdef FORCE_SOFTWARE_CURSOR
      show_ms_cursor(ms_last_event.x-h_x,ms_last_event.y-h_y);
 #else
-     game_display_show_mouse((const word *)get_registered_ms_cursor(),h_x, h_y);
+     const void *reg = (const word *)get_registered_ms_cursor();
+     if (reg != cur_hw_mouse) {
+         cur_hw_mouse = reg;
+         game_display_show_mouse(reg,h_x, h_y);
+     }
 #endif
      }
   }

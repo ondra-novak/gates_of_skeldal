@@ -403,6 +403,10 @@ void SDLContext::refresh_screen() {
             _crt_effect.reset(txt);
         }
     }
+    for (const auto &sprite: _sprites) if (sprite.shown) {
+        SDL_Rect rc = to_window_rect(winrc,sprite._rect);
+        SDL_RenderCopy(_renderer.get(), sprite._txtr.get(), NULL, &rc);
+    }
     if (_mouse) {
         SDL_Rect recalc_rect = to_window_rect(winrc, _mouse_rect);
         SDL_Point f= to_window_point({0,0,winrc.w, winrc.h}, _mouse_finger);
@@ -436,7 +440,7 @@ void SDLContext::update_screen() {
                     SDL_Rect r;
                     pop_item(iter, r);
                     std::string_view data = pop_data(iter, r.w*r.h*2);
-                    _mouse.reset(SDL_CreateTexture(_renderer.get(), SDL_PIXELFORMAT_ARGB1555, SDL_TEXTUREACCESS_STREAMING, r.w, r.h));
+                    _mouse.reset(SDL_CreateTexture(_renderer.get(), SDL_PIXELFORMAT_ARGB1555,SDL_TEXTUREACCESS_STATIC, r.w, r.h));
                     SDL_SetTextureBlendMode(_mouse.get(), SDL_BLENDMODE_BLEND);
                     _mouse_rect.w = r.w;
                     _mouse_rect.h = r.h;
@@ -465,6 +469,81 @@ void SDLContext::update_screen() {
                     slide_transition.emplace();
                      pop_item(iter, *slide_transition);
                 break;
+                case DisplayRequest::sprite_load: {
+                    int id;
+                    SDL_Rect r;
+                    pop_item(iter, id);
+                    pop_item(iter, r);
+                    std::string_view data = pop_data(iter, r.w*r.h*2);
+                    auto iter = std::find_if(_sprites.begin(), _sprites.end(),[&](const Sprite &x){
+                        return x.id == id;
+                    });
+                    if (iter == _sprites.end()) {
+                        iter = _sprites.insert(iter,{id});
+                    }
+                    iter->_txtr.reset(SDL_CreateTexture(_renderer.get(), SDL_PIXELFORMAT_ARGB1555, SDL_TEXTUREACCESS_STATIC,r.w, r.h));
+                    SDL_SetTextureBlendMode(iter->_txtr.get(), SDL_BLENDMODE_BLEND);
+                    SDL_UpdateTexture(iter->_txtr.get(), NULL, data.data(), r.w*2);
+                    iter->_rect = r;
+                    update_zindex();
+                } break;
+                case DisplayRequest::sprite_unload: {
+                    int id;
+                    pop_item(iter, id);
+                    auto iter = std::remove_if(_sprites.begin(), _sprites.end(),[&](const Sprite &x){
+                        return x.id == id;
+                    });
+                    _sprites.erase(iter,_sprites.end());
+                } break;
+                case DisplayRequest::sprite_hide: {
+                    int id;
+                    pop_item(iter, id);
+                    auto iter = std::find_if(_sprites.begin(), _sprites.end(),[&](const Sprite &x){
+                        return x.id == id;
+                    });
+                    if (iter != _sprites.end()) iter->shown = false;
+                } break;
+                case DisplayRequest::sprite_place: {
+                    int id;
+                    SDL_Point pt;
+                    pop_item(iter, id);
+                    pop_item(iter, pt);
+                    auto iter = std::find_if(_sprites.begin(), _sprites.end(),[&](const Sprite &x){
+                        return x.id == id;
+                    });
+                    if (iter != _sprites.end()) {
+                        iter->shown = true;
+                        iter->_rect.x = pt.x;
+                        iter->_rect.y = pt.y;
+                    }
+                } break;
+                case DisplayRequest::sprite_scale: {
+                    int id;
+                    SDL_Rect rc;
+                    pop_item(iter, id);
+                    pop_item(iter, rc);
+                    auto iter = std::find_if(_sprites.begin(), _sprites.end(),[&](const Sprite &x){
+                        return x.id == id;
+                    });
+                    if (iter != _sprites.end()) {
+                        iter->shown = true;
+                        iter->_rect = rc;
+                    }
+                } break;
+                case DisplayRequest::sprite_zindex: {
+                    int id;
+                    int zindex;
+                    pop_item(iter, id);
+                    pop_item(iter, zindex);
+                    auto iter = std::find_if(_sprites.begin(), _sprites.end(),[&](const Sprite &x){
+                        return x.id == id;
+                    });
+                    if (iter != _sprites.end()) {
+                        iter->zindex = zindex;
+                        update_zindex();
+                    }
+                } break;
+
             }
         }
         _display_update_queue.clear();
@@ -473,6 +552,13 @@ void SDLContext::update_screen() {
     refresh_screen();
 }
 
+
+void SDLContext::update_zindex() {
+    std::stable_sort(_sprites.begin(), _sprites.end(), [&](const Sprite &a, const Sprite &b){
+        return a.zindex < b.zindex;
+    });
+
+}
 template<typename T>
 requires(std::is_trivially_copy_constructible_v<T>)
 void  SDLContext::push_item(const T &item) {
@@ -661,22 +747,27 @@ void SDLContext::set_window_icon(const void *icon_data, size_t icon_size) {
 extern "C" {
 void put_picture_ex(unsigned short x,unsigned short y,const void *p, unsigned short *target_addr, size_t pitch);
 }
-void SDLContext::show_mouse_cursor(const unsigned short *ms_hi_format, SDL_Point finger) {
-    std::lock_guard _(_mx);
-    signal_push();
-    push_item(DisplayRequest::show_mouse_cursor);
+
+void  SDLContext::push_hi_image(const unsigned short *image) {
     SDL_Rect rc;
-    rc.w= ms_hi_format[0];
-    rc.h =ms_hi_format[1];
-    _mouse_finger = finger;
+    rc.w= image[0];
+    rc.h =image[1];
     push_item(rc);
     auto sz = _display_update_queue.size();
     auto imgsz = rc.w*rc.h;
     _display_update_queue.resize(sz+imgsz*2);
     unsigned short *trg = reinterpret_cast<unsigned short *>(_display_update_queue.data()+sz);
     std::fill(trg, trg+imgsz, 0x8000);
-    put_picture_ex(0, 0, ms_hi_format, trg, rc.w);
+    put_picture_ex(0, 0, image, trg, rc.w);
     std::transform(trg, trg+imgsz, trg, [](unsigned short &x)->unsigned short {return x ^ 0x8000;});
+}
+
+void SDLContext::show_mouse_cursor(const unsigned short *ms_hi_format, SDL_Point finger) {
+    std::lock_guard _(_mx);
+    signal_push();
+    push_item(DisplayRequest::show_mouse_cursor);
+    push_hi_image(ms_hi_format);
+    _mouse_finger = finger;
 }
 
 void SDLContext::hide_mouse_cursor() {
@@ -684,4 +775,54 @@ void SDLContext::hide_mouse_cursor() {
     signal_push();
     push_item(DisplayRequest::hide_mouse_cursor);
 
+}
+
+void SDLContext::load_sprite(int sprite_id, const unsigned short *hi_image) {
+    std::lock_guard _(_mx);
+    signal_push();
+    push_item(DisplayRequest::sprite_load);
+    push_item(sprite_id);
+    push_hi_image(hi_image);
+
+}
+
+void SDLContext::place_sprite(int sprite_id, int x, int y) {
+    std::lock_guard _(_mx);
+    signal_push();
+    push_item(DisplayRequest::sprite_place);
+    push_item(sprite_id);
+    SDL_Point pt{x,y};
+    push_item(pt);
+
+}
+
+void SDLContext::scale_sprite(int sprite_id, int x, int y, int w, int h) {
+    std::lock_guard _(_mx);
+    signal_push();
+    push_item(DisplayRequest::sprite_scale);
+    push_item(sprite_id);
+    SDL_Rect pt{x,y,w,h};
+    push_item(pt);
+}
+
+void SDLContext::hide_sprite(int sprite_id) {
+    std::lock_guard _(_mx);
+    signal_push();
+    push_item(DisplayRequest::sprite_hide);
+    push_item(sprite_id);
+}
+
+void SDLContext::sprite_set_zindex(int sprite_id, int zindex) {
+    std::lock_guard _(_mx);
+    signal_push();
+    push_item(DisplayRequest::sprite_hide);
+    push_item(sprite_id);
+    push_item(zindex);
+}
+
+void SDLContext::unload_sprite(int sprite) {
+    std::lock_guard _(_mx);
+    signal_push();
+    push_item(DisplayRequest::sprite_unload);
+    push_item(sprite);
 }

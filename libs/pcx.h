@@ -7,6 +7,7 @@ extern "C" {
 
 #define A_8BIT 8
 #define A_16BIT 16
+#define A_16BIT_ZERO_TRANSP (1024+16)
 #define A_FADE_PAL (256+8)
 #define A_8BIT_NOPAL (512+8)
 #define A_NORMAL_PAL (768+8)

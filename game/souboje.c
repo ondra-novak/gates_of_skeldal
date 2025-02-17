@@ -29,6 +29,7 @@ short cislo_kola;
 HUM_ACTION spell_string;
 short caster;
 short vybrana_zbran=-1;
+static char group_flee = 0;
 char plr_switcher[POCET_POSTAV];
 static int pohyblivost_counter[POCET_POSTAV];
 static int autostart_round=0;
@@ -552,7 +553,7 @@ void auto_group()
      {
      p->groupnum=t++;
      for(j=i+1;q=&postavy[j],j<POCET_POSTAV;j++)
-        if (p->sektor==q->sektor && p->direction==q->direction && p->inmaphash == current_map_hash && q->used && q->lives)
+        if (p->sektor==q->sektor  && p->inmaphash == current_map_hash && q->used && q->lives)
           q->groupnum=p->groupnum;
      }
 
@@ -911,29 +912,15 @@ void prejdi_na_pohled(THUMAN *p)
   }
 
 int hromadny_utek;
-static int UtekHromadne(int sector)
-  {
-  int minact=999;
-  int i;
-  int p=0;
-  for (i=0;i<POCET_POSTAV;i++) if (postavy[i].used && postavy[i].sektor==sector && postavy[i].kondice>2 && postavy[i].inmaphash == current_map_hash)
-	{
-    int wf=weigth_defect(postavy+i)+2;
-	if (postavy[i].provadena_akce==NULL || postavy[i].provadena_akce->action!=AC_RUN) return 0;
-	if (postavy[i].utek<minact) minact=postavy[i].utek;
-	if (postavy[i].kondice/wf<minact) minact=postavy[i].kondice/wf;
-	p++;
-	}
-  return p>1?minact:0;
-  }
 
-void utek_postavy(THUMAN *p)
+void utek_postavy(THUMAN *p, char group)
   {
   int minact=0;
   p->actions=p->utek;
-  if (game_extras & EX_GROUP_FLEE && (minact=UtekHromadne(p->sektor))!=0)
+  if (group)
 	{
 	int i;
+    minact = 5;
 	p->actions=minact;
 	hromadny_utek=p->sektor;
 	for (i=0;i<POCET_POSTAV;i++) if (postavy[i].used && postavy[i].sektor==p->sektor && postavy[i].inmaphash == current_map_hash)
@@ -1353,7 +1340,10 @@ void jadro_souboje(EVENT_MSG *msg,void **unused) //!!!! Jadro souboje
                  else
                  {
                SEND_LOG("(BATTLE) Player Action '%s', number: %d",p->jmeno,p->provadena_akce->action);
-              switch(p->provadena_akce->action)
+               if (group_flee) {
+                   group_flee = 0;
+                   utek_postavy(p, 1);
+               } else switch(p->provadena_akce->action)
                 {
                 case AC_MOVE:
                   {
@@ -1401,7 +1391,7 @@ void jadro_souboje(EVENT_MSG *msg,void **unused) //!!!! Jadro souboje
                              }
                              break;
                 case AC_STAND:pomala_regenerace_postavy(p);break;
-                case AC_RUN:utek_postavy(p);break;
+                case AC_RUN:utek_postavy(p,0);break;
                 case AC_MAGIC:
                              prejdi_na_pohled(p);
                              bott_draw(1);
@@ -1769,38 +1759,49 @@ void program_draw()
 
   maxy;
   schovej_mysku();
-  for(j=0;j<POCET_POSTAV;j++)
-     if (postavy[i=group_sort[j]].used)
-     {
-     int y;
+  if (group_flee) {
+      trans_bar(0,377-15,640,15,0);
+      for (j = 0; j < POCET_POSTAV; ++j) if (postavy[j].groupnum == cur_group) {
+          set_font(H_FLITT5,PRG_COLOR);
+          int y=386-10;
+          set_aligned_position(x,y,1,2,texty[AC_RUN+40]);
+          outtext(texty[40+AC_RUN]);
+          x+=74;
+      }
+  } else {
+      for(j=0;j<POCET_POSTAV;j++)
+         if (postavy[i=group_sort[j]].used)
+         {
+         int y;
 
-     y=postavy[i].programovano*10;
-     if (y>maxy) maxy=y;
-     }
-  if (!maxy && (pgm_help || rune_name!=NULL)) maxy+=10;
-  if (maxy)
-     {
-     maxy+=5;
-     trans_bar(0,377-maxy,640,maxy,0);
-     }
-  for(j=0;j<POCET_POSTAV;j++)
-     if (postavy[i=group_sort[j]].used)
-     {
-     HUM_ACTION *c;
-     int y,j;
-     c=postavy[i].provadena_akce;
-     if (c==NULL) continue;
-     y=386-10*postavy[i].programovano;
-     set_font(H_FLITT5,PRG_COLOR);
-     for(j=0;j<postavy[i].programovano;j++)
-        {
-        set_aligned_position(x,y,1,2,texty[c->action+40]);
-        outtext(texty[c->action+40]);
-        c++;
-        y+=+10;
-        }
-     x+=74;
-     }
+         y=postavy[i].programovano*10;
+         if (y>maxy) maxy=y;
+         }
+      if (!maxy && (pgm_help || rune_name!=NULL)) maxy+=10;
+      if (maxy)
+         {
+         maxy+=5;
+         trans_bar(0,377-maxy,640,maxy,0);
+         }
+      for(j=0;j<POCET_POSTAV;j++)
+         if (postavy[i=group_sort[j]].used)
+         {
+         HUM_ACTION *c;
+         int y,j;
+         c=postavy[i].provadena_akce;
+         if (c==NULL) continue;
+         y=386-10*postavy[i].programovano;
+         set_font(H_FLITT5,PRG_COLOR);
+         for(j=0;j<postavy[i].programovano;j++)
+            {
+            set_aligned_position(x,y,1,2,texty[c->action+40]);
+            outtext(texty[c->action+40]);
+            c++;
+            y+=+10;
+            }
+         x+=74;
+         }
+  }
  if(pgm_help || rune_name!=NULL)
      {
      char *c;
@@ -1810,7 +1811,7 @@ void program_draw()
      set_aligned_position(580,376,1,2,c);
      outtext(c);
      }
- ukaz_mysku();
+     ukaz_mysku();
   }
 
 
@@ -2000,7 +2001,10 @@ static void zahajit_kolo(char prekvapeni)
                           if (w==0) w=select_weapon(p,0);
                           else if (w==3) w=select_weapon(p,0),monster|=monster_far;
                           else w--,monster|=monster_far;
-                          if (p->used && !p->programovano && p->lives && p->inmaphash == current_map_hash) {
+                          if (p->used && group_flee) {
+                              p->programovano = 1;
+                              p->zvolene_akce->action=AC_RUN;
+                          } else if (p->used && !p->programovano && p->lives && p->inmaphash == current_map_hash) {
                              if (prekvapeni || !p->actions || !autoattack || !monster)
                              {
                              p->programovano++;p->zvolene_akce->action=AC_STAND;
@@ -2038,13 +2042,18 @@ char mask_click(int id,int xa,int ya,int xr,int yr)
      souboje_stisknout(d);
      switch(d)
         {
-        case AC_RUN: postavy[select_player].utek=5+postavy[select_player].actions;
+        case AC_RUN:
+            if (lodka) {
+                group_flee = 1;break;
+            } else {
+                postavy[select_player].utek=5+postavy[select_player].actions;
+            }
                 CASE_FALLTHROUGH;
         case AC_ATTACK:
         case AC_STAND:
         case AC_ARMOR:
         case AC_MOVE:
-        case AC_MAGIC:if (postavy[select_player].actions)
+        case AC_MAGIC:if (postavy[select_player].actions && (d != AC_MOVE || !lodka))
                        {
                        HUM_ACTION *c;
                        postavy[select_player].direction=viewdir;
@@ -2061,7 +2070,7 @@ char mask_click(int id,int xa,int ya,int xr,int yr)
                        souboje_vybrano(d);
                        }
                      break;
-        case AC_CANCEL:zrusit_akce();break;
+        case AC_CANCEL:zrusit_akce();group_flee = 0;break;
         case AC_START:zahajit_kolo(0);
                       souboje_stisknout(d);
                       return 0;

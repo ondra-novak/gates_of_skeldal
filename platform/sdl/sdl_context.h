@@ -96,6 +96,13 @@ public:
     void show_mouse_cursor(const unsigned short *ms_hi_format, SDL_Point finger);
     void hide_mouse_cursor();
 
+    void load_sprite(int sprite_id, const unsigned short *hi_image);
+    void place_sprite(int sprite_id, int x, int y);
+    void scale_sprite(int sprite_id, int x, int y, int w, int h);
+    void hide_sprite(int sprite_id);
+    void sprite_set_zindex(int sprite_id, int zindex);
+    void unload_sprite(int sprite);
+
 protected:
 
     struct SDL_Deleter {
@@ -128,13 +135,28 @@ protected:
         slide_transition,
         show_mouse_cursor,  //< loads mouse cursor and shows it
         hide_mouse_cursor,   //< clears mouse cursor
+
+        sprite_load,
+        sprite_unload,
+        sprite_place,
+        sprite_scale,
+        sprite_zindex,
+        sprite_hide
     };
 
     struct SDL_Audio_Deleter {
         void operator()(SDL_AudioDeviceID x);
     };
 
+    struct Sprite {
+        int id = {};
+        int zindex = {};
+        std::unique_ptr<SDL_Texture, SDL_Deleter> _txtr = {};
+        SDL_Rect _rect = {};
+        bool shown = false;
+    };
 
+    using SpriteList = std::vector<Sprite>;
 
 
     MS_EVENT ms_event;
@@ -170,6 +192,7 @@ protected:
     std::queue<uint16_t> _keyboard_queue;
     SDL_Rect _mouse_rect;
     SDL_Point _mouse_finger;
+    SpriteList _sprites;
 
     Uint32 _update_request_event;
 
@@ -204,5 +227,7 @@ protected:
     std::optional<BlendTransitionReq> blend_transition;
     std::optional<SlideTransitionReq> slide_transition;
 
+    void push_hi_image(const unsigned short *image);
+    void update_zindex();
 
 };

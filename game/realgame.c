@@ -217,7 +217,7 @@ void sanitize_map() {
          s->sec = 0;
       }
       if ((s->oblouk & 0x0F)> max_obl) {
-         s->oblouk &= ~0x0F;         
+         s->oblouk &= ~0x0F;
       }
       if (s->prim + (s->prim_anim & 0xF) > max_side)  {
          s->prim_anim = max_side - (s->prim_anim & 0xF);
@@ -226,7 +226,7 @@ void sanitize_map() {
          s->sec_anim = max_side - (s->sec_anim & 0xF);
       }
    }
-     
+
 }
 
 int load_map(const char *filename)
@@ -1182,6 +1182,7 @@ void check_players_place(char mode) {
             if (map_sectors[sect].sector_type != S_LODKA && lodka) {
                 set_backgrnd_mode(0);
                 lodka = 0;
+                hide_boat();
             }
         }
 }

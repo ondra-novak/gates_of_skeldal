@@ -126,6 +126,7 @@ int load_pcx(const char *pcx,int32_t fsize,int conv_type,char **buffer, ... )
   switch (conv_type)
      {
      case A_8BIT: *buffer=(char *)getmem(sz = xsize*ysize+512+16);break;
+     case A_16BIT_ZERO_TRANSP:conv_type = A_16BIT; paleta2[0] = 0x8000;CASE_FALLTHROUGH;
      case A_16BIT: *buffer=(char *)getmem(sz = xsize*ysize*2+16);break;
      case A_FADE_PAL: *buffer=(char *)getmem(sz = xsize*ysize+SHADE_PAL+16);break;
      case A_8BIT_NOPAL: *buffer=(char *)getmem(sz = xsize*ysize+16);break;

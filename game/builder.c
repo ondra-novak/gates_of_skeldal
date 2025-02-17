@@ -81,6 +81,7 @@ char obl_max_anim=1;
 char anim_mirror=0;
 static char showrune=0;
 static int showruneitem=0;
+static char lodka_loaded=0;
 
 
 
@@ -1102,12 +1103,13 @@ static void zobraz_lodku(const word *lodka, word *screen, int size)
   {
     int32_t scr_linelen2 = GetScreenPitch();
 
+  lodka+=3;
   int x;
   while (size)
 	{
 	for (x=0;x<640 && size;x++)
 	  {
-	  if (*lodka!=0) screen[x]=*lodka;
+	  if (*lodka!=0x8000) screen[x]=*lodka;
 	  lodka++;
 	  size--;
 	  }
@@ -1263,7 +1265,17 @@ void render_scene(int sector, int smer)
            if (cancel_render) return;
      }
   calc_spectxtrs();
-  if (lodka) zobraz_lodku(ablock(H_LODKA),LODKA_POS,LODKA_SIZ);
+  if (lodka) {
+      if (cur_mode == MD_GAME) {
+          if (!lodka_loaded) {
+              game_display_load_sprite(H_LODKA, (const unsigned short *)ablock(H_LODKA));
+              lodka_loaded = 1;
+          }
+          game_display_place_sprite(H_LODKA, 0, SCREEN_OFFLINE+301);
+      } else {
+          zobraz_lodku(ablock(H_LODKA),LODKA_POS,LODKA_SIZ);
+      }
+  }
   }
 
 
@@ -1273,7 +1285,7 @@ void death_screen() {
     int ys;
     int y = 160;
     const char *t = texty[65];
-    DECL_VLA(char, buff, strlen(t)+4);    
+    DECL_VLA(char, buff, strlen(t)+4);
     set_font(H_FBOLD, RGB555_ALPHA(31,31,31));
     zalamovani(t,buff, 440, &xs, &ys);
     t = buff;
@@ -1379,3 +1391,7 @@ void display_ver(int x,int y,int ax,int ay)
   set_font(H_FTINY,RGB555(31,31,31));set_aligned_position(x,y,ax,ay,ver);
   outtext(ver);showview(0,0,0,0);
   }
+
+void hide_boat() {
+    game_display_hide_sprite(H_LODKA);
+}

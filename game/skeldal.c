@@ -92,6 +92,7 @@ static char titles_on=0;
 
 const void *pcx_fade_decomp(const void *p, int32_t *s);
 const void *pcx_15bit_decomp(const void *p, int32_t *s);
+const void *pcx_15bit_decomp_transp0(const void *p, int32_t *s);
 const void *pcx_15bit_autofade(const void *p, int32_t *s);
 const void *pcx_15bit_backgrnd(const void *p, int32_t *s);
 const void *pcx_8bit_decomp(const void *p, int32_t *s);
@@ -130,7 +131,7 @@ TDREGISTERS registred[]=
     {H_FKNIHA,"kniha.fon",NULL,SR_FONT},
     {H_FBIG,"timese.fon",NULL,SR_FONT},
     {H_IOBLOUK,"ioblouk.pcx",pcx_8bit_decomp,SR_BGRAFIKA},
-    {H_LODKA,"lodka.pcx",pcx_15bit_decomp,SR_BGRAFIKA},
+    {H_LODKA,"lodka.pcx",pcx_15bit_decomp_transp0,SR_BGRAFIKA},
     {H_IDESKA,"ideska.pcx",pcx_8bit_decomp,SR_BGRAFIKA},
     {H_IMRIZ1,"imriz1.pcx",pcx_8bit_decomp,SR_BGRAFIKA},
     {H_RAMECEK,"ramecek.pcx",pcx_8bit_decomp,SR_BGRAFIKA},
@@ -292,6 +293,14 @@ const void *pcx_15bit_decomp(const void *p, int32_t *s)
   {
   char *buff;
   int r = load_pcx(p,*s,A_16BIT,&buff);
+  assert(r > 0);
+  *s=r;
+  return buff;
+  }
+const void *pcx_15bit_decomp_transp0(const void *p, int32_t *s)
+  {
+  char *buff;
+  int r = load_pcx(p,*s,A_16BIT_ZERO_TRANSP,&buff);
   assert(r > 0);
   *s=r;
   return buff;
@@ -1022,6 +1031,7 @@ void unwire_main_functs(void)
   disable_click_map();
   cancel_render=1;
   wire_proc=wire_main_functs;
+  hide_boat();
   }
 
 
