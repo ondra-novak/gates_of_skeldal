@@ -14,7 +14,7 @@ public:
     void setHighShelf(float gainDB, float cutoff, float sampleRate);
 
     // Process a single sample (Direct Form II Transposed)
-    inline float process(float in);
+    float process(float in);
     // (Optional) Reset the filter state (e.g. when starting a new buffer)
     void reset();
 

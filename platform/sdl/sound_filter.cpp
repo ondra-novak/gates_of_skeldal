@@ -2,12 +2,12 @@
 #include <vector>
 #include "sound_filter.h"
 
-static constexpr float M_PI = 3.1415926535f;
+static constexpr float pi_number = 3.1415926535f;
 
 Biquad::Biquad() : b0(1), b1(0), b2(0), a1(0), a2(0), z1(0), z2(0) {}
 void Biquad::setLowShelf(float gainDB, float cutoff, float sampleRate) {
     const float A = std::pow(10.0f, gainDB / 40.0f);
-    const float omega = 2.0f * float(M_PI) * cutoff / sampleRate;
+    const float omega = 2.0f * float(pi_number) * cutoff / sampleRate;
     const float sn = std::sin(omega);
     const float cs = std::cos(omega);
     const float S = 1.0f; // shelf slope (1.0 is a typical choice)
@@ -33,7 +33,7 @@ void Biquad::setLowShelf(float gainDB, float cutoff, float sampleRate) {
 
 void Biquad::setHighShelf(float gainDB, float cutoff, float sampleRate) {
     const float A = std::pow(10.0f, gainDB / 40.0f);
-    const float omega = 2.0f * float(M_PI) * cutoff / sampleRate;
+    const float omega = 2.0f * float(pi_number) * cutoff / sampleRate;
     const float sn = std::sin(omega);
     const float cs = std::cos(omega);
     const float S = 1.0f; // shelf slope
