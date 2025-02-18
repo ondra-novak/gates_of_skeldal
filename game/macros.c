@@ -739,10 +739,11 @@ void call_macro_ex(int side, int flags, int runatside) {
         z = mrec.action_list;
         if (z->general.flags & flags) {
             int jmp_to = -1;
-            char cancel_enabled = 1;
             int stindex = z - first_macro;
+            char cancel = 0;
             if (!z->general.once || !macro_state_block.states[stindex]) {
                 macro_state_block.states[stindex] = 1;
+                cancel = z->general.cancel;
                 count_actions++;
                 switch (z->general.action) {
                     default:
@@ -789,14 +790,14 @@ void call_macro_ex(int side, int flags, int runatside) {
                         enter_shop(z->text.textindex);
                         break;
                     case MA_CLOCK:
-                        cancel_enabled = decode_lock(z->clock.znak, z->clock.string,
+                        cancel = decode_lock(z->clock.znak, z->clock.string,
                                 z->clock.codenum);
                         break;
                     case MA_CACTN:
                         cancel_action(z->cactn.sector, z->cactn.dir);
                         break;
                     case MA_LOCK:
-                        cancel_enabled = if_lock(side, z->lock.key_id,
+                        cancel = if_lock(side, z->lock.key_id,
                                 z->lock.thieflevel, &z->lock);
                         break;
                     case MA_SWAPS:
@@ -879,7 +880,7 @@ void call_macro_ex(int side, int flags, int runatside) {
             if (jmp_to != -1) {
                 mrec = go_macro(runatside, jmp_to);
                 program_counter = jmp_to;
-            } else if (z->general.cancel && cancel_enabled) {
+            } else if (cancel) {
                 break;
             } else {
                 program_counter++;

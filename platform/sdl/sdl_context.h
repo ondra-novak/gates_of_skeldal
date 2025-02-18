@@ -102,6 +102,8 @@ public:
     void hide_sprite(int sprite_id);
     void sprite_set_zindex(int sprite_id, int zindex);
     void unload_sprite(int sprite);
+    void enable_crt_filter(bool enable);
+    bool is_crt_enabled() const;
 
 protected:
 
@@ -164,6 +166,7 @@ protected:
     int aspect_x = 4;
     int aspect_y = 3;
     CrtFilterType _crt_filter= CrtFilterType::autoselect;
+    bool _enable_crt = true;
     std::function<void()> _quit_callback;
 
     std::unique_ptr<SDL_Window, SDL_Deleter> _window;

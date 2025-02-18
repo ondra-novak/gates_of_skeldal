@@ -158,6 +158,10 @@ void SDLContext::init_video(const VideoConfig &config, const char *title) {
     aspect_x = config.aspect_x;
     aspect_y = config.aspect_y;
     _crt_filter = config.crt_filter ;
+    if (_crt_filter == CrtFilterType::none) {
+        _crt_filter = CrtFilterType::autoselect;
+        _enable_crt = false;
+    }
 
 
     _fullscreen_mode = config.fullscreen;
@@ -396,13 +400,6 @@ void SDLContext::refresh_screen() {
         SDL_SetTextureAlphaMod(_visible_texture, 255);
         SDL_RenderCopy(_renderer.get(), _visible_texture, NULL, &winrc);
     }
-    if (winrc.h >= 720 && _crt_filter != CrtFilterType::none) {
-        if (!_crt_effect) {
-            SDL_Texture *txt;
-              generateCRTTexture(_renderer.get(), &txt, winrc.w, winrc.h, _crt_filter);
-            _crt_effect.reset(txt);
-        }
-    }
     for (const auto &sprite: _sprites) if (sprite.shown) {
         SDL_Rect rc = to_window_rect(winrc,sprite._rect);
         SDL_RenderCopy(_renderer.get(), sprite._txtr.get(), NULL, &rc);
@@ -414,7 +411,14 @@ void SDLContext::refresh_screen() {
         recalc_rect.y = _mouse_rect.y - f.y;
         SDL_RenderCopy(_renderer.get(), _mouse.get(), NULL, &recalc_rect);
     }
-    SDL_RenderCopy(_renderer.get(), _crt_effect.get(), NULL, &winrc);
+    if (winrc.h >= 720 && _crt_filter != CrtFilterType::none && _enable_crt)  {
+        if (!_crt_effect) {
+            SDL_Texture *txt;
+              generateCRTTexture(_renderer.get(), &txt, winrc.w, winrc.h, _crt_filter);
+            _crt_effect.reset(txt);
+        }
+        SDL_RenderCopy(_renderer.get(), _crt_effect.get(), NULL, &winrc);
+    } 
     SDL_RenderPresent(_renderer.get());
 
 }
@@ -825,4 +829,17 @@ void SDLContext::unload_sprite(int sprite) {
     signal_push();
     push_item(DisplayRequest::sprite_unload);
     push_item(sprite);
+}
+
+void SDLContext::enable_crt_filter(bool enable)
+{
+    std::lock_guard _(_mx);
+    _enable_crt = enable;
+    signal_push();
+}
+
+bool SDLContext::is_crt_enabled() const
+{
+    std::lock_guard _(_mx);
+    return _enable_crt;
 }

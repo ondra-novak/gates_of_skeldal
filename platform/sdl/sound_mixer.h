@@ -1,9 +1,11 @@
 #pragma once
 #include "wave_mixer.h"
+#include "sound_filter.h"
 
 #include <algorithm>
 #include <optional>
 #include <vector>
+
 
 template<int channels>
 class SoundMixer {
@@ -22,8 +24,43 @@ public:
                 --i;
             }
         }
+        visit_all_filters([&](BassTrebleFilter &flt, auto idx){
+            flt.processBuffer<channels, idx.value>(buffer, samples_len);
+        });        
+        for (std::size_t i = 0; i < samples_len; ++i) {
+            for (int j = 0; j < channels; ++j) {
+                float f = buffer[i*channels+j] * clip_factor;
+                if (f > 1.0) {
+                    clip_factor *= clip_factor / f;
+                    f = 1.0; 
+                } else if (f < -1.0) {
+                    clip_factor *= -clip_factor / f;
+                    f = -1.0;
+                }
+                buffer[i*channels+j] = f;
+            }
+        }
         ++_calls;
         _calls.notify_all();
+        if (clip_factor<1)  clip_factor*=1.001f;
+    }
+
+    void set_mix_freq(int freq) {
+        visit_all_filters([&](BassTrebleFilter &flt, auto){
+            flt.setSampleFreq(static_cast<float>(freq));
+        });
+    }
+
+    void set_bass(float val) {
+        visit_all_filters([&](BassTrebleFilter &flt, auto){
+            flt.setBass(val);
+        });
+    }
+
+    void set_treble(float val) {
+        visit_all_filters([&](BassTrebleFilter &flt, auto){
+            flt.setTreble(val);
+        });
     }
 
     void wait_for_advance_write_pos() {
@@ -103,10 +140,21 @@ protected:
         }
     }
 
+    template<typename Fn, int ... idx>
+    void visit_all_filters_idx(Fn &&fn, std::integer_sequence<int, idx...>) {
+        (fn(_filters[idx], std::integral_constant<int, idx>{}),...);
+    }
+
+
+    template<typename Fn>
+    void visit_all_filters(Fn &&fn) {
+        visit_all_filters_idx(std::forward<Fn>(fn), std::make_integer_sequence<int, channels>{});
+    }
 
     std::mutex _mx;
     std::vector<Track> _tracks;
     std::atomic<unsigned int> _calls = {0};
-
+    std::array<BassTrebleFilter, channels> _filters;
+    float clip_factor = 1.0; 
 
 };

@@ -1555,7 +1555,7 @@ THAGGLERESULT smlouvat_dlg(int cena,int puvod,int pocet,int posledni, int money,
 char ask_save_dialog(char *name_buffer, size_t name_size) {
 
     const char *str_label = texty[98];
-    if (str_label == 0) str_label ="Ulo\x91it hru jako";
+//    if (str_label == 0) str_label ="Ulo\x91it hru jako";
 
     set_font(H_FBOLD,RGB555(31,31,31));
     add_window(170,130,300,100,H_WINTXTR,3,20,20);

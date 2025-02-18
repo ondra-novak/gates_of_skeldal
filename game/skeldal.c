@@ -802,7 +802,10 @@ void cti_texty(void)
      exit(1);
      }
 
-  lang_patch_stringtable(&texty, "ui.csv", "");
+     //patch stringtable
+     if (!texty[98]) str_replace(&texty,98,"Ulo\x91it hru jako");
+     if (!texty[99]) str_replace(&texty,99,"CRT Filter (>720p)");
+     lang_patch_stringtable(&texty, "ui.csv", "");
   }
 
 

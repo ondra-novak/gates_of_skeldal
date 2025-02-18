@@ -14,9 +14,11 @@
 static void SDLCALL mixing_callback(void *userdata, Uint8 * stream, int len);
 static SoundMixer<2> sound_mixer;
 
-static float master_volume = 1.0;
+static float master_volume = 0.5;
 static float sound_effect_volume = 1.0;
 static float music_volume = 0.5;
+static float bass_boost = 0;
+static float treble_boost = 0;
 static float base_freq;
 bool swap_channels = false;
 static void empty_deleter(const void *) {}
@@ -43,8 +45,7 @@ void game_sound_init_device(const INI_CONFIG_SECTION *audio_section) {
 
     auto r = get_sdl_global_context().init_audio(cfg, mixing_callback, nullptr);
     base_freq = r.freq;
-
-
+    sound_mixer.set_mix_freq(r.freq);
 
 }
 
@@ -297,14 +298,17 @@ char set_snd_effect(AUDIO_PROPERTY funct,int data) {
         case SND_PING: break;
         case SND_GFX: sound_effect_volume = data/256.0;break;
         case SND_MUSIC: music_volume = data/128.0;update_music_volume();break;
-        case SND_GVOLUME: master_volume = data/256.0;update_music_volume();break;
+        case SND_GVOLUME: master_volume = data/512.0;update_music_volume();break;        
         case SND_SWAP: swap_channels = !!data;break;
+        case SND_BASS: bass_boost = data/25.0;sound_mixer.set_bass(bass_boost);break;
+        case SND_TREBL: treble_boost = data/25.0;sound_mixer.set_treble(treble_boost);break;
+        case SND_OUTFILTER: get_sdl_global_context().enable_crt_filter(!!data);break;
         default: return 0;
     }
     return 1;
 }
 char check_snd_effect(AUDIO_PROPERTY funct) {
-    if (funct == SND_PING|| funct == SND_GFX || funct == SND_MUSIC || funct == SND_GVOLUME) return 1;
+    if (funct == SND_PING|| funct == SND_GFX || funct == SND_MUSIC || funct == SND_GVOLUME || funct ==SND_BASS || funct == SND_TREBL||funct==SND_OUTFILTER) return 1;
     return 0;
 }
 int  get_snd_effect(AUDIO_PROPERTY funct) {
@@ -312,8 +316,11 @@ int  get_snd_effect(AUDIO_PROPERTY funct) {
         case SND_PING: return 1;
         case SND_GFX: return static_cast<int>(sound_effect_volume * 256.0);break;
         case SND_MUSIC: return static_cast<int>(music_volume * 128.0);break;
-        case SND_GVOLUME: return static_cast<int>(master_volume * 256.0);break;
+        case SND_GVOLUME: return static_cast<int>(master_volume * 512.0);break;
+        case SND_BASS: return static_cast<int>(bass_boost * 25.0);break;
+        case SND_TREBL: return static_cast<int>(treble_boost * 25.0);break;
         case SND_SWAP:return swap_channels?1:0;
+        case SND_OUTFILTER: return get_sdl_global_context().is_crt_enabled()?1:0;break;
         default: return 0;
     }
 }
