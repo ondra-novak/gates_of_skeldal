@@ -283,6 +283,11 @@ void SDLContext::event_loop(std::stop_token stp) {
                 }
             }
         } else if (e.type == SDL_MOUSEMOTION) {
+            SDL_Event temp;
+            while (SDL_PeepEvents(&temp, 1, SDL_GETEVENT, SDL_MOUSEMOTION, SDL_MOUSEMOTION)) {
+                e= temp;
+            }
+
             SDL_Point mspt(e.motion.x, e.motion.y);
             SDL_Rect winrc = get_window_aspect_rect();
             SDL_Point srcpt = to_source_point(winrc, mspt);
@@ -293,7 +298,14 @@ void SDLContext::event_loop(std::stop_token stp) {
             if (_mouse) {
                 _mouse_rect.x = e.motion.x;
                 _mouse_rect.y = e.motion.y;
-                refresh_screen();
+                bool do_update = false;
+                {
+                    std::lock_guard _(_mx);
+                    do_update = _display_update_queue.empty();
+                }
+                if (do_update) {
+                    refresh_screen();
+                }
             }
         } else if (e.type == SDL_MOUSEBUTTONDOWN || e.type == SDL_MOUSEBUTTONUP) {
             int button = e.button.button;
@@ -418,7 +430,7 @@ void SDLContext::refresh_screen() {
             _crt_effect.reset(txt);
         }
         SDL_RenderCopy(_renderer.get(), _crt_effect.get(), NULL, &winrc);
-    } 
+    }
     SDL_RenderPresent(_renderer.get());
 
 }
