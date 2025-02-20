@@ -1,5 +1,3 @@
-SET(files error.cpp
-)
 
 add_library(skeldal_platform STATIC)
 
@@ -15,6 +13,15 @@ target_sources(skeldal_platform PRIVATE
     getopt.c
 )
 
+set(all_libs 
+    skeldal_main 
+    skeldal_libs 
+    skeldal_platform
+    skeldal_sdl
+    skeldal_libs
+     ${SDL2_LIBRARIES} 
+     ${STANDARD_LIBRARIES})
+     
 if(WIN32)
     target_sources(skeldal_platform PRIVATE
         windows/save_folder.cpp
@@ -27,6 +34,7 @@ if(WIN32)
         windows/skeldal.rc
     )
     target_compile_definitions(skeldal_platform PRIVATE PLATFORM_WINDOWS)
+    target_link_libraries(skeldal ${all_libs})
     message(STATUS "Building for Windows")
 
 elseif(UNIX AND NOT APPLE)
@@ -34,16 +42,17 @@ elseif(UNIX AND NOT APPLE)
         linux/save_folder.cpp
         linux/map_file.cpp
     )
-    add_executable(skeldal)
-    target_sources(skeldal PRIVATE
+    add_executable(skeldal_bin)
+    target_sources(skeldal_bin PRIVATE
         linux/app_start.cpp
     )
     target_compile_definitions(skeldal_platform PRIVATE PLATFORM_LINUX)
     add_custom_command(
-        TARGET skeldal POST_BUILD
+        TARGET skeldal_bin POST_BUILD
         COMMAND ${CMAKE_COMMAND} -E copy
                 ${CMAKE_CURRENT_LIST_DIR}/linux/skeldal.sh
                 ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/skeldal.sh)
+    target_link_libraries(skeldal_bin ${all_libs})    
     message(STATUS "Building for Linux")
 
 elseif(APPLE)   
@@ -56,18 +65,11 @@ elseif(APPLE)
     )
     target_compile_definitions(mylib PRIVATE PLATFORM_MACOS)
     message(STATUS "Building for macOS")
+    target_link_libraries(skeldal ${all_libs})
 else() 
     error("Platform not detected, please add new platform here")
 endif()
 set_property(TARGET skeldal_platform PROPERTY CXX_STANDARD 20)
 
-add_subdirectory(sdl)
+ add_subdirectory(sdl)
 
-target_link_libraries(skeldal
-    skeldal_main 
-    skeldal_libs 
-    skeldal_platform
-    skeldal_sdl
-    skeldal_libs
-     ${SDL2_LIBRARIES} 
-     ${STANDARD_LIBRARIES})
