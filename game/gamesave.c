@@ -569,8 +569,11 @@ typedef enum enum_all_status_callback_result_t {
 //return 1 success, 0 stopped, -1 error
 static int enum_all_status(FILE *f, ENUM_ALL_STATUS_CALLBACK_RESULT (*cb)(FILE *, const char *, size_t , void *), void *ctx) {
     while(1) {
-        uint8_t name_size_b;
+        uint8_t name_size_b = 0;
         if (fread(&name_size_b, 1,1,f)==0) return 1;
+        if (name_size_b == 0)  {
+            return -1;
+        }
         char *name = (char *)alloca(name_size_b+1);
         if (fread(name, 1, name_size_b, f) != name_size_b) return -1;
         name[name_size_b] = 0;
@@ -688,7 +691,7 @@ int load_basic_info()
   memcpy(itg,glob_items,it_count_orgn*sizeof(TITEM));
   free(glob_items);glob_items=itg;
   if (s.items_added)
-     res|=(temp_storage_read(glob_items+it_count_orgn,sizeof(TITEM)*s.items_added,f)!=(unsigned)s.items_added);
+     res|=(temp_storage_read(glob_items+it_count_orgn,sizeof(TITEM)*s.items_added,f)!=(unsigned)s.items_added*sizeof(TITEM));
   item_count=it_count_orgn+s.items_added;
   res|=load_spells(f);
   for(i=0,h=postavy;i<POCET_POSTAV;h++,i++) if (h->demon_save!=NULL) free(h->demon_save);
