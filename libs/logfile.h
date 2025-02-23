@@ -5,6 +5,10 @@
 extern "C" {
 #endif
 
+#ifdef _MSC_VER
+#define __attribute__(...)
+#endif
+
 #ifdef LOGFILE
 void send_log_impl(const char *format, ...) __attribute__((format(printf, 1, 2)));
 #define SEND_LOG(...) send_log_impl( __VA_ARGS__)

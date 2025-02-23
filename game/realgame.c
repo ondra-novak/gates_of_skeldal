@@ -1920,8 +1920,14 @@ void game_keyboard(EVENT_MSG *msg,void **usr)
      while (_bios_keybrd(_KEYBRD_READY) ) _bios_keybrd(_KEYBRD_READ);
      switch (c >> 8)
         {
+         case 17:
         case 'H':step_zoom(0);break;
+        case 31:
         case 'P':step_zoom(2);break;
+        case 30: step_zoom(3);break;
+        case 32: step_zoom(1);break;
+        case 16: turn_zoom(-1);break;
+        case 18: turn_zoom(1);break;
         case 'M':if (get_control_key_state() & 0x80)
             step_zoom(1);
           else
@@ -1950,6 +1956,7 @@ void game_keyboard(EVENT_MSG *msg,void **usr)
         case 1:konec(0,0,0,0,0);break;
 //        case 25:GamePause();break;
         case 28:enforce_start_battle();break;
+        case 45:
         case 82:group_all();break;
         case '<':if (!battle && GlobEvent(MAGLOB_CLICKSAVE,viewsector,viewdir))
 				 {unwire_proc();cancel_render=1;do_save_dialog();wire_proc();}break;

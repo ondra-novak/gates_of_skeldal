@@ -653,12 +653,18 @@ void map_keyboard(EVENT_MSG *msg,void **usr)
      c=d>>8;
      switch (c)
         {
-        case 'H':yr++;break;
-        case 'P':yr--;break;
-        case 'M':xr--;break;
-        case 'K':xr++;break;
+        case 17:
+        case 'H':yr--;break;
+        case 31:
+        case 'P':yr++;break;
+        case 32:
+        case 'M':xr++;break;
+        case 30:
+        case 'K':xr--;break;
+        case 16:
         case 'Q':
         case 's':if (check_for_layer(cur_depth-1)) cur_depth--;break;
+        case 18:
         case 'I':
         case 't':if (check_for_layer(cur_depth+1)) cur_depth++;break;
         case 15:

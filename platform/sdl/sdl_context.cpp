@@ -298,14 +298,8 @@ void SDLContext::event_loop(std::stop_token stp) {
             if (_mouse) {
                 _mouse_rect.x = e.motion.x;
                 _mouse_rect.y = e.motion.y;
-                bool do_update = false;
-                {
-                    std::lock_guard _(_mx);
-                    do_update = _display_update_queue.empty();
-                }
-                if (do_update) {
-                    refresh_screen();
-                }
+                update_screen(true);
+
             }
         } else if (e.type == SDL_MOUSEBUTTONDOWN || e.type == SDL_MOUSEBUTTONUP) {
             int button = e.button.button;
@@ -357,7 +351,6 @@ void SDLContext::show_slide_transition(const SDL_Rect &visible_from,
         const SDL_Rect &visible_where, const SDL_Rect &hidden_from,
         const SDL_Rect &hidden_where) {
     std::lock_guard _(_mx);
-    signal_push();
     push_item(DisplayRequest::slide_transition);
     push_item(SlideTransitionReq{visible_from, visible_where,hidden_from, hidden_where});
 }
@@ -435,10 +428,13 @@ void SDLContext::refresh_screen() {
 
 }
 
-void SDLContext::update_screen() {
+void SDLContext::update_screen(bool force_refresh) {
     {
         std::lock_guard _(_mx);
-        if (_display_update_queue.empty()) return;
+        if (_display_update_queue.empty()) {
+            if (force_refresh) refresh_screen();
+            return;
+        }
         QueueIter iter = _display_update_queue.data();
         QueueIter end = iter + _display_update_queue.size();
         while (iter != end) {
@@ -577,16 +573,18 @@ void SDLContext::update_zindex() {
 }
 template<typename T>
 requires(std::is_trivially_copy_constructible_v<T>)
-void  SDLContext::push_item(const T &item) {
+void  SDLContext::push_item(const T &item) {    
     auto b = reinterpret_cast<const char *>(&item);
     auto e = b + sizeof(T);
     auto sz = _display_update_queue.size();
+    if (sz == 0) signal_push();
     _display_update_queue.resize(sz + sizeof(T));
     std::copy(b, e, _display_update_queue.begin()+sz);
 }
 
 void SDLContext::push_item(const std::string_view &item) {
     auto sz = _display_update_queue.size();
+    if (sz == 0) signal_push();
     _display_update_queue.resize(sz + item.size());
     std::copy(item.begin(), item.end(),  _display_update_queue.begin()+sz);
 }
@@ -620,20 +618,17 @@ std::string_view SDLContext::pop_data(QueueIter &iter, std::size_t size) {
 
 void SDLContext::swap_render_buffers() {
     std::lock_guard _(_mx);
-    signal_push();
     push_item(DisplayRequest::swap_render_buffers);
 }
 
 void SDLContext::swap_display_buffers() {
     std::lock_guard _(_mx);
-    signal_push();
     push_item(DisplayRequest::swap_visible_buffers);
 }
 
 void SDLContext::show_blend_transition(const SDL_Rect &wrkarea, const SDL_Rect &prev,
         const SDL_Rect &next, float phase) {
     std::lock_guard _(_mx);
-    signal_push();
     push_item(DisplayRequest::blend_transition);
     push_item(BlendTransitionReq{wrkarea, prev, next, phase});
 }
@@ -780,7 +775,6 @@ void  SDLContext::push_hi_image(const unsigned short *image) {
 
 void SDLContext::show_mouse_cursor(const unsigned short *ms_hi_format, SDL_Point finger) {
     std::lock_guard _(_mx);
-    signal_push();
     push_item(DisplayRequest::show_mouse_cursor);
     push_hi_image(ms_hi_format);
     _mouse_finger = finger;
@@ -788,14 +782,12 @@ void SDLContext::show_mouse_cursor(const unsigned short *ms_hi_format, SDL_Point
 
 void SDLContext::hide_mouse_cursor() {
     std::lock_guard _(_mx);
-    signal_push();
     push_item(DisplayRequest::hide_mouse_cursor);
 
 }
 
 void SDLContext::load_sprite(int sprite_id, const unsigned short *hi_image) {
     std::lock_guard _(_mx);
-    signal_push();
     push_item(DisplayRequest::sprite_load);
     push_item(sprite_id);
     push_hi_image(hi_image);
@@ -804,7 +796,6 @@ void SDLContext::load_sprite(int sprite_id, const unsigned short *hi_image) {
 
 void SDLContext::place_sprite(int sprite_id, int x, int y) {
     std::lock_guard _(_mx);
-    signal_push();
     push_item(DisplayRequest::sprite_place);
     push_item(sprite_id);
     SDL_Point pt{x,y};
@@ -814,7 +805,6 @@ void SDLContext::place_sprite(int sprite_id, int x, int y) {
 
 void SDLContext::scale_sprite(int sprite_id, int x, int y, int w, int h) {
     std::lock_guard _(_mx);
-    signal_push();
     push_item(DisplayRequest::sprite_scale);
     push_item(sprite_id);
     SDL_Rect pt{x,y,w,h};
@@ -823,14 +813,12 @@ void SDLContext::scale_sprite(int sprite_id, int x, int y, int w, int h) {
 
 void SDLContext::hide_sprite(int sprite_id) {
     std::lock_guard _(_mx);
-    signal_push();
     push_item(DisplayRequest::sprite_hide);
     push_item(sprite_id);
 }
 
 void SDLContext::sprite_set_zindex(int sprite_id, int zindex) {
     std::lock_guard _(_mx);
-    signal_push();
     push_item(DisplayRequest::sprite_hide);
     push_item(sprite_id);
     push_item(zindex);
@@ -838,7 +826,6 @@ void SDLContext::sprite_set_zindex(int sprite_id, int zindex) {
 
 void SDLContext::unload_sprite(int sprite) {
     std::lock_guard _(_mx);
-    signal_push();
     push_item(DisplayRequest::sprite_unload);
     push_item(sprite);
 }

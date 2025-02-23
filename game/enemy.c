@@ -2185,10 +2185,10 @@ static void knock_mob_back(TMOB *mm,int dir)
    if (itnum == 0) return;
    const TITEM *it = glob_items + itnum-1;
    if (it->druh != TYP_UTOC) return;
-   int vls[] = {VLS_MGSIL_H,VLS_MGSIL_L,VLS_UTOK_H,VLS_UTOK_L,VLS_DAMAGE};
+   int vls[] = {VLS_UTOK_H,VLS_UTOK_L,VLS_DAMAGE};
    for (size_t i = 0; i < countof(vls); ++i) {
       vlastnosti[vls[i]]  -= it->zmeny[vls[i]];
-   }
+   }   
  }
 
 

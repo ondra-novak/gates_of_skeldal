@@ -1183,10 +1183,11 @@ void pouzij_zbran(THUMAN *p,int ruka)
      }
   vybrana_zbran=itm;
   bonus=vypocti_bonus(p,itm);
-  if (itm>0)
+  if (itm>0) {
      memcpy(&p->vlastnosti[VLS_MGSIL_L],&glob_items[itm-1].zmeny[VLS_MGSIL_L],3*sizeof(short));
-  else
+  } else {
      memset(&p->vlastnosti[VLS_MGSIL_L],0,3*sizeof(short));
+  }
   if (!itm || (it=&glob_items[itm-1])->druh==TYP_UTOC)
      {
      TMOB *m;int mm,chaos;
@@ -1304,7 +1305,7 @@ void jadro_souboje(EVENT_MSG *msg,void **unused) //!!!! Jadro souboje
            if(nxt==-255)
               {
               int i;
-              SEND_LOG("(BATTLE) Ending round...(nxt=%d,mob=%s)",nxt,mobs[nxt].name);
+//              SEND_LOG("(BATTLE) Ending round...(nxt=%d,mob=%s)",nxt,mobs[nxt].name);
               delete_from_timer(TM_SCENE);
               add_to_timer(TM_SCENE,gamespeed,-1,refresh_scene);
               for(i=0;i<MAX_MOBS;i++)
@@ -2133,12 +2134,17 @@ void programming_keyboard(EVENT_MSG *msg,void **unused)
      switch (c)
         {
         case 1:konec(0,0,0,0,0);break;
+        case 18:
         case 'M':souboje_turn(1);break;
+        case 16:
         case 'K':souboje_turn(-1);break;
         case '=':unwire_proc();cancel_render=1;wire_save_load(0);break;
         case '>':game_setup(0,0,0,0,0);break;
         case 57:souboje_dalsi();bott_draw(1);break;
         case 15:
+        case 28:zahajit_kolo(0);
+                souboje_stisknout(AC_START);
+                break;
         case 50:
 		      if (GlobEvent(MAGLOB_BEFOREMAPOPEN,viewsector,viewdir))
 				show_automap(1);

@@ -33,6 +33,17 @@ void ukaz_mysku()
      }
   }
 
+void nastav_mysku_kurzor(const void *mscursor, int finger_x, int finger_y) {
+    register_ms_cursor(mscursor);
+    h_x = finger_x;
+    h_y = finger_y;
+#ifndef FORCE_SOFTWARE_CURSOR
+  cur_hw_mouse = mscursor;
+  game_display_show_mouse(mscursor,h_x, h_y);
+#endif
+
+}
+
 void schovej_mysku()
   {
 #ifdef FORCE_SOFTWARE_CURSOR
@@ -107,6 +118,9 @@ void set_ms_finger(int x,int y)
   {
   h_x=x;
   h_y=y;
+  #ifndef FORCE_SOFTWARE_CURSOR
+  game_display_show_mouse(cur_hw_mouse,h_x, h_y);
+  #endif
   }
 
 

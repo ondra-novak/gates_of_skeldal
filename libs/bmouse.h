@@ -12,6 +12,7 @@ extern MS_EVENT ms_last_event;
 short init_mysky(void);
 short done_mysky(void);
 void ukaz_mysku(void);
+void nastav_mysku_kurzor(const void *mscursor, int finger_x, int finger_y);
 void schovej_mysku(void);
 void zobraz_mysku(void);
 void set_ms_finger(int x,int y);

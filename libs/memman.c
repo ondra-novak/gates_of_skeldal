@@ -705,7 +705,7 @@ void *grealloc(void *p,int32_t size)
   q=realloc(p,size);
   if (q!=NULL)
      {
-     SEND_LOG("(ALLOC) **** Realloc: New %p size %d\n",q,*((int32_t *)q-1));
+//     SEND_LOG("(ALLOC) **** Realloc: New %p size %d\n",q,*((int32_t *)q-1));
      return q;
      }
   q=getmem(size);

@@ -207,15 +207,29 @@ void restore_items(TMPFILE_RD *f)
   {
   int32_t i,j;
 
-  for(i=0;i<mapsize*4;i++) if (map_items[i]!=NULL) free(map_items[i]);
-  memset(map_items,0,mapsize*4*sizeof(*map_items));
-  while(temp_storage_read(&i,sizeof(i),f) && i!=-1)
-     {
+  short **new_item_map = getmem(mapsize*4*sizeof(*map_items));  
+  memset(new_item_map,0,mapsize*4*sizeof(*map_items));
+  while(temp_storage_read(&i,sizeof(i),f) && i!=-1) {     
      temp_storage_read(&j,sizeof(j),f);
-     map_items[i]=(short *)getmem(j*2);
-     temp_storage_read(map_items[i],2*j,f);
+     new_item_map[i]=(short *)getmem(j*2);
+     temp_storage_read(new_item_map[i],2*j,f);
+     short *v = new_item_map[i];
+     while (*v) { //sanitize map items
+      if (*v < 1 || *v >= item_count) {
+        free(new_item_map[i]);
+        new_item_map[i] = map_items[i];
+        map_items[i] = NULL;
+        break;
+      }
+      ++v;
      }
   }
+
+     for(i=0;i<mapsize*4;i++) if (map_items[i]!=NULL) free(map_items[i]);
+     memset(map_items,0,mapsize*4*sizeof(*map_items));
+     map_items = new_item_map;
+   
+}
 
 extern TSTR_LIST texty_v_mape;
 

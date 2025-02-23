@@ -473,7 +473,6 @@ static void zooming_forward_backward(const word *background,char back)
       //phase=(float)sin(3.14159265*0.5f*phase);
       if (back) phase=-phase;
       DxZoomWalk(buffer, SCREEN_OFFLINE, tpoints,phase, NULL);
-      do_events();
       }
     while (curtime<maxtime);
     DxDoneWalk(buffer);
@@ -536,8 +535,7 @@ static void turn_left_right(char right)
       curtime=get_timer_value()-tmp;
       phase=(curtime)*(1.0f/(float)maxtime);
       //phase=(float)sin(3.14159265*0.5f*phase);
-      DxTurn(buffer,SCREEN_OFFLINE,90,right?-phase:phase,NULL);
-      do_events();
+      DxTurn(buffer,SCREEN_OFFLINE,90,right?-phase:phase,NULL);      
       }
     while (curtime<maxtime);
 	DxDoneTurn(buffer);

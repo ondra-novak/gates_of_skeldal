@@ -1261,8 +1261,6 @@ void render_scene(int sector, int smer)
               draw_spectxtrs(s,-j,i);
               }
            }
-           do_events();
-           if (cancel_render) return;
      }
   calc_spectxtrs();
   if (lodka) {

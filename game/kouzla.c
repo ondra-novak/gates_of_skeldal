@@ -1911,12 +1911,10 @@ void cast(int num,THUMAN *p,int owner, char backfire)
   if (!backfire) p->mana-=k->mge;
   p->exp+=k->mge;
   check_player_new_level(p);
-  if (p->mana>p->mana_battery)
-     {
-     if (p->mana_battery>=0)p->mana=p->mana_battery;
-     else
-     p->mana_battery=32767;
-     }
+  if (p->mana>p->mana_battery) {
+     p->mana=p->mana_battery;     
+  }
+  p->mana_battery=32767;  
 end:
 	 GlobEvent(MAGLOB_AFTERMAGIC,p->sektor,p->direction);
   }

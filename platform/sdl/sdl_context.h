@@ -201,7 +201,7 @@ protected:
 
 
     void event_loop(std::stop_token stp);
-    void update_screen();
+    void update_screen(bool force_refresh = false);
 
 
     template<typename T>

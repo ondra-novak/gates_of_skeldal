@@ -440,9 +440,8 @@ void mouse_set_cursor(int cursor)
      {
      alock(cursor);
      schovej_mysku();
-     register_ms_cursor(ablock(cursor));
+     nastav_mysku_kurzor(ablock(cursor),0,0);
      last_ms_cursor=cursor;
-     set_ms_finger(0,0);
      ukaz_mysku();
      }
   else
@@ -454,8 +453,8 @@ void mouse_set_cursor(int cursor)
      p=(char *)ablock(cursor/18+ikon_libs);
      memcpy(ms_item,&p[(cursor%18)*IT_ICONE_SIZE],IT_ICONE_SIZE);
      schovej_mysku();
-     register_ms_cursor(ms_item);
-     set_ms_finger(45/2,55/2);
+     nastav_mysku_kurzor(ms_item,45/2,55/2);
+
      last_ms_cursor=-cursor;
      ukaz_mysku();
      }
@@ -692,6 +691,7 @@ void user_timer(EVENT_MSG *msg,void **usr)
      x=get_timer_value();
      x-=lastvalue;
      lastvalue+=x;
+     x = MIN(TIMERSPEED, x);  //prevent clock skew
      if (x) send_message(E_TIMER,x);
      }
   }
