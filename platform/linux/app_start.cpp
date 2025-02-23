@@ -20,7 +20,7 @@ void show_help(const char *arg0) {
            "-l <lang>       set language (cz|en)\n"
            "-s <directory>  generate string-tables (for localization) and exit\n"
            "-h              this help\n");
-    exit(0);
+    exit(1);
 }
 
 void show_help_short() {

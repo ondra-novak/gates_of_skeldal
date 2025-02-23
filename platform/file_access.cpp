@@ -114,6 +114,14 @@ char change_current_directory(const char *path) {
     return ec == std::error_code{}?1:0;
 }
 
+
+std::chrono::system_clock::time_point from_file_time(std::filesystem::file_time_type::clock::time_point tp) {
+    return  std::chrono::time_point_cast<std::chrono::system_clock::duration>(
+            tp - std::filesystem::file_time_type::clock::now() + std::chrono::system_clock::now()
+        );
+
+}
+
 int list_files(const char *directory, int type, LIST_FILES_CALLBACK cb, void *ctx) {
     std::error_code ec;
     std::filesystem::directory_iterator iter(std::string(directory), ec);
@@ -130,7 +138,7 @@ int list_files(const char *directory, int type, LIST_FILES_CALLBACK cb, void *ct
                 tmp = entry.path().string();
             }
             if (type & file_type_need_timestamp) {
-                auto tm = std::chrono::clock_cast<std::chrono::system_clock>(entry.last_write_time(ec));
+                auto tm = from_file_time(entry.last_write_time(ec));
                 szortm = std::chrono::system_clock::to_time_t(tm);
             } else {
                 szortm = entry.file_size(ec);
