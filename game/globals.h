@@ -1404,7 +1404,7 @@ int save_map_state(void); //uklada stav mapy pro savegame (neuklada aktualni poz
 int load_map_state(void); //obnovuje stav mapy; nutno volat po zavolani load_map;
 void restore_current_map(void); //pouze obnovuje ulozeny stav aktualni mapy
 int load_game(const char *fname);
-int save_game(int game_time,char *gamename);
+int save_game(long game_time,char *gamename);
 void wire_save_load(char save);
 void do_save_dialog();
 char ask_save_dialog(char *name_buffer, size_t name_size);

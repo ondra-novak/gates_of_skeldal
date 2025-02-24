@@ -42,6 +42,8 @@ static TMPFILE_WR *story=NULL;
 static char load_another;
 static unsigned long current_campaign = 0;
 static long prev_game_time_save = -999;
+static long play_time = 0;    //current play time
+static long load_game_time = 0;    //time when game has been loaded (to calculate play_time)
 
 char reset_mobiles=0;
 
@@ -768,7 +770,7 @@ static int load_global_events()
   return 0;
 }
 
-int save_game(int game_time,char *gamename)
+int save_game(long game_time,char *gamename)
   {
   char *gn;
   FILE *svf;
@@ -781,11 +783,10 @@ int save_game(int game_time,char *gamename)
   }
 
   char str_buff[50];
-  snprintf(str_buff,sizeof(str_buff),"sav.%08lx.%08X", current_campaign, game_time);
-
-
+  snprintf(str_buff,sizeof(str_buff),"sav.%08lx.%08lx", current_campaign, game_time);
   SEND_LOG("(SAVELOAD) Saving game slot %d",game_time);
   save_map_state();
+  
   const char *sn = build_pathname(2,gpathtable[SR_SAVES],str_buff);
   sn = local_strdup(sn);
   create_directories(gpathtable[SR_SAVES]);
@@ -794,7 +795,11 @@ int save_game(int game_time,char *gamename)
   if ((r=save_shops())!=0) return r;
   if ((r=save_basic_info())!=0) return r;
   save_book();
-  save_global_events();
+  save_global_events();  
+
+  long new_play_time = play_time + get_game_tick_count()/1000 - load_game_time;
+  temp_storage_store("playtime",&new_play_time, sizeof(new_play_time));
+
   svf=fopen_icase(sn,"wb");
   if (svf==NULL)
   {
@@ -823,6 +828,7 @@ int load_game(const char *fname)
   int r,t;
 
   sscanf(fname,"sav.%lx.%lx", &current_campaign, &prev_game_time_save);
+  prev_game_time_save = get_game_tick_count()/1000;
 
   SEND_LOG("(SAVELOAD) Loading file: %s",fname);
   if (battle) konec_kola();
@@ -845,6 +851,15 @@ int load_game(const char *fname)
   load_global_events();
   if ((t=load_saved_shops())!=0) return t;
   if ((t=load_basic_info())!=0) return t;
+  
+  if (temp_storage_find("playtime") == sizeof(long)) {
+    temp_storage_retrieve("playtime", &play_time, sizeof(play_time));
+  } else {
+    play_time = 0;
+  }
+
+  load_game_time = get_game_tick_count() / 1000;
+
   running_battle=0;
   norefresh=0;
   if (!load_another) restore_current_map();
@@ -983,6 +998,22 @@ static int compare_strings (const void *a, const void *b) {
     return strcmp(*(const char **)a, *(const char **)b);
 }
 
+static int compare_strings_third_back (const void *a, const void *b) {
+  const char *sa = *(const char **)a;
+  const char *sb = *(const char **)b;
+  const char *ba = strrchr(sa,'.');
+  const char *bb = strrchr(sb,'.');
+  if (!ba) ba = sa;else ba++;
+  if (!bb) bb = sb;else bb++;
+  if (istrcmp(ba,"SAV") == 0) {
+    ba = concat2("0000",ba-3);
+  } 
+  if (istrcmp(bb,"SAV") == 0) {
+    bb = concat2("0000",bb-3);
+  }
+  return -strcmp(ba,bb);
+}
+
 static int compare_by_time (const void *a, const void *b) {
   const char *s1 = *(const char **)a;
   const char *s2 = *(const char **)b;
@@ -1081,7 +1112,7 @@ static TSAVEGAME_LIST get_all_savegames(unsigned long kampan) {
     if (kampan == 0) {
         st.count =dedup_strings_prefix(st.files, (int)st.count);
     }
-    qsort(st.files, st.count, sizeof(char *), compare_by_time);
+    qsort(st.files, st.count, sizeof(char *), compare_strings_third_back);
 
     TSTR_LIST names = create_list(st.count);
     for (size_t i = 0; i < st.count; ++i) {
@@ -1795,23 +1826,30 @@ static void herni_cas_for_savegame(char *c) {
 
 #define DEFAULT_GAME_NAME(extra)    \
             char game_name[100];\
-            char hernicas[50];\
-            herni_cas_for_savegame(hernicas);\
-            snprintf(game_name, sizeof(game_name), "%s %s" extra, mglob.mapname, hernicas);
+            long cur_time = get_game_tick_count()/1000;\
+            long game_time = play_time + get_game_tick_count()/1000 - load_game_time;\
+            if (game_time < 60) snprintf(game_name, sizeof(game_name), "%s" extra, mglob.mapname);\
+            else snprintf(game_name, sizeof(game_name), "%s %02lu:%02lu" extra, mglob.mapname, game_time/3600, (game_time/60)%60);
+
+long get_save_game_slot_id() {
+  time_t tm;
+  time(&tm);
+  return tm-1700000000;
+}
 
 void do_autosave() {
     DEFAULT_GAME_NAME(" (A)");
-    if (game_time -  prev_game_time_save<360) return;
-    prev_game_time_save = game_time;
-    save_game(game_time, game_name);
+    if (cur_time -  prev_game_time_save<300) return; //autosave is no more often than each 5 minutes        
+    prev_game_time_save = cur_time;    
+    save_game(get_save_game_slot_id(), game_name);
 
 }
 
 void do_save_dialog() {
     DEFAULT_GAME_NAME("");
     if (ask_save_dialog(game_name, sizeof(game_name))) {
-      prev_game_time_save = game_time;
-      save_game(game_time, game_name);
+      prev_game_time_save = cur_time;
+      save_game(get_save_game_slot_id(), game_name);
     }
 
 
