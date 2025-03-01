@@ -209,9 +209,9 @@ void restore_items(TMPFILE_RD *f)
   {
   int32_t i,j;
 
-  short **new_item_map = getmem(mapsize*4*sizeof(*map_items));  
+  short **new_item_map = getmem(mapsize*4*sizeof(*map_items));
   memset(new_item_map,0,mapsize*4*sizeof(*map_items));
-  while(temp_storage_read(&i,sizeof(i),f) && i!=-1) {     
+  while(temp_storage_read(&i,sizeof(i),f) && i!=-1) {
      temp_storage_read(&j,sizeof(j),f);
      new_item_map[i]=(short *)getmem(j*2);
      temp_storage_read(new_item_map[i],2*j,f);
@@ -230,7 +230,7 @@ void restore_items(TMPFILE_RD *f)
      for(i=0;i<mapsize*4;i++) if (map_items[i]!=NULL) free(map_items[i]);
      memset(map_items,0,mapsize*4*sizeof(*map_items));
      map_items = new_item_map;
-   
+
 }
 
 extern TSTR_LIST texty_v_mape;
@@ -786,7 +786,7 @@ int save_game(long game_time,char *gamename)
   snprintf(str_buff,sizeof(str_buff),"sav.%08lx.%08lx", current_campaign, game_time);
   SEND_LOG("(SAVELOAD) Saving game slot %d",game_time);
   save_map_state();
-  
+
   const char *sn = build_pathname(2,gpathtable[SR_SAVES],str_buff);
   sn = local_strdup(sn);
   create_directories(gpathtable[SR_SAVES]);
@@ -795,7 +795,7 @@ int save_game(long game_time,char *gamename)
   if ((r=save_shops())!=0) return r;
   if ((r=save_basic_info())!=0) return r;
   save_book();
-  save_global_events();  
+  save_global_events();
 
   long new_play_time = play_time + get_game_tick_count()/1000 - load_game_time;
   temp_storage_store("playtime",&new_play_time, sizeof(new_play_time));
@@ -851,7 +851,7 @@ int load_game(const char *fname)
   load_global_events();
   if ((t=load_saved_shops())!=0) return t;
   if ((t=load_basic_info())!=0) return t;
-  
+
   if (temp_storage_find("playtime") == sizeof(long)) {
     temp_storage_retrieve("playtime", &play_time, sizeof(play_time));
   } else {
@@ -1007,22 +1007,13 @@ static int compare_strings_third_back (const void *a, const void *b) {
   if (!bb) bb = sb;else bb++;
   if (istrcmp(ba,"SAV") == 0) {
     ba = concat2("0000",ba-3);
-  } 
+  }
   if (istrcmp(bb,"SAV") == 0) {
     bb = concat2("0000",bb-3);
   }
   return -strcmp(ba,bb);
 }
 
-static int compare_by_time (const void *a, const void *b) {
-  const char *s1 = *(const char **)a;
-  const char *s2 = *(const char **)b;
-  size_t tm1;
-  size_t tm2;
-  memcpy(&tm1, s1 + strlen(s1)+1, sizeof(tm1));
-  memcpy(&tm2, s2 + strlen(s2)+1, sizeof(tm2));
-  return tm1<tm2?1:tm1>tm2?-1:0;
-}
 
 static int dedup_strings_prefix(TSTR_LIST lst, int count) {
     int j = -1;
@@ -1813,16 +1804,6 @@ int load_map_automap(char *mapfile)
   return load_map_state_partial(mapfile,mapsize); //nahrej ulozenou mapu
   }
 
-static void herni_cas_for_savegame(char *c) {
-    int32_t inmin = game_time/6;
-    if (inmin >= 96*60) {
-      int32_t inhours = inmin/60;
-      sprintf(c,"%dd %dh", inhours/24, inhours%24);
-    } else {
-      sprintf(c,"%02d:%02d", inmin/60, inmin%60);
-    }
-}
-
 
 #define DEFAULT_GAME_NAME(extra)    \
             char game_name[100];\
@@ -1839,8 +1820,8 @@ long get_save_game_slot_id() {
 
 void do_autosave() {
     DEFAULT_GAME_NAME(" (A)");
-    if (cur_time -  prev_game_time_save<300) return; //autosave is no more often than each 5 minutes        
-    prev_game_time_save = cur_time;    
+    if (cur_time -  prev_game_time_save<300) return; //autosave is no more often than each 5 minutes
+    prev_game_time_save = cur_time;
     save_game(get_save_game_slot_id(), game_name);
 
 }
