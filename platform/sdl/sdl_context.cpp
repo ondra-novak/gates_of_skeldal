@@ -313,6 +313,9 @@ void SDLContext::event_loop(std::stop_token stp) {
                 case 3: ms_event.tl2 = !up; shift = 3; break;
             }
             ms_event.event_type |= (1<<(shift+up));
+            if (e.type == SDL_MOUSEBUTTONDOWN && e.button.clicks == 2 && e.button.button == 1) {
+                ms_event.event_type |= MS_EVENT_MOUSE_LDBLCLK;
+            }
         }
 
     }
@@ -573,7 +576,7 @@ void SDLContext::update_zindex() {
 }
 template<typename T>
 requires(std::is_trivially_copy_constructible_v<T>)
-void  SDLContext::push_item(const T &item) {    
+void  SDLContext::push_item(const T &item) {
     auto b = reinterpret_cast<const char *>(&item);
     auto e = b + sizeof(T);
     auto sz = _display_update_queue.size();

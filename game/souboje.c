@@ -1758,6 +1758,8 @@ void program_draw()
   int x=54+74/2;
   int i,j,maxy=0;
 
+  lodka_battle_draw = 1;
+
   maxy;
   schovej_mysku();
   if (group_flee) {

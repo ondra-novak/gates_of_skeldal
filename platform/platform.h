@@ -21,7 +21,7 @@
 #define CASE_FALLTHROUGH
 
 //microsoft doesn't support VLA
-#define DECL_VLA(type, variable, count) type *variable = (type *)alloca((count)*sizeof(type)); 
+#define DECL_VLA(type, variable, count) type *variable = (type *)alloca((count)*sizeof(type));
 #define GET_VLA_SIZE(variable, count) ((count)*sizeof(*variable))
 
 #else

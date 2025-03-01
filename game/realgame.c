@@ -1956,6 +1956,7 @@ void game_keyboard(EVENT_MSG *msg,void **usr)
         case 1:konec(0,0,0,0,0);break;
 //        case 25:GamePause();break;
         case 28:enforce_start_battle();break;
+        case 63:do_autosave();break;
         case 45:
         case 82:group_all();break;
         case '<':if (!battle && GlobEvent(MAGLOB_CLICKSAVE,viewsector,viewdir))

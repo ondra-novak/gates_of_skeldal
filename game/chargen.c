@@ -738,15 +738,30 @@ static char view_another_click2(int id,int xa,int ya,int xr,int yr)
   return 0;
   }
 
+
+static void wait_timer(EVENT_MSG *msg, void **udata) {
+    if (msg->msg == E_TIMER) {
+        exit_wait = 1;
+    }
+}
+
 void effect_show(va_list args)
   {
   int i;
+  char s = exit_wait;
   schovej_mysku();
   for(i=0;i<12;i++)
      {
      showview(0,240-i*20-20,640,20);
      showview(0,240+(i*20),640,20);
-     task_wait_event(E_TIMER);
+     if (q_current_task() != -1) {
+         task_wait_event(E_TIMER);
+     } else {
+        send_message(E_ADD, E_TIMER, wait_timer);
+        escape();
+        exit_wait = s;
+        send_message(E_DONE, E_TIMER, wait_timer);
+     }
      }
   ukaz_mysku();
   }

@@ -6,6 +6,16 @@ extern "C" {
 
 #ifndef __SKELDAL__MOUSE__
 #define __SKELDAL__MOUSE__
+
+#define MS_EVENT_MOUSE_MOVE 1
+#define MS_EVENT_MOUSE_LPRESS 2
+#define MS_EVENT_MOUSE_LRELEASE 4
+#define MS_EVENT_MOUSE_RPRESS 8
+#define MS_EVENT_MOUSE_RRELEASE 16
+#define MS_EVENT_MOUSE_MPRESS 32
+#define MS_EVENT_MOUSE_MRELEASE 64
+#define MS_EVENT_MOUSE_LDBLCLK 128
+
 typedef struct ms_event
   {
    char event;

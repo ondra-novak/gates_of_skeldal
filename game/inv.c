@@ -581,7 +581,7 @@ void do_items_specs(void)
                         runes[xa]|=ya;
                         destroy=1;
                         play_fx_at(FX_MAGIC);
-						if (game_extras & EX_AUTOSHOWRUNE) bott_disp_rune(p->user_value,*picked_item-1);
+						bott_disp_rune(p->user_value,*picked_item-1);
                         break;
            case TYP_PENIZE:
                         {
@@ -812,7 +812,7 @@ T_CLK_MAP clk_inv_view[]=
   {1,236,220,255,239,ring_place,2,-1},
   {2,236,255,255,274,ring_place,2,-1},
   {3,236,290,255,309,ring_place,2,-1},
-  {0,0,200,29,309,uloz_sip,2,-1},
+  {0,0,200,29,309,uloz_sip,MS_EVENT_MOUSE_LPRESS|MS_EVENT_MOUSE_LDBLCLK,-1},
   {-1,37,34,225,336,human_click,2,-1},
   {-1,45,339,212,358,inv_swap_desk,2,H_MS_DEFAULT},
   {-1,54,378,497,479,start_invetory,2+8,-1},
@@ -1762,16 +1762,33 @@ char uloz_sip(int id,int xa,int ya,int xr,int yr)
 
   if (isdemon(human_selected)) return 0;
   if (neprezbrojit()) return 0;
-  if (picked_item!=NULL && picked_item[1]==0 && glob_items[picked_item[0]-1].umisteni==PL_SIP)
-     {
-     int pocet=glob_items[picked_item[0]-1].user_value;
-     if (pocet==0) pocet=1;
-     if (human_selected->sipy+pocet>99) return 1;
-     human_selected->sipy+=pocet;
-     free(picked_item);
-     picked_item=NULL;
+  if (picked_item!=NULL && picked_item[1]==0 && glob_items[picked_item[0]-1].umisteni==PL_SIP) {
+     char notdblclk = !(ms_last_event.event_type & MS_EVENT_MOUSE_LDBLCLK);
+     if (notdblclk) {
+         int pocet=glob_items[picked_item[0]-1].user_value;
+         if (pocet==0) pocet=1;
+         if (human_selected->sipy+pocet>99) return 1;
+         human_selected->sipy+=pocet;
+         free(picked_item);
+         picked_item=NULL;
+     } else if (glob_items[picked_item[0]-1].user_value <= 1) {
+         int best_item = -1;
+         int max_arrows = 1;
+         for (int i = 0; i < item_count; ++i) {
+             if (glob_items[i].umisteni == PL_SIP
+                     && glob_items[i].user_value > max_arrows
+                     && glob_items[i].user_value <= human_selected->sipy+1) {
+                 max_arrows = glob_items[i].user_value;
+                 best_item = i;
+             }
+         }
+         if (best_item>=0) {
+             picked_item[0] = best_item+1;
+             human_selected->sipy-=max_arrows-1;
+         }
      }
-  else
+
+  } else
      if (picked_item==NULL && human_selected->sipy)
         {
         short x[2];
@@ -2393,10 +2410,10 @@ T_CLK_MAP clk_shop[]=
   {
   {-1,54,378,497,479,shop_change_player,2+8,-1},
   {-1,0,0,639,479,_exit_shop,8,-1},
-  {-1,INV_X,INV_Y,INV_X+INV_XS*6,INV_Y+INV_YS*5,shop_bag_click,2,-1},
+  {-1,INV_X,INV_Y,INV_X+INV_XS*6,INV_Y+INV_YS*5,shop_bag_click,MS_EVENT_MOUSE_LDBLCLK|MS_EVENT_MOUSE_LPRESS,-1},
   {1,2+BUYBOX_X,39+BUYBOX_Y,22+BUYBOX_X,76+BUYBOX_Y,shop_block_click,2,H_MS_DEFAULT},
   {2,246+BUYBOX_X,39+BUYBOX_Y,266+BUYBOX_X,76+BUYBOX_Y,shop_block_click,2,H_MS_DEFAULT},
-  {-1,BUYBOX_X+SHP_ICPLCX,17,BUYBOX_X+SHP_ICPLCX+4*SHP_ICSIZX,BUYBOX_Y+SHP_ICPLCY+2*SHP_ICSIZY,shop_keeper_click,2,-1},
+  {-1,BUYBOX_X+SHP_ICPLCX,17,BUYBOX_X+SHP_ICPLCX+4*SHP_ICSIZX,BUYBOX_Y+SHP_ICPLCY+2*SHP_ICSIZY,shop_keeper_click,MS_EVENT_MOUSE_LDBLCLK|MS_EVENT_MOUSE_LPRESS,-1},
   {-1,0,17,BUYBOX_X+SHP_ICPLCX,BUYBOX_Y,shop_keeper_click,2,-1},
   {-1,337,0,357,14,go_map,2,H_MS_DEFAULT},
   {-1,87,0,142,14,game_setup,2,H_MS_DEFAULT},
@@ -2791,16 +2808,31 @@ char shop_keeper_click(int id, int xa, int ya, int xr, int yr) {
             return 1;
         }
     } else if (cur_owner == -1) {
-        free(picked_item);
-        picked_item = NULL;
-        rebuild_keepers_items();
-        schovej_mysku();
-        pick_set_cursor();
-        redraw_keepers_items();
-        ukaz_mysku();
-        update_mysky();
-        cur_owner = 0;
-        return 1;
+        char notdblclk = !(ms_last_event.event_type & MS_EVENT_MOUSE_LDBLCLK);
+        if (notdblclk || get_sell_price(*picked_item) > money) {
+            free(picked_item);
+            picked_item = NULL;
+            rebuild_keepers_items();
+            schovej_mysku();
+            pick_set_cursor();
+            redraw_keepers_items();
+            ukaz_mysku();
+            update_mysky();
+            cur_owner = 0;
+            return 1;
+        } else {
+            play_sample_at_channel(H_SND_OBCHOD, 1, 100);
+            money -= get_sell_price(*picked_item);
+            sell_item(*picked_item);
+            if (put_item_to_inv(human_selected, picked_item)) {
+                picked_item = NULL;
+                pick_set_cursor();
+            }
+            rebuild_keepers_items();
+            cur_owner = picked_item != NULL;
+            redraw_shop();
+            return 1;
+        }
     }
     if (cur_owner != -1 && picked_item != NULL) {
         int price, z;
@@ -2860,52 +2892,54 @@ char shop_keeper_click(int id, int xa, int ya, int xr, int yr) {
 }
 
 
-char shop_bag_click(int id,int xa,int ya,int xr,int yr)
-  {
-  char s[200],p;
-  int price,z;
-  const TPRODUCT *pp;
-  if (cur_owner>-1)
-     {
-     id=bag_click(id,xa,ya,xr,yr);
-     cur_owner=picked_item!=NULL;
-	 if (picked_item!=NULL && picked_item[1]==0 && (game_extras & EX_FAST_TRADE) && (get_control_key_state()))
-	   {
-	   short z;
-       price=make_offer(z=picked_item[0]);
-	   if (price)
-		 {
-		 play_sample_at_channel(H_SND_OBCHOD,1,100);
-		 buy_item(z);
-		 free(picked_item);picked_item=NULL;
-		 money+=price;
-		 rebuild_keepers_items();
-		 pick_set_cursor();
-		 redraw_shop();
-		 }
-	   }
-     return id;
-     }
-  if (picked_item==NULL) return 0;
-  z=picked_item[0];
-  price=get_sell_price(z);
-  pp=find_sell_product(z);
-  if (pp==NULL) return 0;
-  mouse_set_cursor(H_MS_DEFAULT);
-  if (!price) return 0;
+char shop_bag_click(int id, int xa, int ya, int xr, int yr) {
+    char s[200], p;
+    int price, z;
+    const TPRODUCT *pp;
+    if (cur_owner > -1) {
+        char notdblclk = !(ms_last_event.event_type & MS_EVENT_MOUSE_LDBLCLK);
+        if (notdblclk) {
+            id = bag_click(id, xa, ya, xr, yr);
+        } else {
+            id = 1;
+        }
+        cur_owner = picked_item != NULL;
+        if (picked_item != NULL && picked_item[1] == 0 && !notdblclk) {
+            short z;
+            price = make_offer(z = picked_item[0]);
+            if (price) {
+                play_sample_at_channel(H_SND_OBCHOD, 1, 100);
+                buy_item(z);
+                free(picked_item);
+                picked_item = NULL;
+                money += price;
+                rebuild_keepers_items();
+                pick_set_cursor();
+                redraw_shop();
+            }
+        }
+        return id;
+    }
+    if (picked_item == NULL) return 0;
+    z = picked_item[0];
+    price = get_sell_price(z);
+    pp = find_sell_product(z);
+    if (pp == NULL) return 0;
+    mouse_set_cursor(H_MS_DEFAULT);
+    if (!price) return 0;
     if (price > money) {
-        p = message(2, 0, 0, "", texty[104], texty[230], texty[78])+1;
+        p = message(2, 0, 0, "", texty[104], texty[230], texty[78]) + 1;
     } else {
         sprintf(s, texty[101], price);
         p = message(3, 0, 1, texty[118], s, texty[77], texty[230], texty[78]);
     }
     if (p == 1) {
         redraw_shop();
-        THAGGLERESULT hr = smlouvat_dlg(price, pp->cena,
-                *get_product_count(pp), *get_last_haggle_price(pp), money, 1);
+        THAGGLERESULT hr = smlouvat_dlg(price, pp->cena, *get_product_count(pp),
+                *get_last_haggle_price(pp), money, 1);
         if (hr.canceled) {
             price = -1;
-        }else if (hr.message) {
+        } else if (hr.message) {
             price = -1;
             shop_keeper_bubble = hr.message;
             *get_last_haggle_price(pp) = hr.hprice;
@@ -2915,22 +2949,19 @@ char shop_bag_click(int id,int xa,int ya,int xr,int yr)
     } else if (p == 2) {
         price = -1;
     }
-  if (price>=0)
-        {
-        play_sample_at_channel(H_SND_OBCHOD,1,100);
-        money-=price;
+    if (price >= 0) {
+        play_sample_at_channel(H_SND_OBCHOD, 1, 100);
+        money -= price;
         sell_item(z);
         rebuild_keepers_items();
-        id=bag_click(id,xa,ya,xr,yr);
-        cur_owner=picked_item!=NULL;
-        }
-   else
-    {
-    shop_keeper_click(0,0,0,0,0);
+        id = bag_click(id, xa, ya, xr, yr);
+        cur_owner = picked_item != NULL;
+    } else {
+        shop_keeper_click(0, 0, 0, 0, 0);
     }
-  wire_shop();
-  return 1;
-  }
+    wire_shop();
+    return 1;
+}
 
 char shop_block_click(int id, int xa, int ya,int xr,int yr)
   {

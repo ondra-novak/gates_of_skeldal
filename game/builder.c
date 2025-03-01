@@ -67,6 +67,7 @@ int hal_dir;
 char see_monster=0;
 char ghost_walls = 0;
 char lodka=0;
+char lodka_battle_draw = 0;  //jedncka pokud se zobrazuje programovani (pro lodku)
 int bgr_distance=0; //vzdalenost pozadi od pohledu
 int bgr_handle=0;
 
@@ -457,6 +458,7 @@ void bott_disp_text(const char *text)
   strcpy(bott_text,text);
   }
 
+/*
 static void MaskPutPicture(int x, int y, char mask, word color, char blend, const void *pic)
   {
   short *info=(short *)pic;
@@ -474,33 +476,88 @@ static void MaskPutPicture(int x, int y, char mask, word color, char blend, cons
 		}
 	  }
   }
+  */
+
+static void *extractByMask(const short *image, const short *mask_data, int mask) {
+    short left = 0x7FFF;
+    short right = 0;
+    short top = 0x7FFF;
+    short bottom =0;
+    short xs = image[0];
+    short mxs = mask_data[0];
+    short mys = mask_data[1];
+    const char *mdata = (const char *)mask_data+sizeof(short)*3+512;
+    for (short y = 0; y < mys; ++y) {
+        for (short x = 0; x < mxs; ++x) {
+            if (mdata[y*mxs+x] == mask) {
+                if (left > x) left = x;
+                if (right < x) right = x;
+                if (bottom < y) bottom = y;
+                if (top > y) top = y;
+            }
+        }
+    }
+    if (left > right || top > bottom) return NULL;
+    short nxs = right-left+1;
+    short nys = bottom-top+1;
+    short *newimg = getmem(nxs*nys*2+3+256);
+    newimg[0] = nxs;
+    newimg[1] = nys;
+    newimg[2] = image[2];
+    memcpy(newimg+2, image+2, sizeof(short)*266);
+    char *imgdata = (char *)(newimg+3+256);
+    const char *srcimgdata = (char *)(image+3+256);
+    for (short y = top; y <= bottom; ++y) {
+        for (short x = left; x <= right; ++x) {
+            char color = 0;
+            if (mdata[y*mxs+x] == mask) {
+                color = srcimgdata[y*xs+x];
+            } else {
+                color = 0;
+            }
+            imgdata[(y - top)*nxs+(x - left)] = color;
+        }
+    }
+    return newimg;
+
+
+}
 
 
 const void *bott_draw_rune(const void *pp, int32_t *ss)
   {
   int sel_zivel=showrune/10;
   int sel_rune=showrune%10;
-  int maskrune=runes[sel_zivel];
-  int i;
+//  int maskrune=runes[sel_zivel];
+//  int i;
   char buff[300];
   int spell=(sel_zivel*7+sel_rune)*3;
   RedirectScreen(bott_clear());
   if (battle && cur_mode==MD_INBATTLE) put_picture(0,0,ablock(H_BATTLE_BAR));
   else put_picture(0,0,ablock(H_DESK));
-  create_frame(70,20,280,50,1);
-  put_picture(378,0,ablock(H_RUNEBAR1+sel_zivel));
+
+  short *rn = extractByMask(ablock(H_RUNEBAR1+sel_zivel),
+              ablock(H_RUNEMASK), sel_rune+6);
+/*
+
+  put_picture(520,0,);
   for (i=0;i<7;i++)
-	if (!(maskrune & (1<<i))) MaskPutPicture(378,0,i+6,0,0,ablock(H_RUNEMASK));
-	else if (i!=sel_rune) MaskPutPicture(378,0,i+6,0,1,ablock(H_RUNEMASK));
-  if (sel_zivel) trans_bar(378,0,sel_zivel*24,22,0);
-  if (sel_zivel!=4)trans_bar(378+24+sel_zivel*24,0,96-sel_zivel*24,22,0);
+	if (!(maskrune & (1<<i))) MaskPutPicture(520,0,i+6,0,0,ablock(H_RUNEMASK));
+	else if (i!=sel_rune) MaskPutPicture(520,0,i+6,0,1,ablock(H_RUNEMASK));
+  if (sel_zivel) trans_bar(520,0,sel_zivel*24,22,0);
+  if (sel_zivel!=4)trans_bar(520+24+sel_zivel*24,0,96-sel_zivel*24,22,0);
+  */
+  create_frame(70,20,400,50,1);
   set_font(H_FBOLD,NOSHADOW(0));
   position(120,30);
   outtext(glob_items[showruneitem].jmeno);
   sprintf(buff,"%s %d, %s %d",texty[11],get_spell_um(spell),texty[16],get_spell_mana(spell));
-  position (75,60);
+  position (120,60);
   outtext(buff);
-  put_picture(70,30,ablock(glob_items[showruneitem].vzhled+face_arr[0]));
+  if (rn) {
+      put_picture(80,35,rn);
+      free(rn);
+  }
   void *out = GetScreenAdr();
   *ss=GetScreenSizeBytes();
   RestoreScreen();
@@ -1264,14 +1321,16 @@ void render_scene(int sector, int smer)
      }
   calc_spectxtrs();
   if (lodka) {
-      if (cur_mode == MD_GAME) {
+      if (!lodka_battle_draw && !running_anm) {
           if (!lodka_loaded) {
               game_display_load_sprite(H_LODKA, (const unsigned short *)ablock(H_LODKA));
               lodka_loaded = 1;
           }
           game_display_place_sprite(H_LODKA, 0, SCREEN_OFFLINE+301);
       } else {
+          game_display_hide_sprite(H_LODKA);
           zobraz_lodku(ablock(H_LODKA),LODKA_POS,LODKA_SIZ);
+          lodka_battle_draw = 0;
       }
   }
   }

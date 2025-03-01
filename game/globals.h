@@ -611,6 +611,7 @@ extern char enable_sort;
 extern char last_send_action;      //naposled vyslana akce
 extern char see_monster;    //jednicka pokud hraci vidi nestvuru
 extern char lodka;
+extern char lodka_battle_draw;  //jedncka pokud se zobrazuje programovani (pro lodku)
 extern char anim_mirror;     //je li 1 pak animace kouzel a zbrani jsou zrcadlove otocene
 extern char insleep;         //je li 1 pak bezi sleep
 extern char pass_zavora;     //je-li 1 pak bezi passing (hraci zrovna jdou)
@@ -1404,7 +1405,7 @@ int save_map_state(void); //uklada stav mapy pro savegame (neuklada aktualni poz
 int load_map_state(void); //obnovuje stav mapy; nutno volat po zavolani load_map;
 void restore_current_map(void); //pouze obnovuje ulozeny stav aktualni mapy
 int load_game(const char *fname);
-int save_game(long game_time,char *gamename);
+int save_game(long game_time,char *gamename, char is_autosave);
 void wire_save_load(char save);
 void do_save_dialog();
 char ask_save_dialog(char *name_buffer, size_t name_size);
