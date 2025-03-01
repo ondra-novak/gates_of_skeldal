@@ -47,7 +47,7 @@
 #define DIS (char *)0x1
 #define START_HANDLE hl_ptr
 
-extern TSTR_LIST texty_v_mape;
+
 
 
 
@@ -457,14 +457,13 @@ void leave_current_map()
   free(flag_map);
   free(map_coord);
   free(map_vyk);map_vyk=NULL;vyk_max=0;
-  if (texty_v_mape!=NULL)release_list(texty_v_mape);
+  free_map_description();
   while (d_action!=NULL)
     {
     void *p=d_action;
     d_action=d_action->next;
     free(p);
     }
-  texty_v_mape=NULL;
   release_list(level_texts);
   if (mob_map!=NULL) free(mob_map);
   if (macro_block!=NULL)

@@ -61,7 +61,7 @@ char enable_glmap=0;
 
 static int map_xr,map_yr;
 static int cur_depth;
-TSTR_LIST texty_v_mape=NULL;
+static TSTR_LIST texty_v_mape=NULL;
 
 #define BOTT 378
 #define LEFT 520
@@ -95,7 +95,6 @@ T_CLK_MAP clk_teleport_view[]=
   {-1,0,0,639,479,map_target_cancel,8,-1},
   {-1,0,0,639,479,empty_clk,0xff,-1},
   };
-
 
 char testclip(int x,int y)
   {
@@ -1054,3 +1053,54 @@ int select_teleport_target(char nolimit)
   disable_all_map();
   return last_selected;
   }
+
+
+void save_map_description(TMPFILE_WR *f)
+  {
+  int count,max;
+  int32_t i;
+
+  if (texty_v_mape==NULL) max=0;else max=str_count(texty_v_mape);
+  for(i=0,count=0;i<max;i++) if (texty_v_mape[i]!=NULL) count++;
+  temp_storage_write(&count,1*sizeof(count),f);
+  for(i=0;i<max;i++) if (texty_v_mape[i]!=NULL)
+     {
+     word len;
+     len=strlen(texty_v_mape[i]+12)+12+1;
+     temp_storage_write(&len,1*2,f);
+     temp_storage_write(texty_v_mape[i],1*len,f);
+     }
+  }
+
+void load_map_description(TMPFILE_RD *f)
+  {
+  int32_t count;
+  int32_t i;
+  word len;
+
+  if (texty_v_mape!=NULL)release_list(texty_v_mape);
+  temp_storage_read(&count,1*sizeof(count),f);
+  if (!count)
+     {
+     texty_v_mape=NULL;
+     return;
+     }
+  texty_v_mape=create_list(count);
+  for(i=0;i<count;i++)
+     {
+      temp_storage_read(&len,1*2,f);
+        {
+        char *s;
+        s=(char *)alloca(len);
+        memset(s,1,len-1);
+        s[len-1]=0;
+        str_replace(&texty_v_mape,i,s);
+        }
+        temp_storage_read(texty_v_mape[i],1*len,f);
+     }
+  }
+
+void free_map_description() {
+    if (texty_v_mape!=NULL)release_list(texty_v_mape);
+    texty_v_mape = NULL;
+}

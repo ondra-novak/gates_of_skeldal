@@ -235,52 +235,7 @@ void restore_items(TMPFILE_RD *f)
 
 }
 
-extern TSTR_LIST texty_v_mape;
 
-void save_map_description(TMPFILE_WR *f)
-  {
-  int count,max;
-  int32_t i;
-
-  if (texty_v_mape==NULL) max=0;else max=str_count(texty_v_mape);
-  for(i=0,count=0;i<max;i++) if (texty_v_mape[i]!=NULL) count++;
-  temp_storage_write(&count,1*sizeof(count),f);
-  for(i=0;i<max;i++) if (texty_v_mape[i]!=NULL)
-     {
-     word len;
-     len=strlen(texty_v_mape[i]+12)+12+1;
-     temp_storage_write(&len,1*2,f);
-     temp_storage_write(texty_v_mape[i],1*len,f);
-     }
-  }
-
-void load_map_description(TMPFILE_RD *f)
-  {
-  int32_t count;
-  int32_t i;
-  word len;
-
-  if (texty_v_mape!=NULL)release_list(texty_v_mape);
-  temp_storage_read(&count,1*sizeof(count),f);
-  if (!count)
-     {
-     texty_v_mape=NULL;
-     return;
-     }
-  texty_v_mape=create_list(count);
-  for(i=0;i<count;i++)
-     {
-      temp_storage_read(&len,1*2,f);
-        {
-        char *s;
-        s=(char *)alloca(len);
-        memset(s,1,len-1);
-        s[len-1]=0;
-        str_replace(&texty_v_mape,i,s);
-        }
-        temp_storage_read(texty_v_mape[i],1*len,f);
-     }
-  }
 
 void save_vyklenky(TMPFILE_WR *fsta)
   {
@@ -1802,7 +1757,10 @@ static int load_map_state_partial(char *level_fname,int mapsize) //obnovuje stav
   bf=(char *)getmem(siz);
   if (!temp_storage_read(bf,siz*1,fsta)) goto err;
   for (i=0;i<mapsize;i++)
-     map_coord[i].flags|=(bf[i>>3]>>(i & 7)) & 1;
+    if ((bf[i>>3]>>(i & 7)) & 1) map_coord[i].flags|=MC_AUTOMAP;
+  if (!temp_storage_read(bf,siz*1,fsta)) goto err;
+  for (i=0;i<mapsize;i++)
+    if ((bf[i>>3]>>(i & 7)) & 1) map_coord[i].flags|=MC_DISCLOSED;
   load_map_description(fsta);
   while (temp_storage_read(&i,1*2,fsta) && i<=mapsize*4)
      if (temp_storage_read(map_sides+i,1*sizeof(TSTENA),fsta)!=sizeof(TSTENA)) goto err;
