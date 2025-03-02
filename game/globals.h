@@ -1634,6 +1634,7 @@ int add_spell(int num,int cil,int owner,char noanim);
 void klicovani_anm(void *target,void *source,char mirror);
 //#pragma aux klicovani_anm parm [edi][esi][eax] modify [ecx edx ebx]
 int get_spell_color(THUMAN *p,int num);
+int get_spell_info(int num, char *txt, size_t sz);
 int get_spell_mana(int num);
 int get_spell_um(int num);
 char ask_who(int num);

@@ -728,7 +728,7 @@ static void dialog_cont()
 
 static void key_check(EVENT_MSG *msg,void **unused)
   {
-  char d;
+//  char d;
 
   unused;
   if (msg->msg==E_KEYBOARD)

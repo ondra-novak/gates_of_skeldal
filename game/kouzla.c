@@ -322,6 +322,17 @@ int get_spell_color(THUMAN *p,int num)
   return 1;
   }
 
+  int get_spell_info(int num, char *txt, size_t sz)
+  {
+  TKOUZLO *z;
+
+  z=(TKOUZLO *)ablock(H_KOUZLA);
+  z+=num;
+  if (!z->start) return 1;
+  snprintf(txt, sz, "%s %d, %s %d", texty[47],z->um, texty[16], z->mge);
+  return 1;
+  }
+
 char get_rune_enable(THUMAN *p,int strnum)
   {
   int i;
