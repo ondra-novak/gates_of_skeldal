@@ -773,7 +773,7 @@ int save_game(long game_time,char *gamename, char is_autosave)
 	fclose(svf);
   }
   SEND_LOG("(SAVELOAD) Game saved.... Result %d",r);
-  disable_intro();
+  play_fx_at(FX_SAVE);
   return r;
   }
 
@@ -1099,7 +1099,10 @@ static void free_savegame_list(TSAVEGAME_LIST *lst) {
     release_list(lst->names);
     lst->files = 0;
     lst->names = 0;
-    free(lst->autosave_flags);
+    if (lst->autosave_flags) {
+      free(lst->autosave_flags);
+      lst->autosave_flags = NULL;
+    }
 }
 
 static void place_name(int c,int i,char show, char sel)
@@ -1245,7 +1248,7 @@ static void read_story(int slot)
 
 static void read_story(const char *filename) {
     void *text_data;
-    int32_t size;
+    int32_t size = 0;
     TSTR_LIST ls;
     char *c,*d;
 

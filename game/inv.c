@@ -2845,7 +2845,7 @@ char shop_keeper_click(int id, int xa, int ya, int xr, int yr) {
             price = make_offer(z = picked_item[0]);
             if (!price) {
                 sprintf(c, texty[103], glob_items[z - 1].jmeno);
-                message(1, 0, 0, "", c, texty[80]);
+                message(1, 0, 1, "", c, texty[80]);
                 wire_shop();
             } else {
                 int p;
@@ -2853,7 +2853,7 @@ char shop_keeper_click(int id, int xa, int ya, int xr, int yr) {
 
                 pp = find_sell_product(z);
                 sprintf(c, texty[102], price);
-                p = message(3, 0, 1, texty[118], c, texty[77], texty[230],
+                p = message(3, 0, 2, texty[118], c, texty[77], texty[230],
                         texty[78]);
                 if (p == 2) {
                     price = -1;
@@ -2928,10 +2928,10 @@ char shop_bag_click(int id, int xa, int ya, int xr, int yr) {
     mouse_set_cursor(H_MS_DEFAULT);
     if (!price) return 0;
     if (price > money) {
-        p = message(2, 0, 0, "", texty[104], texty[230], texty[78]) + 1;
+        p = message(2, 0, 1, "", texty[104], texty[230], texty[78]) + 1;
     } else {
         sprintf(s, texty[101], price);
-        p = message(3, 0, 1, texty[118], s, texty[77], texty[230], texty[78]);
+        p = message(3, 0, 2, texty[118], s, texty[77], texty[230], texty[78]);
     }
     if (p == 1) {
         redraw_shop();

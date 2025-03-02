@@ -665,6 +665,7 @@ void map_keyboard(EVENT_MSG *msg,void **usr)
         case 's':if (check_for_layer(cur_depth-1)) cur_depth--;break;
         case 18:
         case 'I':
+        case 'O':
         case 't':if (check_for_layer(cur_depth+1)) cur_depth++;break;
         case 15:
         case 50:

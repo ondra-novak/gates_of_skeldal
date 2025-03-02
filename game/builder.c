@@ -1356,6 +1356,7 @@ void death_screen() {
 
 }
 
+
 void redraw_scene()
   {
   if (norefresh) return;
@@ -1371,7 +1372,7 @@ void redraw_scene()
   other_draw();
   if (cur_mode == MD_END_GAME) {
       death_screen();
-  }
+  } 
   ukaz_mysku();
   global_anim_counter++;
   send_message(E_KOUZLO_ANM);
@@ -1436,8 +1437,8 @@ void play_fx(int x,int y)
 
 void play_fx_at(int where)
   {
-  static word polex[]={313,290,362,336};
-  static word poley[]={1,1,1,1,1};
+  static word polex[]={313,290,362,336,165};
+  static word poley[]={1,1,1,1,1,1};
 
   play_fx(polex[where],poley[where]);
   }

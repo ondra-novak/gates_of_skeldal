@@ -1487,7 +1487,7 @@ static void smlouvat_enter(EVENT_MSG *msg,OBJREC *o)
   if (msg->msg==E_KEYBOARD)
     {
       int c = va_arg(msg->data, int);
-    switch(c)
+    switch(c & 0xFF)
       {
       case 13:goto_control(30);terminate_gui();break;
       case 27:goto_control(20);terminate_gui();break;
@@ -1507,7 +1507,7 @@ THAGGLERESULT smlouvat_dlg(int cena,int puvod,int pocet,int posledni, int money,
   define(-1,150,15,100,13,0,label,int2ascii(cena,buffer,10));
   set_font(H_FBOLD,MSG_COLOR1);
   define(-1,10,30,1,1,0,label,texty[238]);
-  define(10,150,30,100,13,0,input_line,8);property(def_border(5,BAR_COLOR),NULL,NULL,0);set_default("");
+  define(10,150,30,100,13,0,input_line,8,0,0,"");property(def_border(5,BAR_COLOR),NULL,NULL,0);set_default("");
     on_control_event(smlouvat_enter);
   define(20,20,20,80,20,2,button,texty[239]);property(def_border(5,BAR_COLOR),NULL,NULL,BAR_COLOR);on_control_change(terminate_gui);
   define(30,110,20,80,20,2,button,texty[230]);property(def_border(5,BAR_COLOR),NULL,NULL,BAR_COLOR);on_control_change(terminate_gui);
@@ -1516,7 +1516,9 @@ THAGGLERESULT smlouvat_dlg(int cena,int puvod,int pocet,int posledni, int money,
     schovej_mysku();set_font(H_FBOLD,RGB555(31,31,31));
     ukaz_mysku();
     goto_control(10);
+    send_message(E_ADD,E_KEYBOARD, smlouvat_enter);
     escape();
+    send_message(E_DONE,E_KEYBOARD, smlouvat_enter);
     res.message = 0;
     res.hprice = posledni;
     res.canceled = 1;
