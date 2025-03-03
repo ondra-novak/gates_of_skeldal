@@ -812,7 +812,7 @@ T_CLK_MAP clk_inv_view[]=
   {1,236,220,255,239,ring_place,2,-1},
   {2,236,255,255,274,ring_place,2,-1},
   {3,236,290,255,309,ring_place,2,-1},
-  {0,0,200,29,309,uloz_sip,MS_EVENT_MOUSE_LPRESS|MS_EVENT_MOUSE_LDBLCLK,-1},
+  {0,0,200,29,309,uloz_sip,MS_EVENT_MOUSE_LPRESS,-1},
   {-1,37,34,225,336,human_click,2,-1},
   {-1,45,339,212,358,inv_swap_desk,2,H_MS_DEFAULT},
   {-1,54,378,497,479,start_invetory,2+8,-1},
@@ -1756,54 +1756,58 @@ char vejdou_se(int pocet)
   return pocet>0;
   }
 
+static char uloz_sip_action(char fast_key);
 char uloz_sip(int id,int xa,int ya,int xr,int yr)
   {
   id;xa;ya;xr;yr;
+  uloz_sip_action(get_control_key_state());
+  return 1;
+  }
 
+static char uloz_sip_action(char fast_key) {
   if (isdemon(human_selected)) return 0;
   if (neprezbrojit()) return 0;
   if (picked_item!=NULL && picked_item[1]==0 && glob_items[picked_item[0]-1].umisteni==PL_SIP) {
-     char notdblclk = !(ms_last_event.event_type & MS_EVENT_MOUSE_LDBLCLK);
-     if (notdblclk) {
-         int pocet=glob_items[picked_item[0]-1].user_value;
-         if (pocet==0) pocet=1;
-         if (human_selected->sipy+pocet>99) return 1;
-         human_selected->sipy+=pocet;
-         free(picked_item);
-         picked_item=NULL;
-     } else if (glob_items[picked_item[0]-1].user_value <= 1) {
-         int best_item = -1;
-         int max_arrows = 1;
-         for (int i = 0; i < item_count; ++i) {
-             if (glob_items[i].umisteni == PL_SIP
-                     && glob_items[i].user_value > max_arrows
-                     && glob_items[i].user_value <= human_selected->sipy+1) {
-                 max_arrows = glob_items[i].user_value;
-                 best_item = i;
-             }
-         }
-         if (best_item>=0) {
-             picked_item[0] = best_item+1;
-             human_selected->sipy-=max_arrows-1;
-         }
-     }
-
-  } else
+     int pocet=glob_items[picked_item[0]-1].user_value;
+     if (pocet==0) pocet=1;
+     if (human_selected->sipy+pocet>99) return 1;
+     human_selected->sipy+=pocet;
+     free(picked_item);
+     picked_item=NULL;
+  } else {
      if (picked_item==NULL && human_selected->sipy)
         {
-        short x[2];
         int i;
 
-        for(i=0;i<item_count;i++) if (glob_items[i].umisteni==PL_SIP && glob_items[i].user_value==0)
-           {
-           x[0]=i+1;
-           x[1]=0;
-           picked_item=(short *)getmem(2*sizeof(short));
-           memcpy(picked_item,x,sizeof(short)*2);
-           human_selected->sipy--;
-           break;
-           }
+        if (fast_key) {
+            int best_item = -1;
+            int max_arrows = 1;
+            for (int i = 0; i < item_count; ++i) {
+                if (glob_items[i].umisteni == PL_SIP
+                        && glob_items[i].user_value > max_arrows
+                        && glob_items[i].user_value <= human_selected->sipy) {
+                    max_arrows = glob_items[i].user_value;
+                    best_item = i;
+                }
+            }
+            if (best_item>=0) {
+                picked_item = (short *)getmem(2*sizeof(short));
+                picked_item[0] = best_item+1;
+                picked_item[1] = 0;
+                human_selected->sipy-=max_arrows;
+            }
+        } else {
+            for(i=0;i<item_count;i++) if (glob_items[i].umisteni==PL_SIP && glob_items[i].user_value==0)
+               {
+               picked_item=(short *)getmem(2*sizeof(short));
+               picked_item[0] = i+1;
+               picked_item[1] = 0;
+               human_selected->sipy--;
+               break;
+               }
+            }
         }
+  }
   pick_set_cursor();
   inv_redraw();
   return 1;
@@ -1864,13 +1868,19 @@ static char MakeItemCombinations(short *itm1, short *itm2)
   return succ;
 }
 
+static char bag_action(int xr, int yr);
 char bag_click(int id,int xa,int ya,int xr,int yr)
   {
-  short p,*pk;
 
   if (inv_view_mode || human_selected->stare_vls[VLS_KOUZLA] & SPL_DEMON || human_selected->vlastnosti[VLS_KOUZLA] & SPL_STONED) return vls_click(id,xa,ya,xr,yr);
-  xa;ya;
-  id=(xr/INV_XS)+6*(yr/INV_YS);
+  xa;ya;id;
+  return bag_action(xr, yr);
+
+}
+
+static char bag_action(int xr, int yr) {
+  int id=(xr/INV_XS)+6*(yr/INV_YS);
+  short p,*pk;
   if (id>=human_selected->inv_size) return 0;
     pk=picked_item;
    if (pk!=NULL)
@@ -2201,6 +2211,15 @@ char human_click(int id,int xa,int ya,int xr,int yr)
   }
 
 
+static void fast_inv_action(void) {
+    int x = ms_last_event.x;
+    int y = ms_last_event.y;
+    const T_CLK_MAP *item = find_in_click_map_entry(x, y, clk_inv_view, CLK_INV_VIEW, MS_EVENT_MOUSE_LPRESS);
+    if (item->proc == &uloz_sip) {
+        uloz_sip_action(1);
+    }
+}
+
 void inv_keyboard(EVENT_MSG *msg,void **usr)
   {
   char c;
@@ -2211,20 +2230,15 @@ void inv_keyboard(EVENT_MSG *msg,void **usr)
      c=quit_request_as_escape(va_arg(msg->data, int))>>8;
      switch (c)
         {
-        case 0x17:
+        default:break;
+        case 0x17: //i
         case 1:unwire_inv_mode();
                wire_proc();
                inv_view_mode=0;
                break;
-        case 28:
-        case 15:
-        case 50:
-  	  	      if (GlobEvent(MAGLOB_BEFOREMAPOPEN,viewsector,viewdir))
-			  {
-				unwire_inv_mode();
-				show_automap(1);
-			  }
-              break;
+        case 57:
+            fast_inv_action();
+            break;
         }
      }
   }
@@ -2768,14 +2782,20 @@ static void redraw_keepers_items()
         showview(BUYBOX_X,BUYBOX_Y,w[0],w[1]);
   }
 
+
+
+static char shop_keeper_action(int xr, int yr, char fast_trade);
 char shop_keeper_click(int id, int xa, int ya, int xr, int yr) {
     id;
-    xa;
-    ya;
+    xr;
+    yr;
+    return shop_keeper_action(xa, ya, get_control_key_state());
+}
+static char shop_keeper_action(int xa, int ya, char fast_trade) {
+    int xr = (xa - BUYBOX_X - SHP_ICPLCX);
+    int yr = (ya - BUYBOX_Y - SHP_ICPLCY);
     if (picked_item == NULL) {
         int i, j;
-        xr = (xa - BUYBOX_X - SHP_ICPLCX);
-        yr = (ya - BUYBOX_Y - SHP_ICPLCY);
         if (xr < 0 || yr < 0)
             return 0;
         xr /= SHP_ICSIZX;
@@ -2792,8 +2812,7 @@ char shop_keeper_click(int id, int xa, int ya, int xr, int yr) {
             redraw_keepers_items();
             ukaz_mysku();
             update_mysky();
-            if ((get_control_key_state()) && (game_extras & EX_FAST_TRADE)
-                    && get_sell_price(*picked_item) <= money) {
+            if (fast_trade && get_sell_price(*picked_item) <= money) {
                 play_sample_at_channel(H_SND_OBCHOD, 1, 100);
                 money -= get_sell_price(*picked_item);
                 sell_item(*picked_item);
@@ -2808,31 +2827,16 @@ char shop_keeper_click(int id, int xa, int ya, int xr, int yr) {
             return 1;
         }
     } else if (cur_owner == -1) {
-        char notdblclk = !(ms_last_event.event_type & MS_EVENT_MOUSE_LDBLCLK);
-        if (notdblclk || get_sell_price(*picked_item) > money) {
-            free(picked_item);
-            picked_item = NULL;
-            rebuild_keepers_items();
-            schovej_mysku();
-            pick_set_cursor();
-            redraw_keepers_items();
-            ukaz_mysku();
-            update_mysky();
-            cur_owner = 0;
-            return 1;
-        } else {
-            play_sample_at_channel(H_SND_OBCHOD, 1, 100);
-            money -= get_sell_price(*picked_item);
-            sell_item(*picked_item);
-            if (put_item_to_inv(human_selected, picked_item)) {
-                picked_item = NULL;
-                pick_set_cursor();
-            }
-            rebuild_keepers_items();
-            cur_owner = picked_item != NULL;
-            redraw_shop();
-            return 1;
-        }
+        free(picked_item);
+        picked_item = NULL;
+        rebuild_keepers_items();
+        schovej_mysku();
+        pick_set_cursor();
+        redraw_keepers_items();
+        ukaz_mysku();
+        update_mysky();
+        cur_owner = 0;
+        return 1;
     }
     if (cur_owner != -1 && picked_item != NULL) {
         int price, z;
@@ -2892,41 +2896,44 @@ char shop_keeper_click(int id, int xa, int ya, int xr, int yr) {
 }
 
 
-char shop_bag_click(int id, int xa, int ya, int xr, int yr) {
-    char s[200], p;
-    int price, z;
-    const TPRODUCT *pp;
-    if (cur_owner > -1) {
-        char notdblclk = !(ms_last_event.event_type & MS_EVENT_MOUSE_LDBLCLK);
-        if (notdblclk) {
-            id = bag_click(id, xa, ya, xr, yr);
-        } else {
-            id = 1;
-        }
-        cur_owner = picked_item != NULL;
-        if (picked_item != NULL && picked_item[1] == 0 && !notdblclk) {
-            short z;
-            price = make_offer(z = picked_item[0]);
-            if (price) {
-                play_sample_at_channel(H_SND_OBCHOD, 1, 100);
-                buy_item(z);
-                free(picked_item);
-                picked_item = NULL;
-                money += price;
-                rebuild_keepers_items();
-                pick_set_cursor();
-                redraw_shop();
-            }
-        }
-        return id;
-    }
-    if (picked_item == NULL) return 0;
-    z = picked_item[0];
-    price = get_sell_price(z);
-    pp = find_sell_product(z);
-    if (pp == NULL) return 0;
-    mouse_set_cursor(H_MS_DEFAULT);
-    if (!price) return 0;
+static char shop_bag_action(int xr,int yr, char fast_trade);
+char shop_bag_click(int id,int xa,int ya,int xr,int yr) {
+    id;xa;ya;
+    return shop_bag_action(xr, yr, get_control_key_state());
+}
+static char shop_bag_action(int xr,int yr, char fast_trade)
+  {
+  char s[200],p;
+  int price,z;
+  const TPRODUCT *pp;
+  if (cur_owner>-1)
+     {
+     char id=bag_action(xr,yr);
+     cur_owner=picked_item!=NULL;
+	 if (picked_item!=NULL && picked_item[1]==0 && fast_trade)
+	   {
+	   short z;
+       price=make_offer(z=picked_item[0]);
+	   if (price)
+		 {
+		 play_sample_at_channel(H_SND_OBCHOD,1,100);
+		 buy_item(z);
+		 free(picked_item);picked_item=NULL;
+		 money+=price;
+		 rebuild_keepers_items();
+		 pick_set_cursor();
+		 redraw_shop();
+		 }
+	   }
+     return id;
+     }
+  if (picked_item==NULL) return 0;
+  z=picked_item[0];
+  price=get_sell_price(z);
+  pp=find_sell_product(z);
+  if (pp==NULL) return 0;
+  mouse_set_cursor(H_MS_DEFAULT);
+  if (!price) return 0;
     if (price > money) {
         p = message(2, 0, 0, "", texty[104], texty[230], texty[78]) + 1;
     } else {
@@ -2954,7 +2961,7 @@ char shop_bag_click(int id, int xa, int ya, int xr, int yr) {
         money -= price;
         sell_item(z);
         rebuild_keepers_items();
-        id = bag_click(id, xa, ya, xr, yr);
+        bag_action(xr, yr);
         cur_owner = picked_item != NULL;
     } else {
         shop_keeper_click(0, 0, 0, 0, 0);
@@ -2972,11 +2979,25 @@ char shop_block_click(int id, int xa, int ya,int xr,int yr)
   return 1;
   }
 
+static void fast_trade_click() {
+    int x = ms_last_event.x;
+    int y = ms_last_event.y;
+    const T_CLK_MAP *item = find_in_click_map_entry(x, y, clk_shop, CLK_SHOP, MS_EVENT_MOUSE_LPRESS);
+    if (item) {
+        if (item->proc == &shop_bag_click) {
+            shop_bag_action(x-item->xlu, y-item->ylu, 1);
+        } else if (item->proc == &shop_keeper_click) {
+            shop_keeper_action(x, y, 1);
+        }
+    }
+}
+
 static void shop_keyboard_proc(EVENT_MSG *msg, void **_) {
     if (msg->msg == E_KEYBOARD) {
         int c = quit_request_as_escape(va_arg(msg->data,int));
         switch(c>>8) {
             case 1: _exit_shop(0,0,0,0,0);break;
+            case 57: fast_trade_click();break;
             default:break;
         }
     }

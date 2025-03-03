@@ -791,6 +791,7 @@ extern T_CLK_MAP clk_main_view[];        //clickovaci mapa pro hlavni vyhled
 
 void change_click_map(T_CLK_MAP *map,int mapsize);
 void ms_clicker(EVENT_MSG *msg,void **usr);
+const T_CLK_MAP * find_in_click_map_entry(int x, int y,T_CLK_MAP *pt,int pocet,int evtype);
 void restore_click_map(void *map,int mapsize);
 void save_click_map(void **map,int *mapsize);
 void set_game_click_map(void);

@@ -489,6 +489,14 @@ int click_map_size=0;
 T_CLK_MAP *global_click_map=NULL;
 int global_click_map_size=0;
 
+const T_CLK_MAP * find_in_click_map_entry(int x, int y,T_CLK_MAP *pt,int pocet,int evtype) {
+    while (pocet--) {
+       if (x>=pt->xlu && x<=pt->xrb && y>=pt->ylu && y<=pt->yrb && (evtype & pt->mask)) return pt;
+       pt++;
+    }
+    return NULL;
+}
+
 int find_in_click_map(MS_EVENT *ms,T_CLK_MAP *pt,int pocet,int *evtype)
   {
   int mscur=-1;
