@@ -197,7 +197,15 @@ protected:
     SDL_Point _mouse_finger;
     SpriteList _sprites;
 
+
+    int axis1_cooldown = 0;
+    int axis2_cooldown = 0;
+    int axis3_cooldown = 0;
+    int axis4_cooldown = 0;
+    int check_axis_dir(int &cooldown, int value);
+
     Uint32 _update_request_event;
+    Uint32 _refresh_request;
 
 
     void event_loop(std::stop_token stp);
@@ -232,5 +240,7 @@ protected:
 
     void push_hi_image(const unsigned short *image);
     void update_zindex();
+
+    void joystick_handle();
 
 };

@@ -67,7 +67,7 @@ static char promacknuti(int id,int xa,int ya,int xr,int yr)
   word *w;
 
   z=ablock(H_MENU_MASK);w=(word *)z;
-  z+=6+512;
+  z+=6+512;  
   z+=xr+yr*w[0];
   vymacknout(id,xa,ya,xr,yr);
   if (*z!=0) cur_dir[*z-1]=SELECT;
@@ -87,8 +87,8 @@ static char click(int id,int xa,int ya,int xr,int yr)
 
 T_CLK_MAP clk_main_menu[]=
   {
-  {-1,220,300,220+206,300+178,promacknuti,1,-1},
-  {-1,220,300,220+206,300+178,click,2,-1},
+  {-1,220,300,220+206,300+177,promacknuti,1,-1},
+  {-1,220,300,220+206,300+177,click,2,-1},
   {-1,0,0,639,479,vymacknout,1,-1},
   {-1,0,0,639,479,empty_clk,0xff,H_MS_DEFAULT},
   };

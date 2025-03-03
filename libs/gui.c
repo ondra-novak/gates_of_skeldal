@@ -801,11 +801,21 @@ void set_window_modal(void)
   waktual->modal=1;
   }
 
-void set_object_value(char redraw,OBJREC *o,void *value)
+static void set_object_value(char redraw,OBJREC *o,const char *value)
   {
-  if (memcmp(o->data,value,o->datasize))
+    if (strncmp(o->data, value, o->datasize))  
      {
-     memcpy(o->data,value,o->datasize);
+     strcopy_n(o->data,value,o->datasize);
+     if (redraw) redraw_object(o);
+     }
+  }
+
+static void set_object_value_bin(char redraw,OBJREC *o,const void *value, size_t sz)
+  {
+    size_t cpsz = MIN(o->datasize, sz);
+  if (memcmp(o->data,value,cpsz))
+     {
+     memcpy(o->data,value,cpsz);
      if (redraw) redraw_object(o);
      }
   }
@@ -843,10 +853,23 @@ void set_value(int win_id,int obj_id,void *value)
   set_object_value((w==waktual),o,value);
   }
 
-void set_default(void *value)
+  void set_value_bin(int win_id,int obj_id,void *value, size_t value_size) {
+      OBJREC *o;
+      WINDOW *w;
+    
+      if ((o=find_object_desktop(win_id,obj_id,&w))==NULL)return;
+      set_object_value_bin((w==waktual),o,value, value_size);
+      
+  }
+
+void set_default(const char *value)
   {
   set_object_value(0,o_end,value);
   }
+
+void set_default_bin(const void *value, size_t value_size) {
+  set_object_value_bin(0, o_end, value, value_size);
+}
 
 void goto_control(int obj_id)
   {
@@ -864,12 +887,12 @@ void c_set_value(int win_id,int obj_id,int cnst)
   WINDOW *w;
 
   if ((o=find_object_desktop(win_id,obj_id,&w))==NULL)return;
-  set_object_value((w==waktual),o,&cnst);
+  set_object_value_bin((w==waktual),o,&cnst,sizeof(cnst));
   }
 
 void c_default(int cnst)
   {
-  set_object_value(0,o_end,&cnst);
+  set_object_value_bin(0,o_end,&cnst,sizeof(cnst));
   }
 
 

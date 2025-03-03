@@ -679,7 +679,7 @@ void input_line_init(OBJREC *o,va_list len)
   st->minimum = va_arg(len, int);
   st->maximum = va_arg(len, int);
   st->format = va_arg(len, char * );
-  o->datasize=st->len;
+  o->datasize=st->len+1;
   o->userptr = st;
   }
 

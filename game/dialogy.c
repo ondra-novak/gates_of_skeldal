@@ -106,11 +106,45 @@ static char ask_who_proc(int id,int xa,int ya,int xr,int yr);
 
 static TSTRINGTABLE *dialogy_strtable = NULL;
 
-#define CLK_DIALOG 3
+void wire_dialog_drw(void);
+
+static void (*old_wire_proc)(void) = NULL;
+
+void wire_dialog_drw_restore(void) {
+  wire_proc = old_wire_proc ;
+  wire_dialog_drw();
+}
+
+static char dlg_konec(int id,int xa,int ya,int xr,int yr) {
+    old_wire_proc = wire_proc;
+    wire_proc = wire_dialog_drw_restore;
+    konec(id,xa,ya,xr,yr);
+    return 1;
+}
+
+static char dlg_game_setup(int id,int xa,int ya,int xr,int yr) {
+  old_wire_proc = wire_proc;
+  wire_proc = wire_dialog_drw_restore;
+  game_setup(id,xa,ya,xr,yr);
+  return 1;
+}
+
+
+
+static char dlg_clk_saveload(int id,int xa,int ya,int xr,int yr) {
+  old_wire_proc = wire_proc;
+  wire_proc = wire_dialog_drw_restore;
+  clk_saveload(id,xa,ya,xr,yr);
+  return 1;
+}
+
+#define CLK_DIALOG 5
 static T_CLK_MAP clk_dialog[CLK_DIALOG]=
   {
   {0,TEXT_X,TEXT_Y,TEXT_X+TEXT_XS,TEXT_Y+TEXT_YS,case_click,3,H_MS_DEFAULT},
-  {-1,30,0,85,14,konec,2,H_MS_DEFAULT},
+  {-1,30,0,85,14,dlg_konec,2,H_MS_DEFAULT},
+  {-1,87,0,142,14,dlg_game_setup,2,H_MS_DEFAULT},
+  {0,207,0,265,14,dlg_clk_saveload,2,H_MS_DEFAULT},
   {0,0,0,639,479,empty_clk,0xff,H_MS_DEFAULT},
   };
 
@@ -694,31 +728,56 @@ static void dialog_cont()
 
 static void key_check(EVENT_MSG *msg,void **unused)
   {
-  char d;
+//  char d;
 
   unused;
   if (msg->msg==E_KEYBOARD)
      {
-     int c = va_arg(msg->data, int);
+     int c = va_arg(msg->data, int) >> 8;
+     char redraw = 0;
+     switch (c) {
+      case 1:dlg_konec(0,0,0,0,0);break;
+      case 17:
+      case 'H':if (vyb_volba==0) his_line-=(his_line>0);
+               else vyb_volba--;
+               redraw = 1;
+               break;
+      case 31:
+      case 'P':if (his_line<last_his_line) his_line++;
+               else if (vyb_volba+1<pocet_voleb) vyb_volba++;
+               redraw = 1;
+               break;
+      case 28:
+      case 57:dialog_cont();break;
+     }
+     if (redraw) {
+      schovej_mysku();
+      redraw_text();
+      ukaz_mysku();
+      showview(TEXT_X,TEXT_Y,TEXT_XS,TEXT_YS);
+     }
+/*
+
      d=c>>8;
      if (c & 0xFF)
         {
         switch(d)
            {
+            case 17:
            case 'H':if (vyb_volba==0) his_line-=(his_line>0);else vyb_volba--;break;
+           case 31:
            case 'P':if (his_line<last_his_line) his_line++;else if (vyb_volba+1<pocet_voleb) vyb_volba++;break;
            }
-        schovej_mysku();
-        redraw_text();
-        ukaz_mysku();
-        showview(TEXT_X,TEXT_Y,TEXT_XS,TEXT_YS);
         }
      else if (c==13||c==32)
         {
         dialog_cont();
         msg->msg=-1;
         }
-     else if (c==27) konec(0,0,0,0,0);
+     else if (c==27) {
+      dlg_konec(0,0,0,0,0);
+      
+     }*/
      }
   }
 
@@ -729,7 +788,7 @@ void wire_dialog_drw()
   wire_dialog();
   draw_all();
   ukaz_mysku();
-  showview(0,0,0,0);
+  effect_show(NULL);  
   }
 void unwire_dialog(void)
   {

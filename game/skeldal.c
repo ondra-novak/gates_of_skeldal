@@ -1018,6 +1018,8 @@ void init_skeldal(const INI_CONFIG *cfg)
   load_items();
 
   load_shops();
+  memset(&loadlevel,0,sizeof(loadlevel));
+  loadlevel.eflags = 0xFF;
   SetWheelMapping('H','P');
   }
 
@@ -1110,8 +1112,11 @@ void enter_game(void)
   wire_main_functs();
   add_to_timer(TM_FAST_TIMER,2,-1,objekty_mimo);
   cancel_pass=0;
-  autosave();
   set_game_click_map();
+  if (autosave_on_enter) {
+    autosave();
+    autosave_on_enter = 0;
+  }
 
   send_message(E_ADD,E_RELOADMAP,reload_map_handler);
   {
@@ -1376,7 +1381,9 @@ static void game_big_circle(char enforced)
 
     leave_current_map();
     strcopy_n(s,loadlevel.name,sizeof(s));
-    if (s[0]!=0)err=load_map(s);
+    if (s[0]!=0) {
+      err=load_map(s);    
+    }
     memset(GlobEventList,0,sizeof(GlobEventList));
 
     }

@@ -733,6 +733,7 @@ void draw_blood(char mode,int mob_dostal,int mob_dostal_pocet);
 #define FX_BOOK 1
 #define FX_MONEY 2
 #define FX_MAP 3
+#define FX_SAVE 4
 
 
 
@@ -1416,6 +1417,7 @@ char ask_save_dialog(char *name_buffer, size_t name_size);
 void do_autosave();
 #define autosave() if (autosave_enabled) do_autosave();
 extern char autosave_enabled;
+extern char autosave_on_enter;
 int load_map_automap(char *mapfile);
  /* ^^^ Tato funkce zmeni mapu, bez zmeny grafiky a stavu cele hry.
     Jeji vyuziti je pro zobrazeni automapingu jineho levelu nez aktualniho
@@ -1633,6 +1635,7 @@ int add_spell(int num,int cil,int owner,char noanim);
 void klicovani_anm(void *target,void *source,char mirror);
 //#pragma aux klicovani_anm parm [edi][esi][eax] modify [ecx edx ebx]
 int get_spell_color(THUMAN *p,int num);
+int get_spell_info(int num, char *txt, size_t sz);
 int get_spell_mana(int num);
 int get_spell_um(int num);
 char ask_who(int num);

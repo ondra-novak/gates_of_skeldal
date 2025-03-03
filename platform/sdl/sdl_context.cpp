@@ -34,18 +34,27 @@ void SDLContext::SDL_Audio_Deleter::operator()(SDL_AudioDeviceID x) {
 struct SDL_INIT_Context {
 
     SDL_INIT_Context() {
-        if (SDL_Init(SDL_INIT_VIDEO|SDL_INIT_TIMER|SDL_INIT_AUDIO) < 0) {
+        if (SDL_Init(SDL_INIT_VIDEO|SDL_INIT_TIMER|SDL_INIT_AUDIO|SDL_INIT_JOYSTICK) < 0) {
             SDL_Log("Unable to initialize SDL: %s", SDL_GetError());
             exit(1);
         }
+        if (SDL_NumJoysticks() > 0) {
+            if (SDL_IsGameController(0)) {
+                controller = SDL_JoystickOpen(0);
+                SDL_JoystickEventState(SDL_ENABLE);
+            }
+        }
+
         inited = true;
     }
     ~SDL_INIT_Context() {
+        if (controller) SDL_JoystickClose(controller);
         SDL_Quit();
     }
 
 
     bool inited = false;
+    SDL_Joystick *controller = nullptr;
 };
 
 static SDL_INIT_Context init_context = {};
@@ -148,7 +157,9 @@ void SDLContext::generateCRTTexture(SDL_Renderer* renderer, SDL_Texture** textur
 void SDLContext::init_video(const VideoConfig &config, const char *title) {
     char buff[256];
     static Uint32 update_request_event = SDL_RegisterEvents(1);
+    static Uint32 refresh_request_event = SDL_RegisterEvents(1);
     _update_request_event = update_request_event;
+    _refresh_request = refresh_request_event;
 
     assert(!_render_thread.joinable());
 
@@ -243,6 +254,91 @@ void SDLContext::close_video() {
     _render_thread.join();
 }
 
+int SDLContext::check_axis_dir(int &cooldown, int value) {
+    if (cooldown>0) {
+        cooldown -= 0x400;
+    } else {        
+        if (value > 0) {
+            cooldown = 0x5000-value;
+            return 1;        
+        } 
+        if (value < 0) {
+            cooldown = 0x5000+value;
+            return -1;
+        }
+    }
+    return 0;
+}
+
+static int adjust_deadzone(int v) {
+    if (v > 0x4000) return v - 0x4000;
+    if (v < -0x4000) return v + 0x4000;
+    return 0;
+}
+
+static int axis_dynamic(int c) {
+    double f = std::floor(std::pow(std::abs(c)*0.001,2)*0.02)+0.5;
+
+    if (c < 0) return static_cast<int>(-f);
+    else return static_cast<int>(f);
+
+}
+
+void SDLContext::joystick_handle() {
+    
+    int a1 = SDL_JoystickGetAxis(init_context.controller, 0);
+    int a2 = SDL_JoystickGetAxis(init_context.controller, 1);
+    if (std::abs(a1) - std::abs(a2) > 0x1000) a2 = 0;
+    else if (std::abs(a2) - std::abs(a1) >0x1000) a1 = 0;
+    else {
+        a1 = 0;
+        a2 = 0;
+    }
+    int axis1 =  check_axis_dir(axis1_cooldown,adjust_deadzone(a1));
+    int axis2 =  check_axis_dir(axis2_cooldown,adjust_deadzone(a2));
+    int axis3 =  axis_dynamic(SDL_JoystickGetAxis(init_context.controller,2));
+    int axis4 =  axis_dynamic(SDL_JoystickGetAxis(init_context.controller,3));
+
+    int newx  =  this->ms_event.x + axis3;
+    int newy  =  this->ms_event.y + axis4;
+    if (newx <0) newx = 0;
+    if (newx > 639) newx = 639;
+    if (newy <0) newy = 0;
+    if (newy > 479) newy = 479;
+    if (axis3 || axis4) {
+        this->ms_event.x = (uint16_t)newx;
+        this->ms_event.y = (uint16_t)newy;
+        this->ms_event.event = 1;
+        this->ms_event.event_type = 1;
+        if (_mouse) {
+            SDL_Point pt(this->ms_event.x, this->ms_event.y);
+            SDL_Rect winrc = get_window_aspect_rect();
+            pt = to_window_point(winrc,pt);            
+            _mouse_rect.x = pt.x;
+            _mouse_rect.y = pt.y;
+            SDL_Event event;
+            event.type = _refresh_request;
+            SDL_PushEvent(&event);
+        }
+    }
+
+    SDL_Scancode scn = {};
+    switch(axis2) {
+        case -1:  scn = SDL_SCANCODE_UP;break;
+        case 1:   scn = SDL_SCANCODE_DOWN;break;
+        default:break;
+    }
+    switch(axis1) {
+        case -1:  scn = SDL_SCANCODE_LEFT;break;
+        case 1:   scn = SDL_SCANCODE_RIGHT;break;
+        default:break;
+    }
+    if (scn != SDL_Scancode{}) {
+        std::lock_guard _(_mx);
+        _keyboard_queue.push(sdl_keycode_map.get_bios_code(scn,false, false));
+    }
+}
+
 void SDLContext::event_loop(std::stop_token stp) {
 
     static Uint32 exit_loop_event = SDL_RegisterEvents(1);
@@ -252,8 +348,17 @@ void SDLContext::event_loop(std::stop_token stp) {
         SDL_PushEvent(&event);
     });
 
+    if (init_context.controller) {
+        SDL_AddTimer(25,[](Uint32 tm, void *ptr){
+            SDLContext *me = reinterpret_cast<SDLContext *>(ptr);
+            me->joystick_handle();
+            return tm;
+        }, this);
+    }
+
     SDL_Event e;
     while (SDL_WaitEvent(&e)) {
+        SDL_Scancode kbdevent = {};
         if (e.type == SDL_QUIT) {
             _quit_requested = true;
             if (_quit_callback) _quit_callback();
@@ -261,6 +366,8 @@ void SDLContext::event_loop(std::stop_token stp) {
             break;
         } else if (e.type == _update_request_event) {
             update_screen();
+        } else if (e.type == _refresh_request) {
+            update_screen(true);
         } else if (e.type == SDL_WINDOWEVENT) {
                 if (e.window.event == SDL_WINDOWEVENT_SIZE_CHANGED) {
                     _crt_effect.reset();
@@ -316,6 +423,54 @@ void SDLContext::event_loop(std::stop_token stp) {
             if (e.type == SDL_MOUSEBUTTONDOWN && e.button.clicks == 2 && e.button.button == 1) {
                 ms_event.event_type |= MS_EVENT_MOUSE_LDBLCLK;
             }
+        } else if (e.type == SDL_MOUSEWHEEL) {
+            if (e.wheel.y > 0) kbdevent =SDL_SCANCODE_UP;
+            else if (e.wheel.y < 0) kbdevent =SDL_SCANCODE_DOWN;
+        } else if (e.type == SDL_JOYBUTTONDOWN) {
+            switch (e.jbutton.button) {                                
+                case 3: kbdevent = SDL_SCANCODE_SPACE; break;
+                case 2: kbdevent = SDL_SCANCODE_RETURN; break;
+                case 9: kbdevent = SDL_SCANCODE_END;break;
+                case 7: kbdevent = SDL_SCANCODE_ESCAPE;break;
+                case 10:kbdevent = SDL_SCANCODE_PAGEDOWN;break;
+                case 11:kbdevent = SDL_SCANCODE_UP;break;
+                case 12:kbdevent = SDL_SCANCODE_DOWN;break;
+                case 13:kbdevent = SDL_SCANCODE_LEFT;break;
+                case 14:kbdevent = SDL_SCANCODE_RIGHT;break;
+                case 0: ms_event.event = 1;
+                        ms_event.event_type |= MS_EVENT_MOUSE_LPRESS;
+                        ms_event.tl1 = 1;
+                        break;
+                case 8: ms_event.event = 1;
+                        ms_event.event_type |= MS_EVENT_MOUSE_LPRESS|MS_EVENT_MOUSE_LDBLCLK;
+                        ms_event.tl1 = 1;
+                        break;
+                case 1: ms_event.event = 1;
+                        ms_event.event_type |= MS_EVENT_MOUSE_RPRESS;
+                        ms_event.tl1 = 1;
+                        break;
+                default: break;
+            }
+        }  else if (e.type == SDL_JOYBUTTONUP) {
+            switch (e.jbutton.button) {                                
+                case 0: ms_event.event = 1;
+                        ms_event.event_type |= MS_EVENT_MOUSE_LRELEASE;
+                        ms_event.tl1 = 0;
+                        break;
+                case 8:
+                case 1: ms_event.event = 1;
+                        ms_event.event_type |= MS_EVENT_MOUSE_RRELEASE;
+                        ms_event.tl1 = 1;
+                        break;
+                default: break;
+            }
+
+        }
+        
+        if (kbdevent != SDL_Scancode{}) {
+            auto code =sdl_keycode_map.get_bios_code(kbdevent,false, false);                
+            std::lock_guard _(_mx);
+            _keyboard_queue.push(code);
         }
 
     }

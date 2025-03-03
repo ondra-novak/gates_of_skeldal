@@ -199,6 +199,8 @@ void macro_send_act(const TMA_SEND_ACTION *p)
   delay_action(p->s_action,p->sector,p->side,p->change_bits<<24,0,p->delay);
   }
 
+char autosave_on_enter = 0;
+
 void macro_load_another_map(const TMA_LOADLEV *z)
   {
 //  int i,j=0;
@@ -221,6 +223,7 @@ void macro_load_another_map(const TMA_LOADLEV *z)
   */
   loadlevel=*z;
   save_map=1;
+  autosave_on_enter = 1;
   send_message(E_CLOSE_MAP);
   }
 

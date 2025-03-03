@@ -1536,10 +1536,28 @@ void inv_informuj()
   {
   int i;
   char s[80];
+  char c[80];
+  char found_price = 0;
 
   if (picked_item==NULL) return;
   i=*picked_item;
-  inv_info_box(glob_items[i-1].jmeno,glob_items[i-1].popis,get_item_req(s,i),!muze_nosit(i));
+  if (cur_shop) {
+    for (int j = 0; j < cur_shop->list_size; ++j) {
+      if (cur_shop->list[j].item == i-1) {
+        int cena = cur_shop->list[j].cena;
+        if (cena) {
+          sprintf(c,"%s (%d)",glob_items[i-1].jmeno,cena+cur_shop->koef*cena/100);
+          found_price = 1;
+          break;
+        }
+      }
+    }                  
+} 
+if (!found_price) {
+    strcopy_n(c,glob_items[i-1].jmeno,sizeof(c));
+}
+
+  inv_info_box(c,glob_items[i-1].popis,get_item_req(s,i),!muze_nosit(i));
   }
 
 void write_pocet_sipu()
@@ -1728,8 +1746,25 @@ void inv_item_info_box(EVENT_MSG *msg,void **data)
            if (i)
               {
               char s[80];
+              char c[80];
               schovej_mysku();
-              inv_info_box(glob_items[i-1].jmeno,glob_items[i-1].popis,get_item_req(s,i),!muze_nosit(i));
+              char found_price = 0;
+              if (cur_shop) {
+                  for (int j = 0; j < cur_shop->list_size; ++j) {
+                    if (cur_shop->list[j].item == i-1) {
+                      int cena = cur_shop->list[j].cena;
+                      if (cena) {
+                        sprintf(c,"%s (%d)",glob_items[i-1].jmeno,cena+cur_shop->koef*cena/100);
+                        found_price = 1;
+                        break;
+                      }
+                    }
+                  }                  
+              } 
+              if (!found_price) {
+                  strcopy_n(c,glob_items[i-1].jmeno,sizeof(c));
+              }
+              inv_info_box(c,glob_items[i-1].popis,get_item_req(s,i),!muze_nosit(i));
               showview(INV_INFO_X-VEL_RAMEC,INV_INFO_Y-VEL_RAMEC,INV_INFO_XS+2*VEL_RAMEC+2,INV_INFO_YC+2*VEL_RAMEC+2);
               ukaz_mysku();
               }
@@ -2849,7 +2884,7 @@ static char shop_keeper_action(int xa, int ya, char fast_trade) {
             price = make_offer(z = picked_item[0]);
             if (!price) {
                 sprintf(c, texty[103], glob_items[z - 1].jmeno);
-                message(1, 0, 0, "", c, texty[80]);
+                message(1, 0, 1, "", c, texty[80]);
                 wire_shop();
             } else {
                 int p;
@@ -2857,7 +2892,7 @@ static char shop_keeper_action(int xa, int ya, char fast_trade) {
 
                 pp = find_sell_product(z);
                 sprintf(c, texty[102], price);
-                p = message(3, 0, 1, texty[118], c, texty[77], texty[230],
+                p = message(3, 0, 2, texty[118], c, texty[77], texty[230],
                         texty[78]);
                 if (p == 2) {
                     price = -1;
@@ -2935,10 +2970,10 @@ static char shop_bag_action(int xr,int yr, char fast_trade)
   mouse_set_cursor(H_MS_DEFAULT);
   if (!price) return 0;
     if (price > money) {
-        p = message(2, 0, 0, "", texty[104], texty[230], texty[78]) + 1;
+        p = message(2, 0, 1, "", texty[104], texty[230], texty[78]) + 1;
     } else {
         sprintf(s, texty[101], price);
-        p = message(3, 0, 1, texty[118], s, texty[77], texty[230], texty[78]);
+        p = message(3, 0, 2, texty[118], s, texty[77], texty[230], texty[78]);
     }
     if (p == 1) {
         redraw_shop();
@@ -3012,7 +3047,7 @@ void unwire_shop(void)
   send_message(E_DONE,E_KEYBOARD, shop_keyboard_proc);
   norefresh=0;
   wire_proc=wire_shop;
-  inv_view_mode=old_inv_view_mode;
+  inv_view_mode=old_inv_view_mode;  
   }
 
 void wire_shop(void)

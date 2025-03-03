@@ -104,6 +104,7 @@ char souboje_clk_throw(int id,int xa,int ya,int xr,int yr);
 char runes_mask(int id,int xa,int ya,int xr,int yr);
 char cancel_runes(int id,int xa,int ya,int xr,int yr);
 char power(int id,int xa,int ya,int xr,int yr);
+char power_info(int id,int xa,int ya,int xr,int yr);
 char cancel_power(int id,int xa,int ya,int xr,int yr);
 static char ask_who_proc(int id,int xa,int ya,int xr,int yr);
 void wire_programming();
@@ -125,6 +126,7 @@ void unwire_jadro_souboje(void);
 uint8_t sel_zivel=0;
 static char prekvapeni=0;
 char powers[3]={0,1,2};
+char powers_info[3][50];
 HUM_ACTION *magic_data;
 
 static int minwait=0,maxwait=-1;
@@ -201,13 +203,15 @@ T_CLK_MAP clk_runes[]=
   };
 
 
-#define CLK_POWER 5
+
+#define CLK_POWER 8
 #define CLK_POWER_WHO 7
 T_CLK_MAP clk_power[]=
   {
+  {-1,500,376,637,480,power_info,1,H_MS_DEFAULT},
   {0,535,391,637,411,power,2,H_MS_DEFAULT},
   {1,535,421,637,441,power,2,H_MS_DEFAULT},
-  {2,535,431,637,471,power,2,H_MS_DEFAULT},
+  {2,535,451,637,471,power,2,H_MS_DEFAULT},
   {-1,0,0,639,377,cancel_power,2+8,-1},
   {-1,0,378,639,479,cancel_power,8,-1},
   {-1,54,378,497,479,ask_who_proc,2,-1},
@@ -1488,7 +1492,9 @@ void fill_rune(char *d,int i)
 
 static void *runebar;
 static char *rune_name=NULL;
+static char *rune_info=NULL;
 
+void display_power_bar(THE_TIMER *_);
 void display_rune_bar(THE_TIMER *_)
   {
   short coords[][2]={{3,26},{32,26},{61,26},{90,26},{18,64},{47,64},{76,64}};
@@ -1523,6 +1529,18 @@ void rune_bar_redrawing(THE_TIMER *_)
      schovej_mysku();
      program_draw();
      display_rune_bar(NULL);
+     ukaz_mysku();
+     showview(0,0,0,0);
+     }
+  }
+  void power_bar_redrawing(THE_TIMER *_)
+  {
+  redraw_scene();
+  if (!norefresh && !cancel_render)
+     {
+     schovej_mysku();
+     program_draw();
+     display_power_bar(NULL);
      ukaz_mysku();
      showview(0,0,0,0);
      }
@@ -1607,6 +1625,18 @@ void vyber_cil(int typ)
   mouse_set_default(H_MS_WHO);
   }
 
+char power_info(int id,int xa,int ya,int xr,int yr) {
+  rune_info = NULL;
+  int x = ms_last_event.x;      
+  int y = ms_last_event.y;
+for (int i = 0; i < CLK_POWER; ++i) {
+      const T_CLK_MAP *m = clk_power+i;
+      if (m->proc == &power && m->xlu <= x && m->xrb >= x && m->ylu <= y && m->yrb >= y) {
+        rune_info = powers_info[m->id]; 
+      }
+    }
+    return 1;
+}
 char power(int id,int xa,int ya,int xr,int yr)
   {
   xa;ya;xr;yr;
@@ -1670,11 +1700,12 @@ char runes_mask(int id,int xa,int ya,int xr,int yr)
            }
         else
            {
-           rune_name=get_rune_name(x);
+           rune_name=get_rune_name(x);           
            }
         }
   }
   if (cc<0) rune_name=NULL;
+  rune_info = NULL;
   free(runebar);runebar=NULL;
   display_rune_bar(NULL);
   return 1;
@@ -1735,6 +1766,7 @@ void unwire_select_power(void)
   {
   rune_name=NULL;
   delete_from_timer(TM_DELAIER);
+  delete_from_timer(TM_SCENE);
   }
 
 void wire_select_power(void)
@@ -1745,9 +1777,13 @@ void wire_select_power(void)
   p=&postavy[select_player];
   mute_all_tracks(0);
   unwire_proc();
-  for(i=0;i<3;i++) powers[i]=get_spell_color(p,magic_data->data1+i);
+  for(i=0;i<3;i++) {
+    powers[i]=get_spell_color(p,magic_data->data1+i);
+    get_spell_info(magic_data->data1+i, powers_info[i],sizeof(powers_info[i]));
+  }
   change_click_map(clk_power,CLK_POWER);
   unwire_proc=unwire_select_power;
+  add_to_timer(TM_SCENE,gamespeed,-1,power_bar_redrawing);
   add_to_timer(TM_DELAIER,12,1,display_power_bar_tm);
   }
 
@@ -1780,7 +1816,9 @@ void program_draw()
          y=postavy[i].programovano*10;
          if (y>maxy) maxy=y;
          }
-      if (!maxy && (pgm_help || rune_name!=NULL)) maxy+=10;
+         int m = 0;
+      if (pgm_help || rune_name!=NULL) m=10*(rune_info?2:1);
+      if (m > maxy) maxy = m;
       if (maxy)
          {
          maxy+=5;
@@ -1809,11 +1847,23 @@ void program_draw()
      {
      char *c;
 
-     if (rune_name!=NULL) c=rune_name;else c=texty[40+pgm_help];
      set_font(H_FLITT5,PRG_HELP_COLOR);
+     if (rune_name!=NULL) {
+        c=rune_name;
+     } else {
+        c=texty[40+pgm_help];
+     }     
      set_aligned_position(580,376,1,2,c);
      outtext(c);
+  
+     if (rune_name && rune_info) {
+        set_aligned_position(580,362,1,2,rune_info);
+        outtext(rune_info);
      }
+  
+    }
+
+  
      ukaz_mysku();
   }
 
