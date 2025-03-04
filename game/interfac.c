@@ -1514,7 +1514,7 @@ static int add_number_cb(EVENT_MSG *msg, void *x) {
      return 0;
 }
 
-static void add_number() {
+static void add_number(void) {
     if (o_aktual) {
         int n = o_aktual->id - 40;
         goto_control(10);
@@ -1523,7 +1523,7 @@ static void add_number() {
 
     }
 }
-static void remove_number() {
+static void remove_number(void) {
     if (o_aktual) {
         goto_control(10);
         send_message_to(add_number_cb,NULL, E_KEYBOARD, 'O'<<8);
@@ -1540,7 +1540,7 @@ THAGGLERESULT smlouvat_dlg(int cena,int puvod,int pocet,int posledni, int money,
   char j = is_joystick_used();
 
   set_font(H_FBOLD,RGB555(31,31,31));
-  add_window(170,130,300,100+j*20,H_WINTXTR,3,20,20);
+  add_window(170,130,300,100+j*135,H_WINTXTR,3,20,20);
   define(-1,10,15,1,1,0,label,texty[241]);
   define(-1,150,15,100,13,0,label,int2ascii(cena,buffer,10));
   set_font(H_FBOLD,MSG_COLOR1);
@@ -1551,11 +1551,14 @@ THAGGLERESULT smlouvat_dlg(int cena,int puvod,int pocet,int posledni, int money,
   define(30,110,20,80,20,2,button,texty[230]);property(def_border(5,BAR_COLOR),NULL,NULL,BAR_COLOR);on_control_change(terminate_gui);
   if (j) {
       char nstr[2] = "0";
-      for (int i = 0; i < 10; ++i) {
-          nstr[0] = i+48;
-          define(40+i, 10+i*24,50,22,20,0,button,nstr);property(def_border(0,BAR_COLOR),NULL,NULL,BAR_COLOR);on_control_change(add_number);
+      for (int i = 0; i < 9; ++i) {
+        int gx = (2-(i % 3))*35;
+        int gy = (i/3)*35;
+          nstr[0] = i+49;
+          define(41+i, 50+gx,85+gy,30,30,2,button,nstr);property(def_border(0,BAR_COLOR),NULL,NULL,BAR_COLOR);on_control_change(add_number);
       }
-      define(50, 20,50,20,20,1,button,"<-");property(def_border(0,BAR_COLOR),NULL,NULL,BAR_COLOR);on_control_change(remove_number);
+      define(40, 85,50,30,30,2,button,"0");property(def_border(0,BAR_COLOR),NULL,NULL,BAR_COLOR);on_control_change(add_number);
+      define(50, 50,50,30,30,2,button,"<-");property(def_border(0,BAR_COLOR),NULL,NULL,BAR_COLOR);on_control_change(remove_number);
   }
     {
     redraw_window();

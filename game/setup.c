@@ -139,6 +139,10 @@ void skeldal_checkbox(OBJREC *);
 void setup_ok_button(OBJREC *);
 void skeldal_soupak(OBJREC *);
 
+static void exit_setup_action(void) {
+  unwire_setup();
+  wire_proc();
+}
 
 
 
@@ -198,7 +202,7 @@ void new_setup()
        define(200+i*10,50+i*60,30,30,200,0,skeldal_soupak,effects[i]==SND_MUSIC?127:255);c_default(get_snd_effect(effects[i]));
        on_control_change(do_setup_change);
        }
-  define(300,559,336,81,21,0,setup_ok_button,texty[174]);on_control_change(unwire_setup);
+  define(300,559,336,81,21,0,setup_ok_button,texty[174]);on_control_change(exit_setup_action);
   property(NULL,ablock(H_FTINY),&color_topbar,0);
   redraw_window();
   add_to_timer(TM_CHECKBOX,4,-1,checkbox_animator);
@@ -209,6 +213,7 @@ void game_setup_(void)
   wire_setup();
   new_setup();
   }
+
 
 char game_setup(int id,int xa,int ya,int xr,int yr)
   {

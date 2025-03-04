@@ -1711,7 +1711,7 @@ void wire_save_load(char save) {
     schovej_mysku();
     mute_all_tracks(0);
     force_save=save & 1;
-    current_game_slot_list = get_all_savegames(current_campaign, save);
+    current_game_slot_list = get_all_savegames(current_campaign, save & (1+4));
     curcolor = RGB555(0,0,0);
     bar32(0, 17, 639, 17 + 360);
     if (save == 1) {

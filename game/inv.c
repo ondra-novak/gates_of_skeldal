@@ -2249,7 +2249,7 @@ static void fast_inv_action(void) {
     int x = ms_last_event.x;
     int y = ms_last_event.y;
     const T_CLK_MAP *item = find_in_click_map_entry(x, y, clk_inv_view, CLK_INV_VIEW, MS_EVENT_MOUSE_LPRESS);
-    if (item->proc == &uloz_sip) {
+    if (item && item->proc == &uloz_sip) {
         uloz_sip_action(1);
     }
 }

@@ -208,10 +208,10 @@ T_CLK_MAP clk_runes[]=
 #define CLK_POWER_WHO 7
 T_CLK_MAP clk_power[]=
   {
-  {-1,500,376,637,480,power_info,1,H_MS_DEFAULT},
-  {0,535,391,637,411,power,2,H_MS_DEFAULT},
-  {1,535,421,637,441,power,2,H_MS_DEFAULT},
-  {2,535,451,637,471,power,2,H_MS_DEFAULT},
+  {-1,500,376,637,480,power_info,1,-1},
+  {0,535,391,637,411,power,2,-1},
+  {1,535,421,637,441,power,2,-1},
+  {2,535,451,637,471,power,2,-1},
   {-1,0,0,639,377,cancel_power,2+8,-1},
   {-1,0,378,639,479,cancel_power,8,-1},
   {-1,54,378,497,479,ask_who_proc,2,-1},
@@ -1723,6 +1723,23 @@ char cancel_runes(int id,int xa,int ya,int xr,int yr)
   return 1;
   }
 
+  
+  static void select_rune_kbd(EVENT_MSG *ev, void **user_ptr) {
+    if (ev->msg == E_KEYBOARD) {
+        int v = quit_request_as_escape(va_arg(ev->data, int));
+        switch (v>>8) {
+          default: return;
+          case 1: cancel_runes(0,0,0,0,0);return;
+          case 32:
+          case 'M':sel_zivel = (sel_zivel +1) % 5;break;
+          case 30:
+          case 'K':sel_zivel = (sel_zivel +4) % 5;break;
+        }
+        free(runebar);runebar=NULL;
+        display_rune_bar(NULL);
+    }
+  }
+
 void unwire_select_rune(void)
   {
   wire_proc=wire_select_rune;
@@ -1730,6 +1747,7 @@ void unwire_select_rune(void)
   delete_from_timer(TM_SCENE);
   cancel_render=1;
   free(runebar);runebar=NULL;
+  send_message(E_DONE,E_KEYBOARD, select_rune_kbd);
   }
 
 void wire_select_rune(void)
@@ -1747,6 +1765,7 @@ void wire_select_rune(void)
   change_click_map(clk_runes,CLK_RUNES);
   add_to_timer(TM_DELAIER,12,1,display_rune_bar);
   add_to_timer(TM_SCENE,gamespeed,-1,rune_bar_redrawing);
+  send_message(E_ADD,E_KEYBOARD, select_rune_kbd);
   unwire_proc=unwire_select_rune;
   cancel_render=1;
   }
@@ -1758,6 +1777,7 @@ void wire_select_rune_fly()
   change_click_map(clk_runes,CLK_RUNES);
   add_to_timer(TM_DELAIER,12,1,display_rune_bar);
   add_to_timer(TM_SCENE,gamespeed,-1,rune_bar_redrawing);
+  send_message(E_ADD,E_KEYBOARD, select_rune_kbd);
   unwire_proc=unwire_select_rune;
   cancel_render=1;
   }

@@ -782,7 +782,7 @@ void input_line_event(EVENT_MSG *msg,OBJREC *o)
            {
            case 'M':if (cursor<slen)  cursor++;break;
            case 'K':if (cursor>0)  cursor--;break;
-           case 'S':if (cursor<slen) strcpy(&c[cursor],&c[cursor+1]);slen--;break;
+           case 'S':if (cursor<slen) {memmove(c+cursor, c+cursor+1, slen - cursor);slen--;}break;
            case 'G':cursor=0;break;
            case 'O':cursor=slen;break;
            }
@@ -790,7 +790,12 @@ void input_line_event(EVENT_MSG *msg,OBJREC *o)
         if (key)
            switch (key)
            {
-           case 8:if (cursor>0) {strcpy(&c[cursor-1],&c[cursor]);cursor--;}break;
+           case 8:if (cursor>0) {
+               memmove(c+cursor-1, c+cursor, slen-cursor);
+               --slen;
+               c[slen] = 0;
+               cursor--;
+           }break;
            case 0:break;
            case 13:break;
            case 27:strcpy(c,save);slen=strlen(c);if (cursor>slen) cursor=slen;break;

@@ -758,7 +758,7 @@ static void key_check(EVENT_MSG *msg,void **unused)
   }
 
 void wire_dialog();
-void wire_dialog_drw()
+void wire_dialog_drw(void)
   {
   schovej_mysku();
   wire_dialog();
