@@ -1955,13 +1955,15 @@ void game_keyboard(EVENT_MSG *msg,void **usr)
         case 1:konec(0,0,0,0,0);break;
 //        case 25:GamePause();break;
         case 28:enforce_start_battle();break;
+        case 60:clk_saveload(1, 0, 0, 0, 0);break;
+        case 61:clk_saveload(0, 0, 0, 0, 0);break;
+        case 59:game_setup(0,0,0,0,0);break;
         case 63:do_autosave();break;
+        case 62:clk_sleep(0,0,0,0,0);break;
+        case 64:go_book(0, 0, 0, 0, 0);break;
+        case 65:spell_casting(0, 0, 0, 0, 0);break;
         case 45:
         case 82:group_all();break;
-        case '<':if (!battle && GlobEvent(MAGLOB_CLICKSAVE,viewsector,viewdir))
-				 {unwire_proc();cancel_render=1;do_save_dialog();wire_proc();}break;
-        case '=':unwire_proc();cancel_render=1;wire_save_load(0);break;
-        case '>':game_setup(0,0,0,0,0);break;
         case 0x2E: if (get_control_key_state() && get_shift_key_state()) {
                     console_show(!console_is_visible());
                     }

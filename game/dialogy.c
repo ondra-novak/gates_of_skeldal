@@ -110,41 +110,14 @@ void wire_dialog_drw(void);
 
 static void (*old_wire_proc)(void) = NULL;
 
-void wire_dialog_drw_restore(void) {
-  wire_proc = old_wire_proc ;
-  wire_dialog_drw();
-}
-
-static char dlg_konec(int id,int xa,int ya,int xr,int yr) {
-    old_wire_proc = wire_proc;
-    wire_proc = wire_dialog_drw_restore;
-    konec(id,xa,ya,xr,yr);
-    return 1;
-}
-
-static char dlg_game_setup(int id,int xa,int ya,int xr,int yr) {
-  old_wire_proc = wire_proc;
-  wire_proc = wire_dialog_drw_restore;
-  game_setup(id,xa,ya,xr,yr);
-  return 1;
-}
-
-
-
-static char dlg_clk_saveload(int id,int xa,int ya,int xr,int yr) {
-  old_wire_proc = wire_proc;
-  wire_proc = wire_dialog_drw_restore;
-  clk_saveload(id,xa,ya,xr,yr);
-  return 1;
-}
 
 #define CLK_DIALOG 5
 static T_CLK_MAP clk_dialog[CLK_DIALOG]=
   {
   {0,TEXT_X,TEXT_Y,TEXT_X+TEXT_XS,TEXT_Y+TEXT_YS,case_click,3,H_MS_DEFAULT},
-  {-1,30,0,85,14,dlg_konec,2,H_MS_DEFAULT},
-  {-1,87,0,142,14,dlg_game_setup,2,H_MS_DEFAULT},
-  {0,207,0,265,14,dlg_clk_saveload,2,H_MS_DEFAULT},
+  {-1,30,0,85,14,konec,2,H_MS_DEFAULT},
+  {-1,87,0,142,14,game_setup,2,H_MS_DEFAULT},
+  {0,207,0,265,14,clk_saveload,2,H_MS_DEFAULT},
   {0,0,0,639,479,empty_clk,0xff,H_MS_DEFAULT},
   };
 
@@ -719,6 +692,7 @@ static void dialog_cont()
      save_jump=vol_n[(uint8_t)vyb_volba];
      remove_all_cases();
      echo(" ");
+     wire_proc = old_wire_proc;
      his_line=get_last_his_line();
      if (halt_flag) goto_paragraph(save_jump);
      schovej_mysku();
@@ -736,7 +710,7 @@ static void key_check(EVENT_MSG *msg,void **unused)
      int c = va_arg(msg->data, int) >> 8;
      char redraw = 0;
      switch (c) {
-      case 1:dlg_konec(0,0,0,0,0);break;
+      case 1:konec(0,0,0,0,0);break;
       case 17:
       case 'H':if (vyb_volba==0) his_line-=(his_line>0);
                else vyb_volba--;
@@ -749,6 +723,8 @@ static void key_check(EVENT_MSG *msg,void **unused)
                break;
       case 28:
       case 57:dialog_cont();break;
+      case 61:clk_saveload(0, 0, 0, 0, 0);break;
+      case 59:game_setup(0,0,0,0,0);break;
      }
      if (redraw) {
       schovej_mysku();
@@ -776,7 +752,7 @@ static void key_check(EVENT_MSG *msg,void **unused)
         }
      else if (c==27) {
       dlg_konec(0,0,0,0,0);
-      
+
      }*/
      }
   }
@@ -788,13 +764,13 @@ void wire_dialog_drw()
   wire_dialog();
   draw_all();
   ukaz_mysku();
-  effect_show(NULL);  
+  effect_show(NULL);
   }
 void unwire_dialog(void)
   {
   send_message(E_DONE,E_KEYBOARD,key_check);
   disable_click_map();
-//  wire_proc=wire_dialog_drw;
+
   }
 
 void wire_dialog()
@@ -934,7 +910,9 @@ void dialog_select(char halt)
   unwire_proc();
   draw_all();
   ukaz_mysku();
+  old_wire_proc = wire_proc;
   wire_dialog();
+  wire_proc = wire_dialog_drw;
   halt_flag=halt && (pocet_voleb>0);
   }
 

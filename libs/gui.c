@@ -803,7 +803,7 @@ void set_window_modal(void)
 
 static void set_object_value(char redraw,OBJREC *o,const char *value)
   {
-    if (strncmp(o->data, value, o->datasize))  
+    if (strncmp(o->data, value, o->datasize))
      {
      strcopy_n(o->data,value,o->datasize);
      if (redraw) redraw_object(o);
@@ -812,7 +812,7 @@ static void set_object_value(char redraw,OBJREC *o,const char *value)
 
 static void set_object_value_bin(char redraw,OBJREC *o,const void *value, size_t sz)
   {
-    size_t cpsz = MIN(o->datasize, sz);
+    size_t cpsz = MIN((size_t)o->datasize, sz);
   if (memcmp(o->data,value,cpsz))
      {
      memcpy(o->data,value,cpsz);
@@ -856,10 +856,10 @@ void set_value(int win_id,int obj_id,void *value)
   void set_value_bin(int win_id,int obj_id,void *value, size_t value_size) {
       OBJREC *o;
       WINDOW *w;
-    
+
       if ((o=find_object_desktop(win_id,obj_id,&w))==NULL)return;
       set_object_value_bin((w==waktual),o,value, value_size);
-      
+
   }
 
 void set_default(const char *value)
@@ -875,7 +875,10 @@ void goto_control(int obj_id)
   {
   EVENT_MSG msg;
   if (send_lost()) return;
-  o_aktual=find_object(waktual,obj_id);
+
+  OBJREC *x = find_object(waktual,obj_id);
+  if (x == NULL) return;
+  o_aktual=x;
   msg.msg=E_GET_FOCUS;
   o_aktual->on_event(&msg,o_aktual);
   o_aktual->call_event(&msg,o_aktual);
@@ -963,7 +966,8 @@ void background_runner(EVENT_MSG *msg,void **prog)
      *prog_ptr=NULL;
      return;
      }
-    (*prog_ptr)();
+
+  (*prog_ptr)();
 
   msg->msg=-2;
   }

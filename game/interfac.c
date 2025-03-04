@@ -246,6 +246,18 @@ void open_message_win(int pocet_textu,char **texts)
 
 static char default_action,cancel_action;
 
+static void message_mouse(EVENT_MSG *msg,void **user_ptr) {
+    if (msg->msg == E_MOUSE) {
+        const MS_EVENT * msev = va_arg(msg->data, MS_EVENT *);
+        if (msev->event_type & MS_EVENT_MOUSE_RPRESS) {
+             goto_control(cancel_action);
+             terminate_gui();
+             msg->msg = -1;
+        }
+    }
+}
+
+
 void message_keyboard(EVENT_MSG *msg,void **user_ptr)
   {
     char *c;
@@ -304,9 +316,11 @@ int message(int butts,char def,char canc,char *keys,...)
   }
   open_message_win(butts+1,texts);
   send_message(E_ADD,E_KEYBOARD,message_keyboard,keys);
+  send_message(E_ADD,E_MOUSE,message_mouse);
   escape();
-  id=o_aktual->id;
+  id=o_aktual?o_aktual->id:0;
   send_message(E_DONE,E_KEYBOARD,message_keyboard,keys);
+  send_message(E_DONE,E_MOUSE,message_mouse);
   close_current();
   restore_click_map(clksav,clksav2);
   return id;
@@ -1495,14 +1509,38 @@ static void smlouvat_enter(EVENT_MSG *msg,OBJREC *o)
     }
   }
 
+static int add_number_cb(EVENT_MSG *msg, void *x) {
+     o_aktual->call_event(msg, o_aktual);
+     return 0;
+}
+
+static void add_number() {
+    if (o_aktual) {
+        int n = o_aktual->id - 40;
+        goto_control(10);
+        send_message_to(add_number_cb,NULL, E_KEYBOARD, 'O'<<8);
+        send_message_to(add_number_cb,NULL, E_KEYBOARD, n+48);
+
+    }
+}
+static void remove_number() {
+    if (o_aktual) {
+        goto_control(10);
+        send_message_to(add_number_cb,NULL, E_KEYBOARD, 'O'<<8);
+        send_message_to(add_number_cb,NULL, E_KEYBOARD, 8);
+    }
+
+}
+
 THAGGLERESULT smlouvat_dlg(int cena,int puvod,int pocet,int posledni, int money,char mode)
   {
   char buffer[20];
   int ponuka;
   THAGGLERESULT res;
+  char j = is_joystick_used();
 
   set_font(H_FBOLD,RGB555(31,31,31));
-  add_window(170,130,300,100,H_WINTXTR,3,20,20);
+  add_window(170,130,300,100+j*20,H_WINTXTR,3,20,20);
   define(-1,10,15,1,1,0,label,texty[241]);
   define(-1,150,15,100,13,0,label,int2ascii(cena,buffer,10));
   set_font(H_FBOLD,MSG_COLOR1);
@@ -1511,6 +1549,14 @@ THAGGLERESULT smlouvat_dlg(int cena,int puvod,int pocet,int posledni, int money,
     on_control_event(smlouvat_enter);
   define(20,20,20,80,20,2,button,texty[239]);property(def_border(5,BAR_COLOR),NULL,NULL,BAR_COLOR);on_control_change(terminate_gui);
   define(30,110,20,80,20,2,button,texty[230]);property(def_border(5,BAR_COLOR),NULL,NULL,BAR_COLOR);on_control_change(terminate_gui);
+  if (j) {
+      char nstr[2] = "0";
+      for (int i = 0; i < 10; ++i) {
+          nstr[0] = i+48;
+          define(40+i, 10+i*24,50,22,20,0,button,nstr);property(def_border(0,BAR_COLOR),NULL,NULL,BAR_COLOR);on_control_change(add_number);
+      }
+      define(50, 20,50,20,20,1,button,"<-");property(def_border(0,BAR_COLOR),NULL,NULL,BAR_COLOR);on_control_change(remove_number);
+  }
     {
     redraw_window();
     schovej_mysku();set_font(H_FBOLD,RGB555(31,31,31));

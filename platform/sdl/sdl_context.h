@@ -42,6 +42,57 @@ public:
         const char *audioDevice;
     };
 
+    enum class JoystickButton : char{
+        disabled,
+        enter,
+        space,
+        ctrl,
+        lclick,
+        rclick,
+        ctrl_lclick,
+        escape,
+        up,
+        down,
+        left,
+        right,
+        turn_left,
+        turn_right,
+        merge,
+        split1,
+        split2,
+        split3,
+        split4,
+        split5,
+        split6,
+        map,
+        F1,
+        F2,
+        F3,
+        F4,
+        F5,
+        F6,
+        F7,
+        F8,
+        F9,
+        F10,
+        F11,
+        F12,
+        backspace,
+        mod_key
+    };
+
+    static JoystickButton button_from_string(std::string_view s);
+
+    struct JoystickConfig {
+        bool enabled;
+        bool swap_axis;
+        short walk_deadzone;
+        short cursor_deadzone;
+        JoystickButton buttons[32];
+        JoystickButton buttons_mod[32];
+
+    };
+
     struct AudioInfo {
         int freq;
     };
@@ -49,6 +100,8 @@ public:
     void init_video(const VideoConfig &config, const char *title);
 
     void set_window_icon(const void *icon_data, size_t icon_size);
+
+    void configure_controller(const JoystickConfig &cfg);
 
     void close_video();
 
@@ -105,6 +158,8 @@ public:
     void enable_crt_filter(bool enable);
     bool is_crt_enabled() const;
 
+
+    bool is_joystick_used() const;
 protected:
 
     struct SDL_Deleter {
@@ -168,6 +223,9 @@ protected:
     CrtFilterType _crt_filter= CrtFilterType::autoselect;
     bool _enable_crt = true;
     std::function<void()> _quit_callback;
+    JoystickConfig _jcontrol_map;
+    bool _jcontrol_mod_key = false;
+    bool _jcontrol_used = false;
 
     std::unique_ptr<SDL_Window, SDL_Deleter> _window;
     std::unique_ptr<SDL_Renderer, SDL_Deleter> _renderer;
@@ -198,10 +256,8 @@ protected:
     SpriteList _sprites;
 
 
-    int axis1_cooldown = 0;
-    int axis2_cooldown = 0;
-    int axis3_cooldown = 0;
-    int axis4_cooldown = 0;
+    int axis1_cooldown = -1;
+    int axis2_cooldown = -1;
     int check_axis_dir(int &cooldown, int value);
 
     Uint32 _update_request_event;
@@ -242,5 +298,7 @@ protected:
     void update_zindex();
 
     void joystick_handle();
+    void generate_j_event(int button, char up);
+    static int adjust_deadzone(int v, short deadzone);
 
 };

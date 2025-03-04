@@ -4,6 +4,7 @@
 #include "types.h"
 #include "event.h"
 #include "mouse.h"
+
 typedef struct tms_basic_info
   {
         int mouse_event;
@@ -20,4 +21,5 @@ extern TMS_BASIC_INFO ms_basic_info;
 int lock_region (void *address, unsigned length);
 void keyboard(EVENT_MSG *msg,void *user_data);
 char ms_get_keycount(void);
+
 #endif

@@ -1546,13 +1546,13 @@ void inv_informuj()
       if (cur_shop->list[j].item == i-1) {
         int cena = cur_shop->list[j].cena;
         if (cena) {
-          sprintf(c,"%s (%d)",glob_items[i-1].jmeno,cena+cur_shop->koef*cena/100);
+          sprintf(c,"%s (%d)",glob_items[i-1].jmeno,cena-cur_shop->koef*cena/100);
           found_price = 1;
           break;
         }
       }
-    }                  
-} 
+    }
+}
 if (!found_price) {
     strcopy_n(c,glob_items[i-1].jmeno,sizeof(c));
 }
@@ -1754,13 +1754,13 @@ void inv_item_info_box(EVENT_MSG *msg,void **data)
                     if (cur_shop->list[j].item == i-1) {
                       int cena = cur_shop->list[j].cena;
                       if (cena) {
-                        sprintf(c,"%s (%d)",glob_items[i-1].jmeno,cena+cur_shop->koef*cena/100);
+                        sprintf(c,"%s (%d)",glob_items[i-1].jmeno,cena-cur_shop->koef*cena/100);
                         found_price = 1;
                         break;
                       }
                     }
-                  }                  
-              } 
+                  }
+              }
               if (!found_price) {
                   strcopy_n(c,glob_items[i-1].jmeno,sizeof(c));
               }
@@ -1778,8 +1778,7 @@ void inv_item_info_box(EVENT_MSG *msg,void **data)
 
 void unwire_inv_mode(void)
   {
-  send_message(E_DONE,E_KEYBOARD,inv_keyboard);
-  send_message(E_DONE,E_MOUSE,inv_item_info_box);
+  send_message(E_DONE,E_KEYBOARD,inv_keyboard);  send_message(E_DONE,E_MOUSE,inv_item_info_box);
   build_all_players();
   }
 
@@ -3033,6 +3032,10 @@ static void shop_keyboard_proc(EVENT_MSG *msg, void **_) {
         switch(c>>8) {
             case 1: _exit_shop(0,0,0,0,0);break;
             case 57: fast_trade_click();break;
+            case 32:
+            case 'M':shop_block_click(2,0,0,0,0);break;
+            case 30:
+            case 'K':shop_block_click(1,0,0,0,0);break;
             default:break;
         }
     }
@@ -3047,7 +3050,7 @@ void unwire_shop(void)
   send_message(E_DONE,E_KEYBOARD, shop_keyboard_proc);
   norefresh=0;
   wire_proc=wire_shop;
-  inv_view_mode=old_inv_view_mode;  
+  inv_view_mode=old_inv_view_mode;
   }
 
 void wire_shop(void)

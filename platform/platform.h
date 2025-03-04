@@ -130,6 +130,9 @@ int list_files(const char *directory, int type, LIST_FILES_CALLBACK cb, void *ct
 
 #include "sdl/BGraph2.h"
 
+void init_joystick(const INI_CONFIG_SECTION *section);
+char is_joystick_used();
+
 #define WM_RELOADMAP (WM_APP+215)
 #define E_RELOADMAP 40
 

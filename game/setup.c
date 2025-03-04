@@ -77,17 +77,21 @@ static void change_turn(void)
   turn_speed((id-60)/10);
   }
 
+char exit_setup(int id,int xa,int ya,int xr,int yr);
 static void unwire_setup(void);
 
 static void setup_keyboard(EVENT_MSG *msg,void **_)
   {
   if (msg->msg == E_KEYBOARD)
      {
-      char c= quit_request_as_escape(va_arg(msg->data, int));
-     if (c==27)
-        {
-        unwire_proc();
-        }
+      int c= quit_request_as_escape(va_arg(msg->data, int));
+      switch(c>>8) {
+          case 1:
+          case 59: exit_setup(0, 0, 0,0,0); break;
+          case 60:clk_saveload(1, 0, 0, 0, 0);break;
+          case 61:clk_saveload(0, 0, 0, 0, 0);break;
+          case 64:go_book(0, 0, 0, 0, 0);break;
+      }
      }
   }
 
@@ -112,7 +116,6 @@ static void unwire_setup(void)
   mix_back_sound(32768);
   close_current();
   send_message(E_DONE,E_KEYBOARD,setup_keyboard);
-  wire_proc();
   cancel_render=1;
   SEND_LOG("(GAME) Setup closed");
   }
@@ -121,6 +124,7 @@ char exit_setup(int id,int xa,int ya,int xr,int yr)
   {
   id,xa,ya,xr,yr;
   unwire_setup();
+  wire_proc();
   return 0;
   }
 

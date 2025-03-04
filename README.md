@@ -44,6 +44,32 @@ A script error in the White Tower map in the puzzle located on the top floor of 
 
 This fix will only work with the new code. (It will not work in earlier releases of the game, i.e. in the DOS, Windows, Android and iOS versions). The reason is that a new scripting action has been introduced to enable this fix, which will ensure the correct evaluation of the puzzle
 
+## Controller support
+
+Controller support is experimental. Tested on PS4 controller connected on bluetooth. 
+Controller can be configured in INI file. If it is connected when program starts,
+it is detected and can be used. 
+
+Following mapping is defined by default (you can change it in INI)
+Left stick - walking turning, strafing with meta, list selection
+Right stick -  cursor movement
+Key X - cursor action (left mouse click)
+Key [] - ENTER/RETURN, accept selection, start battle, finish move
+Key O - cancel action, walk by cursor, (right mouse click)
+Key /\ - SPACE, wall action, fast trade, next PC in battle, accept selection
+Key Ps - settings
+Key Share - SAVE
+Key Options - LOAD
+Key on right stick - Split group
+Key R1 - mod/meta key
+Key L1 - with meta - sleep, without - backspace
+Key DPAD UP - map, with meta cast spell
+Key DPAD DOWN - merge group
+Key DPAD left - move left
+KEY DPAD right - move right
+Key X,[],O,/\ with meta - actions during battle
+
+
 ## Goals
 
  1. to rewrite all Intel 386 depend code to independed variant.

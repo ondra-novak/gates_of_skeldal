@@ -1651,7 +1651,22 @@ static void saveload_keyboard(EVENT_MSG *msg,void **_)
             } else {
                 load_save_pos_ingame(last_select);break;
             }
-        }
+        }break;
+        case 60:if (force_save) {
+                    unwire_proc();wire_proc();
+                } else {
+                    clk_saveload(1, 0, 0, 0, 0);
+                }
+                break;
+        case 61:if (!force_save) {
+                        unwire_proc();wire_proc();
+                  } else {
+                    clk_saveload(0, 0, 0, 0, 0);
+                  }
+                break;
+        case 59:game_setup(0,0,0,0,0);break;
+        case 64:go_book(0, 0, 0, 0, 0);break;
+
         }
      }
   }

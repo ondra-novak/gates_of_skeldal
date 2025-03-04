@@ -1494,7 +1494,7 @@ static void *runebar;
 static char *rune_name=NULL;
 static char *rune_info=NULL;
 
-void display_power_bar(THE_TIMER *_);
+void display_power_bar(char);
 void display_rune_bar(THE_TIMER *_)
   {
   short coords[][2]={{3,26},{32,26},{61,26},{90,26},{18,64},{47,64},{76,64}};
@@ -1540,7 +1540,7 @@ void rune_bar_redrawing(THE_TIMER *_)
      {
      schovej_mysku();
      program_draw();
-     display_power_bar(NULL);
+     display_power_bar(0);
      ukaz_mysku();
      showview(0,0,0,0);
      }
@@ -1627,12 +1627,12 @@ void vyber_cil(int typ)
 
 char power_info(int id,int xa,int ya,int xr,int yr) {
   rune_info = NULL;
-  int x = ms_last_event.x;      
+  int x = ms_last_event.x;
   int y = ms_last_event.y;
 for (int i = 0; i < CLK_POWER; ++i) {
       const T_CLK_MAP *m = clk_power+i;
       if (m->proc == &power && m->xlu <= x && m->xrb >= x && m->ylu <= y && m->yrb >= y) {
-        rune_info = powers_info[m->id]; 
+        rune_info = powers_info[m->id];
       }
     }
     return 1;
@@ -1700,7 +1700,7 @@ char runes_mask(int id,int xa,int ya,int xr,int yr)
            }
         else
            {
-           rune_name=get_rune_name(x);           
+           rune_name=get_rune_name(x);
            }
         }
   }
@@ -1808,7 +1808,7 @@ void program_draw()
           x+=74;
       }
   } else {
-      for(j=0;j<POCET_POSTAV;j++)
+      for(j=0;j<POCET_POSTAV;j++) {
          if (postavy[i=group_sort[j]].used)
          {
          int y;
@@ -1816,6 +1816,7 @@ void program_draw()
          y=postavy[i].programovano*10;
          if (y>maxy) maxy=y;
          }
+      }
          int m = 0;
       if (pgm_help || rune_name!=NULL) m=10*(rune_info?2:1);
       if (m > maxy) maxy = m;
@@ -1852,18 +1853,18 @@ void program_draw()
         c=rune_name;
      } else {
         c=texty[40+pgm_help];
-     }     
+     }
      set_aligned_position(580,376,1,2,c);
      outtext(c);
-  
+
      if (rune_name && rune_info) {
         set_aligned_position(580,362,1,2,rune_info);
         outtext(rune_info);
      }
-  
+
     }
 
-  
+
      ukaz_mysku();
   }
 
@@ -1908,10 +1909,30 @@ static void souboje_dalsi()
       select_player=group_sort[i];
       j--;
       }
-   while ((!postavy[select_player].used || !postavy[select_player].actions || (postavy[select_player].groupnum!=cd && j>6)) && j);
+   while ((!postavy[select_player].used || postavy[select_player].inmaphash != current_map_hash || !postavy[select_player].actions || (postavy[select_player].groupnum!=cd && j>6)) && j);
    viewsector=postavy[select_player].sektor;
    viewdir=postavy[select_player].direction;
+   cur_group=postavy[select_player].groupnum;
   }
+
+static void souboje_dalsi_user() {
+    int i,j=6,k;
+    for(i=0;group_sort[i]!=select_player;i++);
+    do
+       {
+       i++;
+       if (i>=POCET_POSTAV) i=0;
+       k=group_sort[i];
+       j--;
+       }
+    while ((!postavy[k].used
+            || !postavy[k].lives
+            || postavy[k].inmaphash != current_map_hash) && j);
+    select_player = k;
+    viewsector=postavy[select_player].sektor;
+    viewdir=postavy[select_player].direction;
+    cur_group=postavy[select_player].groupnum;
+}
 
 void souboje_vybrano(int d)
   {
@@ -2079,6 +2100,48 @@ static void zahajit_kolo(char prekvapeni)
   send_message(E_KOUZLO_KOLO);
   }
 
+static char add_pc_action(int d) {
+       souboje_stisknout(d);
+       switch(d)
+          {
+          case AC_RUN:
+              if (lodka) {
+                  group_flee = 1;break;
+              } else {
+                  postavy[select_player].utek=5+postavy[select_player].actions;
+              }
+                  CASE_FALLTHROUGH;
+          case AC_ATTACK:
+          case AC_STAND:
+          case AC_ARMOR:
+          case AC_MOVE:
+          case AC_MAGIC:if (postavy[select_player].actions && (d != AC_MOVE || !lodka))
+                         {
+                         HUM_ACTION *c;
+                         postavy[select_player].direction=viewdir;
+                         c=postavy[select_player].zvolene_akce;while (c->action) c++;
+                         if (d==AC_MAGIC)
+                            {
+                            wire_select_rune();
+                            return 1;
+                            }
+                         c->action=d;
+                         if (d==AC_ATTACK) c->data1=select_weapon(&postavy[select_player],1);
+                         c++;
+                         c->action=0;
+                         souboje_vybrano(d);
+                         }
+                       break;
+          case AC_CANCEL:zrusit_akce();group_flee = 0;break;
+          case AC_START:zahajit_kolo(0);
+                        souboje_stisknout(d);
+                        return 0;
+                        break;
+          }
+       return 0;
+
+}
+
 char mask_click(int id,int xa,int ya,int xr,int yr)
   {
   char *c;
@@ -2090,47 +2153,9 @@ char mask_click(int id,int xa,int ya,int xr,int yr)
   c=(char *)mask+6+512;
   c+=yr*mask[0]+xr;
   d=*c;
-  if (d)
-     {
-     souboje_stisknout(d);
-     switch(d)
-        {
-        case AC_RUN:
-            if (lodka) {
-                group_flee = 1;break;
-            } else {
-                postavy[select_player].utek=5+postavy[select_player].actions;
-            }
-                CASE_FALLTHROUGH;
-        case AC_ATTACK:
-        case AC_STAND:
-        case AC_ARMOR:
-        case AC_MOVE:
-        case AC_MAGIC:if (postavy[select_player].actions && (d != AC_MOVE || !lodka))
-                       {
-                       HUM_ACTION *c;
-                       postavy[select_player].direction=viewdir;
-                       c=postavy[select_player].zvolene_akce;while (c->action) c++;
-                       if (d==AC_MAGIC)
-                          {
-                          wire_select_rune();
-                          return 1;
-                          }
-                       c->action=d;
-                       if (d==AC_ATTACK) c->data1=select_weapon(&postavy[select_player],1);
-                       c++;
-                       c->action=0;
-                       souboje_vybrano(d);
-                       }
-                     break;
-        case AC_CANCEL:zrusit_akce();group_flee = 0;break;
-        case AC_START:zahajit_kolo(0);
-                      souboje_stisknout(d);
-                      return 0;
-                      break;
-        }
-     return 0;
-     }
+  if (d) {
+      return add_pc_action(d);
+  }
   bott_draw(1);
   return 1;
   }
@@ -2190,13 +2215,22 @@ void programming_keyboard(EVENT_MSG *msg,void **unused)
         case 'M':souboje_turn(1);break;
         case 16:
         case 'K':souboje_turn(-1);break;
-        case '=':unwire_proc();cancel_render=1;wire_save_load(0);break;
-        case '>':game_setup(0,0,0,0,0);break;
-        case 57:souboje_dalsi();bott_draw(1);break;
-        case 15:
+        case 61:clk_saveload(0, 0, 0, 0, 0);break;
+        case 60:clk_saveload(1, 0, 0, 0, 0);break;
+        case 64:go_book(1, 0, 0, 0, 0);break;
+        case 65:add_pc_action(AC_MAGIC);break;
+        case 66:add_pc_action(AC_ATTACK);break;
+        case 67:add_pc_action(AC_MOVE);break;
+        case 68:add_pc_action(AC_ARMOR);break;
+        case 133:add_pc_action(AC_RUN);break;
+        case 134:add_pc_action(AC_STAND);break;
+        case 14:add_pc_action(AC_CANCEL);break;
+        case 59:game_setup(0,0,0,0,0);break;
+        case 57:souboje_dalsi_user();bott_draw(1);break;
         case 28:zahajit_kolo(0);
                 souboje_stisknout(AC_START);
                 break;
+        case 15:
         case 50:
 		      if (GlobEvent(MAGLOB_BEFOREMAPOPEN,viewsector,viewdir))
 				show_automap(1);

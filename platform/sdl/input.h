@@ -14,6 +14,7 @@ extern "C" {
 #endif
 
 #include <libs/devices.h>
+#include "../config.h"
 
 
 char get_control_key_state(void);
@@ -25,6 +26,9 @@ uint32_t _bios_keybrd(int mode);
 void SetWheelMapping(char up, char down);
 void get_ms_event(MS_EVENT *event);
 void ShareCPU();
+
+void init_joystick(const INI_CONFIG_SECTION *section);
+char is_joystick_used();
 
 #ifdef __cplusplus
 }

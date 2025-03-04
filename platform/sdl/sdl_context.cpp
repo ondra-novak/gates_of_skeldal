@@ -255,29 +255,37 @@ void SDLContext::close_video() {
 }
 
 int SDLContext::check_axis_dir(int &cooldown, int value) {
-    if (cooldown>0) {
-        cooldown -= 0x400;
-    } else {        
+    int range = 0x8000-_jcontrol_map.walk_deadzone;
+    int step = range >> 4;
+    int max_speed = range+(step<<2);
+    if (value == 0) {
+        cooldown = -1;
+    } else if (cooldown>0) {
+        cooldown -= step;
+        if (cooldown < 0) cooldown = 0;
+    } else {
         if (value > 0) {
-            cooldown = 0x5000-value;
-            return 1;        
-        } 
-        if (value < 0) {
-            cooldown = 0x5000+value;
+            if (cooldown < 0) value = step;
+            cooldown = max_speed-value;
+            return 1;
+        }
+        else if (value < 0) {
+            if (cooldown < 0) value = -step;
+            cooldown = max_speed+value;
             return -1;
         }
     }
     return 0;
 }
 
-static int adjust_deadzone(int v) {
-    if (v > 0x4000) return v - 0x4000;
-    if (v < -0x4000) return v + 0x4000;
+int SDLContext::adjust_deadzone(int v, short deadzone) {
+    if (v > deadzone) return v - deadzone;
+    if (v < -deadzone) return v + deadzone;
     return 0;
 }
 
 static int axis_dynamic(int c) {
-    double f = std::floor(std::pow(std::abs(c)*0.001,2)*0.02)+0.5;
+    double f = std::floor(std::pow(std::abs(c)*0.001,2)*0.025);
 
     if (c < 0) return static_cast<int>(-f);
     else return static_cast<int>(f);
@@ -285,19 +293,19 @@ static int axis_dynamic(int c) {
 }
 
 void SDLContext::joystick_handle() {
-    
-    int a1 = SDL_JoystickGetAxis(init_context.controller, 0);
-    int a2 = SDL_JoystickGetAxis(init_context.controller, 1);
-    if (std::abs(a1) - std::abs(a2) > 0x1000) a2 = 0;
-    else if (std::abs(a2) - std::abs(a1) >0x1000) a1 = 0;
+
+    int a1 = SDL_JoystickGetAxis(init_context.controller, _jcontrol_map.swap_axis?2:0);
+    int a2 = SDL_JoystickGetAxis(init_context.controller, _jcontrol_map.swap_axis?3:1);
+    if (std::abs(a1) - std::abs(a2) > 0x2000) a2 = 0;
+    else if (std::abs(a2) - std::abs(a1) >0x2000) a1 = 0;
     else {
         a1 = 0;
         a2 = 0;
     }
-    int axis1 =  check_axis_dir(axis1_cooldown,adjust_deadzone(a1));
-    int axis2 =  check_axis_dir(axis2_cooldown,adjust_deadzone(a2));
-    int axis3 =  axis_dynamic(SDL_JoystickGetAxis(init_context.controller,2));
-    int axis4 =  axis_dynamic(SDL_JoystickGetAxis(init_context.controller,3));
+    int axis1 =  check_axis_dir(axis1_cooldown,adjust_deadzone(a1, _jcontrol_map.walk_deadzone));
+    int axis2 =  check_axis_dir(axis2_cooldown,adjust_deadzone(a2, _jcontrol_map.walk_deadzone));
+    int axis3 =  axis_dynamic(adjust_deadzone(SDL_JoystickGetAxis(init_context.controller,_jcontrol_map.swap_axis?0:2), _jcontrol_map.cursor_deadzone));
+    int axis4 =  axis_dynamic(adjust_deadzone(SDL_JoystickGetAxis(init_context.controller,_jcontrol_map.swap_axis?1:3), _jcontrol_map.cursor_deadzone));
 
     int newx  =  this->ms_event.x + axis3;
     int newy  =  this->ms_event.y + axis4;
@@ -313,7 +321,7 @@ void SDLContext::joystick_handle() {
         if (_mouse) {
             SDL_Point pt(this->ms_event.x, this->ms_event.y);
             SDL_Rect winrc = get_window_aspect_rect();
-            pt = to_window_point(winrc,pt);            
+            pt = to_window_point(winrc,pt);
             _mouse_rect.x = pt.x;
             _mouse_rect.y = pt.y;
             SDL_Event event;
@@ -329,8 +337,8 @@ void SDLContext::joystick_handle() {
         default:break;
     }
     switch(axis1) {
-        case -1:  scn = SDL_SCANCODE_LEFT;break;
-        case 1:   scn = SDL_SCANCODE_RIGHT;break;
+        case -1:  if (_jcontrol_mod_key) scn = SDL_SCANCODE_END; else scn = SDL_SCANCODE_LEFT;break;
+        case 1:   if (_jcontrol_mod_key) scn = SDL_SCANCODE_PAGEDOWN; else scn = SDL_SCANCODE_RIGHT;break;
         default:break;
     }
     if (scn != SDL_Scancode{}) {
@@ -338,6 +346,84 @@ void SDLContext::joystick_handle() {
         _keyboard_queue.push(sdl_keycode_map.get_bios_code(scn,false, false));
     }
 }
+
+void SDLContext::configure_controller(const JoystickConfig &cfg) {
+    _jcontrol_map = cfg;
+    if (_jcontrol_map.enabled) {
+        if (init_context.controller) {
+            SDL_AddTimer(25,[](Uint32 tm, void *ptr){
+                SDLContext *me = reinterpret_cast<SDLContext *>(ptr);
+                me->joystick_handle();
+                return tm;
+            }, this);
+        }
+    }
+}
+bool SDLContext::is_joystick_used() const {
+    return _jcontrol_used;
+}
+
+
+void SDLContext::generate_j_event(int button, char up) {
+    if (_jcontrol_map.enabled && button >= 0 && button < static_cast<int>(sizeof(_jcontrol_map.buttons)/sizeof(JoystickButton))) {
+        _jcontrol_used = true;
+        JoystickButton b = _jcontrol_mod_key?_jcontrol_map.buttons_mod[button]:_jcontrol_map.buttons[button];
+        SDL_Scancode cd = {};
+        switch (b) {
+            default: break;
+            case JoystickButton::enter: if (!up) cd = SDL_SCANCODE_RETURN;break;
+            case JoystickButton::space: if (!up) cd = SDL_SCANCODE_SPACE; break;
+            case JoystickButton::ctrl: _key_control = !up; break;
+            case JoystickButton::lclick: ms_event.tl1 = !up;
+                                         ms_event.event = 1;
+                                         ms_event.event_type|= up?MS_EVENT_MOUSE_LRELEASE:MS_EVENT_MOUSE_LPRESS;
+                                         break;
+            case JoystickButton::rclick: ms_event.tl2 = !up;
+                                         ms_event.event = 1;
+                                         ms_event.event_type|= up?MS_EVENT_MOUSE_RRELEASE:MS_EVENT_MOUSE_RPRESS;
+                                         break;
+            case JoystickButton::ctrl_lclick:_key_control = !up;
+                                         ms_event.tl1 = !up;
+                                         ms_event.event = 1;
+                                         ms_event.event_type|= up?MS_EVENT_MOUSE_LRELEASE:MS_EVENT_MOUSE_LPRESS;
+                                         break;
+            case JoystickButton::escape: if (!up) cd = SDL_SCANCODE_ESCAPE;break;
+            case JoystickButton::up: if (!up) cd = SDL_SCANCODE_UP;break;
+            case JoystickButton::down: if (!up) cd = SDL_SCANCODE_DOWN;break;
+            case JoystickButton::left: if (!up) cd = SDL_SCANCODE_PAGEDOWN;break;
+            case JoystickButton::right: if (!up) cd = SDL_SCANCODE_END;break;
+            case JoystickButton::turn_left: if (!up) cd = SDL_SCANCODE_LEFT;break;
+            case JoystickButton::turn_right: if (!up) cd = SDL_SCANCODE_RIGHT;break;
+            case JoystickButton::merge: if (!up) cd = SDL_SCANCODE_INSERT;break;
+            case JoystickButton::map: if (!up) cd = SDL_SCANCODE_TAB;break;
+            case JoystickButton::split1: if (!up) cd = SDL_SCANCODE_1;break;
+            case JoystickButton::split2: if (!up) cd = SDL_SCANCODE_2;break;
+            case JoystickButton::split3: if (!up) cd = SDL_SCANCODE_3;break;
+            case JoystickButton::split4: if (!up) cd = SDL_SCANCODE_4;break;
+            case JoystickButton::split5: if (!up) cd = SDL_SCANCODE_5;break;
+            case JoystickButton::split6: if (!up) cd = SDL_SCANCODE_6;break;
+            case JoystickButton::F1: if (!up) cd = SDL_SCANCODE_F1;break;
+            case JoystickButton::F2: if (!up) cd = SDL_SCANCODE_F2;break;
+            case JoystickButton::F3: if (!up) cd = SDL_SCANCODE_F3;break;
+            case JoystickButton::F4: if (!up) cd = SDL_SCANCODE_F4;break;
+            case JoystickButton::F5: if (!up) cd = SDL_SCANCODE_F5;break;
+            case JoystickButton::F6: if (!up) cd = SDL_SCANCODE_F6;break;
+            case JoystickButton::F7: if (!up) cd = SDL_SCANCODE_F7;break;
+            case JoystickButton::F8: if (!up) cd = SDL_SCANCODE_F8;break;
+            case JoystickButton::F9: if (!up) cd = SDL_SCANCODE_F9;break;
+            case JoystickButton::F10: if (!up) cd = SDL_SCANCODE_F10;break;
+            case JoystickButton::F11: if (!up) cd = SDL_SCANCODE_F11;break;
+            case JoystickButton::F12: if (!up) cd = SDL_SCANCODE_F12;break;
+            case JoystickButton::backspace: if (!up) cd = SDL_SCANCODE_BACKSPACE;break;
+            case JoystickButton::mod_key: _jcontrol_mod_key = !up;
+        }
+        if (cd != SDL_Scancode{}) {
+            std::lock_guard _(_mx);
+            _keyboard_queue.push(sdl_keycode_map.get_bios_code(cd, 0, 0));
+        }
+    }
+}
+
 
 void SDLContext::event_loop(std::stop_token stp) {
 
@@ -348,13 +434,6 @@ void SDLContext::event_loop(std::stop_token stp) {
         SDL_PushEvent(&event);
     });
 
-    if (init_context.controller) {
-        SDL_AddTimer(25,[](Uint32 tm, void *ptr){
-            SDLContext *me = reinterpret_cast<SDLContext *>(ptr);
-            me->joystick_handle();
-            return tm;
-        }, this);
-    }
 
     SDL_Event e;
     while (SDL_WaitEvent(&e)) {
@@ -427,48 +506,13 @@ void SDLContext::event_loop(std::stop_token stp) {
             if (e.wheel.y > 0) kbdevent =SDL_SCANCODE_UP;
             else if (e.wheel.y < 0) kbdevent =SDL_SCANCODE_DOWN;
         } else if (e.type == SDL_JOYBUTTONDOWN) {
-            switch (e.jbutton.button) {                                
-                case 3: kbdevent = SDL_SCANCODE_SPACE; break;
-                case 2: kbdevent = SDL_SCANCODE_RETURN; break;
-                case 9: kbdevent = SDL_SCANCODE_END;break;
-                case 7: kbdevent = SDL_SCANCODE_ESCAPE;break;
-                case 10:kbdevent = SDL_SCANCODE_PAGEDOWN;break;
-                case 11:kbdevent = SDL_SCANCODE_UP;break;
-                case 12:kbdevent = SDL_SCANCODE_DOWN;break;
-                case 13:kbdevent = SDL_SCANCODE_LEFT;break;
-                case 14:kbdevent = SDL_SCANCODE_RIGHT;break;
-                case 0: ms_event.event = 1;
-                        ms_event.event_type |= MS_EVENT_MOUSE_LPRESS;
-                        ms_event.tl1 = 1;
-                        break;
-                case 8: ms_event.event = 1;
-                        ms_event.event_type |= MS_EVENT_MOUSE_LPRESS|MS_EVENT_MOUSE_LDBLCLK;
-                        ms_event.tl1 = 1;
-                        break;
-                case 1: ms_event.event = 1;
-                        ms_event.event_type |= MS_EVENT_MOUSE_RPRESS;
-                        ms_event.tl1 = 1;
-                        break;
-                default: break;
-            }
-        }  else if (e.type == SDL_JOYBUTTONUP) {
-            switch (e.jbutton.button) {                                
-                case 0: ms_event.event = 1;
-                        ms_event.event_type |= MS_EVENT_MOUSE_LRELEASE;
-                        ms_event.tl1 = 0;
-                        break;
-                case 8:
-                case 1: ms_event.event = 1;
-                        ms_event.event_type |= MS_EVENT_MOUSE_RRELEASE;
-                        ms_event.tl1 = 1;
-                        break;
-                default: break;
-            }
-
+            generate_j_event(e.jbutton.button, 0);
+        } else if (e.type == SDL_JOYBUTTONUP) {
+            generate_j_event(e.jbutton.button, 1);
         }
-        
+
         if (kbdevent != SDL_Scancode{}) {
-            auto code =sdl_keycode_map.get_bios_code(kbdevent,false, false);                
+            auto code =sdl_keycode_map.get_bios_code(kbdevent,false, false);
             std::lock_guard _(_mx);
             _keyboard_queue.push(code);
         }
@@ -999,4 +1043,44 @@ bool SDLContext::is_crt_enabled() const
 {
     std::lock_guard _(_mx);
     return _enable_crt;
+}
+
+SDLContext::JoystickButton SDLContext::button_from_string(std::string_view s) {
+    if (s=="enter") return JoystickButton::enter;
+    if (s=="space") return JoystickButton::space;
+    if (s=="ctrl") return JoystickButton::ctrl;
+    if (s=="lclick") return JoystickButton::lclick;
+    if (s=="rclick") return JoystickButton::rclick;
+    if (s=="ctrl+lclick") return JoystickButton::ctrl_lclick;
+    if (s=="escape") return JoystickButton::escape;
+    if (s=="up") return JoystickButton::up;
+    if (s=="down") return JoystickButton::down;
+    if (s=="left") return JoystickButton::left;
+    if (s=="right") return JoystickButton::right;
+    if (s=="turn_left") return JoystickButton::turn_left;
+    if (s=="turn_right") return JoystickButton::turn_right;
+    if (s=="merge_group") return JoystickButton::merge;
+    if (s=="split1") return JoystickButton::split1;
+    if (s=="split2") return JoystickButton::split2;
+    if (s=="split3") return JoystickButton::split3;
+    if (s=="split4") return JoystickButton::split4;
+    if (s=="split5") return JoystickButton::split5;
+    if (s=="split6") return JoystickButton::split6;
+    if (s=="map") return JoystickButton::map;
+    if (s=="F1") return JoystickButton::F1;
+    if (s=="F2") return JoystickButton::F2;
+    if (s=="F3") return JoystickButton::F3;
+    if (s=="F4") return JoystickButton::F4;
+    if (s=="F5") return JoystickButton::F5;
+    if (s=="F6") return JoystickButton::F6;
+    if (s=="F7") return JoystickButton::F7;
+    if (s=="F8") return JoystickButton::F8;
+    if (s=="F9") return JoystickButton::F9;
+    if (s=="F10") return JoystickButton::F10;
+    if (s=="F11") return JoystickButton::F11;
+    if (s=="F12") return JoystickButton::F12;
+    if (s=="backspace") return JoystickButton::backspace;
+    if (s=="mod_key") return JoystickButton::mod_key;
+    return JoystickButton::disabled;
+
 }

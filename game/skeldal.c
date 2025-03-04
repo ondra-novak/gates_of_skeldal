@@ -957,6 +957,7 @@ void init_skeldal(const INI_CONFIG *cfg)
      }
   showview = game_display_update_rect;
   game_display_set_icon(getWindowIcon(), getWindowIconSize());
+  init_joystick(ini_section_open(cfg, "controller"));
 
   general_engine_init();
   atexit(done_skeldal);
@@ -1382,7 +1383,7 @@ static void game_big_circle(char enforced)
     leave_current_map();
     strcopy_n(s,loadlevel.name,sizeof(s));
     if (s[0]!=0) {
-      err=load_map(s);    
+      err=load_map(s);
     }
     memset(GlobEventList,0,sizeof(GlobEventList));
 

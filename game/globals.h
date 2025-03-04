@@ -809,6 +809,7 @@ char clk_touch(int id,int xa,int ya,int xr,int yr);
 char go_book(int id,int xa,int ya,int xr,int yr);
 char clk_saveload(int id,int xa,int ya,int xr,int yr);
 char clk_sleep(int id,int xa,int ya,int xr,int yr);
+char spell_casting(int id,int xa,int ya,int xr,int yr);
 
 
 //inventory viewer - items
