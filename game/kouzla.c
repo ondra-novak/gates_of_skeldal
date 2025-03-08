@@ -640,17 +640,26 @@ static void zmena_na_demona(int hrac,int demon)
   p->sektor=q->sektor;
   p->direction=q->direction;
   p->groupnum=q->groupnum;
+  p->inmaphash=q->inmaphash;
+  p->zvolene_akce=q->zvolene_akce;
+  q->zvolene_akce = NULL;
+  p->provadena_akce = q->provadena_akce;
+  q->provadena_akce = NULL;
   p->demon_save=q;
   }
 
 static void zmena_z_demona(int hrac)
   {
+
   THUMAN *q=postavy+hrac;
   THUMAN *p=q->demon_save;
 
   p->sektor=q->sektor;
   p->direction=q->direction;
   p->groupnum=q->groupnum;
+  p->inmaphash=q->inmaphash;
+  p->zvolene_akce = p->provadena_akce = NULL;
+  p->programovano = 0;
   *q=*p;
   free(p);
   }
@@ -677,13 +686,14 @@ static void unaffect_after_demon(int cil)
   {
   int i;
   char a;
-  TKOUZLO *spl;
+
 
   SEND_LOG("(SPELLS) Unaffecting after demon...");
   do
      {
      a=0;
-     for(i=0;spl=spell_table[i],i<MAX_SPELLS;i++)
+     for(i=0;i<MAX_SPELLS;i++) {
+       TKOUZLO *spl = spl=spell_table[i];
        if (spl!=NULL && spl->cil==cil && spl->backfire==1)
        {
            if (spl->wait)
@@ -698,6 +708,7 @@ static void unaffect_after_demon(int cil)
               }
        }
      }
+    }
   while(a);
   }
 

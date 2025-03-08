@@ -76,7 +76,7 @@ int hl_ptr=H_FIRST_FREE;
 int debug_enabled=0;
 char sound_detection=1;
 int snd_devnum,snd_parm1,snd_parm2,snd_parm3,snd_mixing=22000;
-char gamespeed=6;
+char gamespeed=5;
 char gamespeedbattle=0;
 char level_preload=1;
 char *level_fname=NULL;
@@ -805,6 +805,7 @@ void cti_texty(void)
      //patch stringtable
      if (!texty[98]) str_replace(&texty,98,"Ulo\x91it hru jako");
      if (!texty[99]) str_replace(&texty,99,"CRT Filter (>720p)");
+     str_replace(&texty,0,"Byl detekov\xA0n ovlada\x87\nPro aktivaci ovlada\x87""e stiskn\x88te kt\x82rekoliv tla\x87\xA1tko na ovlada\x87i");
      lang_patch_stringtable(&texty, "ui.csv", "");
   }
 
@@ -940,6 +941,37 @@ void init_DDL_manager() {
 
 }
 
+void show_joystick_info(void) {
+
+
+  curcolor = 0;
+  bar32(0,0,639,479);
+  set_font(H_FBOLD, NOSHADOW(RGB888(255,255,255)));
+  const char *prompt = texty[0];
+  char *buff = (char *)alloca(strlen(prompt)+10);
+  int xs = 0;
+  int ys = 0;
+  zalamovani(prompt,buff,560, &xs, &ys);
+  int y = 320;
+  while (*buff) {
+    set_aligned_position(320,y,1,1,buff);
+    outtext(buff);
+    buff += strlen(buff)+1;
+    y = y + 20;
+  }
+
+  showview(0,0,0,0);
+  for (int i = 0; i < 100; ++i) {
+    sleep_ms(100);
+    if (is_joystick_used()) break;
+    if (_bios_keybrd(_KEYBRD_READY)) {
+      _bios_keybrd(_KEYBRD_READ);
+      break;
+    }
+  }
+  
+}
+
 void init_skeldal(const INI_CONFIG *cfg)
   {
 
@@ -976,6 +1008,9 @@ void init_skeldal(const INI_CONFIG *cfg)
   }
 
   install_gui();
+  if (is_joystick_enabled()) {
+    show_joystick_info();
+  }
 
   if (patch_file!=NULL) patch_error(add_patch_file(patch_file));
 
@@ -1035,7 +1070,6 @@ void unwire_main_functs(void)
   send_message(E_DONE,E_KROK,real_krok);
   console_show(0);
   disable_click_map();
-  cancel_render=1;
   wire_proc=wire_main_functs;
   hide_boat();
   }

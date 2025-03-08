@@ -104,3 +104,6 @@ void init_joystick(const INI_CONFIG_SECTION *section) {
 char is_joystick_used() {
     return get_sdl_global_context().is_joystick_used()?1:0;
 }
+char is_joystick_enabled() {
+    return get_sdl_global_context().is_joystick_enabled()?1:0;
+}

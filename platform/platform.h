@@ -44,7 +44,7 @@ extern "C"
 #define _KEYBRD_READY 0
 #define _KEYBRD_READ 1
 
-#define TIMERSPEED 20
+#define TIMERSPEED 25
 extern int timerspeed_val;
 
 uint32_t _bios_keybrd(int mode);
@@ -132,6 +132,7 @@ int list_files(const char *directory, int type, LIST_FILES_CALLBACK cb, void *ct
 
 void init_joystick(const INI_CONFIG_SECTION *section);
 char is_joystick_used();
+char is_joystick_enabled();
 
 #define WM_RELOADMAP (WM_APP+215)
 #define E_RELOADMAP 40

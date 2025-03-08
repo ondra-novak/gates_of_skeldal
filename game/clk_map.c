@@ -338,7 +338,6 @@ char clk_saveload(int id,int xa,int ya,int xr,int yr)
 	  return 1;
   if (cur_mode==MD_ANOTHER_MAP) unwire_proc(),wire_proc();
   unwire_proc();
-  cancel_render=1;
   wire_save_load(id);
   return 1;
   }

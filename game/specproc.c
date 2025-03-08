@@ -300,7 +300,6 @@ MAP_PROC(map_liana)
         }
   redraw_scene();
   cancel_pass=1;
-  cancel_render=1;
   showview(0,0,0,0);
   wire_proc();
   return 1;

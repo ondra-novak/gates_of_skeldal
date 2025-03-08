@@ -56,7 +56,7 @@ unsigned int barvy_skupin[POCET_POSTAV+1]=
 
 char reverse_draw=0;
 int viewsector=1,viewdir=1;
-char norefresh=0,cancel_render=0,map_state=0;
+char norefresh=0,map_state=0;
 int cur_sector; //sektor aktualni pozice
 int back_color;
 char global_anim_counter=0;
@@ -1234,7 +1234,7 @@ void render_scene(int sector, int smer)
   {
   int i,j,s;
 
-  cancel_render=0;see_monster=0;
+  see_monster=0;
   destroy_fly_map();
   build_fly_map();
   if (set_blind() && cur_mode!=MD_END_GAME && !folow_mode)
@@ -1362,7 +1362,6 @@ void redraw_scene()
   if (norefresh) return;
   if (one_buffer) RedirectScreenBufferSecond();
   render_scene(viewsector,viewdir);
-  if (cancel_render) return;
   if (running_anm) klicovani_anm(GetBuffer2nd()+SCREEN_OFFSET,anim_render_buffer,anim_mirror);
   update_mysky();
   schovej_mysku();
@@ -1382,7 +1381,7 @@ void redraw_scene()
 void refresh_scene(THE_TIMER *t)
   {
   redraw_scene();
-  if (!cancel_render && !norefresh)
+  if (!norefresh)
      {
      showview(0,0,0,0);
      calc_game();

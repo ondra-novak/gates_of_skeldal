@@ -454,8 +454,9 @@ int vypocet_zasahu(const short *utocnik,const short *obrance, int chaos,int  zbr
       }
   }
   if (flg & SPL_SANC) {
+      int tmp = zasah;
       zasah/=2;
-      if (log_combat) wzprintf( "Physical resistance applied: %d - %d (half)= %d\n", ddostal,ddostal - zasah, zasah);
+      if (log_combat) wzprintf( "Physical resistance applied: %d - %d (half)= %d\n", tmp,tmp - zasah, zasah);
       ddostal = zasah;
   }
   int total_hit = zasah+dmzhit;
@@ -469,10 +470,10 @@ int vypocet_zasahu(const short *utocnik,const short *obrance, int chaos,int  zbr
           zasah, dmzhit, total_hit);
     }
   }
-  if (flg & SPL_HSANC) {
-      int tmp = total_hit;
-      total_hit/=2;
-      if (log_combat) wzprintf("Total resistance applied: %d - %d (half) = %d\n", tmp, total_hit - tmp, total_hit);
+  if ((flg & SPL_HSANC) && dmzhit) {
+      int tmp = dmzhit/2;
+      total_hit -= tmp;      
+      if (log_combat) wzprintf("Spell resistance applied: %d - %d = %d\n", total_hit+tmp, tmp, total_hit);
   }
   if (flg & SPL_TVAR) {
       if (log_combat) wzprintf("Set Face spell applied: %d = -%d (heal)\n", total_hit, -total_hit);
@@ -516,7 +517,7 @@ void hrat_souboj(THE_TIMER *_)
 	char cond=ms_last_event.y>378 && ms_last_event.x>510 && cur_mode!=MD_PRESUN;
   if (cond) schovej_mysku();
   redraw_scene();
-  if (!cancel_render && !norefresh)
+  if (!norefresh)
      {
      if (cur_mode!=MD_PRESUN)
 			 {
@@ -676,7 +677,7 @@ void zacatek_kola()
   zmen_skupinu(&postavy[select_player]);
   viewsector=postavy[select_player].sektor;
   viewdir=postavy[select_player].direction;
-  redraw_scene();cancel_render=1;
+  redraw_scene();
   }
 
 char check_end_game()
@@ -747,8 +748,7 @@ static void kbd_end_game(EVENT_MSG *msg,void *unused)
      delete_from_timer(TM_SCENE);
      delete_from_timer(TM_FLY);
      wire_save_load(2);
-     bott_draw(1);
-     cancel_render=1;
+     bott_draw(1);     
      }
   }
 
@@ -866,7 +866,6 @@ void wire_presun_postavy(void)
   add_to_timer(TM_SCENE,gamespeed,-1,hrat_souboj);
   showview(0,0,0,0);
   unwire_proc=unwire_presun_postavy;
-  cancel_render=1;
   }
 
 static uint32_t SPozdrzeno=0;
@@ -907,8 +906,7 @@ void prejdi_na_pohled(THUMAN *p)
                  viewdir=p->direction;
                  pozdrz_akci();
                  hold_timer(TM_SCENE,1);
-                 redraw_scene();
-                 cancel_render=1;
+                 redraw_scene();                 
                  program_draw();
                  showview(0,0,0,0);
                  hold_timer(TM_SCENE,0);
@@ -1163,7 +1161,6 @@ static void play_weapon_anim(int anim_num,int hitpos)
   while (hitpos-- && running_anm);
   delete_from_timer(TM_SCENE2);
   hold_timer(TM_SCENE,0);
-  cancel_render=1;
   }
 
 void pouzij_zbran(THUMAN *p,int ruka)
@@ -1282,7 +1279,7 @@ void jadro_souboje(EVENT_MSG *msg,void **unused) //!!!! Jadro souboje
   static char nowait=0;
   unused;
 
-  if (msg->msg==E_IDLE && (!neco_v_pohybu || !battle || nowait)&& !norefresh && !cancel_render)
+  if (msg->msg==E_IDLE && (!neco_v_pohybu || !battle || nowait)&& !norefresh)
      {
      short nxt;
 
@@ -1292,7 +1289,6 @@ void jadro_souboje(EVENT_MSG *msg,void **unused) //!!!! Jadro souboje
         return;
         }
      vybrana_zbran=-1;
-     cancel_render=1;
      nxt=*prave_hraje++;
      anim_mirror=0;
      if (nxt)
@@ -1336,8 +1332,7 @@ void jadro_souboje(EVENT_MSG *msg,void **unused) //!!!! Jadro souboje
            if (p->programovano && p->lives)
               {
               plr_switcher[select_player]=!plr_switcher[select_player];
-              cur_group=p->groupnum;
-              cancel_render=1;
+              cur_group=p->groupnum;              
               if (p->kondice || p->provadena_akce->action==AC_STAND)
                {
                  if (p->vlastnosti[VLS_KOUZLA] & SPL_FEAR &&  StrachPostavy(p))
@@ -1524,7 +1519,7 @@ void display_rune_bar(THE_TIMER *_)
 void rune_bar_redrawing(THE_TIMER *_)
   {
   redraw_scene();
-  if (!norefresh && !cancel_render)
+  if (!norefresh )
      {
      schovej_mysku();
      program_draw();
@@ -1536,7 +1531,7 @@ void rune_bar_redrawing(THE_TIMER *_)
   void power_bar_redrawing(THE_TIMER *_)
   {
   redraw_scene();
-  if (!norefresh && !cancel_render)
+  if (!norefresh )
      {
      schovej_mysku();
      program_draw();
@@ -1745,7 +1740,6 @@ void unwire_select_rune(void)
   wire_proc=wire_select_rune;
   delete_from_timer(TM_DELAIER);
   delete_from_timer(TM_SCENE);
-  cancel_render=1;
   free(runebar);runebar=NULL;
   send_message(E_DONE,E_KEYBOARD, select_rune_kbd);
   }
@@ -1767,7 +1761,6 @@ void wire_select_rune(void)
   add_to_timer(TM_SCENE,gamespeed,-1,rune_bar_redrawing);
   send_message(E_ADD,E_KEYBOARD, select_rune_kbd);
   unwire_proc=unwire_select_rune;
-  cancel_render=1;
   }
 
 void wire_select_rune_fly()
@@ -1779,7 +1772,6 @@ void wire_select_rune_fly()
   add_to_timer(TM_SCENE,gamespeed,-1,rune_bar_redrawing);
   send_message(E_ADD,E_KEYBOARD, select_rune_kbd);
   unwire_proc=unwire_select_rune;
-  cancel_render=1;
   }
 
 void unwire_select_power(void)
@@ -1894,7 +1886,7 @@ void souboje_redrawing(THE_TIMER *_)
   if (neco_v_pohybu) calc_mobs();
   calc_animations();
   redraw_scene();
-  if (!norefresh && !cancel_render)
+  if (!norefresh)
      {
      schovej_mysku();
      program_draw();
@@ -1914,7 +1906,6 @@ void souboje_stisknout(int d)
   put_8bit_clipped(ablock(H_BATTLE_CLICK),378*scr_linelen2+520+GetScreenAdr(),d,120,102);
   ukaz_mysku();
   showview(520,378,120,102);
-  cancel_render=1;
   }
 
 static void souboje_dalsi()
@@ -2211,7 +2202,6 @@ static void souboje_turn(int smer)
   CopyBuffer2nd();
   ukaz_mysku();
   norefresh=0;
-  cancel_render=1;
   hold_timer(TM_BACK_MUSIC,0);
   recalc_volumes(viewsector,viewdir);
   mix_back_sound(0);
@@ -2281,7 +2271,6 @@ void unwire_programming(void)
   disable_click_map();
   send_message(E_DONE,E_KEYBOARD,programming_keyboard);
   delete_from_timer(TM_SCENE);
-  cancel_render=1;
   wire_proc=wire_programming;
   }
 
@@ -2315,7 +2304,6 @@ void wait_to_stop(EVENT_MSG *msg,void **unused)
         calc_mobs();
         mouse_set_default(H_MS_DEFAULT);
         refresh_scene(0);
-        cancel_render=1;
         if (prekvapeni) zahajit_kolo(1);else wire_programming();
         msg->msg=-2;
         }

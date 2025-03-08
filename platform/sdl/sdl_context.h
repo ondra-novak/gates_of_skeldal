@@ -160,6 +160,7 @@ public:
 
 
     bool is_joystick_used() const;
+    bool is_joystick_enabled() const;
 protected:
 
     struct SDL_Deleter {
@@ -240,7 +241,7 @@ protected:
     std::jthread _render_thread;
 
     bool _fullscreen_mode = false;
-    bool _present = false;
+    bool _present = false;    
     std::atomic<bool> _key_control = false;
     std::atomic<bool> _key_shift = false;
     std::atomic<bool> _key_capslock = false;

@@ -578,7 +578,6 @@ extern void (*wire_proc)(void);        //procedura zajistujici pripojeni drive u
 extern char cur_mode;              //cislo aktualni interakce
 extern word minimap[VIEW3D_Z+1][VIEW3D_X*2+1]; //minimalizovana mapa s informacemi pro sestaveni vyhledu
 extern char norefresh;             //vypina refresh obrazovky
-extern char cancel_render;         //okamzite zrusi renderovani sceny na dobu jednoho frame - nastavit na 1 pri zmene interakce!!!
 extern char cancel_pass;           //okamzite zrusi plynuly prechod
 extern char reverse_draw ;         //kresba odpredu dozadu
 extern char gamespeed;             //rychlost hry

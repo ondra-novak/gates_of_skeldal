@@ -1202,7 +1202,7 @@ void calc_game()
   calc_animations();
   if (d_action!=NULL) do_delay_actions();
   calc_mobs();
-  if (force_start_dialog && !norefresh && !cancel_render)
+  if (force_start_dialog && !norefresh)
      {
      force_start_dialog=0;
      call_dialog(start_dialog_number,start_dialog_mob);
@@ -1272,7 +1272,6 @@ void zmen_skupinu(THUMAN *p)
   ukaz_mysku();
   showview(0,378,640,480);
   ukaz_mysku();
-  cancel_render=1;
   }
 
 void sort_groups()
@@ -1536,7 +1535,6 @@ void postavy_teleport_effect(int sector,int dir,int postava,char effect)
      delete_from_timer(-1);
      wire_proc();
      wire_proc=c;
-     cancel_render=1;
      }
   else
      {
@@ -1680,9 +1678,8 @@ void step_zoom(char smer)
      }
   update_mysky();
   ukaz_mysku();
-  if (!cancel_render) showview(0,0,0,0);
+  showview(0,0,0,0);
   norefresh=0;
-  cancel_render=1;
   mix_back_sound(0);
   viewsector=postavy_propadnout(viewsector);
   check_postavy_teleport();
@@ -1737,7 +1734,6 @@ void turn_zoom(int smer) {
     if (!battle)
         calc_game();
     norefresh = 0;
-    cancel_render = 1;
     hold_timer(TM_BACK_MUSIC, 0);
     mix_back_sound(0);
     pass_zavora = 0;

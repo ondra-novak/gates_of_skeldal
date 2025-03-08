@@ -583,6 +583,10 @@ static int process_actions(const char *command) {
         return r;
 
     }
+    if (istrcmp(command, "save") == 0) {
+        do_autosave();
+        return 1;
+    }
     if (istrcmp(command, "ascent") == 0) {
         int lev = postavy[0].level;
         for (int i = 0; i < POCET_POSTAV; ++i) {

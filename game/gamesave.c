@@ -664,6 +664,8 @@ int load_basic_info()
           {
           h->demon_save=New(THUMAN);
           temp_storage_read(h->demon_save,sizeof(THUMAN)*1,f);//obnova polozek s demony
+          h->demon_save->programovano = 0;
+          h->demon_save->provadena_akce=h->zvolene_akce=NULL;
           }
         }
   res|=load_dialog_info(f);
@@ -1457,7 +1459,6 @@ for(id=0;id<mapsize;id++) map_coord[id].flags&=~MC_DPLAYER;
 }
 reg_grafiku_postav();
 build_all_players();
-  cancel_render=1;
   }
 
 }
@@ -1718,6 +1719,9 @@ void wire_save_load(char save) {
         current_game_slot_list.count++;
         str_insline(&current_game_slot_list.files, 0, NULL);
         str_insline(&current_game_slot_list.names, 0, texty[75]);
+        free(current_game_slot_list.autosave_flags);
+        current_game_slot_list.autosave_flags = NewArr(char, current_game_slot_list.count);
+        memset(current_game_slot_list.autosave_flags,0,current_game_slot_list.count);
         change_click_map(clk_save,CLK_SAVELOAD);
         redraw_save();
         send_message(E_ADD, E_KEYBOARD, saveload_keyboard);

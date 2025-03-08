@@ -775,7 +775,6 @@ void unwire_dialog(void)
 
 void wire_dialog()
   {
-  cancel_render=1;
   send_message(E_ADD,E_KEYBOARD,key_check);
   change_click_map(clk_dialog,CLK_DIALOG);
   unwire_proc=unwire_dialog;
@@ -1429,7 +1428,6 @@ void call_dialog(int entr,int mob)
      }
   local_pgf=0;
   poloz_vsechny_predmety();
-  cancel_render=1;
   norefresh=1;
   history=create_list(256);
   his_line=0;

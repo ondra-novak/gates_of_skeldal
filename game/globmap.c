@@ -646,7 +646,6 @@ void wire_automap_file(char *mapfile)
   noarrows=1;
   cur_mode=MD_ANOTHER_MAP;
   show_automap(1);
-  cancel_render=1;
   }
 
 char set_select_mode(char mode)

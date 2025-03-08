@@ -649,7 +649,6 @@ static int  ma_play_anim(const char *filename,char cls)
      showview(0,0,0,0);
      }
   mute_all_tracks(1);
-  cancel_render=0;
   cancel_pass=0;
   play_movie_seq(a,cls?60:SCREEN_OFFLINE);
   wire_main_functs();

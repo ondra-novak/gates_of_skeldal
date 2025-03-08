@@ -3100,7 +3100,6 @@ void enter_shop(int shopid)
   bott_draw(1);
   shop_sector=viewsector;
   wire_shop();
-  cancel_render=1;
   cancel_pass=1;
   norefresh=1;
   cur_mode=MD_SHOP;

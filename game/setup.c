@@ -116,7 +116,6 @@ static void unwire_setup(void)
   mix_back_sound(32768);
   close_current();
   send_message(E_DONE,E_KEYBOARD,setup_keyboard);
-  cancel_render=1;
   SEND_LOG("(GAME) Setup closed");
   }
 
@@ -256,7 +255,6 @@ void GamePause()
   outtext(texty[5]);
   ukaz_mysku();
   showview(0,0,0,0);
-  cancel_render=1;
   }
 
 /*void user_setup()

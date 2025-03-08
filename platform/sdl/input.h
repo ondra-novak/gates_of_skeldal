@@ -29,6 +29,7 @@ void ShareCPU();
 
 void init_joystick(const INI_CONFIG_SECTION *section);
 char is_joystick_used();
+char is_joystick_enabled();
 
 #ifdef __cplusplus
 }

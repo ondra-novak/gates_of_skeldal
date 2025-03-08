@@ -152,7 +152,7 @@ void zalamovani(const char *source,char *target,int maxxs,int *xs,int *ys)
          char *ls,*ps,*cs;
          int sum;
 
-         cs=ps=target;
+         cs=ps=x;
          do
             {
             ls=NULL;
@@ -175,7 +175,6 @@ void zalamovani(const char *source,char *target,int maxxs,int *xs,int *ys)
             }
          while (c[0]);
          xs[0]=maxxs;
-         *ps=0;
          }
       else
          {

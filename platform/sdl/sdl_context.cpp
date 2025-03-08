@@ -349,24 +349,25 @@ void SDLContext::joystick_handle() {
 
 void SDLContext::configure_controller(const JoystickConfig &cfg) {
     _jcontrol_map = cfg;
-    if (_jcontrol_map.enabled) {
-        if (init_context.controller) {
-            SDL_AddTimer(25,[](Uint32 tm, void *ptr){
-                SDLContext *me = reinterpret_cast<SDLContext *>(ptr);
-                me->joystick_handle();
-                return tm;
-            }, this);
-        }
-    }
 }
 bool SDLContext::is_joystick_used() const {
     return _jcontrol_used;
 }
 
+ bool SDLContext::is_joystick_enabled() const {
+    return init_context.controller != 0 && _jcontrol_map.enabled;
+}
 
 void SDLContext::generate_j_event(int button, char up) {
     if (_jcontrol_map.enabled && button >= 0 && button < static_cast<int>(sizeof(_jcontrol_map.buttons)/sizeof(JoystickButton))) {
-        _jcontrol_used = true;
+        if (!_jcontrol_used) {
+            SDL_AddTimer(25,[](Uint32 tm, void *ptr){
+                SDLContext *me = reinterpret_cast<SDLContext *>(ptr);
+                me->joystick_handle();
+                return tm;
+            }, this);
+            _jcontrol_used = true;
+        }
         JoystickButton b = _jcontrol_mod_key?_jcontrol_map.buttons_mod[button]:_jcontrol_map.buttons[button];
         SDL_Scancode cd = {};
         switch (b) {
