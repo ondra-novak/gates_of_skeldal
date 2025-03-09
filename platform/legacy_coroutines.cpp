@@ -39,7 +39,6 @@ struct MsgQueue {
     TaskInfo *sender;
 };
 
-static std::queue<MsgQueue> msg_queue;
 static int recursion_count = 0;
 
 
@@ -148,7 +147,6 @@ char is_running(int id_num) {
     return !iter->second->exited;
 }
 void unsuspend_task(EVENT_MSG *msg) {
-    msg_queue.push({msg, current_task_inst});
     broadcast_message(msg);
 }
 void task_sleep(void) {
