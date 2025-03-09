@@ -1602,7 +1602,7 @@ THAGGLERESULT smlouvat_dlg(int cena,int puvod,int pocet,int posledni, int money,
   return res;
   }
 
-char ask_save_dialog(char *name_buffer, size_t name_size) {
+char ask_save_dialog(char *name_buffer, size_t name_size, char allow_remove) {
 
     const char *str_label = texty[98];
 //    if (str_label == 0) str_label ="Ulo\x91it hru jako";
@@ -1613,11 +1613,14 @@ char ask_save_dialog(char *name_buffer, size_t name_size) {
     define(10,10,30,270,13,0,input_line,name_size-1);property(def_border(5,BAR_COLOR),NULL,NULL,0);set_default(name_buffer);
     define(20,20,20,60,20,2,button,texty[239]);property(def_border(5,BAR_COLOR),NULL,NULL,BAR_COLOR);on_control_change(terminate_gui);
     define(30,90,20,60,20,2,button,texty[80]);property(def_border(5,BAR_COLOR),NULL,NULL,BAR_COLOR);on_control_change(terminate_gui);
+    if (allow_remove)  {
+        define(40,10,20,70,20,3,button,texty[172]);property(def_border(5,BAR_COLOR),NULL,NULL,BAR_COLOR);on_control_change(terminate_gui);
+    }
     redraw_window();
     goto_control(10);
     escape();
     get_value(0,10,name_buffer);
-    char ret = o_aktual->id==30;
+    char ret = o_aktual->id==40?2:o_aktual->id==30?1:0;
     close_current();
     return ret;
 
