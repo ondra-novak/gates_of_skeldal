@@ -996,7 +996,8 @@ void init_skeldal(const INI_CONFIG *cfg)
   char verr = game_display_init(ini_section_open(cfg, "video"), "Skeldal");
   if (!verr)
      {
-     exit(1);
+      display_error("Error game_display_init %d", verr);  
+      exit(1);
      }
   showview = game_display_update_rect;
   game_display_set_icon(getWindowIcon(), getWindowIconSize());

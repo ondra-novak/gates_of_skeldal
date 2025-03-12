@@ -85,6 +85,10 @@ int main(int argc, char **argv) {
         cfg.show_error(e.what());
         return 1;
     }
+    catch (...) {
+        cfg.show_error("Uknown error or crash");
+        return 1;
+    }
 
     return 0;
 

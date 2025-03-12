@@ -1,5 +1,5 @@
 #include "legacy_coroutines.h"
-
+#include "error.h"
 
 #include <thread>
 #include <atomic>
@@ -116,6 +116,17 @@ static void broadcast_message(EVENT_MSG *msg) {
     clean_task_table();
 }
 
+static void crash_task_exception() {
+    try {
+        throw;
+    } catch (std::exception &e) {
+        display_error("Unhandled exception in task %d:  %s",q_current_task(), e.what());        
+    } catch (...) {
+        display_error("Unhandled exception in task %d:  unknown/crash",q_current_task());        
+    }
+    abort();
+}
+
 
 int add_task(int stack,TaskerFunctionName fcname,...) {
     int id = get_new_task_id();
@@ -126,8 +137,12 @@ int add_task(int stack,TaskerFunctionName fcname,...) {
     new_task->thr = std::thread([&]{
        new_task->resume_flag.wait(false);
        new_task->resume_flag = false;
-       fcname(args);
-       clean_up_current_task();
+       try {
+        fcname(args);
+        clean_up_current_task();
+       } catch (...) {
+        crash_task_exception();
+       }
     });
     switch_to_task(new_task);
     return id;

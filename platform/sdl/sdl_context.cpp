@@ -63,6 +63,12 @@ SDLContext::SDLContext() {
     if (!init_context.inited) throw std::runtime_error("SDL not inited");
 
 }
+void handle_sdl_error(const char *msg) {
+    char buff[512];
+
+    snprintf(buff, sizeof(buff), "SDL critical error (check video driver): %s %s",msg, SDL_GetError());
+    throw std::runtime_error(buff);
+}
 
 
 void SDLContext::generateCRTTexture(SDL_Renderer* renderer, SDL_Texture** texture, int width, int height, CrtFilterType type) {
@@ -78,19 +84,26 @@ void SDLContext::generateCRTTexture(SDL_Renderer* renderer, SDL_Texture** textur
     }
     // Vytvoř novou texturu ve správné velikosti
     *texture = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_RGBA8888, SDL_TEXTUREACCESS_STREAMING, width, height);
+    if (!*texture) {
+        type = CrtFilterType::none;
+        return;  //crt filter failed to create, do not use filter
+    }
     SDL_SetTextureBlendMode(*texture, SDL_BLENDMODE_MUL);
 
 
     // Zamkni texturu pro přímý přístup k pixelům
     void* pixels;
     int pitch;
-    SDL_LockTexture(*texture, nullptr, &pixels, &pitch);
+    if (SDL_LockTexture(*texture, nullptr, &pixels, &pitch)<0) {
+        SDL_DestroyTexture(*texture);
+        *texture = nullptr;
+        type = CrtFilterType::none;
+        return;
+    }
 
     Uint32* pixelArray = (Uint32*)pixels;
 
     if (type == CrtFilterType::scanlines) {
-
-
 
         Uint32 darkPixel = 0xA0A0A0FF;
         Uint32 transparentPixel = 0xFFFFFFC0;
@@ -152,10 +165,19 @@ void SDLContext::generateCRTTexture(SDL_Renderer* renderer, SDL_Texture** textur
     SDL_UnlockTexture(*texture);
 }
 
+static void crash_sdl_exception() {
+    try {
+        throw;
+    } catch (std::exception &e) {
+        display_error("Display server - unhandled exception: %s", e.what());        
+    } catch (...) {
+        display_error("Display server - unhandled unknown exception (probably crash)");        
+    }
+    abort();
+}
 
 
 void SDLContext::init_video(const VideoConfig &config, const char *title) {
-    char buff[256];
     static Uint32 update_request_event = SDL_RegisterEvents(1);
     static Uint32 refresh_request_event = SDL_RegisterEvents(1);
     _update_request_event = update_request_event;
@@ -187,15 +209,13 @@ void SDLContext::init_video(const VideoConfig &config, const char *title) {
                         width, height, SDL_WINDOW_RESIZABLE|(_fullscreen_mode?SDL_WINDOW_FULLSCREEN_DESKTOP:0));
 
             if (!window) {
-                snprintf(buff, sizeof(buff), "SDL Error create window: %s\n", SDL_GetError());
-                throw std::runtime_error(buff);
+                handle_sdl_error("SDL Error create window");
             }
 
             _window.reset(window);
             SDL_Renderer *renderer = SDL_CreateRenderer(_window.get(), -1, config.composer);
             if (!renderer) {
-                snprintf(buff,sizeof(buff), "Failed to create composer: %s\n", SDL_GetError());
-                throw std::runtime_error(buff);
+                handle_sdl_error("Failed to create composer");
             }
 
             SDL_RendererInfo rinfo;
@@ -212,15 +232,14 @@ void SDLContext::init_video(const VideoConfig &config, const char *title) {
             _renderer.reset(renderer);
             SDL_Texture *texture = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_ARGB1555, SDL_TEXTUREACCESS_STREAMING, 640, 480);
             if (!texture) {
-                snprintf(buff, sizeof(buff), "Chyba při vytváření textury: %s\n", SDL_GetError());
-                throw std::runtime_error(buff);
+                handle_sdl_error("Failed to create render target");
             }
+
             SDL_SetTextureBlendMode(texture, SDL_BLENDMODE_BLEND);
             _texture.reset(texture);
             texture = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_ARGB1555, SDL_TEXTUREACCESS_STREAMING, 640, 480);
             if (!texture) {
-                snprintf(buff, sizeof(buff), "Chyba při vytváření textury: %s\n", SDL_GetError());
-                throw std::runtime_error(buff);
+                handle_sdl_error("Failed to create second render target");
             }
             SDL_SetTextureBlendMode(texture, SDL_BLENDMODE_BLEND);
             _texture2.reset(texture);
@@ -232,8 +251,16 @@ void SDLContext::init_video(const VideoConfig &config, const char *title) {
         }
         done = true;
         done.notify_all();
-        SDL_ShowCursor(SDL_DISABLE);
-        if (!err) event_loop(stp);
+            
+        if (!err) {
+            try {
+                SDL_ShowCursor(SDL_DISABLE);                
+                event_loop(stp);
+            } catch (...) {
+                SDL_ShowCursor(SDL_ENABLE);   
+                crash_sdl_exception();
+            }
+        }
         _texture.reset();
         _texture2.reset();
         _renderer.reset();
@@ -648,7 +675,7 @@ void SDLContext::update_screen(bool force_refresh) {
                     SDL_Rect r;
                     pop_item(iter, r);
                     std::string_view data = pop_data(iter, r.w*r.h*2);
-                    SDL_UpdateTexture(_texture.get(), &r, data.data(), r.w*2);
+                    if (SDL_UpdateTexture(_texture.get(), &r, data.data(), r.w*2)<0) handle_sdl_error("Update of render target failed");
                 }
                 break;
                 case DisplayRequest::show_mouse_cursor: {
@@ -656,10 +683,11 @@ void SDLContext::update_screen(bool force_refresh) {
                     pop_item(iter, r);
                     std::string_view data = pop_data(iter, r.w*r.h*2);
                     _mouse.reset(SDL_CreateTexture(_renderer.get(), SDL_PIXELFORMAT_ARGB1555,SDL_TEXTUREACCESS_STATIC, r.w, r.h));
+                    if (!_mouse) handle_sdl_error("Failed to create surface for mouse cursor");
                     SDL_SetTextureBlendMode(_mouse.get(), SDL_BLENDMODE_BLEND);
                     _mouse_rect.w = r.w;
                     _mouse_rect.h = r.h;
-                    SDL_UpdateTexture(_mouse.get(), NULL, data.data(), r.w*2);
+                    if (SDL_UpdateTexture(_mouse.get(), NULL, data.data(), r.w*2)<0) handle_sdl_error("Update of mouse cursor failed");
                 }
                 break;
                 case DisplayRequest::hide_mouse_cursor: {
@@ -697,8 +725,9 @@ void SDLContext::update_screen(bool force_refresh) {
                         iter = _sprites.insert(iter,{id});
                     }
                     iter->_txtr.reset(SDL_CreateTexture(_renderer.get(), SDL_PIXELFORMAT_ARGB1555, SDL_TEXTUREACCESS_STATIC,r.w, r.h));
+                    if (!iter->_txtr) handle_sdl_error("Failed to create compositor sprite");
                     SDL_SetTextureBlendMode(iter->_txtr.get(), SDL_BLENDMODE_BLEND);
-                    SDL_UpdateTexture(iter->_txtr.get(), NULL, data.data(), r.w*2);
+                    if (SDL_UpdateTexture(iter->_txtr.get(), NULL, data.data(), r.w*2)<0) handle_sdl_error("Update of sprite failed");
                     iter->_rect = r;
                     update_zindex();
                 } break;
@@ -947,13 +976,7 @@ void SDLContext::close_audio() {
 
 void SDLContext::set_window_icon(const void *icon_data, size_t icon_size) {
     SDL_Surface *surface = SDL_LoadBMP_RW(SDL_RWFromConstMem(icon_data, icon_size), 1);
-    if (surface == 0) {
-        char buff[256];
-        snprintf(buff,sizeof(buff),"Can't load icon: %s", SDL_GetError());
-        display_error(buff);
-        std::ofstream x("test.dat", std::ios::out|std::ios::binary|std::ios::trunc);
-        x.write(reinterpret_cast<const char *>(icon_data), icon_size);
-    } else {
+    if (surface) {
         SDL_SetWindowIcon(_window.get(), surface);
     }
 }
