@@ -1375,7 +1375,6 @@ void redraw_scene()
   ukaz_mysku();
   global_anim_counter++;
   send_message(E_KOUZLO_ANM);
-
   }
 
 void refresh_scene(THE_TIMER *t)

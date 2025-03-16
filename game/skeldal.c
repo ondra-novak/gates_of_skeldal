@@ -711,7 +711,7 @@ void done_skeldal(void)
 
   close_manager();
   close_story_file();
-  purge_temps(1);
+  temp_storage_clear();
   stop_mixing();
 //  deinstall_mouse_handler();
     if (texty != NULL) {
@@ -805,7 +805,7 @@ void cti_texty(void)
      //patch stringtable
      if (!texty[98]) str_replace(&texty,98,"Ulo\x91it hru jako");
      if (!texty[99]) str_replace(&texty,99,"CRT Filter (>720p)");
-     str_replace(&texty,0,"Byl detekov\xA0n ovlada\x87\nPro aktivaci ovlada\x87""e stiskn\x88te kt\x82rekoliv tla\x87\xA1tko na ovlada\x87i");
+     str_replace(&texty,0,"Byl nalezen p\xA9ipojen\x98 ovlada\x87\nPro aktivaci ovlada\x87""e stiskn\x88te kt\x82rekoliv tla\x87\xA1tko na ovlada\x87i");
      lang_patch_stringtable(&texty, "ui.csv", "");
   }
 
@@ -945,14 +945,13 @@ void show_joystick_info(void) {
 
 
   curcolor = 0;
-  bar32(0,0,639,479);
-  set_font(H_FBOLD, NOSHADOW(RGB888(255,255,255)));
+  set_font(H_FBOLD, RGB888(255,255,255));
   const char *prompt = texty[0];
   char *buff = (char *)alloca(strlen(prompt)+10);
   int xs = 0;
   int ys = 0;
   zalamovani(prompt,buff,560, &xs, &ys);
-  int y = 320;
+  int y = 100;
   while (*buff) {
     set_aligned_position(320,y,1,1,buff);
     outtext(buff);
@@ -972,6 +971,18 @@ void show_joystick_info(void) {
   
 }
 
+void show_loading_picture(char *filename)
+  {
+  const void *p;
+  int32_t s;
+
+  p=afile(filename,SR_BGRAFIKA,&s);
+  put_picture(0,0,p);
+  showview(0,0,0,0);
+  ablock_free(p);
+  }
+
+
 void init_skeldal(const INI_CONFIG *cfg)
   {
 
@@ -985,7 +996,8 @@ void init_skeldal(const INI_CONFIG *cfg)
   char verr = game_display_init(ini_section_open(cfg, "video"), "Skeldal");
   if (!verr)
      {
-     exit(1);
+      display_error("Error game_display_init %d", verr);  
+      exit(1);
      }
   showview = game_display_update_rect;
   game_display_set_icon(getWindowIcon(), getWindowIconSize());
@@ -995,6 +1007,7 @@ void init_skeldal(const INI_CONFIG *cfg)
   atexit(done_skeldal);
 
   init_DDL_manager();
+  show_loading_picture("LOADING.HI");
 
   if (lang_get_folder()) {
       texty_knihy = build_pathname(2, lang_get_folder(), "book.txt");
@@ -1741,6 +1754,7 @@ int skeldal_entry_point(const SKELDAL_CONFIG *start_cfg)
   term_task_wait(start_task);
 
   closemode();
+
 
   ini_close(cfg);
 

@@ -1849,18 +1849,24 @@ void do_autosave() {
     DEFAULT_GAME_NAME("");
     char prefix[50];
     snprintf(prefix,50,"sav.%08lx.",current_campaign);
-    TSAVEGAME_CB_STATE st;
-    st.files = create_list(32);
-    st.prefix = prefix;
-    st.prefix_len = strlen(prefix);
-    st.count = 0;
-    st.skip_autosave = 0;
-    list_files(gpathtable[SR_SAVES], file_type_just_name|file_type_need_timestamp|file_type_normal, get_all_savegames_callback, &st);
-    for (size_t i = 0; i < st.count; ++i) {
-        const char *n = st.files[i];
-        if (strstr(n, AUTOSAVE_SUFFIX)) {
-            remove(build_pathname(2, gpathtable[SR_SAVES],n));
-        }
+    char isdead = 0;
+    for (int i = 0; i < POCET_POSTAV; ++i) {
+      isdead = isdead || (postavy[i].used && postavy[i].lives == 0 && postavy[i].inmaphash == current_map_hash);
+    }
+    if (!isdead) {
+      TSAVEGAME_CB_STATE st;
+      st.files = create_list(32);
+      st.prefix = prefix;
+      st.prefix_len = strlen(prefix);
+      st.count = 0;
+      st.skip_autosave = 0;
+      list_files(gpathtable[SR_SAVES], file_type_just_name|file_type_need_timestamp|file_type_normal, get_all_savegames_callback, &st);
+      for (size_t i = 0; i < st.count; ++i) {
+          const char *n = st.files[i];
+          if (strstr(n, AUTOSAVE_SUFFIX)) {
+              remove(build_pathname(2, gpathtable[SR_SAVES],n));
+          }
+      }
     }
     save_game(get_save_game_slot_id(), game_name,1);
 }
@@ -1907,7 +1913,8 @@ static void save_as_dialog(int pos) {
         todel = local_strdup(todel);
     }
     unwire_proc();
-    if (ask_save_dialog(game_name, sizeof(game_name))) {
+    char r =  ask_save_dialog(game_name, sizeof(game_name), todel != NULL);
+    if (r==1) {
         prev_game_time_save = cur_time;
         save_game(get_save_game_slot_id(), game_name,0);
         if (todel) {
@@ -1915,6 +1922,8 @@ static void save_as_dialog(int pos) {
         }
         wire_proc();
         return;
+    } else if (r == 2 && todel) {
+        remove(todel);
     }
     wire_save_load(1);
 }

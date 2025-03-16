@@ -1413,7 +1413,7 @@ void load_map_description(TMPFILE_RD *f);
 void free_map_description();
 void wire_save_load(char save);
 void do_save_dialog();
-char ask_save_dialog(char *name_buffer, size_t name_size);
+char ask_save_dialog(char *name_buffer, size_t name_size, char allow_remove);
 void do_autosave();
 #define autosave() if (autosave_enabled) do_autosave();
 extern char autosave_enabled;

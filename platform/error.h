@@ -7,6 +7,8 @@ extern "C" {
 
 
 void send_log_impl(const char *format, ...);
+void display_error(const char *format, ...);
+
 
 #ifdef __cplusplus
 }

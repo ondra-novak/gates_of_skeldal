@@ -50,10 +50,20 @@ void game_sound_init_device(const INI_CONFIG_SECTION *audio_section) {
 }
 
 static void SDLCALL mixing_callback(void *userdata, Uint8 * stream, int len) {
-    float *s = reinterpret_cast<float *>(stream);
-    int samples = len/8;
-    std::fill(s, s+2*samples, 0.0f);
-    sound_mixer.mix_to_buffer(s, samples);
+    static char crashed = 0;
+        float *s = reinterpret_cast<float *>(stream);
+        int samples = len/8;
+        std::fill(s, s+2*samples, 0.0f);
+        if (crashed) return;
+    try {
+         sound_mixer.mix_to_buffer(s, samples);
+   } catch (std::exception &e) {
+        crashed = 1;
+        display_error("Unhandled exception in sound mixer: %s", e.what());
+    } catch (...) {
+        crashed = 1;
+        display_error("Crash in sound mixer: %s");
+    }
 }
 
 char start_mixing() {
