@@ -231,6 +231,7 @@ void restore_items(TMPFILE_RD *f)
 
      for(i=0;i<mapsize*4;i++) if (map_items[i]!=NULL) free(map_items[i]);
      memset(map_items,0,mapsize*4*sizeof(*map_items));
+     free(map_items);
      map_items = new_item_map;
 
 }

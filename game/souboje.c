@@ -369,7 +369,7 @@ int vypocet_zasahu(const short *utocnik,const short *obrance, int chaos,int  zbr
   int ospod;
   int attack_roll,defense_roll,mag_att_roll,mg_def;
   int dmzhit = 0;
-  int ddostal = 0;
+//  int ddostal = 0;
   int disadv = 0;
   int obrbonus = obrance[VLS_OBRAT]/5;
   int magbonus = utocnik[VLS_SMAGIE]/5;
@@ -424,7 +424,7 @@ int vypocet_zasahu(const short *utocnik,const short *obrance, int chaos,int  zbr
   if (zasah<0) zasah=0;
   int damage = utocnik[VLS_DAMAGE]+zbran;
   if (zasah<=0 || damage<=0) damage = 0;
-  ddostal=zasah;
+//  ddostal=zasah;
   zasah+=damage;
   if (log_combat) {
       wzprintf(">");
@@ -457,7 +457,7 @@ int vypocet_zasahu(const short *utocnik,const short *obrance, int chaos,int  zbr
       int tmp = zasah;
       zasah/=2;
       if (log_combat) wzprintf( "Physical resistance applied: %d - %d (half)= %d\n", tmp,tmp - zasah, zasah);
-      ddostal = zasah;
+//      ddostal = zasah;
   }
   int total_hit = zasah+dmzhit;
   if (log_combat) {
@@ -472,7 +472,7 @@ int vypocet_zasahu(const short *utocnik,const short *obrance, int chaos,int  zbr
   }
   if ((flg & SPL_HSANC) && dmzhit) {
       int tmp = dmzhit/2;
-      total_hit -= tmp;      
+      total_hit -= tmp;
       if (log_combat) wzprintf("Spell resistance applied: %d - %d = %d\n", total_hit+tmp, tmp, total_hit);
   }
   if (flg & SPL_TVAR) {
@@ -748,7 +748,7 @@ static void kbd_end_game(EVENT_MSG *msg,void *unused)
      delete_from_timer(TM_SCENE);
      delete_from_timer(TM_FLY);
      wire_save_load(2);
-     bott_draw(1);     
+     bott_draw(1);
      }
   }
 
@@ -906,7 +906,7 @@ void prejdi_na_pohled(THUMAN *p)
                  viewdir=p->direction;
                  pozdrz_akci();
                  hold_timer(TM_SCENE,1);
-                 redraw_scene();                 
+                 redraw_scene();
                  program_draw();
                  showview(0,0,0,0);
                  hold_timer(TM_SCENE,0);
@@ -1332,7 +1332,7 @@ void jadro_souboje(EVENT_MSG *msg,void **unused) //!!!! Jadro souboje
            if (p->programovano && p->lives)
               {
               plr_switcher[select_player]=!plr_switcher[select_player];
-              cur_group=p->groupnum;              
+              cur_group=p->groupnum;
               if (p->kondice || p->provadena_akce->action==AC_STAND)
                {
                  if (p->vlastnosti[VLS_KOUZLA] & SPL_FEAR &&  StrachPostavy(p))
@@ -1718,7 +1718,7 @@ char cancel_runes(int id,int xa,int ya,int xr,int yr)
   return 1;
   }
 
-  
+
   static void select_rune_kbd(EVENT_MSG *ev, void **user_ptr) {
     if (ev->msg == E_KEYBOARD) {
         int v = quit_request_as_escape(va_arg(ev->data, int));
