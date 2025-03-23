@@ -1,0 +1,3 @@
+add_executable(ddl_ar ddl_ar.cpp ddl_ar_class.cpp)
+
+set_property(TARGET ddl_ar PROPERTY CXX_STANDARD 20)
