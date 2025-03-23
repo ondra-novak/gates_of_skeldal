@@ -238,7 +238,7 @@ int load_map(const char *filename)
   char nmapend=1;
   int ofsts=START_HANDLE;
   char snd_load=0;
-  void *mob_template;
+  const void *mob_template;
   int32_t mob_size;
   int failed = 0;
 
@@ -344,7 +344,7 @@ int load_map(const char *filename)
                   else
                     {
                     load_enemies(temp,size,&ofsts,mob_template,mob_size);
-                    free(mob_template);
+                    ablock_free(mob_template);
                     SEND_LOG("(GAME) Loading enemies from map template...");
                     }
                   free(temp);
@@ -358,7 +358,7 @@ int load_map(const char *filename)
                   vyk_max=size/sizeof(TVYKLENEK);
                   break;
          case A_MOBS:
-                  mob_template=temp;
+                  mob_template=load_mob_legacy_format_direct(temp, &size);
                   mob_size=size;
                   break;
          case A_MOBSND:

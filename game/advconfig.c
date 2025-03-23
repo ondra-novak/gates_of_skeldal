@@ -1,6 +1,7 @@
 #include <platform/platform.h>
 #include "advconfig.h"
 
+#include <ctype.h>
 
 #include <stdlib.h>
 #include <malloc.h>
@@ -9,7 +10,14 @@
 
 static void process_row(INI_CONFIG_SECTION *sec, const char *row) {
 
-    char *buff = strcpy((char *)alloca(strlen(row)+1), row);
+    int l = strlen(row);
+    char *buff = strcpy((char *)alloca(l+1), row);
+    while (l && isspace(buff[l-1])) {
+        --l;
+        buff[l] = 0;
+    }
+    if (!l) return;
+
     char *sep = strchr(buff,' ');
     if (sep == NULL) return;
     *sep = 0;
@@ -18,26 +26,29 @@ static void process_row(INI_CONFIG_SECTION *sec, const char *row) {
     const char *value = sep+1;
 
 
+
     if (istrcmp(key,"CESTA_GRAFIKA") == 0) {
-        ini_replace_key(sec, "graphics", value);
+        ini_replace_key(sec, "graphics", file_icase_find(value));
     } else if (istrcmp(key, "CESTA_ZVUKY") == 0) {
-        ini_replace_key(sec, "sounds", value);
+        ini_replace_key(sec, "sounds", file_icase_find(value));
     } else if (istrcmp(key, "CESTA_FONTY") == 0) {
-        ini_replace_key(sec, "fonts", value);
+        ini_replace_key(sec, "fonts", file_icase_find(value));
     } else if (istrcmp(key, "CESTA_MAPY") == 0) {
-        ini_replace_key(sec, "maps", value);
+        ini_replace_key(sec, "maps", file_icase_find(value));
     } else if (istrcmp(key, "CESTA_MUSIC") == 0) {
-        ini_replace_key(sec, "music_adv", value);
+        ini_replace_key(sec, "music_adv", file_icase_find(value));
     } else if (istrcmp(key, "CESTA_BGRAFIKA") == 0) {
-        ini_replace_key(sec, "gui", value);
+        ini_replace_key(sec, "gui", file_icase_find(value));
     } else if (istrcmp(key, "CESTA_ITEMY") == 0) {
-        ini_replace_key(sec, "items", value);
+        ini_replace_key(sec, "items", file_icase_find(value));
     } else if (istrcmp(key, "CESTA_ENEMY") == 0) {
-        ini_replace_key(sec, "enemy", value);
+        ini_replace_key(sec, "enemy", file_icase_find(value));
     } else if (istrcmp(key, "CESTA_VIDEO") == 0) {
-        ini_replace_key(sec, "video", value);
+        ini_replace_key(sec, "video", file_icase_find(value));
     } else if (istrcmp(key, "CESTA_DIALOGY") == 0) {
-        ini_replace_key(sec, "dialogs", value);
+        ini_replace_key(sec, "dialogs", file_icase_find(value));
+    } else if (istrcmp(key, "DEFAULT_MAP") == 0) {
+        ini_replace_key(sec, "default_map", value);
     }
 }
 

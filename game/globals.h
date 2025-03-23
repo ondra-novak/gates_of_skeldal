@@ -645,6 +645,7 @@ const void *hi_8bit_correct(const void *p, int32_t *s);
 const void *pcx_8bit_nopal(const void *p, int32_t *s);
 const void *set_background(const void *p, int32_t *s);
 const void *wav_load(const void *p, int32_t *s);
+const void *load_mob_legacy_format_direct(const void *p, int32_t *s);
 const void *load_mob_legacy_format(const void *p, int32_t *s);
 const void *load_spells_legacy_format(const void *p, int32_t *s);
 void wire_main_functs(void);
@@ -1562,7 +1563,7 @@ char track_mob(int sect,int dir);//trackuje pritomnost potvory v urcitem smeru
 void stop_all_mobs(void);
 int utok_na_sektor(THUMAN *p,TMOB *m,int chaos,int bonus, int ruka);
 int vyber_potvoru(int sect,int dir,int *chaos); //vybere potvoru ze sektoru a smeru. Vraci take pocet potvor v promenne *chaos
-void load_enemies(short *data,int size,int *grptr,TMOB *template,int32_t tsize);
+void load_enemies(short *data,int size,int *grptr,const TMOB *template,int32_t tsize);
 char mob_test_na_bitvu(TMOB *p);  //nastavi p->vlajky|MOB_INBATTLE pokud potvora muze vstoupit do bitvy;
 void send_mob_to(int m,word *path);
 void save_enemy_paths(TMPFILE_WR *f);

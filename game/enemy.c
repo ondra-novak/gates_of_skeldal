@@ -352,7 +352,7 @@ static void mob_sound_event(TMOB *m, int event) {
     }
 }
 
-void load_enemies(short *data,int size,int *grptr,TMOB *template,int32_t tsize)
+void load_enemies(short *data,int size,int *grptr,const TMOB *template,int32_t tsize)
   {
   int i;
   short cisla[256];
@@ -365,7 +365,7 @@ void load_enemies(short *data,int size,int *grptr,TMOB *template,int32_t tsize)
   for(i=0;i<size;i++)
      {
      int j,c,cnt;
-     TMOB *b;
+     const TMOB *b;
 
      b=template;
      cnt=tsize/sizeof(TMOB);

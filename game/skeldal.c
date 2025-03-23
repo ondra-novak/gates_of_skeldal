@@ -22,6 +22,7 @@
 #include "skeldal.h"
 #include "lang.h"
 
+#include <ctype.h>
 #define CONFIG_NAME SKELDALINI
 
 #define INI_TEXT 1
@@ -374,14 +375,13 @@ const void *hi_8bit_correct(const void *p,int32_t *s)
 }
 
 
-const void *load_mob_legacy_format(const void *p, int32_t *s) {
+const void *load_mob_legacy_format_direct(const void *p, int32_t *s) {
+    const char *c = p;
     const int sz = 376;
     int count = *s / sz;;
-    const char *c = p;
     TMOB *out = getmem(count * sizeof(TMOB));
 
     memset(out, 0 , sizeof(TMOB)*count);
-    c+=8;
     for (int i = 0; i < count ; i++) {
         TMOB *m = out+i;
         char *d = (char *)m;
@@ -403,6 +403,12 @@ const void *load_mob_legacy_format(const void *p, int32_t *s) {
     }
     *s = count * sizeof(TMOB);
     return out;
+}
+const void *load_mob_legacy_format(const void *p, int32_t *s) {
+    const char *c = p;
+    c+=8;
+    *s-=8;
+    return load_mob_legacy_format_direct(c, s);
 }
 
 
@@ -1662,6 +1668,10 @@ const char *configure_pathtable(const INI_CONFIG *cfg) {
     gpathtable[SR_SAVES] = ini_get_string(paths, "savegame", get_default_savegame_directory());
     gpathtable[SR_DATA]= ini_get_string(paths, "data", "./");
     gpathtable[SR_LANG]= ini_get_string(paths, "lang", "./lang");
+    const char *defmap = ini_get_string(paths, "default_map", NULL);
+    if (defmap) {
+        strcopy_n(default_map, defmap, sizeof(default_map));
+    }
 
 
     return groot;
@@ -1726,11 +1736,6 @@ int skeldal_entry_point(const SKELDAL_CONFIG *start_cfg)
       return 1;
   }
 
-  if (start_cfg->adventure_path) {
-      TSTR_LIST adv_config=read_config(start_cfg->adventure_path);
-      adv_patch_config(cfg, adv_config);
-      release_list(adv_config);
-  }
 
   const char *groot = configure_pathtable(cfg);
   if (!change_current_directory(groot)) {
@@ -1738,7 +1743,20 @@ int skeldal_entry_point(const SKELDAL_CONFIG *start_cfg)
       return 1;
   }
 
-  if (start_cfg->lang_path) {
+  if (start_cfg->adventure_path) {
+      TSTR_LIST adv_config=read_config(start_cfg->adventure_path);
+      if (!adv_config) {
+          start_cfg->show_error(concat2("Failed to open adventure configuration: ", start_cfg->adventure_path));
+          return 1;
+      }
+      adv_patch_config(cfg, adv_config);
+      release_list(adv_config);
+      configure_pathtable(cfg);
+      char *sname = local_strdup(start_cfg->adventure_path);
+      for (char *c = sname; *c; ++c) if (!isalnum(*c)) *c = '_';
+      const char *p = build_pathname(2, gpathtable[SR_SAVES], sname);
+      gpathtable[SR_SAVES] = local_strdup(p);
+  } else if (start_cfg->lang_path) {
       lang_set_folder(build_pathname(2, gpathtable[SR_LANG], start_cfg->lang_path));
   }
 

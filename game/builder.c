@@ -781,8 +781,8 @@ static const void *check_autofade(const void *image, char ceil, int dark)
 	if (mglob.map_autofadefc==1)
 	{
 	  word *imgdata=xy+3;
-	  int br=back_color>>11;
-	  int bg=(back_color>>5) & 0x3F;
+	  int br=back_color>>10;
+	  int bg=(back_color>>5) & 0x1F;
 	  int bb=back_color & 0x1F;
 	  int y;
 
@@ -793,16 +793,16 @@ static const void *check_autofade(const void *image, char ceil, int dark)
 		float factor=(float)y/(xy[1]-1);
 		int x;
 		if (!ceil) factor=1.0f-factor;
-		factor=factor*factor;
+		factor=factor*factor*factor;
 		for (x=0;x<xy[0];x++)
 		{
-		  int r=*imgdata>>11;
-		  int g=(*imgdata>>5) & 0x3F;
+		  int r=*imgdata>>10;
+		  int g=(*imgdata>>5) & 0x1F;
 		  int b=*imgdata & 0x1F;
 		  r=(int)(r+factor*(br-r));
 		  g=(int)(g+factor*(bg-g));
 		  b=(int)(b+factor*(bb-b));
-		  *imgdata=(r<<11)|(g<<5)|b;
+		  *imgdata=(r<<10)|(g<<5)|b;
 		  imgdata++;
 		}
 	  }
@@ -1371,7 +1371,7 @@ void redraw_scene()
   other_draw();
   if (cur_mode == MD_END_GAME) {
       death_screen();
-  } 
+  }
   ukaz_mysku();
   global_anim_counter++;
   send_message(E_KOUZLO_ANM);
