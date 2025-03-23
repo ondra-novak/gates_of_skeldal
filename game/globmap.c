@@ -615,17 +615,63 @@ void wire_global_map(void)
   }
 
 static void (*old_wire_save)(void);
-static int old_viewsector;
 static void empty_unwire(void)
   {
 
   }
 
+struct _tag_map_save_state{
+    TSTENA *_map_sides;
+    TSECTOR *_map_sectors;
+    TMAP_EDIT_INFO *_map_coord;
+    int _map_size;
+    int _viewsector;
+    int _viewdir;
+    uint32_t _hash;
+} MAP_SAVE_STATE;
+
+static struct _tag_map_save_state save_state = {NULL,NULL,NULL,0,0,0,0};
+
+static void save_current_map() {
+    if (save_state._map_coord) {
+        display_error("Already saved map state");
+        abort();
+    }
+    save_state._map_sides = map_sides;
+    save_state._map_coord = map_coord;
+    save_state._map_sectors = map_sectors;
+    save_state._map_size = mapsize;
+    save_state._viewsector = viewsector;
+    save_state._viewdir = viewdir;
+    save_state._hash = current_map_hash;
+    map_sides = NULL;
+    map_coord = NULL;
+    map_sectors = NULL;
+    mapsize = 0;
+}
+
+static void restore_saved_map() {
+    if (save_state._map_coord) {
+        free(map_sides);
+        free(map_sectors);
+        free(map_coord);
+        mapsize =save_state._map_size;
+        map_sides = save_state._map_sides;
+        map_sectors = save_state._map_sectors;
+        map_coord = save_state._map_coord;
+        viewsector = save_state._viewsector;
+        viewdir = save_state._viewdir;
+        current_map_hash = save_state._hash;
+        save_state._map_sides = NULL;
+        save_state._map_coord = NULL;
+        save_state._map_sectors = NULL;
+    }
+}
+
 static void unwire_automap_file(void)
   {
-  load_map_automap(level_fname);
+    restore_saved_map();
   wire_proc=old_wire_save;
-  viewsector=old_viewsector;
   build_player_map();
   bott_draw(0);
   wire_proc();
@@ -636,15 +682,17 @@ void wire_automap_file(char *mapfile)
   int c;
   if ((c=get_leaving_place(mapfile))==0) return;
   old_wire_save=wire_proc;
-  old_viewsector=viewsector;
+
+  save_current_map();
+
   viewsector=c;
   unwire_proc();
   unwire_proc=empty_unwire;
   wire_proc=unwire_automap_file;
-  save_map_state();
   load_map_automap(mapfile);
-  noarrows=1;
+  current_map_hash = fnv1a_hash(mapfile);
   cur_mode=MD_ANOTHER_MAP;
+  build_player_map();
   show_automap(1);
   }
 

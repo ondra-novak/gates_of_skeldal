@@ -108,7 +108,7 @@ static void unable_write_temp(char *c)
   }
 
 
-int load_org_map(char *filename,TSTENA **sides,TSECTOR **sectors,TMAP_EDIT_INFO **coords,int *mapsize)
+int load_org_map(const char *filename,TSTENA **sides,TSECTOR **sectors,TMAP_EDIT_INFO **coords,int *mapsize)
   {
   FILE *f;
   void *temp;
@@ -393,7 +393,11 @@ int save_map_state() //uklada stav mapy pro savegame (neuklada aktualni pozici);
   return res;
   }
 
-int load_map_state() //obnovuje stav mapy; nutno volat po zavolani load_map;
+int load_map_state_ex(const char *level_name, int mapsize, char partial);
+int load_map_state() {
+    return load_map_state_ex(level_fname, mapsize, 0);
+}
+int load_map_state_ex(const char *level_fname, int mapsize, char partial)
   {
   char sta[200];
   char *bf = NULL;
@@ -424,6 +428,10 @@ int load_map_state() //obnovuje stav mapy; nutno volat po zavolani load_map;
      if (temp_storage_read(map_sides+i,1*sizeof(TSTENA),fsta)!=sizeof(TSTENA)) goto err;
   while (temp_storage_read(&i,sizeof(i),fsta) && i >= 0 && i<=mapsize)
      if (temp_storage_read(map_sectors+i,1*sizeof(TSECTOR),fsta)!=sizeof(TSECTOR)) goto err;
+  if (partial) {
+      res = 0;
+      goto err;
+  }
   if (reset_mobiles)  //reloads mobiles if flag present
     {
     char mm[MAX_MOBS];
@@ -1778,6 +1786,7 @@ void close_story_file()
   SEND_LOG("(STORY) Story temp file is closed...");
   }
 
+#if 0
 static int load_map_state_partial(char *level_fname,int mapsize) //obnovuje stav mapy; castecne
   {
   char *bf = NULL;
@@ -1815,7 +1824,7 @@ static int load_map_state_partial(char *level_fname,int mapsize) //obnovuje stav
   SEND_LOG("(SAVELOAD) Partial restore for map: %s (%s)",level_fname,"DONE");
   return res;
   }
-
+#endif
 
 int load_map_automap(char *mapfile)
   {
@@ -1828,7 +1837,7 @@ int load_map_automap(char *mapfile)
   free(map_sectors);      //uvolni informace o sektorech
   free(map_coord);       //uvolni minfo informace
   load_org_map(mapfile,&map_sides,&map_sectors,&map_coord,&mapsize); //nahrej originalni mapu
-  return load_map_state_partial(mapfile,mapsize); //nahrej ulozenou mapu
+  return load_map_state_ex(mapfile,mapsize,1); //nahrej ulozenou mapu
   }
 
 

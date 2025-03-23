@@ -765,7 +765,7 @@ void chveni(int i);
 void render_scene(int,int);
 void bott_draw_fletna(void);
 void bott_disp_rune(char rune, int item);
-extern char noarrows;
+
 void display_ver(int x,int y,int ax,int ay);
 void check_players_place(char mode);
 
@@ -1406,6 +1406,7 @@ void leave_current_map(void);
 int save_map_state(void); //uklada stav mapy pro savegame (neuklada aktualni pozici);
 int load_map_state(void); //obnovuje stav mapy; nutno volat po zavolani load_map;
 void restore_current_map(void); //pouze obnovuje ulozeny stav aktualni mapy
+uint32_t fnv1a_hash(const char *str);
 int load_game(const char *fname);
 int save_game(long game_time,char *gamename, char is_autosave);
 void save_map_description(TMPFILE_WR *f);

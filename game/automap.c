@@ -57,7 +57,7 @@ char map_target_cancel(int id,int xa,int ya,int xr,int yr);
 char map_menu(int id,int xa,int ya,int xr,int yr);
 char map_menu_glob_map(int id,int xa,int ya,int xr,int yr);
 
-char noarrows=0;
+
 char enable_glmap=0;
 
 static int map_xr,map_yr;
@@ -333,7 +333,7 @@ char psani_poznamek(int id,int xa,int ya,int xr,int yr)
   {
   xa;ya;xr;yr;
 
-  if (noarrows) return 1;
+  if (cur_mode == MD_ANOTHER_MAP) return 0;
   if ((id=hledej_poznamku(xa,ya,cur_depth))==-1)
      {
      xa&=~7;xa+=2;
@@ -570,12 +570,12 @@ void draw_automap(int xr,int yr)
 
         x+=320;y+=197;
         draw_amap_sector(x,y,i,k,0,AUTOMAP_LINE1,AUTOMAP_LINE2);
-           if (k == 1 && (map_coord[i].flags & MC_PLAYER) && !noarrows)
+           if (k == 1 && (map_coord[i].flags & MC_PLAYER))
               {
               int j,l=-1;
 
                         for (j = 0; j < POCET_POSTAV; j++) {
-                            if (postavy[j].used && postavy[j].sektor == i
+                            if (postavy[j].used && abs(postavy[j].sektor) == i
                                     && postavy[j].inmaphash
                                             == current_map_hash) {
                                 if (postavy[j].groupnum == cur_group)
@@ -633,7 +633,6 @@ void unwire_automap(void)
               send_message(E_DONE,E_AUTOMAP_REDRAW,map_keyboard);
               hold_timer(TM_FAST_TIMER,0);
               disable_all_map();
-              noarrows=0;
               set_select_mode(0);
               pick_set_cursor();
 			  GlobEvent(MAGLOB_AFTERMAPOPEN,viewsector,viewdir);

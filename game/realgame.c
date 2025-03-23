@@ -425,7 +425,7 @@ int set_leaving_place(void)
 int get_leaving_place(char *level_name)
   {
     char *s;
-    concat(s,level_fname, ".lplace");
+    concat(s,level_name, ".lplace");
     int sector;
     if (temp_storage_retrieve(s, &sector, sizeof(sector))<0) {
         return 0;
@@ -1352,10 +1352,11 @@ void build_player_map()  //je nutne volat po presunu postav
   THUMAN *p;
   for(i=0;p=&postavy[i],i<POCET_POSTAV;i++) if (p->used && p->inmaphash == current_map_hash)
      {
-     map_coord[p->sektor].flags|=(p->lives?MC_PLAYER:MC_DEAD_PLR);
+      int s = abs(p->sektor);
+     map_coord[s].flags|=(p->lives?MC_PLAYER:MC_DEAD_PLR);
      if (mglob.map_effector==ME_PVODA)
         {
-        if (q_item_one(i,water_breath+1))map_coord[p->sektor].flags|=MC_SAFEPLACE;
+        if (q_item_one(i,water_breath+1))map_coord[s].flags|=MC_SAFEPLACE;
         }
      }
   }
