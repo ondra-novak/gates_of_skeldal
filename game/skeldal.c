@@ -805,7 +805,7 @@ void cti_texty(void)
      //patch stringtable
      if (!texty[98]) str_replace(&texty,98,"Ulo\x91it hru jako");
      if (!texty[99]) str_replace(&texty,99,"CRT Filter (>720p)");
-     str_replace(&texty,0,"Byl nalezen p\xA9ipojen\x98 ovlada\x87\nPro aktivaci ovlada\x87""e stiskn\x88te kt\x82rekoliv tla\x87\xA1tko na ovlada\x87i");
+     str_replace(&texty,0,"Byl nalezen p\xA9ipojen\x98 ovlada\x87\nPro aktivaci ovlada\x87""e stiskn\x88te kter\x82koliv tla\x87\xA1tko na ovlada\x87i");
      lang_patch_stringtable(&texty, "ui.csv", "");
   }
 
@@ -968,7 +968,7 @@ void show_joystick_info(void) {
       break;
     }
   }
-  
+
 }
 
 void show_loading_picture(char *filename)
@@ -996,7 +996,7 @@ void init_skeldal(const INI_CONFIG *cfg)
   char verr = game_display_init(ini_section_open(cfg, "video"), "Skeldal");
   if (!verr)
      {
-      display_error("Error game_display_init %d", verr);  
+      display_error("Error game_display_init %d", verr);
       exit(1);
      }
   showview = game_display_update_rect;

@@ -219,7 +219,8 @@ void restore_items(TMPFILE_RD *f)
      temp_storage_read(new_item_map[i],2*j,f);
      short *v = new_item_map[i];
      while (*v) { //sanitize map items
-      if (*v < 1 || *v >= item_count) {
+      int vv = abs(*v);
+      if (vv > item_count) {
         free(new_item_map[i]);
         new_item_map[i] = map_items[i];
         map_items[i] = NULL;
@@ -230,7 +231,6 @@ void restore_items(TMPFILE_RD *f)
   }
 
      for(i=0;i<mapsize*4;i++) if (map_items[i]!=NULL) free(map_items[i]);
-     memset(map_items,0,mapsize*4*sizeof(*map_items));
      free(map_items);
      map_items = new_item_map;
 

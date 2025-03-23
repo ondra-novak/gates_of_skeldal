@@ -74,13 +74,28 @@ void handle_sdl_error(const char *msg) {
 void SDLContext::generateCRTTexture(SDL_Renderer* renderer, SDL_Texture** texture, int width, int height, CrtFilterType type) {
 
     if (type == CrtFilterType::autoselect) {
-        if (height > 1680) type = CrtFilterType::rgb_matrix_3;
-        else if (height >= 1200) type = CrtFilterType::scanlines_2;
+        if (height >= 1200) type = CrtFilterType::scanlines_2;
         else type = CrtFilterType::scanlines;
+    }
+
+    int interfer = 1;
+    switch (type) {
+        case CrtFilterType::scanlines: interfer = 2;break;
+        case CrtFilterType::scanlines_2: interfer = 3;break;
+        case CrtFilterType::rgb_matrix_2: interfer = 3;break;
+        case CrtFilterType::rgb_matrix_3: interfer = 4;break;
+        default: break;
     }
 
     if (type == CrtFilterType::scanlines || type == CrtFilterType::scanlines_2) {
         width = 32;
+    } else {
+        unsigned int mult_of_base = std::max<unsigned int>((height+320)/640,interfer);
+        width = width * interfer / mult_of_base;
+    }
+    {
+        unsigned int mult_of_base = std::max<unsigned int>((height+240)/480,interfer);
+        height = height * interfer / mult_of_base;
     }
     // Vytvoř novou texturu ve správné velikosti
     *texture = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_RGBA8888, SDL_TEXTUREACCESS_STREAMING, width, height);
@@ -169,9 +184,9 @@ static void crash_sdl_exception() {
     try {
         throw;
     } catch (std::exception &e) {
-        display_error("Display server - unhandled exception: %s", e.what());        
+        display_error("Display server - unhandled exception: %s", e.what());
     } catch (...) {
-        display_error("Display server - unhandled unknown exception (probably crash)");        
+        display_error("Display server - unhandled unknown exception (probably crash)");
     }
     abort();
 }
@@ -198,6 +213,7 @@ void SDLContext::init_video(const VideoConfig &config, const char *title) {
 
 
     _fullscreen_mode = config.fullscreen;
+    _mouse_size = config.cursor_size;
 
     std::atomic<bool> done = false;
     std::exception_ptr e;
@@ -251,13 +267,13 @@ void SDLContext::init_video(const VideoConfig &config, const char *title) {
         }
         done = true;
         done.notify_all();
-            
+
         if (!err) {
             try {
-                SDL_ShowCursor(SDL_DISABLE);                
+                SDL_ShowCursor(SDL_DISABLE);
                 event_loop(stp);
             } catch (...) {
-                SDL_ShowCursor(SDL_ENABLE);   
+                SDL_ShowCursor(SDL_ENABLE);
                 crash_sdl_exception();
             }
         }
@@ -641,9 +657,11 @@ void SDLContext::refresh_screen() {
     }
     if (_mouse) {
         SDL_Rect recalc_rect = to_window_rect(winrc, _mouse_rect);
+        recalc_rect.w = static_cast<int>(recalc_rect.w * _mouse_size);
+        recalc_rect.h = static_cast<int>(recalc_rect.h * _mouse_size);
         SDL_Point f= to_window_point({0,0,winrc.w, winrc.h}, _mouse_finger);
-        recalc_rect.x = _mouse_rect.x - f.x;
-        recalc_rect.y = _mouse_rect.y - f.y;
+        recalc_rect.x = _mouse_rect.x - static_cast<int>(f.x * _mouse_size);
+        recalc_rect.y = _mouse_rect.y - static_cast<int>(f.y * _mouse_size);
         SDL_RenderCopy(_renderer.get(), _mouse.get(), NULL, &recalc_rect);
     }
     if (winrc.h >= 720 && _crt_filter != CrtFilterType::none && _enable_crt)  {

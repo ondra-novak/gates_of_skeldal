@@ -40,6 +40,7 @@ char game_display_init(const INI_CONFIG_SECTION *display_section, const char *ti
     else if (istrcmp(filter,"rgbmatrix_3") == 0) cfg.crt_filter = SDLContext::CrtFilterType::rgb_matrix_3;
     else cfg.crt_filter = SDLContext::CrtFilterType::autoselect;
 
+    cfg.cursor_size = ini_get_int(display_section, "cursor_size", 100)*0.01f;
 
     screen_pitch = 640;
     get_sdl_global_context().init_video(cfg, title);

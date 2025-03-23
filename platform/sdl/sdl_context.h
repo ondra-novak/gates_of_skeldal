@@ -36,6 +36,7 @@ public:
         bool fullscreen;
         int aspect_x;
         int aspect_y;
+        float cursor_size;
     };
 
     struct AudioConfig {
@@ -238,10 +239,9 @@ protected:
     SDL_Texture *_visible_texture;
     SDL_Texture *_hidden_texture;
 
-    std::jthread _render_thread;
 
     bool _fullscreen_mode = false;
-    bool _present = false;    
+    bool _present = false;
     std::atomic<bool> _key_control = false;
     std::atomic<bool> _key_shift = false;
     std::atomic<bool> _key_capslock = false;
@@ -254,6 +254,7 @@ protected:
     std::queue<uint16_t> _keyboard_queue;
     SDL_Rect _mouse_rect;
     SDL_Point _mouse_finger;
+    float _mouse_size;
     SpriteList _sprites;
 
 
@@ -263,6 +264,8 @@ protected:
 
     Uint32 _update_request_event;
     Uint32 _refresh_request;
+
+    std::jthread _render_thread;
 
 
     void event_loop(std::stop_token stp);

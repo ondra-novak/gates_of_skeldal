@@ -23,4 +23,5 @@ enable_testing()
 add_subdirectory(libs)
 add_subdirectory(platform)
 add_subdirectory(game)
+add_subdirectory(tools)
 
