@@ -399,6 +399,7 @@ const void *load_mob_legacy_format(const void *p, int32_t *s) {
         nx = sizeof(TMOB);
         memmove(d, c, nx - ofs - 1); //last padding 1
         c+=nx - ofs - 1;
+        m->vlajky2 = 0;
     }
     *s = count * sizeof(TMOB);
     return out;

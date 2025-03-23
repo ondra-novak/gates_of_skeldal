@@ -360,7 +360,7 @@ int save_map_state() //uklada stav mapy pro savegame (neuklada aktualni pozici);
         }
   i=-1;
   temp_storage_write(&i,sizeof(i),fsta);
-  for(i=0;i<MAX_MOBS;i++) if (mobs[i].vlajky & MOB_LIVE)
+  for(i=0;i<MAX_MOBS;i++) if ((mobs[i].vlajky & MOB_LIVE) && !(mobs[i].vlajky2 & MOB_F2_DONT_SAVE))
      {
       temp_storage_write(&i,sizeof(i),fsta);
       temp_storage_write(mobs+i,sizeof(TMOB),fsta); //save_mobmap
@@ -447,8 +447,11 @@ int load_map_state_ex(const char *level_fname, int mapsize, char partial)
   else
     {
     for(i=0;i<MAX_MOBS;(mobs[i].vlajky &=~MOB_LIVE),i++);
-    while (temp_storage_read(&i,sizeof(i),fsta) && i>=0 && i<=MAX_MOBS)
+    while (temp_storage_read(&i,sizeof(i),fsta) && i>=0 && i<=MAX_MOBS) {
        if (temp_storage_read(mobs+i,1*sizeof(TMOB),fsta)!=sizeof(TMOB)) goto err;
+       mobs[i].vlajky2 = 0;
+    }
+
     }
   for(i=0;i<MAX_MOBS;i++) mobs[i].vlajky &=~MOB_IN_BATTLE;
   refresh_mob_map();

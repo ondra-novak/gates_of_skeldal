@@ -1470,7 +1470,6 @@ void unwire_main_functs(void);
 #define MAX_MOBS 255
 
 
-#define MOB_IN_BATTLE 0x1
 #define MOB_ATTACKING 0x2
 #define MOB_TO_HIT    0x4
 #define MOB_DEATH     0x5
@@ -1484,13 +1483,18 @@ void unwire_main_functs(void);
 #define MOB_PICK 0x20
 #define MOB_PICKING 0x40
 #define MOB_ROGUE 0x80
-#define MOB_SENSE 0x4
+//vlajky
+#define MOB_IN_BATTLE 0x1
 #define MOB_PASSABLE 0x2
+#define MOB_SENSE 0x4
 #define MOB_MOBILE 0x8
 #define MOB_RELOAD 0x10
+#define MOB_CASTING 0x20
 #define MOB_SAMPLE_LOOP 0x40
 #define MOB_LIVE 0x80    //potvora zije
-#define MOB_CASTING 0x20
+
+//vlajky2
+#define MOB_F2_DONT_SAVE 0x1
 
 typedef struct tmob
   {
@@ -1514,6 +1518,7 @@ typedef struct tmob
   char flee_num;             //pravdepodobnost uteku
   char anim_counts[6];     //pocet animacnich policek pro kazdy pohyb
   char mobs_name[7];       //zaklad jmena souboru pro moba
+  char vlajky2;             //vlajky pro summon z konzoli (BIT0 - neukladat)
   int32_t experience;          //zkusenost
   char vlajky;             //BIT0 - 1 v boji
   char anim_phase;            //cinnost kterou mob dela

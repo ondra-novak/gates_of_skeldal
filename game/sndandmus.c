@@ -556,6 +556,7 @@ void play_sample_at_sector(int sample,int listener,int source,int track, char lo
      {
      alock(sample);
      s=ablock(sample);
+     if (!s) return;
      p=(struct t_wave *)s;
      s+=sizeof(struct t_wave);
      siz=*(int *)s;s+=4;

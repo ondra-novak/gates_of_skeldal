@@ -944,7 +944,7 @@ TENEMY_FACE get_enemy_face(TMOB *p,int dirmob,int action,int curdir)
      }
   if (pos==3) ret.mirror=pos=1;
   if (p->anim_counter==-1) view=pos*16;
-  else view=pos*16+(p->anim_counter % p->anim_counts[pos])+1;
+  else view=pos*16+(p->anim_counter % (MAX(p->anim_counts[pos],1)))+1;
   ret.face = view;
   ret.pos = pos;
   return ret;
@@ -2188,7 +2188,7 @@ static void knock_mob_back(TMOB *mm,int dir)
    int vls[] = {VLS_UTOK_H,VLS_UTOK_L,VLS_DAMAGE};
    for (size_t i = 0; i < countof(vls); ++i) {
       vlastnosti[vls[i]]  -= it->zmeny[vls[i]];
-   }   
+   }
  }
 
 
@@ -2308,6 +2308,16 @@ void regen_all_mobs()
 
 
 void load_enemy_to_map(int i, int sector, int dir, const TMOB *t) {
+
+    char can_save = 0;
+    for (int x = 0; x<MAX_MOBS; ++x) {
+        if (strcmp(t->mobs_name, mobs[x].mobs_name) == 0 && !(mobs[x].vlajky2 & MOB_F2_DONT_SAVE)) {
+            can_save = 1;
+            break;
+        }
+    }
+
+
     mobs[i]=*t;
     if (~mobs[i].vlajky & MOB_MOBILE) mob_map[ sector]=i+MOB_START;
     if (mobs[i].palette>0)mobs[i].palette=rnd(mobs[i].palette);else mobs[i].palette=abs(mobs[i].palette);
@@ -2315,6 +2325,8 @@ void load_enemy_to_map(int i, int sector, int dir, const TMOB *t) {
     mobs[i].dir=dir;
     mobs[i].home_pos=sector;
     mobs[i].vlajky|=MOB_LIVE;
+    if (!can_save) mobs[i].vlajky2|=MOB_F2_DONT_SAVE;
+
 
     char s[20];
 
