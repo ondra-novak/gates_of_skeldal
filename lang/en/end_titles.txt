@@ -1,0 +1,97 @@
+*line 20
+*head
+Story concept
+*name
+Jan Virt
+
+*head
+Game design and Story
+*name
+Jinøich Rohlík
+
+*head
+Program
+*name
+Ondøej Novák
+
+*head
+Environment concept art
+*name
+Martin Zhouf
+
+*head
+Character concept art
+*name
+Daniel Falta
+
+*head
+2D Graphics
+*name
+Karel Matìjka
+Peter Koubek
+
+*head
+3D Graphics
+*name
+Karel Matìjka
+
+*head
+Animations
+*name
+Daniel Falta
+Karel Matìjka
+
+*head
+Illustrations
+*name
+Daniel Falta
+Karel Matìjka
+
+*head
+Fonts
+*name
+Ondøej Novák
+Karel Matìjka
+
+*head
+Music
+*name
+Michal Stupka
+Jakub Preclík
+Petr Tøebický
+Martin Matìjka (outro)
+
+*head
+Sound effects
+*name
+Jindøich Rohlík
+
+*head
+Level design
+*name
+Jindøich Rohlík
+
+*head
+Production
+*name
+Jindøich Rohlík
+
+*head
+Betatesting
+*name
+Michal Maršál
+Tomáš Tøebický
+Jakub Motyèka
+Jan Císaø
+Michal Máèel
+Zbynìk Pochman
+
+*head
+Special thanks
+*name
+Jan Virt and Václav Provazník
+for their help during level design
+Marek Vondrák for graphics library in DOS version
+Dalibor Strak for lending us Gravis Ultrasound
+FTL for first real square-based dungeon
+*konec

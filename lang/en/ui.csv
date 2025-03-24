@@ -1,0 +1,189 @@
+id,string
+0,"A connected controller has been found|To activate the controller, press any button on the controller"
+1,FORWARD TRACK06.MUS TRACK07.MUS
+2,STRENGTH: %d-%d
+3,MAGIC: %d-%d
+4,SPEED: %d-%d
+5,DEXTERITY: %d-%d
+7,INTRO.MGF 
+8,Insert CD 'GATES OF SKELDAL' into drive
+9,"ENTER = Repeat, ESC = Cancel"
+10,Strength
+11,Magic
+12,Speed
+13,Dexterity
+14,Lives
+15,Condition
+16,Mana
+17,Defense
+18,Attack
+19,Bonus
+20,Action
+21,Protections:
+22,Fire
+23,Water
+24,Earth
+25,Air
+26,Mind
+30,Exp.
+31,Level
+32,PROGRESS
+33,Remaining
+35,This won't fit inside.
+36,There is no more space.
+37,%s is too far. %s cannot cast a spell on him.
+38,%s is too far. %s cannot cast a spell on her.
+40,%d
+41,Attack
+42,Move
+43,Cancel
+44,Escape
+45,Rearm
+46,State
+47,Magic
+48,Start
+49,Throw
+50,Combat in Progress
+51,Overall Music Sounds Treble Bass XBass
+52,Stereo Settings (Ultrasound)
+53,Swap Sides
+54,Output Filter (SBPro)
+55,Walking
+56,Jumping
+57,Fast
+58,Slow
+59,Turning
+60,You can take %d step.
+61,You can take %d steps.
+62,You can take %d steps.
+63,Press ENTER when ready.
+65,None of your party can continue. GAME OVER.
+66,You need to wait for others.
+67,Someone in your party is hungry.
+68,Someone in your party is thirsty.
+69,Food
+70,Water
+71,Hours slept: %d
+72,%s has no arrows.
+73,%s perished in a magic storm.
+74,%s perished in a magic storm.
+75,<empty slot>
+76,Are you sure you want to quit GATES OF SKELDAL?
+77,Yes
+78,No
+79,This slot is corrupted. Choose another.
+80,Ok
+81,You cannot save during combat. Finish the combat first.
+82,%s has usable weapons in both hands. Which weapon to use?
+83,Left hand
+84,Right hand
+85,Teleportation spell failed!
+86,"%s's hands are full, therefore the spell failed!"
+87,The place where %s stands is protected by a magic shield. The character cannot be summoned.
+88,The target location is protected by a magic shield. The teleportation spell failed.
+89,Some characters stand on a location protected by a magic shield. These characters cannot be summoned.
+90,Weapon bonuses:
+91,Sword:
+92,Axe:
+93,Hammer:
+94,Staff:
+95,Dagger:
+96,Ranged:
+97,Special:
+98,Save game as
+100,I won't buy a pig in a poke!
+101,It costs %d gold. Do you agree?
+102,I'll give you %d gold for it. Do you agree?
+103,I'm not interested in this.
+104,We don't have that much money.
+111,Your character should have a name! Type it on the keyboard.
+113,"Are you sure you want to return to the main menu? Choosing ""yes"" will also delete all defined characters!"
+114,Yes
+115,No
+116,Are you sure you want to delete the selected characters and start again?
+117,Are you sure you want to delete the selected character?
+118,AN 
+120,The local guard doesn't like beggars sleeping on the street. It would be better to rent a room at the inn.
+121,You have no idea how to leave this place.
+130,You found a new rune!
+131,There was a gold coin lying on the ground!
+132,There were %d gold coins lying on the ground!
+133,There were %d gold coins lying on the ground!
+134,It crumbled to dust!
+135,Page %d
+136,Page %d
+140,Show Names
+141,Rearrange Portraits
+142,Auto Attack
+143,Auto Save
+144,Load All Into Memory
+145,Adventure Length:
+146,%d day and
+147,%d days and
+148,%d days and
+149,%d month and
+150,%d months and
+151,%d months and
+152,%02d:%02d
+153,%s
+154,%s successfully unlocked the lock.
+155,%s successfully unlocked the lock.
+156,%s failed to unlock the lock with lock picks.
+157,%s failed to unlock the lock with lock picks.
+158,%s destroyed all lock picks trying to unlock the lock.
+159,%s destroyed all lock picks trying to unlock the lock.
+160,Wag
+161,Sir Rogen
+162,Yardus
+163,Lackrim
+164,Glester
+165,Azaxe
+166,Felinor
+167,Midagle
+170,Accept
+171,Start Game
+172,Delete
+173,All Again
+174,Back
+175,Mouse is probably not installed
+176,Failed to initialize mouse driver
+180,C
+181,C#
+182,D
+183,D#
+184,E
+185,F
+186,F#
+187,G
+188,G#
+189,A
+190,A#
+191,B
+200,Strength: %2d
+201,Magic: %2d
+202,Speed: %2d
+203,Dexterity: %2d
+205,FORWARD TRACK07.MUS TRACK08.MUS
+210,Large Map
+211,Local Map
+212,Show Map
+213,Back
+220,Someone in the party is exhausted and cannot continue.
+230,Haggle
+231,Your offer is completely unacceptable.
+232,"I don't know, I still can't decide."
+233,"If I didn't have a family to feed, I might consider your offer..."
+234,Try this on someone dumber!
+235,What? Do you want to rob me?
+236,I only have one of these items. I think we're wasting time.
+237,I'm only interested in the amount.
+238,Your offer:
+239,Back
+240,And what is your offer?
+241,Original price:
+251,Business cannot be conducted under these conditions.
+252,Hmm... that's really generous. Try to be more specific.
+253,I'm not a charity.
+254,My idea is probably very different from yours!
+255,How much? I haven't had this much fun in a long time!
+256,I have the last piece. Try to understand me.
