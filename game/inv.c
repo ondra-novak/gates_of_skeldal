@@ -1246,9 +1246,9 @@ void *build_items_wearing(THUMAN *h, int32_t *s)
   }
 
 
-const void *build_items_called(const void *p, int32_t *s)
+const void *build_items_called(const void *p, int32_t *s, int h)
   {
-  return build_items_wearing(&postavy[memman_handle-H_POSTAVY], s);
+  return build_items_wearing(&postavy[h-H_POSTAVY], s);
   }
 
 void display_items_wearing(THUMAN *h)

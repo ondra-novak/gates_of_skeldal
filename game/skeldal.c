@@ -91,15 +91,15 @@ void (*wire_proc)(void);
 char cur_mode,battle_mode;
 static char titles_on=0;
 
-const void *pcx_fade_decomp(const void *p, int32_t *s);
-const void *pcx_15bit_decomp(const void *p, int32_t *s);
-const void *pcx_15bit_decomp_transp0(const void *p, int32_t *s);
-const void *pcx_15bit_autofade(const void *p, int32_t *s);
-const void *pcx_15bit_backgrnd(const void *p, int32_t *s);
-const void *pcx_8bit_decomp(const void *p, int32_t *s);
+const void *pcx_fade_decomp(const void *p, int32_t *s, int h);
+const void *pcx_15bit_decomp(const void *p, int32_t *s, int h);
+const void *pcx_15bit_decomp_transp0(const void *p, int32_t *s, int h);
+const void *pcx_15bit_autofade(const void *p, int32_t *s, int h);
+const void *pcx_15bit_backgrnd(const void *p, int32_t *s, int h);
+const void *pcx_8bit_decomp(const void *p, int32_t *s, int h);
 
 const char *texty_knihy;
-static char *patch_file=NULL;
+static const char *patch_file=NULL;
 int cur_page=0;
 
 TSTR_LIST cur_config=NULL;
@@ -281,7 +281,7 @@ void purge_temps(char _) {
     temp_storage_clear();
 }
 
-const void *pcx_fade_decomp(const void *p, int32_t *s)
+const void *pcx_fade_decomp(const void *p, int32_t *s, int h)
   {
   char *buff;
   int r = load_pcx(p,*s,A_FADE_PAL,&buff,mglob.fade_r,mglob.fade_g,mglob.fade_b);
@@ -290,7 +290,7 @@ const void *pcx_fade_decomp(const void *p, int32_t *s)
   return buff;
   }
 
-const void *pcx_15bit_decomp(const void *p, int32_t *s)
+const void *pcx_15bit_decomp(const void *p, int32_t *s, int h)
   {
   char *buff;
   int r = load_pcx(p,*s,A_16BIT,&buff);
@@ -298,7 +298,7 @@ const void *pcx_15bit_decomp(const void *p, int32_t *s)
   *s=r;
   return buff;
   }
-const void *pcx_15bit_decomp_transp0(const void *p, int32_t *s)
+const void *pcx_15bit_decomp_transp0(const void *p, int32_t *s, int h)
   {
   char *buff;
   int r = load_pcx(p,*s,A_16BIT_ZERO_TRANSP,&buff);
@@ -307,7 +307,7 @@ const void *pcx_15bit_decomp_transp0(const void *p, int32_t *s)
   return buff;
   }
 
-const void *pcx_15bit_autofade(const void *p, int32_t *s)
+const void *pcx_15bit_autofade(const void *p, int32_t *s, int h)
   {
   char *buff;
   int r = load_pcx(p,*s,A_16BIT,&buff);
@@ -317,7 +317,7 @@ const void *pcx_15bit_autofade(const void *p, int32_t *s)
   return buff;
   }
 
-const void *pcx_15bit_backgrnd(const void *p, int32_t *s)
+const void *pcx_15bit_backgrnd(const void *p, int32_t *s, int h)
   {
   char *buff;
   int32_t i;int32_t *z;
@@ -334,7 +334,7 @@ const void *pcx_15bit_backgrnd(const void *p, int32_t *s)
   return NULL;
   }
 
-const void *pcx_8bit_nopal(const void *p,int32_t *s)
+const void *pcx_8bit_nopal(const void *p,int32_t *s, int h)
   {
   char *buff = NULL;
 
@@ -349,7 +349,7 @@ const void *pcx_8bit_nopal(const void *p,int32_t *s)
 
 
 
-const void *pcx_8bit_decomp(const void *p, int32_t *s)
+const void *pcx_8bit_decomp(const void *p, int32_t *s, int h)
   {
   char *buff;
   int r = load_pcx(p,*s,A_8BIT,&buff);
@@ -358,7 +358,7 @@ const void *pcx_8bit_decomp(const void *p, int32_t *s)
   return buff;
   }
 
-const void *hi_8bit_correct(const void *p,int32_t *s)
+const void *hi_8bit_correct(const void *p,int32_t *s, int h)
 {
     word *out = (word *)getmem(*s);
     memcpy(out, p, *s);
@@ -375,7 +375,7 @@ const void *hi_8bit_correct(const void *p,int32_t *s)
 }
 
 
-const void *load_mob_legacy_format_direct(const void *p, int32_t *s) {
+const void *load_mob_legacy_format_direct(const void *p, int32_t *s, int h) {
     const char *c = p;
     const int sz = 376;
     int count = *s / sz;;
@@ -404,15 +404,15 @@ const void *load_mob_legacy_format_direct(const void *p, int32_t *s) {
     *s = count * sizeof(TMOB);
     return out;
 }
-const void *load_mob_legacy_format(const void *p, int32_t *s) {
+const void *load_mob_legacy_format(const void *p, int32_t *s, int h) {
     const char *c = p;
     c+=8;
     *s-=8;
-    return load_mob_legacy_format_direct(c, s);
+    return load_mob_legacy_format_direct(c, s,h);
 }
 
 
-const void *set_background(const void *p, int32_t *s)
+const void *set_background(const void *p, int32_t *s, int h)
   {
   const word *data;
   word *ptr;
@@ -857,31 +857,12 @@ void error_exception(EVENT_MSG *msg,void **unused)
 
      SEND_LOG("(ERROR) Log: Battle: %d Select_player %d",battle,select_player);
      closemode();
-     printf("Program zp�sobil b�hovou chybu a bude ukon�en\n"
-            "Posledn� zpracov�van� data m�la rukoje� ��slo %xh\n",memman_handle);
-     printf("Map: %s Sector %d Direction %d\n",level_fname==NULL?"<unknown>":level_fname,viewsector,viewdir);
-     printf("Nyn� se program pokus� ulo�it hru...\n\n");
-     autosave_enabled=1;
-     autosave();
-     printf("Hra byla �sp��n� ulo�ena pod n�zvem AUTOSAVE\n");
-     exit(0);
+     display_error("error_exception called");
+
      }
   }
 
-void swap_error_exception(void)
-  {
-  closemode();
 
-  puts("Program jiz nema kam odkladat, protoze disk s odkladacim souborem byl \n"
-       "zaplnen. Uvolnete prosim nejake misto na odkladacim disku, nebo zmente \n"
-       "adresar odkladani na jednotku, kde je vice mista");
-  puts("Vase pozice bude ulozena pod nazvem AUTOSAVE\n"
-       "Pokud vsak mate pozice na stejn�m disku jako odkladaci soubor (coz je\n"
-       "zakladni nastaveni) bude ulozeni z 90% bohuzel neuspesne...");
-  autosave_enabled=1;
-  autosave();
-  exit(0);
-  }
 
 const void *boldcz;
 
@@ -919,29 +900,22 @@ char device_error(int chyba,char disk,char info)
   return (c==13?_ERR_RETRY:_ERR_FAIL);
   }
 */
-static void patch_error(int err)
-	{
-	position(0,460);
-	curcolor=0;bar32(0,460,640,479);
-	memcpy(charcolors,flat_color(RGB555(31,31,31)),sizeof(charcolors));
-	curfont=boldcz;
-	switch(err)
-		{
-		case 0:outtext("File has been patched: ");outtext(patch_file);break;
-		case 1:outtext("Patch error within file: ");outtext(patch_file);break;
-		case 2:outtext("Cannot patch");break;
-		case 3:outtext("Missing or error in main data file, patching ingnored!");break;
-		break;
-		}
-	showview(0,460,640,20);
-	}
 
 void init_DDL_manager() {
 
     const char *ddlfile = build_pathname(2, gpathtable[SR_DATA],"SKELDAL.DDL");
     ddlfile = local_strdup(ddlfile);
 
-    init_manager(ddlfile, NULL);
+    init_manager();
+    if (patch_file && !add_patch_file(patch_file)) {
+        display_error("Can't open resource file (adv_patch): %s", ddlfile);
+        abort();
+    }
+    if (!add_patch_file(ddlfile)) {
+        display_error("Can't open resource file (main): %s", ddlfile);
+        abort();
+    }
+
     SEND_LOG("(GAME) Memory manager initialized. Using DDL: '%s'",ddlfile);
 
     register_basic_data();
@@ -1032,7 +1006,6 @@ void init_skeldal(const INI_CONFIG *cfg)
     show_joystick_info();
   }
 
-  if (patch_file!=NULL) patch_error(add_patch_file(patch_file));
 
 
   send_message(E_DONE,E_WATCH,timer);
@@ -1672,7 +1645,7 @@ const char *configure_pathtable(const INI_CONFIG *cfg) {
     if (defmap) {
         strcopy_n(default_map, defmap, sizeof(default_map));
     }
-
+    patch_file = ini_get_string(paths, "patch_file", NULL);
 
     return groot;
 }

@@ -1435,7 +1435,6 @@ void call_dialog(int entr,int mob)
   goto_paragraph(entr);
   schovej_mysku();
   alock(H_DIALOGY_DAT);
-  aswap(H_DIALOGY_DAT);
   selected_player=-1;
   do_dialog();
   }
@@ -1482,7 +1481,6 @@ char load_dialog_info(TMPFILE_RD *f)
 
   SEND_LOG("(DIALOGS)(SAVELOAD) Loading dialogs info...");
   p=ablock_copy(H_DIALOGY_DAT);
-  aswap(H_DIALOGY_DAT);
   temp_storage_read(&pgf_pocet,1*4,f);
   siz=(pgf_pocet+3)/4;
   if (pgf_pocet!=*p)

@@ -358,7 +358,7 @@ int load_map(const char *filename)
                   vyk_max=size/sizeof(TVYKLENEK);
                   break;
          case A_MOBS:
-                  mob_template=load_mob_legacy_format_direct(temp, &size);
+                  mob_template=load_mob_legacy_format_direct(temp, &size,0);
                   mob_size=size;
                   break;
          case A_MOBSND:

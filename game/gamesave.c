@@ -511,11 +511,15 @@ static void add_status_file(FILE *f, const char *name, size_t sz, void *data) {
 static void pack_status_file_cb(const char *name, void *ctx) {
     FILE *f = ctx;
     int32_t sz = temp_storage_find(name);
-    assert(sz > 0);
-    void *data = getmem(sz);
-    temp_storage_retrieve(name, data, sz);
-    add_status_file(f, name, sz, data);
-    free(data);
+    assert(sz >= 0);
+    if (sz == 0) {
+        add_status_file(f, name, 0, 0);
+    } else {
+        void *data = getmem(sz);
+        temp_storage_retrieve(name, data, sz);
+        add_status_file(f, name, sz, data);
+        free(data);
+    }
 }
 
 int pack_all_status(FILE *f)

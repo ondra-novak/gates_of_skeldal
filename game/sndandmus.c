@@ -265,7 +265,7 @@ int set_channel_volume_from_sector(int channel,
   return 0;
   }
 */
-const void *wav_load(const void *p, int32_t *s)
+const void *wav_load(const void *p, int32_t *s, int h)
   {
   const char *sr;
   char *tg;

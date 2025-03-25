@@ -187,7 +187,7 @@ static void animace_kouzla(MGIF_HEADER_T *_,int act,const void *data, int ssize)
   }
 
 
-const void *load_spells_legacy_format(const void *p, int32_t *s) {
+const void *load_spells_legacy_format(const void *p, int32_t *s, int h) {
     TSTRINGTABLE *strtable = lang_load("spells.csv");
     void *np = getmem(*s);
     memcpy(np,p,*s);
@@ -1934,9 +1934,9 @@ void cast(int num,THUMAN *p,int owner, char backfire)
   p->exp+=k->mge;
   check_player_new_level(p);
   if (p->mana>p->mana_battery) {
-     p->mana=p->mana_battery;     
+     p->mana=p->mana_battery;
   }
-  p->mana_battery=32767;  
+  p->mana_battery=32767;
 end:
 	 GlobEvent(MAGLOB_AFTERMAGIC,p->sektor,p->direction);
   }

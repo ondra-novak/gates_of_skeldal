@@ -532,7 +532,7 @@ void type_text_v2(va_list args)
   }
 
 
-const void *col_load(const void *data, int32_t *size)
+const void *col_load(const void *data, int32_t *size, int h)
   {
   int siz=*size;
   char *s;

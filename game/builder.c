@@ -582,7 +582,7 @@ void bott_text_forever()
   bott_timer=NULL;
   }
 
-const void *bott_draw_proc(const void *p, int32_t *s)
+const void *bott_draw_proc(const void *p, int32_t *s, int h)
   {
   switch (bott_display)
      {

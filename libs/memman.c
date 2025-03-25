@@ -23,10 +23,8 @@ void bonz_table();
 static const char **  mman_pathlist=NULL;
 
 
-static FILE *swap = NULL;
 char mman_patch=0;
 
-int memman_handle;
 static int max_handle=0;
 //static FILE *log;
 
@@ -40,10 +38,7 @@ void def_mman_group_table(const char ** p) {
 
 void standard_mem_error(size_t size)
   {
-  char buff[256];
-  SEND_LOG("(ERROR) Memory allocation error detected, %lu bytes missing",size);
-  sprintf(buff,"Memory allocation error\n Application can't allocate %lu bytes of memory (%xh)\n",(unsigned long)size,memman_handle);
-  display_error(buff);
+  display_error("memory allocation error %lu", (unsigned long)size);
   exit(1);
   }
 
@@ -126,20 +121,21 @@ typedef struct tnametable_ref {
     uint32_t count;
 } TNAMETABLE_REF;
 
-static int32_t *grptable,grptabsiz;
-static TNAMETABLE_REF bmf_nametable;
-static TNAMETABLE_REF patch_nametable;
+typedef struct ddlmap_info {
+    const void *ptr;
+    size_t size;
+    TNAMETABLE_REF nametable;
+} TDDLMAP_INFO;
+
+#define MAX_PATCHES 4
+
+static TDDLMAP_INFO ddlmap[MAX_PATCHES];
+
+
 static int next_name_read=0;
 static int last_group;
 
-char *main_file_name=NULL;
 handle_groups _handles;
-//static FILE *bmf=NULL;
-//static FILE *patch=NULL;
-static void *bmf_m = NULL;
-static size_t bmf_s = 0;
-static void *patch_m = NULL;
-static size_t patch_s = 0;
 uint32_t bk_global_counter=0;
 char *swap_path;
 
@@ -154,6 +150,7 @@ static int test_file_exist_DOS(int group,char *filename)
 
 
 
+#if 0
 void load_grp_table()
   {
   int32_t i = 0;;
@@ -170,7 +167,7 @@ void load_grp_table()
   for(i=0;i<(grptabsiz>>3);i++) grptable[i*2+1]=(grptable[i*2+1]-grptabsiz)>>4;
   SEND_LOG("(LOAD) Group Table Loaded");
   }
-
+#endif
 
 static TNAMETABLE_REF load_file_table(const void *bmf_m)
   {
@@ -195,22 +192,25 @@ int get_file_entry_in_table(const TNAMETABLE_REF *where, char *name) {
 
 
 
-int get_file_entry(int group,char *name)
-  {
+char get_file_entry(int group,char *name, THANDLE_DATA *h) {
   char ex;
 
   ex=test_file_exist_DOS(group,name);
-  if (ex || bmf_m==0) return 0;
-  if (patch_m) {
-      int sk = get_file_entry_in_table(&patch_nametable, name);
-      if (sk >= 0) return -sk;
-  }
-  if (bmf_m) {
-      int sk = get_file_entry_in_table(&bmf_nametable, name);
-      if (sk >= 0) return sk;
+  if (!ex) {
+      for (int i = 0; i < MAX_PATCHES; ++i) {
+          const TDDLMAP_INFO *nfo = &ddlmap[i];
+          if (nfo->ptr) {
+              int sk =  get_file_entry_in_table(&nfo->nametable, name);
+              if (sk >= 0) {
+                  h->src_index = i;
+                  h->offset = sk;
+                  return 1;
+              }
+          }
+      }
   }
   return 0;
-  }
+}
 
 
 THANDLE_DATA *get_handle(int handle)
@@ -230,11 +230,14 @@ THANDLE_DATA *get_handle(int handle)
 
 
 static char need_to_be_free(const void *ptr) {
-    const char *beg = (const char *)bmf_m;
-    const char *p = (const char *)ptr;
-    if (p >= beg && p < beg+bmf_s) return 0;
-    beg = (const char *)patch_m;
-    if (p >= beg && p < beg+bmf_s) return 0;
+    for (int i = 0; i < MAX_PATCHES; ++i) {
+        const TDDLMAP_INFO *nfo = &ddlmap[i];
+        if (nfo->ptr) {
+            const char *beg = (const char *)nfo->ptr;
+            const char *p = (const char *)ptr;
+            if (p >= beg && p < beg+nfo->size) return 0;
+        }
+    }
     return 1;
 }
 
@@ -254,7 +257,6 @@ THANDLE_DATA *kill_block(int handle)
   if (h->status==BK_PRESENT) {
       ablock_free(h->blockdata);
   }
-  if (h->flags & BK_HSWAP) swap_free_block(h->seekpos,h->size);
   h->status=BK_NOT_LOADED;
   h->flags&=~BK_HSWAP;
   return h;
@@ -266,53 +268,41 @@ THANDLE_DATA *zneplatnit_block(int handle)
 
   h=kill_block(handle);
   if (h->status==BK_SAME_AS)
-     return zneplatnit_block(h->seekpos);
-  if (h->src_file[0]) h->seekpos=get_file_entry(h->path,h->src_file);
+     return zneplatnit_block(h->offset);
   return h;
   }
 
-static void heap_error(size_t s) {
-    display_error("out of memory");
+
+static void add_patch(const void *bmf, size_t sz) {
+    for (int i = 0; i < MAX_PATCHES; ++i) {
+        if (ddlmap[i].ptr == NULL) {
+            ddlmap[i].ptr = bmf;
+            ddlmap[i].size = sz;
+            ddlmap[i].nametable = load_file_table(bmf);
+            return;
+        }
+    }
+    display_error("memman: Too many patches");
     abort();
 }
 
-void init_manager(const char *filename,const char *swap_is_not_supported) // filename= Jmeno datoveho souboru nebo NULL pak
-                                  // se pouzije DOS
-                                            // swp je cesta do TEMP adresare
-  {
+char add_patch_file(const char *filename) {
+    size_t bmf_s;
+    const void *bmf = map_file_to_memory(file_icase_find(filename), &bmf_s);
+    if (bmf) {
+        add_patch(bmf, bmf_s);
+        return 1;
+    }
+    return 0;
+}
+
+void init_manager(void) {
   next_name_read=0;
   last_group=0;
   memset(_handles,0,sizeof(_handles));
-  if (filename!=NULL)
-     {
-     bmf_m = map_file_to_memory(file_icase_find(filename), &bmf_s);
-     if (bmf_m)
-        {
-        main_file_name=(char *)getmem(strlen(filename)+1);
-        strcpy(main_file_name,filename);
-        bmf_nametable = load_file_table(bmf_m);
-        }
-     else
-        main_file_name=NULL;
-     }
-  else
-     main_file_name=NULL;
-  mem_error=heap_error;
-  swap=NULL;
-  }
+  memset(ddlmap,0,sizeof(ddlmap));
+}
 
-void *load_swaped_block(THANDLE_DATA *h)
-  {
-  void *i;
-
-  if (mman_action!=NULL) mman_action(MMA_SWAP_READ);
-  i=getmem(h->size);
-  SEND_LOG("(LOAD)(SWAP) Loading block from swap named '%-.12s'",h->src_file);
-  fseek(swap,h->seekpos,SEEK_SET);
-  fread(i,1,h->size,swap);
-  h->status=BK_PRESENT;
-  return i;
-  }
 
 
 int find_same(const char *name,ABLOCK_DECODEPROC decomp)
@@ -339,8 +329,9 @@ int find_handle(const char *name,ABLOCK_DECODEPROC decomp)
 
 int test_file_exist(int group,char *filename)
   {
-  if (get_file_entry(group,filename)==0) return test_file_exist_DOS(group,filename);
-  return 1;
+    THANDLE_DATA h;
+    if (get_file_entry(group, filename, &h) == 0)  return test_file_exist_DOS(group,filename);
+    return 1;
   }
 
 THANDLE_DATA *def_handle(int handle,const char *filename,ABLOCK_DECODEPROC decompress,char path)
@@ -359,15 +350,16 @@ THANDLE_DATA *def_handle(int handle,const char *filename,ABLOCK_DECODEPROC decom
   if (i!=-1 && i!=handle)
      {
      h->status=BK_SAME_AS;
-     h->seekpos=i;
+     h->offset=i;
      return h;
      }
   strcopy_n(h->src_file,filename,sizeof(h->src_file));
-  h->seekpos=0;
+  h->offset=0;
   strupper(h->src_file);
   h->loadproc=decompress;
-  if (filename[0])
-      h->seekpos=get_file_entry(path,h->src_file);
+  if (filename[0]) {
+      get_file_entry(path,h->src_file,h);
+  }
   SEND_LOG("(REGISTER) File/Block registred '%-.12s' handle %04X",h->src_file,handle);
   SEND_LOG("(REGISTER) Seekpos=%d",h->seekpos);
   h->flags=0;
@@ -380,20 +372,19 @@ THANDLE_DATA *def_handle(int handle,const char *filename,ABLOCK_DECODEPROC decom
 const void *afile(char *filename,int group,int32_t *blocksize)
   {
   char *d;
-  int32_t entr;
+  char entr;
   void *p;
 
   d=alloca(strlen(filename)+1);
   strcpy(d,filename);
   strupper(d);
-  if (mman_patch && test_file_exist_DOS(group,d)) entr=0;
-  else entr=get_file_entry(group,d);
+  THANDLE_DATA hd;
+  entr = get_file_entry(group, d, &hd);
   if (entr!=0)
      {
-		 const void *hnd;
 		 SEND_LOG("(LOAD) Afile is loading file '%s' from group %d",d,group);
-		 if (entr<0) entr=-entr,hnd=patch_m;else hnd=bmf_m;
-		 const int32_t * szptr = (const int32_t *)((const char *)hnd+entr);
+		 const TDDLMAP_INFO *nfo = &ddlmap[hd.src_index];
+		 const int32_t * szptr = (const int32_t *)((const char *)nfo->ptr+hd.offset);
 		 *blocksize = *szptr;
 		 return szptr+1;
      }
@@ -419,10 +410,10 @@ void *afile_copy(char *filename,int group,int32_t *blocksize) {
 }
 
 
-static void decompress_data(THANDLE_DATA *h) {
+static void decompress_data(THANDLE_DATA *h, int handle) {
     if (h->loadproc) {
         int32_t sz = h->size;
-        const void *r = h->loadproc(h->blockdata, &sz);
+        const void *r = h->loadproc(h->blockdata, &sz, handle);
         if (r != h->blockdata) {
             ablock_free(h->blockdata);
             h->blockdata = r;
@@ -437,11 +428,9 @@ const void *ablock(int handle)
 
   sem:
   h=get_handle(handle);
-  if (memman_handle!=handle || h->status!=BK_PRESENT) h->counter=bk_global_counter++;
-  memman_handle=handle;
   if (h->status==BK_SAME_AS)
      {
-     handle=h->seekpos;
+     handle=h->offset;
      goto sem;
      }
   if (h->status==BK_PRESENT) {
@@ -455,7 +444,7 @@ const void *ablock(int handle)
         void *p;int32_t s;
 
         SEND_LOG("(LOAD) Loading file as block '%-.12s' %04X",h->src_file,handle);
-        if (h->seekpos==0)
+        if (h->offset==0)
            {
            if (h->src_file[0]!=0)
               {
@@ -473,30 +462,23 @@ const void *ablock(int handle)
            h->blockdata=p;
            h->status=BK_PRESENT;
            h->size=s;
-           decompress_data(h);
+           decompress_data(h, handle);
            return h->blockdata;
            }
         else
            {
-           int entr=h->seekpos;
-           const void *hnd;
+            const TDDLMAP_INFO *nfo = &ddlmap[h->src_index];
            if (mman_action!=NULL) mman_action(MMA_READ);
-           if (entr<0) entr=-entr,hnd=patch_m;else hnd=bmf_m;
-           const int32_t *szptr =(const int32_t *)((const char *)hnd+entr);
+           const int32_t *szptr =(const int32_t *)((const char *)nfo->ptr+h->offset);
            s = *szptr;
            void *p = (void *)(szptr+1);
            h->blockdata=p;
            h->status=BK_PRESENT;
            h->size=s;
-           decompress_data(h);
+           decompress_data(h, handle);
            return h->blockdata;
            }
         }
-     //tato cast programu bude jeste dodelana - else ....
-  if (h->status==BK_SWAPED)
-     {
-     return h->blockdata=load_swaped_block(h);
-     }
   return NULL;
   }
 
@@ -518,7 +500,7 @@ void alock(int handle)
   if (!h->lockcount)
      {
      h->flags|=BK_LOCKED;
-     if (h->status==BK_SAME_AS) alock(h->seekpos);
+     if (h->status==BK_SAME_AS) alock(h->offset);
      }
   h->lockcount++;
   //SEND_LOG("(LOCK) Handle locked %04X (count %d)",handle,h->lockcount);
@@ -532,61 +514,9 @@ void aunlock(int handle)
   if (!h->lockcount)
      {
      h->flags&=~BK_LOCKED;
-     if (h->status==BK_SAME_AS) aunlock(h->seekpos);
+     if (h->status==BK_SAME_AS) aunlock(h->offset);
      }
   //SEND_LOG("(LOCK) Handle unlocked %04X (count %d)",handle,h->lockcount);
-  }
-void aswap(int handle)
-  {
-  THANDLE_DATA *h;
-
-  h=get_handle(handle);
-  h->flags|=BK_SWAPABLE;
-  if (h->status==BK_SAME_AS) aswap(h->seekpos);
-  }
-
-void aunswap(int handle)
-  {
-  THANDLE_DATA *h;
-
-  h=get_handle(handle);
-  h->flags|=BK_SWAPABLE;
-  if (h->status==BK_SAME_AS) aunswap(h->seekpos);
-  }
-
-void apreload(int handle)
-  {
-  THANDLE_DATA *h;
-
-
-  h=get_handle(handle);
-  if (h->src_file[0] && h->status!=BK_SAME_AS)
-     {
-     if (!(h->flags & BK_PRELOAD) || !(h->flags & BK_HSWAP)) h->flags|=BK_SWAPABLE | BK_PRELOAD;
-     ablock(handle);
-     }
-  }
-
-static int32_t *apr_sign=NULL;
-static int32_t max_sign;
-
-void apreload_sign(int handle,int max_handle)
-  {
-  THANDLE_DATA *h;
-  if (apr_sign==NULL)
-     {
-     apr_sign=NewArr(int32_t,max_handle);
-     memset(apr_sign,0x7f,sizeof(int32_t)*max_handle);
-     max_sign=max_handle;
-     }
-  if (handle>=max_sign)
-     {
-     apreload(handle);
-     return;
-     }
-  h=get_handle(handle);
-  if (h->src_file[0] && h->status!=BK_SAME_AS && h->status!=BK_NOT_USED)
-     if (!(h->flags & BK_PRELOAD) || !(h->flags & BK_HSWAP)) apr_sign[handle]=h->seekpos;
   }
 
 
@@ -601,9 +531,10 @@ void undef_handle(int handle)
      SEND_LOG("(REGISTER) File/Block unregistred %04X (%-.12s)",handle,h->src_file);
      }
   h->src_file[0]=0;
-  h->seekpos=0;
+  h->offset=0;
   h->flags=0;
   h->status=BK_NOT_USED;
+  h->loadproc = 0;
   }
 
 void close_manager()
@@ -615,10 +546,9 @@ void close_manager()
      for(j=0;j<BK_MINOR_HANDLES;j ++) undef_handle(i*BK_MINOR_HANDLES+j);
      free(_handles[i]);
      }
-  free(main_file_name);
-  if (bmf_m) unmap_file(bmf_m, bmf_s);
-  if (patch_m) unmap_file(patch_m, patch_s);
-  if (swap) fclose(swap);
+  for (int i = 0; i < MAX_PATCHES; ++i) {
+      unmap_file((void *)ddlmap[i].ptr, ddlmap[i].size);
+  }
 
   max_handle=0;
   }
@@ -715,22 +645,7 @@ void *grealloc(void *p,int32_t size)
   }
 
 
-int read_group(int index)
-  {
-  return grptable[index<<1];
-  }
 
-char add_patch_file(char *filename)
-	{
-	SEND_LOG("Adding patch: %s",filename);
-	if (!patch_m) return 2;
-	if (!bmf_m) return 3;
-    patch_m = map_file_to_memory(file_icase_find(filename), &bmf_s);
-	if (!patch_m) return 1;
-	patch_nametable = load_file_table(patch_m);
-	SEND_LOG("Patch added: %s - %u entries modified",filename,patch_nametable.count);
-	return 0;
-	}
 
 #ifdef LOGFILE
 /*
