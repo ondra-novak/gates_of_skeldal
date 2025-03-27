@@ -49,10 +49,10 @@ void new_ddl(std::string ddl_file, std::string path) {
     while (iter != end) {
         const auto &entry = *iter;
         if (entry.is_regular_file()) {
-            uint32_t sz = entry.file_size();
+            uint32_t sz = static_cast<uint32_t>(entry.file_size());
             std::string fname = entry.path().filename().string();
             if (fname.size() <= 12) {
-                std::transform(fname.begin(), fname.end(), fname.begin(),[](char c)->char{return std::toupper(c);});
+                std::transform(fname.begin(), fname.end(), fname.begin(),[](char c)->char{return static_cast<char>(std::toupper(c));});
                 dir.push_back(DirEntry{entry.path(), fname, sz,0});
             }
         }
@@ -67,7 +67,7 @@ void new_ddl(std::string ddl_file, std::string path) {
     std::size_t dataofs = 8 + dir.size()*(12+4);
 
     for (auto &x: dir) {
-        x.offset = dataofs;
+        x.offset = static_cast<std::uint32_t>(dataofs);
         dataofs+=4+x.size;
     }
 
