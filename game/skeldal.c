@@ -911,6 +911,12 @@ void init_DDL_manager() {
         display_error("Can't open resource file (adv_patch): %s", ddlfile);
         abort();
     }
+    const char *lang_fld = lang_get_folder();
+    if (lang_fld) {
+        const char *gfx = build_pathname(2, lang_fld, "gfx.ddl");
+        gfx = local_strdup(gfx);
+        add_patch_file(gfx);
+    }
     if (!add_patch_file(ddlfile)) {
         display_error("Can't open resource file (main): %s", ddlfile);
         abort();
