@@ -1827,7 +1827,7 @@ char can_select_player(THUMAN *p, char select_dead, char select_far);
 char generate_string_tables(const char *path);
 
 char *change_extension_support(char *buffer, const char *filename,char *new_extension);
-#define set_file_extension(filename, extension) change_extension_support((char *)alloca(strlen(filename)+strlen(extension)), (filename), (extension))
+#define set_file_extension(filename, extension) change_extension_support((char *)alloca(strlen(filename)+strlen(extension)+1), (filename), (extension))
 void load_enemy_to_map(int i, int sector, int dir, const TMOB *t);
 
 void hide_boat();
