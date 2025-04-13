@@ -89,7 +89,7 @@ THUMAN postavy[POCET_POSTAV],postavy_save[POCET_POSTAV];
 void (*unwire_proc)(void);
 void (*wire_proc)(void);
 char cur_mode,battle_mode;
-static char titles_on=0;
+
 
 const void *pcx_fade_decomp(const void *p, int32_t *s, int h);
 const void *pcx_15bit_decomp(const void *p, int32_t *s, int h);
@@ -97,6 +97,8 @@ const void *pcx_15bit_decomp_transp0(const void *p, int32_t *s, int h);
 const void *pcx_15bit_autofade(const void *p, int32_t *s, int h);
 const void *pcx_15bit_backgrnd(const void *p, int32_t *s, int h);
 const void *pcx_8bit_decomp(const void *p, int32_t *s, int h);
+const void *pcx_fade_decomp(const void *p, int32_t *s, int h);
+const void *load_text_decomp(const void *p, int32_t *s, int h);
 
 const char *texty_knihy;
 static const char *patch_file=NULL;
@@ -216,10 +218,10 @@ TDREGISTERS registred[]=
     {H_CHARGENB,"chargenb.pcx",pcx_8bit_decomp,SR_BGRAFIKA},
     {H_CHARGENM,"chargenm.pcx",pcx_8bit_nopal,SR_BGRAFIKA},
     {H_BGR_BUFF,"",set_background,SR_BGRAFIKA},
-		{H_KREVMIN,"krevmin.pcx",pcx_8bit_decomp,SR_BGRAFIKA},
-		{H_KREVMID,"krevmid.pcx",pcx_8bit_decomp,SR_BGRAFIKA},
-		{H_KREVMAX,"krevmax.pcx",pcx_8bit_decomp,SR_BGRAFIKA},
-
+    {H_KREVMIN,"krevmin.pcx",pcx_8bit_decomp,SR_BGRAFIKA},
+    {H_KREVMID,"krevmid.pcx",pcx_8bit_decomp,SR_BGRAFIKA},
+    {H_KREVMAX,"krevmax.pcx",pcx_8bit_decomp,SR_BGRAFIKA},
+    {H_GLOBMAP,"globmap.dat",load_text_decomp, SR_MAP}
 	};
 
 INIS sinit[]=
@@ -374,6 +376,13 @@ const void *hi_8bit_correct(const void *p,int32_t *s, int h)
   return out;
 }
 
+const void *load_text_decomp(const void *p, int32_t *s, int h) {
+    char *newbuff = malloc(*s+1);
+    memcpy(newbuff,p, *s);
+    newbuff[*s] = 0;
+    (*s)+=1;
+    return newbuff;
+}
 
 const void *load_mob_legacy_format_direct(const void *p, int32_t *s, int h) {
     const char *c = p;
@@ -1316,22 +1325,14 @@ void play_movie_seq(const char *s,int y)
 
 void play_anim(int anim_num)
   {
-     char *t,*z;
      TSTR_LIST titl=NULL;
      const char *s = build_pathname(2,gpathtable[SR_VIDEO], texty[anim_num]);
      s = local_strdup(s);
-     if (titles_on)
-      {
-      concat(t,s,"   ");
-      z=strrchr(t,'.');
-      if (z!=NULL)
-        {
-        strcpy(z,".TXT");
-        if (load_string_list_ex(&titl,t)) titl=NULL;
-        }
-      else titl=NULL;
-      }
-     else titl=NULL;
+     char *n = set_file_extension(s, ".TXT");
+     if (load_string_list_ex(&titl,n)) titl=NULL;
+     else {
+         lang_patch_stringtable(&titl, "intro", "");
+     }
      set_title_list(titl);set_font(H_FBIG,RGB(200,200,200));
      curcolor=0;bar32(0,0,639,459);
      showview(0,0,0,0);
@@ -1652,6 +1653,9 @@ const char *configure_pathtable(const INI_CONFIG *cfg) {
         strcopy_n(default_map, defmap, sizeof(default_map));
     }
     patch_file = ini_get_string(paths, "patch_file", NULL);
+    if (ini_get_boolean(paths, "patch_mode", 0)) {
+        mman_patch = 1;
+    }
 
     return groot;
 }

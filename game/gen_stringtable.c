@@ -112,6 +112,7 @@ static char convert_book(const char *target_path) {
 static char convert_end_titles(const char *target_path) {
     const char *path = build_pathname(2, target_path, "end_titles.txt");
     path = local_strdup(path);
+
     return convert_file_to(build_pathname(2, gpathtable[SR_DATA], "titulky.txt"), path);
 }
 
@@ -119,6 +120,18 @@ static char convert_epilog(const char *target_path) {
     const char *path = build_pathname(2, target_path, "epilog.txt");
     path = local_strdup(path);
     return convert_file_to(build_pathname(2, gpathtable[SR_DATA], "endtext.txt"), path);
+}
+static char convert_intro_titles(const char *target_path) {
+    TSTR_LIST lst = create_list(100);
+    int err = load_string_list_ex(&lst, build_pathname(2, gpathtable[SR_VIDEO], "intro.txt"));
+    if (err) {
+        release_list(lst);
+        fprintf(stderr,"Failed to read: %s, error code: %d\n","intro.txt", err);
+        return 1;
+    }
+    err = store_to_csv(lst, build_pathname(2, target_path, "intro.csv"));
+    release_list(lst);
+    return err;
 }
 
 char generate_items_strings(const char *path) {
@@ -140,6 +153,21 @@ char generate_spell_strings(const char *path) {
         }
 
     int r = store_to_csv(lst, build_pathname(2,path,"spells.csv"));
+    release_list(lst);
+    return r;
+}
+
+extern TSHOP **shop_list;
+extern int max_shops;
+
+
+char generate_shop_strings(const char *path) {
+    TSTR_LIST lst = create_list(255);
+    load_shops();
+    for (int i = 0; i< max_shops; ++i) {
+        str_replace(&lst, shop_list[i]->shop_id, shop_list[i]->keeper);
+    }
+    int r = store_to_csv(lst, build_pathname(2,path,"shops.csv"));
     release_list(lst);
     return r;
 }
@@ -194,6 +222,8 @@ char generate_string_tables(const char *path) {
     if (!generate_items_strings(path)) return 0;
     if (!generate_spell_strings(path)) return 0;
     if (!generate_dialog_table(path)) return 0;
+    if (!convert_intro_titles(path)) return 0;
+    if (!generate_shop_strings(path)) return 0;
     return 1;
 }
 

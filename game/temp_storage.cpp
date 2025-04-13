@@ -5,6 +5,7 @@
 #include <string_view>
 #include <vector>
 #include <iostream>
+#include <cstring>
 
 extern "C" {
 #include "temp_storage.h"
@@ -161,4 +162,8 @@ int temp_storage_internal_end_scanf(TMPFILE_RD *f, int r) {
 
 void temp_storage_ungetc(TMPFILE_RD *f) {
     f->_data = {f->_data.data()-1, f->_data.size()+1};
+}
+
+TMPFILE_RD *temp_storage_from_string(const char *content) {
+    return new TMPFILE_RD{{content, std::strlen(content)}};
 }

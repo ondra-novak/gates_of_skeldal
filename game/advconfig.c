@@ -51,6 +51,8 @@ static void process_row(INI_CONFIG_SECTION *sec, const char *row) {
         ini_replace_key(sec, "default_map", value);
     } else if (istrcmp(key, "PATCH_FILE") == 0) {
         ini_replace_key(sec, "patch_file", file_icase_find(value));
+    } else if (istrcmp(key, "PATCH") == 0 && istrcmp(value,"1") == 0) {
+        ini_replace_key(sec, "patch_mode", "1");
     }
 }
 

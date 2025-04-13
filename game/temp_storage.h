@@ -15,6 +15,7 @@ typedef struct _temp_storage_file_rd TMPFILE_RD;
 typedef struct _temp_storage_file_wr TMPFILE_WR;
 
 TMPFILE_RD *temp_storage_open(const char *name);
+TMPFILE_RD *temp_storage_from_string(const char *content);
 TMPFILE_WR *temp_storage_create(const char *name);
 TMPFILE_WR *temp_storage_append(const char *name);
 void temp_storage_delete(const char *name);

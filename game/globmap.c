@@ -46,7 +46,7 @@ static uint8_t last_index=1;
 
 static int usemap;
 
-static FILE *glbm;
+static TMPFILE_RD *glbm;
 static char oddelovace[]=ODDELOVACE;
 static int last_oddelovac;
 static int linecounter=0;
@@ -58,7 +58,7 @@ static char *symbolmap[]=
   "D BREAK",
   "O CURMAP",  // krit
   "E DRAW",
-  "F ESCAPE",
+//  "F ESCAPE",
   "G FLG",    // krit
   "P IFDEF",  // krit
   "I INDX",
@@ -83,7 +83,7 @@ static char *symbolmap[]=
 #define OP_FLG 'G'
 #define OP_USEMAP 'N'
 #define OP_BREAK 'D'
-#define OP_ESCAPE 'F'
+//#define OP_ESCAPE 'F'
 #define OP_CURMAP 'O'
 #define OP_ISDEF 'P'
 #define OP_SEKTOR 'Q'
@@ -92,7 +92,8 @@ static char *symbolmap[]=
 
 static char cti_int_num(int *readed)
   {
-  return !fscanf(glbm,"%d",readed);
+  //return !fscanf(glbm,"%d",readed);
+    return temp_storage_scanf(glbm, "%d", readed)<1;
   }
 
 static int find_symbol(char **symbolmap,int list_len,int offset,char *symbol)
@@ -130,13 +131,13 @@ static int cti_oddelovac(void)//cte prvni oddelovac - preskakuje mezery
   int c;
   do
      {
-     c=getc(glbm);
-     if (c==OD_COMMENT) while((c=getc(glbm))!='\n');
+     c=temp_storage_getc(glbm);
+     if (c==OD_COMMENT) while((c=temp_storage_getc(glbm))!='\n');
      if (c=='\n') linecounter++;
      if (strchr(oddelovace,c)!=NULL || c==EOF) return c;
      }
   while (c==' ' || c=='\x9');
-  ungetc(c,glbm);
+  temp_storage_ungetc(glbm);
   return 0;
   }
 
@@ -147,9 +148,9 @@ static int cti_retezec(int znaku,char *text,char mezera,char upcase)
   znaku--;
   if (mezera)
      {
-     while((c=getc(glbm))==32 || c==9);
+     while((c=temp_storage_getc(glbm))==32 || c==9);
      }
-  else c=getc(glbm);
+  else c=temp_storage_getc(glbm);
   while (strchr(oddelovace,c)==NULL && ((c!=32 && c!=9) || !mezera) && c!=EOF)
      {
      if (upcase) c=toupper(c);
@@ -158,9 +159,9 @@ static int cti_retezec(int znaku,char *text,char mezera,char upcase)
         *text++=c;
         znaku--;
         }
-     c=getc(glbm);
+     c=temp_storage_getc(glbm);
      }
-  if (c!=32 && c!=9) ungetc(c,glbm);
+  if (c!=32 && c!=9) temp_storage_ungetc(glbm);
   *text=0;
   return 0;
   }
@@ -324,14 +325,14 @@ static char proved_prikaz()
                 if (usemap==-1) def_handle(usemap=end_ptr++,file,pcx_8bit_nopal,SR_DIALOGS);
                 }
                 break;
-        case OP_ESCAPE:
+/*        case OP_ESCAPE:
                 {
                 cti_retezec(20,prikaz,1,1);
-                fclose(glbm);
+                temp_storage_close_rd(glbm);
                 const char *s = build_pathname(2, gpathtable[SR_MAP], prikaz);
                 if ((glbm=fopen_icase(s,"r"))==NULL) error(s);
                 return 0;
-                }
+                }*/
         default:error(prikaz);
         }
      ODD=cti_oddelovac();
@@ -373,10 +374,15 @@ static void do_script(void)
 
   char vysledek;
 
+  const char *script = (const char *)ablock(H_GLOBMAP);
+  glbm=temp_storage_from_string(script);
+/*
+
 	const char *s=build_pathname(2,gpathtable[SR_MAP], GLOBMAP);
   linecounter=0;
   glbm=fopen_icase(s,"r");
   if (glbm==NULL) error("Chyb� uveden� soubor...");
+  */
   ODD=cti_oddelovac();
   do
     {
@@ -394,7 +400,7 @@ static void do_script(void)
     ODD=cti_oddelovac();
     }
   while(ODD!=EOF);
-  fclose(glbm);
+  temp_storage_close_rd(glbm);
   }
 
 

@@ -7,6 +7,7 @@
 #include "mgifmem.h"
 #include <platform/sound.h>
 
+#include "strlite.h"
 
 
 
@@ -89,35 +90,38 @@ static void StretchImageHQ(word *src, word *trg, int32_t linelen, char full)
       trg_row += 2*linelen;
   }
 
-#if 0
-  int x,y;
-  src+=3;
-  for (y=0,s=src,t=trg;y<ys;y++,t+=linelen*2,s+=xs)
-	for (x=0;x<xs;x++)
-	  {
-	  word val;
-	  t[x*2]=s[x]+(s[x]&0x7fe0);
-	  if (x)
-		{
-		val=((s[x-1] & 0x7bde)+(s[x] & 0x7bde))>>1;
-		t[x*2-1]=val+(val&0x7fe0);
-		}
-	  if (full)
-		{
-		if (y)
-		  {
-		  val=((s[x-xs] & 0x7bde)+(s[x] & 0x7bde))>>1;
-		  t[x*2-linelen]=val+(val&0x7fe0);
-		  }
-		if (x && y)
-		  {
-		  val=((s[x-xs-1] & 0x7bde)+(s[x] & 0x7bde))>>1;
-		  t[x*2-linelen-1]=val+(val&0x7fe0);
-		  }
-		}
-	  }
-#endif
+
   }
+
+static TSTR_LIST titles;
+
+static void show_title(int frame)
+{
+    int y,yt,h;
+    static int lasty = 478;
+    char *c;
+
+    if (frame<2) lasty=478;
+    if (frame >= str_count(titles)) return;
+    if (titles[frame]==NULL) return;
+    h=text_height(titles[frame])+2;
+    yt=y=479-2*h;
+    curcolor=0;
+    bar32(0,lasty,639,479);
+    c=strchr(titles[frame],'\n');
+    if (c!=NULL) *c=0;
+    set_aligned_position(320,y,1,0,titles[frame]);
+    outtext(titles[frame]);
+    if (c!=NULL)
+      {
+      *c='\n';c++;y+=h;
+      set_aligned_position(320,y,1,0,c);
+      outtext(c);
+      }
+    if (lasty<yt) y=lasty;else y=yt;
+    showview(0,y,640,480-y);
+    lasty=yt;
+}
 
 
 
@@ -143,6 +147,7 @@ static void PlayMGFFile(const void *file, MGIF_PROC proc,int ypos,char full)
       f=mgif_play(file);
       StretchImageHQ(picture, GetScreenAdr()+ypos*scr_linelen2, scr_linelen2,full);
       showview(0,ypos,0,360);
+      if (titles) show_title(hdr->cur_frame);
       if (game_display_is_quit_requested()) {
           break;
       } else if (_bios_keybrd(_KEYBRD_READY)) {
@@ -187,10 +192,11 @@ void play_animation(const char *filename,char mode,int posy,char sound)
   unmap_file(mgf, sz);
   }
 
-void set_title_list(char **titles)
+void set_title_list(char **title_list)
   {
-
+  titles=title_list;
   }
+
 void set_play_attribs(void *screen,char rdraw,char bm,char colr64)
   {
 

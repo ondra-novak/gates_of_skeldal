@@ -195,7 +195,7 @@ int get_file_entry_in_table(const TNAMETABLE_REF *where, char *name) {
 char get_file_entry(int group,char *name, THANDLE_DATA *h) {
   char ex;
 
-  ex=test_file_exist_DOS(group,name);
+  ex=mman_patch && test_file_exist_DOS(group,name);
   if (!ex) {
       for (int i = 0; i < MAX_PATCHES; ++i) {
           const TDDLMAP_INFO *nfo = &ddlmap[i];

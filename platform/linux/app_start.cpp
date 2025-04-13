@@ -52,7 +52,7 @@ int main(int argc, char **argv) {
     };
     cfg.adventure_path = adv_config_file.empty()?NULL:adv_config_file.c_str();
     cfg.config_path = config_name.c_str();
-    cfg.lang_path = lang.c_str();
+    cfg.lang_path = lang.empty()?NULL:lang.c_str();
     try {
 
         if (!gen_stringtable_path.empty()) {
