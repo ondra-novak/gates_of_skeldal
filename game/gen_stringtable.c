@@ -85,6 +85,35 @@ static char convert_map_strings(const char *target_path) {
     return !list_files(build_pathname(1, gpathtable[SR_MAP]), file_type_normal|file_type_just_name,convert_map_strings_1 , &target_path);
 }
 
+typedef struct make_map_name_stringtable_ctx_tag{
+    FILE *out;
+}  make_map_name_stringtable_ctx;
+
+static int make_map_name_stringtable_cb(const char *source_name, LIST_FILE_TYPE type, size_t sz, void *context) {
+    make_map_name_stringtable_ctx *ctx = (make_map_name_stringtable_ctx *)context;
+    if (istrcmp(source_name+strlen(source_name)-4,".map")) return 0;
+    uint32_t id = fnv1a_hash(source_name);
+    fprintf(ctx->out, "%u,%s\n", id, source_name);
+    return 0;
+}   
+
+static char make_map_name_stringtable(const char *target_path) {
+    const char *target_file = build_pathname(2,target_path,"mapnames.csv");
+    target_file = local_strdup(target_file);
+    FILE *f = fopen_icase(target_file, "w");
+    if (!f) {
+        fprintf(stderr, "Failed to open %s for writing\n",target_file);
+        return 0;
+    }
+    fprintf(f, "id,string\n");
+    make_map_name_stringtable_ctx ctx;
+    ctx.out = f;
+    int ret = list_files(build_pathname(1, gpathtable[SR_MAP]), file_type_normal|file_type_just_name,make_map_name_stringtable_cb, &ctx);
+    printf("Writing %s\n", target_file);
+    fclose(f);
+    return !ret;
+}
+
 
 static char convert_file_to(const char *src_file, const char *target_file) {
     TMPFILE_RD *rd = enc_open(src_file);
@@ -224,6 +253,7 @@ char generate_string_tables(const char *path) {
     if (!generate_dialog_table(path)) return 0;
     if (!convert_intro_titles(path)) return 0;
     if (!generate_shop_strings(path)) return 0;
+    if (!make_map_name_stringtable(path)) return 0;
     return 1;
 }
 

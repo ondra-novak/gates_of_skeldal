@@ -229,6 +229,17 @@ void sanitize_map() {
 
 }
 
+void translate_map_name(const char *mapfile, MAPGLOBAL *mglob) {
+   uint32_t id = fnv1a_hash(mapfile);
+   const TSTRINGTABLE *stable = lang_load("mapnames.csv");
+   if (stable) {
+      const char *rplc = stringtable_find(stable, id, NULL);
+      if (rplc) {
+         strcopy_n(mglob->mapname,rplc,sizeof(mglob->mapname));
+      }
+   }
+}
+
 int load_map(const char *filename)
   {
   FILE *f;
@@ -316,12 +327,14 @@ int load_map(const char *filename)
          case A_MAPGLOB:
                   num_ofsets[BACK_NUM]=ofsts;
                   num_ofsets_count[BACK_NUM]=1;
-				  memset(&mglob,0,sizeof(mglob));
+				      memset(&mglob,0,sizeof(mglob));
                   memcpy(&mglob,temp,MIN((int)size,(int)sizeof(mglob)));
                   free(temp);
-                  for(r=0;r<4;r++)
-                  def_handle(ofsts++,mglob.back_fnames[r],pcx_fade_decomp,SR_GRAFIKA);
+                  for(r=0;r<4;r++) {
+                        def_handle(ofsts++,mglob.back_fnames[r],pcx_fade_decomp,SR_GRAFIKA);
+                  }
                   back_color=RGB888(mglob.fade_r,mglob.fade_g,mglob.fade_b);
+                  translate_map_name(filename, &mglob);;
                   break;
          case A_MAPITEM:
                   SEND_LOG("(GAME) Loading items...");

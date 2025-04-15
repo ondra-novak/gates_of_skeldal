@@ -129,7 +129,7 @@ static void PlayMGFFile(const void *file, MGIF_PROC proc,int ypos,char full)
   {
   int32_t scr_linelen2 = GetScreenPitch();
   mgif_install_proc(proc);
-  sound=PrepareVideoSound(22050,256*1024);
+  sound=PrepareVideoSound(22050,226*1024);
   picture=getmem(2*3+320*180*2);
   picture[0]=320;
   picture[1]=180;

@@ -82,7 +82,7 @@ static TSHOP_ALL_STATE shop_all_state;
 #define INV_YS 60
 #define INV_NAME_X 129
 #define INV_NAME_Y 349
-#define INV_NAME_COL (RGB555(10,31,31)|FONT_TSHADOW_GRAY)
+#define INV_NAME_COL (RGB555(10,31,31)|FONT_TSHADOW)
 #define INV_DESK 266
 #define INV_INFO_X 298
 #define INV_INFO_Y 343
@@ -2547,6 +2547,8 @@ static void rebuild_shops(const void *shop_ptr)
   const char *c=(const char *)shop_ptr;
   int i;
 
+  
+
   SEND_LOG("(SHOP) Rebuilding shops....");
   max_shops = *(const int32_t *)c;
   c+=4;
@@ -2574,9 +2576,17 @@ static void rebuild_shops(const void *shop_ptr)
   shop_all_state.first_state = (TSHOP_PRODUCT_STATE *)(prod_iter+products);
   TSHOP_PRODUCT_STATE *state_iter = shop_all_state.first_state;
 
+  TSTRINGTABLE *stbl = lang_load("shops.dat");
+
   for(i=0;i<max_shops;i++) {
       shop_list[i] = shop_iter;
       c = load_TSHOP(c, shop_iter);
+      if (stbl) {
+        const char *n = stringtable_find(stbl,shop_iter->shop_id,NULL);
+        if (n) {
+          strcopy_n(shop_iter->keeper,n,sizeof(shop_iter->keeper));
+        }
+      }
       shop_iter->list = prod_iter;
       for (int j = 0; j < shop_iter->products; ++j) {
           c = load_TPRODUCT(c, prod_iter);
@@ -2588,6 +2598,7 @@ static void rebuild_shops(const void *shop_ptr)
       ++shop_iter;
       SEND_LOG("(SHOP) Shop found: '%s', products %d",shop_list[i]->keeper,shop_list[i]->products);
   }
+  stringtable_free(stbl);
   free(shop_hacek);
   shop_hacek = newhacek;
   }
