@@ -6,8 +6,8 @@ extern "C" {
 
 // Initialize Steam (if available). Optional to call.
 // If not called manually, will auto-init on first achievement set.
-void achievements_init();
-void achievements_shutdown();
+void steam_init();
+void steam_shutdown();
 
 /// Set an achievement by its API name (if Steam available, otherwise ignored)
 /**

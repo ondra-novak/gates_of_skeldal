@@ -1070,6 +1070,28 @@ static void load_specific_file(const char *filename,const char *name, void **out
   }
 
 
+static const char * get_savegame_name(TSAVEGAME_LIST *lst, unsigned int index) {
+  if (!lst->names) {
+    lst->names = create_list(lst->count);
+  }
+  if (!lst->names[index]) {
+        FILE *f = NULL;
+        if (lst->files[index] != NULL) {
+            f=fopen_icase(build_pathname(2, gpathtable[SR_SAVES], lst->files[index]), "rb");
+        }
+        if (f!=NULL) {
+            char slotname[SAVE_NAME_SIZE+1];
+            fread(slotname,1,SAVE_NAME_SIZE,f);
+            slotname[SAVE_NAME_SIZE] = 0;
+            fclose(f);
+            str_replace(&lst->names, index, slotname);
+        } else {
+            str_replace(&lst->names, index, texty[75]);
+        }
+    }
+    return lst->names[index];
+}
+
 static TSAVEGAME_LIST get_all_savegames(unsigned long kampan, char skip_autosave) {
     //sav.creation_time.game_save_time
     char prefix[50];
@@ -1081,18 +1103,18 @@ static TSAVEGAME_LIST get_all_savegames(unsigned long kampan, char skip_autosave
     st.count = 0;
     st.skip_autosave = skip_autosave;
     list_files(gpathtable[SR_SAVES], file_type_just_name|file_type_need_timestamp|file_type_normal, get_all_savegames_callback, &st);
-    qsort(st.files, st.count, sizeof(char *), compare_strings);
-    if (kampan == 0) {
-        st.count =dedup_strings_prefix(st.files, (int)st.count);
-    }
+//    qsort(st.files, st.count, sizeof(char *), compare_strings);
+//    if (kampan == 0) {
+//        st.count =dedup_strings_prefix(st.files, (int)st.count);
+//    }
     qsort(st.files, st.count, sizeof(char *), compare_strings_third_back);
 
-    TSTR_LIST names = create_list(st.count);
+    TSTR_LIST names = NULL;
     char *autosave_list = NewArr(char, st.count);
     for (size_t i = 0; i < st.count; ++i) {
         size_t fns = strlen(st.files[i]);
         autosave_list[i] = st.files[i][fns+1];
-        FILE *f=fopen_icase(build_pathname(2, gpathtable[SR_SAVES], st.files[i]), "rb");
+/*        FILE *f=fopen_icase(build_pathname(2, gpathtable[SR_SAVES], st.files[i]), "rb");
         if (f!=NULL) {
             char slotname[SAVE_NAME_SIZE+1];
             fread(slotname,1,SAVE_NAME_SIZE,f);
@@ -1101,8 +1123,9 @@ static TSAVEGAME_LIST get_all_savegames(unsigned long kampan, char skip_autosave
             str_replace(&names, i, slotname);
         } else {
             str_replace(&names, i, texty[75]);
-        }
+        }*/
     }
+
 
     TSAVEGAME_LIST out;
     out.files = st.files;
@@ -1130,7 +1153,7 @@ static void place_name(int c,int i,char show, char sel)
   if ((size_t)p >= current_game_slot_list.count) return;
   if (c) x=SAVE_SLOT_S;else x=LOAD_SLOT_S;
   if (show) schovej_mysku();
-  const char *name = current_game_slot_list.names[p];
+  const char *name = get_savegame_name(&current_game_slot_list,p);
   set_font(SLOT_FONT,sel?SELECT_COLOR:NORMAL_COLOR);
   int w = text_width(name);
   int spc = 0;
@@ -1428,14 +1451,14 @@ T_CLK_MAP clk_load_error[]=
   };
 
 
-static const char *find_autosave(const char *name);
+//static const char *find_autosave(const char *name);
 
 static char clk_load_proc_menu(int id,int xa,int ya,int xr,int yr)
   {
   id=bright_slot(yr-18);
   xa;ya;xr;yr;
   if (ms_last_event.event_type & 0x2 && id>=0 && (size_t)id < current_game_slot_list.count) {
-     send_message(E_CLOSE_MAP,find_autosave(current_game_slot_list.files[id]));
+     send_message(E_CLOSE_MAP,current_game_slot_list.files[id]);
   }
   return 1;
   }
@@ -1596,7 +1619,7 @@ T_CLK_MAP clk_load[]=
 
 static char clk_save_proc(int id,int xa,int ya,int xr,int yr)
   {
-  id=bright_slot(yr-18)+current_slot_list_top_line;
+  id=bright_slot(yr-18);
   xa;ya;xr;yr;
   if (ms_last_event.event_type & 0x2 && id>=0)
      {
@@ -1701,7 +1724,7 @@ static void saveload_keyboard_menu(EVENT_MSG *msg,void **_)
         case 31:
         case 'P':if (last_select<(int)current_game_slot_list.count-1) select_slot(last_select+1);break;
         case 28:if (last_select>= 0 && last_select < (int)current_game_slot_list.count) {
-                send_message(E_CLOSE_MAP, find_autosave(current_game_slot_list.files[last_select]));
+                send_message(E_CLOSE_MAP, current_game_slot_list.files[last_select]);
                 break;
         }
 
@@ -1725,16 +1748,19 @@ void unwire_save_load(void)
 
 
 void wire_save_load(char save) {
+    current_slot_list_top_line = 0;
+    last_select = -1;
     schovej_mysku();
     mute_all_tracks(0);
     force_save=save & 1;
-    current_game_slot_list = get_all_savegames(current_campaign, save & (1+4));
+    current_game_slot_list = get_all_savegames(current_campaign, save & 1);
     curcolor = RGB555(0,0,0);
     bar32(0, 17, 639, 17 + 360);
     if (save == 1) {
         current_game_slot_list.count++;
         str_insline(&current_game_slot_list.files, 0, NULL);
-        str_insline(&current_game_slot_list.names, 0, texty[75]);
+        release_list(current_game_slot_list.names);
+        current_game_slot_list.names = NULL;
         free(current_game_slot_list.autosave_flags);
         current_game_slot_list.autosave_flags = NewArr(char, current_game_slot_list.count);
         memset(current_game_slot_list.autosave_flags,0,current_game_slot_list.count);
@@ -1898,7 +1924,7 @@ void do_save_dialog() {
 
 
 }
-
+/*
 static int find_autosave_callback(const char *name, LIST_FILE_TYPE  type , size_t tm, void *ctx) {
     static char *autosave_name = NULL;
     char **s = (char **)ctx;
@@ -1918,11 +1944,11 @@ static const char *find_autosave(const char *name) {
     return name;
 
 }
-
+*/
 static void save_as_dialog(int pos) {
     DEFAULT_GAME_NAME("");
     const char *todel = current_game_slot_list.files[pos];
-    const char *name = current_game_slot_list.names[pos];
+    const char *name = get_savegame_name(&current_game_slot_list,pos);
     if (todel != NULL)  {
         strcopy_n(game_name, name, sizeof(game_name));
         todel = build_pathname(2,gpathtable[SR_SAVES],todel);

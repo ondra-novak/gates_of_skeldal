@@ -18,7 +18,7 @@ void run_steam_callbacks(const EVENT_MSG *msg,void **)  {
     }
 }
 
-void achievements_init()
+void steam_init()
 {
     if (!steam_initialized) {
         steam_initialized = 1;
@@ -32,7 +32,7 @@ void achievements_init()
     }
 }
 
-void achievements_shutdown()
+void steam_shutdown()
 {
     if (steam_available) {
         send_message(E_DONE, E_IDLE, &run_steam_callbacks);
@@ -44,7 +44,7 @@ void achievements_shutdown()
 
 int8_t set_achievement(const char *id)
 {
-    achievements_init();
+    steam_init();
 
     if (!steam_available) {
         return -1;
@@ -61,7 +61,7 @@ int8_t set_achievement(const char *id)
 
 int8_t clear_achievement(const char *id)
 {
-    achievements_init();
+    steam_init();
 
     if (!steam_available) {
         return -1;
