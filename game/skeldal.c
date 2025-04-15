@@ -1,4 +1,5 @@
 #include <platform/platform.h>
+#include <platform/achievements.h>
 #include <assert.h>
 #include <stdarg.h>
 #include <stdlib.h>
@@ -723,7 +724,7 @@ void do_timer(void)
 
 void done_skeldal(void)
   {
-
+  achievements_shutdown();
 
   close_manager();
   close_story_file();
@@ -987,7 +988,9 @@ void init_skeldal(const INI_CONFIG *cfg)
 
   cti_texty();
   timer_tree.next=NULL;
-  init_events();
+  init_events();  
+
+  achievements_init();
 
   char verr = game_display_init(ini_section_open(cfg, "video"), "Skeldal");
   if (!verr)

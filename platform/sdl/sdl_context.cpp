@@ -11,6 +11,15 @@
 #include <stdexcept>
 #include <sstream>
 #include <algorithm>
+#include <steam/steam_api.h>
+#include <stdbool.h>
+#include <thread>
+#include <mutex>.
+#include <condition_variable>
+#include <chrono>
+#include <string_view>
+#include <stop_token>
+
 void SDLContext::SDL_Deleter::operator ()(SDL_Window* window) {
     SDL_DestroyWindow(window);
 }

@@ -101,6 +101,8 @@ static int dialog_mob=0;
 
 static char code_page=1;
 
+char trace_dialogs=0;	
+
 static char case_click(int id,int xa,int ya,int xr,int yr);
 static char ask_who_proc(int id,int xa,int ya,int xr,int yr);
 
@@ -222,11 +224,7 @@ static void run_anim(char *name,int speed,int rep)
 
 static void error(char *text)
   {
-  char buff[256];
-  sprintf(buff,"%.125s v odstavci %d\r\nLocal_pgf=%d / DIALOG : %d / SENTENCE : %d\r\n",text,last_pgf+local_pgf,local_pgf,local_pgf/128,last_pgf);
-//  MessageBox(NULL,buff,NULL,MB_OK|MB_ICONSTOP|MB_SYSTEMMODAL);
-  SEND_LOG("(DIALOGS) Dialog error detected at %d:%d",local_pgf/128,last_pgf);
-  SEND_LOG("(DIALOGS) Error description: %s",text);
+  wzprintf("%.125s paragraph %d\r\nLocal_pgf=%d / DIALOG : %d / SENTENCE : %d\r\n",text,last_pgf+local_pgf,local_pgf,local_pgf/128,last_pgf);
   }
 
 static void show_dialog_picture()
@@ -253,7 +251,7 @@ static T_PARAGRAPH *find_paragraph(int num)
   {
   char s[80];
 
-  sprintf(s,"Odstavec %d neexistuje! Odkaz byl vyvol�n",num);
+  sprintf(s,"Paragraph %d doesn't exists! Called from",num);
   error(s);
   return (T_PARAGRAPH *)pp;
   }
@@ -283,6 +281,7 @@ static void goto_paragraph(int prgf)
   do
      {
      z=find_paragraph(prgf);
+     if (trace_dialogs) wzprintf("Dialog goto_paragraph %d (visited=%d)\n",prgf+local_pgf, z->visited);
      if (z->visited) z->first=1;
      if (z->alt==z->num || !z->visited)
         {
@@ -1507,3 +1506,20 @@ char load_dialog_info(TMPFILE_RD *f)
   SEND_LOG("(DIALOGS)(SAVELOAD) Done...");
   return res;
   }
+
+  char dialog_is_paragraph(int id) {
+    const  int *pp=(const int *)ablock(H_DIALOGY_DAT);
+    int pocet=*pp;
+    pp+=2;
+    const T_PARAGRAPH *z=(const T_PARAGRAPH *)pp;
+    for(int i=0;i<pocet;i++,z++) if (z->num==(unsigned)id) return 1;
+    return 0;
+  }
+
+  char dialog_set_notvisited(int pgf) {
+    local_pgf = 0;
+    if (!dialog_is_paragraph(pgf)) return 0;
+    set_nvisited(pgf);
+    return 1;
+  }
+  

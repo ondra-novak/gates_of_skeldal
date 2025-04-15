@@ -1738,7 +1738,9 @@ short *q_item_one(int i,int itnum); //test zda postava i ma vec itnum
 short *q_item(int itnum,int sector); //test zda-li aspon jeden na sectoru ma vec itnum
 void change_flag(int flag,char mode); //meni vlajku = 0 - reset, 1 - set, 2 - neg
 char test_flag(int flag); //vraci stav vlajky;
-
+char dialog_is_paragraph(int id); //vraci zda-li je id dialogem
+char dialog_set_notvisited(int pgf); //nastavi ze stranka nebyla navstivena
+extern char trace_dialogs;
 
 
 //generator
