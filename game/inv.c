@@ -24,6 +24,8 @@
 #include <stddef.h>
 #include <string.h>
 
+#include "ach_events.h"
+
 #define neprezbrojit() (battle && (battle_mode!=MD_PREZBROJIT || select_player!=human_selected-postavy))
 
 #define _SHOP_ST "_SHOPS.TMP"
@@ -556,10 +558,11 @@ void pop_item(int sect,int pos,int mask,short **picked_item)
 
 void pick_set_cursor(void)
   {
-  if (picked_item==NULL)
+  if (picked_item==NULL) {
      item_in_cursor=H_MS_DEFAULT;
-  else
+  } else  {
      item_in_cursor=-(glob_items[*picked_item-1].ikona);
+  }
   mouse_set_default(item_in_cursor);
   }
 
@@ -573,6 +576,12 @@ void do_items_specs(void)
         TITEM *p;
         GlobEvent(MAGLOB_ONPICKITEM,viewsector,viewdir);
         if (picked_item==0) return;
+
+        const short *s = picked_item;
+        while (*s) {
+            ach_event_pick_item(abs(*s)-1);
+            ++s;
+        }
 
         p=&glob_items[*picked_item-1];
         switch(p->druh)
@@ -781,6 +790,7 @@ char put_item_to_inv(THUMAN *p,short *picked_items)
      i--;
      it=abs(picked_items[i]);
      p->inv[pos]=it;
+     ach_event_inv_add(it-1);
      picked_items[i]=0;
      }
   return (i==0);
@@ -1924,9 +1934,15 @@ static char bag_action(int xr, int yr) {
       while (*pk)
         {
         p=human_selected->inv[id];
-        human_selected->inv[id]=abs(*pk);
+        int itm = abs(*pk);
+        human_selected->inv[id]=itm;
+        ach_event_inv_add(itm-1);
         *pk=p;pk++;
-        if (*pk) while (human_selected->inv[id]) if ((++id)>=human_selected->inv_size) id=0;
+        if (*pk) {
+            while (human_selected->inv[id]) {
+                if ((++id)>=human_selected->inv_size) id=0;
+            }
+        }
         }
      }
   else
@@ -2042,7 +2058,11 @@ void vymen_batohy()
      c=picked_item;
      it=human_selected->wearing[PO_BATOH]=*c++;
      i=6;
-     while (*c && i<MAX_INV) human_selected->inv[i++]=-*c++;
+     while (*c && i<MAX_INV) {
+         int itm = -*c++;
+         human_selected->inv[i++]=itm;
+         ach_event_inv_add(itm-1);
+     }
      human_selected->inv_size=glob_items[it-1].nosnost+6;
      }
   else
@@ -2219,6 +2239,7 @@ char human_click(int id,int xa,int ya,int xr,int yr)
                       break;
         }
      human_selected->wearing[place]=*picked_item;
+     ach_event_inv_add(*picked_item-1);
      if (itsave) *picked_item=itsave;
      else
         {

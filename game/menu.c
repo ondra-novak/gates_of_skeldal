@@ -18,6 +18,7 @@
 #include <libs/pcx.h>
 #include "globals.h"
 
+#include "ach_events.h"
 #include "lang.h"
 
 #define MUSIC "TRACK06.MUS"
@@ -616,6 +617,7 @@ void konec_hry()
   int task_id;
   int timer;
 
+  ach_event_end_game();
 
   schovej_mysku();
   curcolor=0;

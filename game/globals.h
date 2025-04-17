@@ -1521,6 +1521,7 @@ typedef struct tmob
   char anim_counts[6];     //pocet animacnich policek pro kazdy pohyb
   char mobs_name[7];       //zaklad jmena souboru pro moba
   char vlajky2;             //vlajky pro summon z konzoli (BIT0 - neukladat)
+  uint8_t id;               //mobile id (template index);
   int32_t experience;          //zkusenost
   char vlajky;             //BIT0 - 1 v boji
   char anim_phase;            //cinnost kterou mob dela

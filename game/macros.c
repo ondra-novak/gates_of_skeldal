@@ -897,6 +897,7 @@ void call_macro_ex(int side, int flags, int runatside) {
     }
     rand_value = save_rand;
     save_load_trigger(saved_trigger);
+    (void)count_actions;
     SEND_LOG("(MULTIACTIONS) End: Sector %d, Side %d,  Call %X, Actions: %d",runatside/4,runatside & 3,flags,count_actions);
 
 }

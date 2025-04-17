@@ -14,6 +14,9 @@
 #include "specproc.h"
 
 #include <string.h>
+
+#include "ach_events.h"
+
 #define MOB_ZNAKY "FLBLCH"
 #define MOB_START 1
 
@@ -380,6 +383,7 @@ void load_enemies(short *data,int size,int *grptr,const TMOB *template,int32_t t
         mobs[i].dir=(data[1]>>14)&0x3;
         mobs[i].home_pos=data[0];
         mobs[i].vlajky|=MOB_LIVE;
+        mobs[i].id = (uint8_t)j;
         if (mobs[i].speed<1)
           {
   	      char buff[256];
@@ -1347,6 +1351,7 @@ void mob_check_death(int num,TMOB *p)
   bott_draw(0);
   if (p->lives>0) return;
   SEND_LOG("(GAME) Monster killed ... '%s'",p->name);
+  ach_event_kill_monster(p->id);
   sect=p->sector;
   p->vlajky&=~MOB_IN_BATTLE & ~MOB_LIVE;
   free_path(num);

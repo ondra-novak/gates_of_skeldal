@@ -20,6 +20,7 @@
 #include "globals.h"
 #include <stdarg.h>
 #include "lang.h"
+#include "ach_events.h"
 
 typedef struct t_paragraph
   {
@@ -275,8 +276,10 @@ static int find_pgnum(char *pc)
 
 static void goto_paragraph(int prgf)
   {
+
   T_PARAGRAPH *z;
 
+  ach_event_dialog_paragraph(prgf+local_pgf);
 
   do
      {
@@ -1008,6 +1011,7 @@ char join_character(int i)
      h->direction=viewdir;
      h->groupnum=cur_group;
      h->inmaphash=current_map_hash;
+     if (j == POCET_POSTAV-1) ach_event_full_party();
      reg_grafiku_postav();
      bott_draw(1);
      return 0;
