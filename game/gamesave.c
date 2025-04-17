@@ -759,7 +759,7 @@ int save_game(long game_time,char *gamename, char is_autosave)
 
   char str_buff[50];
   snprintf(str_buff,sizeof(str_buff),"sav.%08lx.%08lx%s", current_campaign, game_time, is_autosave?AUTOSAVE_SUFFIX:"");
-  SEND_LOG("(SAVELOAD) Saving game slot %d",game_time);
+  SEND_LOG("(SAVELOAD) Saving game slot %ld",game_time);
   save_map_state();
 
   const char *sn = build_pathname(2,gpathtable[SR_SAVES],str_buff);
