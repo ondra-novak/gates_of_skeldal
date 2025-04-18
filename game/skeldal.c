@@ -20,6 +20,7 @@
 #include "resources.h"
 //
 #include "advconfig.h"
+#include "ach_events.h"
 #include "skeldal.h"
 #include "lang.h"
 
@@ -1067,7 +1068,7 @@ void init_skeldal(const INI_CONFIG *cfg)
   load_shops();
   memset(&loadlevel,0,sizeof(loadlevel));
   loadlevel.eflags = 0xFF;
-  SetWheelMapping('H','P');
+
   }
 
 void wire_main_functs();
@@ -1744,6 +1745,10 @@ int skeldal_entry_point(const SKELDAL_CONFIG *start_cfg)
       gpathtable[SR_SAVES] = local_strdup(p);
   } else if (start_cfg->lang_path) {
       lang_set_folder(build_pathname(2, gpathtable[SR_LANG], start_cfg->lang_path));
+  }
+
+  if (!start_cfg->adventure_path) {
+    enable_achievements(1);
   }
 
   start_check();

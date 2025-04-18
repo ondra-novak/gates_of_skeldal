@@ -162,6 +162,7 @@ public:
 
     bool is_joystick_used() const;
     bool is_joystick_enabled() const;
+    void disable_crt_effect_temprary(bool disable);
 protected:
 
     struct SDL_Deleter {
@@ -224,6 +225,7 @@ protected:
     int aspect_y = 3;
     CrtFilterType _crt_filter= CrtFilterType::autoselect;
     bool _enable_crt = true;
+    bool _disable_crt_tmp = false;
     std::function<void()> _quit_callback;
     JoystickConfig _jcontrol_map;
     bool _jcontrol_mod_key = false;

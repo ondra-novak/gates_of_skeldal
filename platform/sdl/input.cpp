@@ -107,3 +107,6 @@ char is_joystick_used() {
 char is_joystick_enabled() {
     return get_sdl_global_context().is_joystick_enabled()?1:0;
 }
+char copy_text_to_clipboard(const char *text) {
+    return !SDL_SetClipboardText(text);
+}

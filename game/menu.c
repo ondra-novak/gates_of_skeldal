@@ -617,8 +617,7 @@ void konec_hry()
   int task_id;
   int timer;
 
-  ach_event_end_game();
-
+  
   schovej_mysku();
   curcolor=0;
   bar32(0,0,639,479);
@@ -627,6 +626,9 @@ void konec_hry()
   change_music(get_next_music_from_playlist());
   timer=get_timer_value();
   while (get_timer_value()-timer<150) task_sleep();
+
+  ach_event_end_game();
+
   task_id=add_task(8196,titles,1,"ENDTEXT.TXT");
   task_wait_event(E_KEYBOARD);
   if (is_running(task_id)) term_task(task_id);

@@ -3,6 +3,7 @@
 #include "error.h"
 #include <string.h>
 #include <sstream>
+#include "platform.h"
 
 extern "C" {
     #include <libs/event.h>
@@ -67,12 +68,21 @@ int8_t clear_achievement(const char *id)
         return -1;
     }
 
-    if (SteamUserStats() && SteamUserStats()->ClearAchievement(id)) {
+    if (istrcmp(id, "all") == 0) {
+        unsigned int cnt = SteamUserStats()->GetNumAchievements();
+        for (unsigned int i = 0; i < cnt; ++i) {
+            SteamUserStats()->ClearAchievement(SteamUserStats()->GetAchievementName(i));
+        }
         SteamUserStats()->StoreStats();
         return 0;
     } else {
-        return -1;
-    }    
+        if (SteamUserStats() && SteamUserStats()->ClearAchievement(id)) {
+            SteamUserStats()->StoreStats();
+            return 0;
+        } else {
+            return -1;
+        }    
+    }
 }
 
 char is_steam_available()
@@ -89,13 +99,6 @@ char *get_steam_status()
     oss << "Is Steam overlay enabled:" << (SteamUtils()->IsOverlayEnabled() ? "yes" : "no") <<  "\n";
     oss << "AppID: "<< SteamUtils()->GetAppID() << "\n";
     oss << "Num Achievements: " << num_achievements << "\n";
-    for (int i = 0; i < num_achievements; ++i) {
-        const char* name = SteamUserStats()->GetAchievementName(i);
-        bool achieved = false;
-        SteamUserStats()->GetAchievement(name, &achieved);
-
-        oss << "[" << i << "] " << name << " - " << (achieved ? "Yes" : "No") << "\n";
-    }
 
     std::string str = oss.str();
     char *out  = strdup(str.c_str());

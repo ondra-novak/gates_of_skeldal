@@ -188,7 +188,9 @@ void play_animation(const char *filename,char mode,int posy,char sound)
   void *mgf=map_file_to_memory(file_icase_find(filename), &sz);
   change_music(NULL);
   if (mgf==NULL) return;
+  game_display_disable_crt_effect_temporary(1);
   PlayMGFFile(mgf,BigPlayProc,posy,mode & 0x80);
+  game_display_disable_crt_effect_temporary(0);
   unmap_file(mgf, sz);
   }
 

@@ -85,8 +85,9 @@ char change_current_directory(const char *path);
 void *map_file_to_memory(const char *name, size_t *sz);
 void unmap_file(void *ptr, size_t sz);
 
+char copy_text_to_clipboard(const char *);
+
 void ShareCPU(void);
-void SetWheelMapping(char up, char down);
 
 char get_control_key_state(void);
 char get_shift_key_state(void);

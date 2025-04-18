@@ -32,7 +32,7 @@ char game_display_init(const INI_CONFIG_SECTION *display_section, const char *ti
     cfg.window_height = ini_get_int(display_section, "window_height", 480);
     cfg.window_width = ini_get_int(display_section, "window_width", 640);
 
-    const char *filter = ini_get_string(display_section, "crt_filter", "auto");
+    const char *filter = ini_get_string(display_section, "crt_filter", "none");
     if (istrcmp(filter,"none") == 0) cfg.crt_filter = SDLContext::CrtFilterType::none;
     else if (istrcmp(filter,"scanlines") == 0) cfg.crt_filter = SDLContext::CrtFilterType::scanlines;
     else if (istrcmp(filter,"scanlines_2") == 0) cfg.crt_filter = SDLContext::CrtFilterType::scanlines_2;
@@ -275,4 +275,9 @@ void game_display_unload_sprite(int sprite_id) {
 void game_display_sprite_set_zindex(int sprite_id, int zindex) {
     auto &sdl = get_sdl_global_context();
     sdl.sprite_set_zindex(sprite_id, zindex);
+}
+
+void game_display_disable_crt_effect_temporary(char disable) {
+    auto &sdl = get_sdl_global_context();
+    sdl.disable_crt_effect_temprary(disable?true:false);
 }

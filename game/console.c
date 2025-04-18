@@ -2,6 +2,7 @@
 #include <libs/event.h>
 #include <platform/achievements.h>
 #include "globals.h"
+#include "../platform/platform.h"
 
 #include <ctype.h>
 #define console_max_characters  120
@@ -166,6 +167,7 @@ static char console_input_line[console_max_characters+1]  = "";
 static char *console_output_lines[console_max_lines] = {};
 static int console_top_line = 0;
 static const char *console_command = NULL;
+static int copied_text = 0;
 
 static const int console_x = 0;
 static const int console_y = SCREEN_OFFLINE;
@@ -202,6 +204,16 @@ void draw_console_window() {
         if (console_output_lines[p]) outtext(console_output_lines[p]);
         y-=text_height("X");
         if (y < console_y+console_padding) break;
+    }
+    if (copied_text > 0) {
+        const char *c = "Copied";
+        set_aligned_position(console_x+console_width, console_y, 2, 0, c);
+        outtext(c);
+        --copied_text;
+    } else if (get_control_key_state()) {
+        const char *c = "Press CTRL+C to copy content";
+        set_aligned_position(console_x+console_width, console_y, 2, 0, c);
+        outtext(c);
     }
 }
 
@@ -570,9 +582,10 @@ static int process_with_params(const char *cmd, const char *args) {
         return 0;
     }
 
-    if (istrcmp(cmd, "achieve") == 0) {
+/*    if (istrcmp(cmd, "achieve") == 0) {
         return !set_achievement(args);
     }
+*/
     if (istrcmp(cmd, "unachieve") == 0) {
         return !clear_achievement(args);
     }
@@ -619,12 +632,40 @@ static int process_command(PARSED_COMMAND cmd) {
     return 0;
 }
 
+static void console_copy_to_clipboard() {
+    size_t needsz = 0;
+    for (unsigned int i = 0; i < console_max_lines; ++i) {
+        if (console_output_lines[i]) needsz = needsz + strlen(console_output_lines[i]) + 2;        
+    }
+    needsz+=1;
+    char *text = (char *)malloc(needsz);
+    char *iter = text;
+    for (unsigned int i = console_max_lines; i > 0; ) {
+        --i;
+        if (console_output_lines[i]) {
+            size_t len = strlen(console_output_lines[i]);
+            memcpy(iter, console_output_lines[i], len);
+            iter+=len;
+            *iter = '\r';
+            ++iter;
+            *iter = '\n';
+            ++iter;            
+        }
+    }
+    *iter = 0;
+    if (copy_text_to_clipboard(text)) {
+        copied_text = 20;
+    }
+    free(text);
+} 
+
 static void console_keyboard(EVENT_MSG *msg, void **_) {
     if (msg->msg == E_KEYBOARD) {
         int code = va_arg(msg->data, int);
         int c = code & 0xFF;
         if (c == E_QUIT_GAME_KEY) return;
         if (c) {
+
             int len = strlen(console_input_line);
             if (c == 0x1B) {
                 console_show(0);
@@ -648,6 +689,8 @@ static void console_keyboard(EVENT_MSG *msg, void **_) {
                 console_command = NULL;
                 free(cmd.cmd_buffer);
                 msg->msg = -1;
+            } else if (c == 3 && !get_shift_key_state()) {
+                console_copy_to_clipboard();                
             } else if (c >=32 && len < console_max_characters) {
                 console_input_line[len] = c;
                 console_input_line[len+1] = 0;

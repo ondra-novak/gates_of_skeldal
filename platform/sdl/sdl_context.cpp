@@ -14,7 +14,7 @@
 #include <steam/steam_api.h>
 #include <stdbool.h>
 #include <thread>
-#include <mutex>.
+#include <mutex>
 #include <condition_variable>
 #include <chrono>
 #include <string_view>
@@ -673,7 +673,7 @@ void SDLContext::refresh_screen() {
         recalc_rect.y = _mouse_rect.y - static_cast<int>(f.y * _mouse_size);
         SDL_RenderCopy(_renderer.get(), _mouse.get(), NULL, &recalc_rect);
     }
-    if (winrc.h >= 720 && _crt_filter != CrtFilterType::none && _enable_crt)  {
+    if (winrc.h >= 720 && _crt_filter != CrtFilterType::none && _enable_crt && !_disable_crt_tmp)  {
         if (!_crt_effect) {
             SDL_Texture *txt;
               generateCRTTexture(_renderer.get(), &txt, winrc.w, winrc.h, _crt_filter);
@@ -1134,4 +1134,8 @@ SDLContext::JoystickButton SDLContext::button_from_string(std::string_view s) {
     if (s=="mod_key") return JoystickButton::mod_key;
     return JoystickButton::disabled;
 
+}
+
+void SDLContext::disable_crt_effect_temprary(bool disable) {
+    _disable_crt_tmp = disable;
 }
