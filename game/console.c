@@ -358,6 +358,11 @@ static int process_on_off_command(const char *cmd, char on) {
 
 void postavy_teleport_effect(int sector,int dir,int postava,char effect);
 
+static int command_ls_callback(const char*name, void* ctx) {
+    wzprintf("%s\n", name);
+    return 0;
+}
+
 static int process_actions(const char *command) {
     if (istrcmp(command, "flute") == 0) {
         bott_draw_fletna();
@@ -433,12 +438,6 @@ static int process_actions(const char *command) {
         play_fx_at(FX_MAGIC);
         return 1;
     }
-    if (istrcmp(command, "world-list") == 0) {
-        int cnt = 0;
-        list_files(gpathtable[SR_MAP], file_type_normal|file_type_just_name, add_file_to_console, &cnt);
-        wzprintf("\n");
-        return 1;
-    }
     if (istrcmp(command, "beam-me-up") == 0) {
         for (int i = 1; i < mapsize; ++i) {
             map_coord[i].flags |= MC_AUTOMAP;
@@ -485,7 +484,10 @@ static int process_actions(const char *command) {
         wzputs("Help has left the chat. Try the forums, brave wanderer. Set your inner-eye on");
         return 1;
     }
-
+    if (istrcmp(command, "ls") == 0)  {
+        temp_storage_list(command_ls_callback,NULL);
+        return 1;
+    }
 
 
     return 0;
@@ -582,10 +584,6 @@ static int process_with_params(const char *cmd, const char *args) {
         return 0;
     }
 
-/*    if (istrcmp(cmd, "achieve") == 0) {
-        return !set_achievement(args);
-    }
-*/
     if (istrcmp(cmd, "unachieve") == 0) {
         return !clear_achievement(args);
     }
@@ -609,7 +607,50 @@ static int process_with_params(const char *cmd, const char *args) {
         int id = atoi(args);
         return dialog_set_notvisited(id);        
     }
-     
+
+    if (istrcmp(cmd, "cat") == 0) {
+        int32_t sz =temp_storage_find(args);
+        if (sz < 0) return 0;
+        char *data = (char *)malloc(sz+1);
+        temp_storage_retrieve(args,data,sz);
+        data[sz] = 0;
+        char *data2 = (char *)malloc(sz+10);
+        int xs, ys;
+        zalamovani(data, data2,600, &xs, &ys);
+        char *iter = data2;
+        while (iter < data2+sz) {
+            wzputs(iter);
+            iter = iter + strlen(iter)+1;
+        }
+        free(data);
+        free(data2);
+        return 1;
+    }
+
+    if (istrcmp(cmd, "hex") == 0) {
+        int32_t sz =temp_storage_find(args);
+        if (sz < 0) return 0;
+        uint8_t *data = (uint8_t *)malloc(sz);
+        temp_storage_retrieve(args,data,sz);
+        char *data2 = (char *)malloc(sz*3+1);
+        char *iter = data2;
+        for (int32_t i = 0; i < sz; i++) {
+            snprintf(iter,4, "%02X ", (int)data[i]);
+            iter = iter+3;
+        }
+        char *data3 = (char *)malloc(sz*3+10);
+        int xs, ys;
+        zalamovani(data2, data3,600, &xs, &ys);
+        iter = data3;
+        while (*iter) {
+            wzputs(iter);
+            iter = iter + strlen(iter)+1;
+        }
+        free(data3);
+        free(data2);
+        free(data);
+        return 1;
+    } 
     return 0;
 }
 

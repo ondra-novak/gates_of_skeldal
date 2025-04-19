@@ -136,14 +136,15 @@ offlers-blessing
 rise-and-shine
 ascent
 by-the-power-of-grayskull
+dispel-magic
 ```
 
 #### maps
 
 ```
 global-map
-world-list
 echo-location
+echoes-of-the-past
 ```
 
 ### with parameters
@@ -154,5 +155,20 @@ summon <string>
 say <string>
 speed <integer>
 portal-jump <string.map>
+talk <integer>
+talk </integer>
+unachieve <achievement>
+unachieve all
+
 ```
 
+### debug
+
+```
+flute
+status
+steam
+ls
+cat <file>
+hex <file>
+```
