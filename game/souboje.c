@@ -736,6 +736,7 @@ void konec_kola()
   if (j<POCET_POSTAV) memset(&postavy[j],0,sizeof(THUMAN)*(POCET_POSTAV-j));
   destroy_player_map();
   tick_tack(1);
+  send_message(E_KOUZLO_KOLO);
   TimerEvents(viewsector,viewdir,game_time);
   }
 
@@ -2103,12 +2104,14 @@ static void zahajit_kolo(char prekvapeni)
                                 }
                              p->programovano=(char)p->actions;
                              }
+                          }  else if (p->used && !p->lives) {
+                            umirani_postavy(p);
                           }
                           }
   rozhodni_o_poradi();
   unwire_proc();
   wire_jadro_souboje();
-  send_message(E_KOUZLO_KOLO);
+  
   }
 
 static char add_pc_action(int d) {
@@ -2684,7 +2687,7 @@ char player_check_death(THUMAN *p, char afterround)
         }
      p->groupnum=0;
      p->lives=0;
-     p->kondice=0;
+//     p->kondice=0;
      p->mana=0;
      SEND_LOG("(GAME) Character '%s' died. R.I.P.",p->jmeno);
      if (numplayers(p->sektor,0)==0) map_coord[p->sektor].flags &=~MC_PLAYER;

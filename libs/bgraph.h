@@ -148,5 +148,7 @@ void put_picture2picture(const word *source,word *target,int xp,int yp);
 
 void draw_rounded_rectangle(int x, int y, int xs, int ys, int radius,
                             int stroke_color, int fill_color);
+void greyscale_rectangle_ex(int x, int y, int xs, int ys, uint16_t *screen_address, size_t line_width);
+void greyscale_rectangle(int x, int y, int xs, int ys);
 
 #define swap_int(a,b) do  {int c=a;a=b;b=c;} while (0);

@@ -789,3 +789,27 @@ void draw_rounded_rectangle(int x, int y, int xs, int ys, int radius,
         }
     }
 }
+
+void greyscale_rectangle_ex(int x, int y, int xs, int ys, uint16_t *screen_address, size_t line_width) {
+  for (int j = y; j < y + ys; j++) {
+    for (int i = x; i < x + xs; i++) {
+      uint16_t *pixel = screen_address + j * line_width + i;
+      uint16_t color = *pixel;
+
+      // Extract RGB components (5 bits each)
+      int r = (color >> 10) & 0x1F;
+      int g = (color >> 5) & 0x1F;
+      int b = color & 0x1F;
+
+      // Calculate greyscale value (average of RGB)
+      int grey = (r + g + b) / 3;
+
+      // Reconstruct the pixel with the MSB intact
+      *pixel = (color & 0x8000) | (grey << 10) | (grey << 5) | grey;
+    }
+  }
+}
+
+void greyscale_rectangle(int x, int y, int xs, int ys) {
+  greyscale_rectangle_ex(x,y,xs,ys,GetScreenAdr(),GetScreenPitch());
+}

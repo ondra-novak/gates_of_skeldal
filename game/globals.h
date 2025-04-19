@@ -939,6 +939,7 @@ typedef struct thuman
   uint8_t groupnum;                //cislo skupiny 0-6
   int8_t xicht;                   //cislo obliceje 0-5
   uint8_t direction;               //smer otoceni
+  uint8_t downpoints;           //pokud mrtva postava ma nejake body, tak ji lze ozivit lecenim
   short sektor;                 //sektor postaveni
   short vlastnosti[VLS_MAX];    //mapa aktualnich vlastnosti po korekcich
   short bonus_zbrani[TPW_MAX];  //bonusy za zbrane
@@ -1592,6 +1593,7 @@ int vypocet_zasahu(const short *utocnik,const short *obrance, int chaos,int  zbr
 void rozhodni_o_smeru(TMOB *p);
 void krok_moba(TMOB *p);
 void pomala_regenerace_postavy(THUMAN *p);
+void umirani_postavy(THUMAN *p);
 char zasah_veci(int sector,TFLY *fl);
 void vymaz_zasahy(THE_TIMER *q);
 char check_end_game(void);

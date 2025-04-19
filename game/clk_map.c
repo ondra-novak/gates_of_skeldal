@@ -258,9 +258,9 @@ char start_invetory(int id,int xa,int ya,int xr,int yr)
      p=&postavy[i];
      if (p->used && p->inmaphash == current_map_hash)
         {
-        if (ms_last_event.event_type & (0x2|MS_EVENT_MOUSE_LDBLCLK))
+        if (ms_last_event.event_type & (0x2))
            {
-           if (get_control_key_state() || (ms_last_event.event_type & MS_EVENT_MOUSE_LDBLCLK))
+           if (get_control_key_state() )
               {
               if (p->sektor==viewsector)
                  {
@@ -465,7 +465,7 @@ T_CLK_MAP clk_main_view[]=
   {MS_GAME_WIN,0,17,639,377,clk_throw,2,-1},
   {MS_GAME_WIN,0,17,639,250,clk_mob_alter,2,-1},
   {-1,0,378,639,479,sing_song_clk,0xff,-1},
-  {-1,54,378,497,479,start_invetory,2+8+MS_EVENT_MOUSE_LDBLCLK,-1},
+  {-1,54,378,497,479,start_invetory,2+8,-1},
   {-1,315,0,335,14,spell_casting,2,-1},
   };
 

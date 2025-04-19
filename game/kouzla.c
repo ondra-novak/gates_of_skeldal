@@ -143,8 +143,10 @@ typedef struct tkouzlo
   short cil;  //2  //kladna cisla jsou postavy zaporna potvory (0 je bez urceni postavy)
   char povaha;
   char traceon;    //jinak noanim - neprehravaji se animace a zvuky
-  //paddding 1 byte
-  word backfire; //backfire / 1 = demon , 0 = bez demona
+  union {
+    word backfire; //backfire 
+    word demon;     // 1 = demon , 0 = bez demona
+  } bkdm;
   word wait;   //wait - cekani pocet animaci
   word delay;  //delay - cekani pocet kol
   char spellname[28];
@@ -694,7 +696,7 @@ static void unaffect_after_demon(int cil)
      a=0;
      for(i=0;i<MAX_SPELLS;i++) {
        TKOUZLO *spl = spl=spell_table[i];
-       if (spl!=NULL && spl->cil==cil && spl->backfire==1)
+       if (spl!=NULL && spl->cil==cil && spl->bkdm.demon==1)
        {
            if (spl->wait)
               {
@@ -763,6 +765,7 @@ static void spell_demon(int num,TKOUZLO *spl,int cil,int demon)
   cil--;
   if (postavy[cil].stare_vls[VLS_KOUZLA] & SPL_DEMON) return;
   spl->owner=demon;
+  spl->bkdm.demon = 1;
   zmena_demona(cil,demon,1);
   postavy[cil].stare_vls[VLS_KOUZLA]|=SPL_DEMON;
   _flag_map[num]|=SPL_DEMON;
@@ -1476,10 +1479,9 @@ void call_spell(int i)
   if (cil>0)
      {
      cil--;
-     if (postavy[cil].stare_vls[VLS_KOUZLA] & SPL_DEMON && ~_flag_map[i] & SPL_DEMON && p->backfire==0)
+     if (postavy[cil].vlastnosti[VLS_KOUZLA] & SPL_DEMON && !p->bkdm.demon && !p->delay)
         {
-        p->wait=1;
-        return;
+        p->delay=1;        
         }
      }
   if (p->delay) return;
@@ -1742,7 +1744,7 @@ int add_spell(int num,int cil,int owner,char noanim)
   p->owner=owner;
   p->traceon=noanim;
   p->teleport_target=teleport_target;
-  if (cil>0) p->backfire=(postavy[cil-1].stare_vls[VLS_KOUZLA] & SPL_DEMON)!=0;
+  if (cil>0) p->bkdm.demon=(postavy[cil-1].stare_vls[VLS_KOUZLA] & SPL_DEMON)!=0;
   aunlock(H_KOUZLA);
   spell_table[i]=p;
   if (cil>0 && owner>=0) postavy[cil-1].spell=1;
@@ -1888,7 +1890,7 @@ void cast(int num,THUMAN *p,int owner, char backfire)
      if (um*2<k->um) return;
      per1=(um-k->um/2)*128/k->um;
      per2=rnd(64);
-     if ((per1/2+32)<per2 && (k->backfire || (game_extras & EX_RANDOM_BACKFIRES)!=0))
+     if ((per1/2+32)<per2 && (k->bkdm.backfire || (game_extras & EX_RANDOM_BACKFIRES)!=0))
            {
            p->mana-=k->mge;
 		   if ((game_extras & EX_RANDOM_BACKFIRES)!=0)
@@ -1899,7 +1901,7 @@ void cast(int num,THUMAN *p,int owner, char backfire)
 			 cast(rand()*105/RAND_MAX+(cil*512),p,p-postavy,1);
 			 return;
 			 }
-           cast(k->backfire+(cil<<9),p,owner,1);
+           cast(k->bkdm.backfire+(cil<<9),p,owner,1);
            return;
            }
      if(per1<per2)
@@ -2183,7 +2185,7 @@ void unaffect_demon(int cil)
 
   cil++;
   SEND_LOG("(SPELLS) Demon returns to astral spaces...");
-  for(i=0;spl=spell_table[i],i<MAX_SPELLS;i++) if (spl!=NULL && _flag_map[i] & SPL_DEMON && spl->cil==cil)
+  for(i=0;spl=spell_table[i],i<MAX_SPELLS;i++) if (spl!=NULL && _flag_map[i] & SPL_DEMON && spl->cil==cil && spl->bkdm.demon)
      {
      while (spell_table[i]!=NULL)
         {

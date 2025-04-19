@@ -552,9 +552,6 @@ void SDLContext::event_loop(std::stop_token stp) {
                 case 3: ms_event.tl2 = !up; shift = 3; break;
             }
             ms_event.event_type |= (1<<(shift+up));
-            if (e.type == SDL_MOUSEBUTTONDOWN && e.button.clicks == 2 && e.button.button == 1) {
-                ms_event.event_type |= MS_EVENT_MOUSE_LDBLCLK;
-            }
         } else if (e.type == SDL_MOUSEWHEEL) {
             if (e.wheel.y > 0) kbdevent =SDL_SCANCODE_UP;
             else if (e.wheel.y < 0) kbdevent =SDL_SCANCODE_DOWN;

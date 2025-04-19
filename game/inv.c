@@ -1078,6 +1078,7 @@ char check_jidlo_voda(THUMAN *p)
 char check_map_specials(THUMAN *p)
   {
   char c=0;
+  if (p->inmaphash != current_map_hash) return;
   switch(mglob.map_effector)
      {
      case ME_NORMAL:break;
@@ -1087,6 +1088,10 @@ char check_map_specials(THUMAN *p)
   if (c) bott_draw(0);
   return c;
   }
+
+void umirani_postavy(THUMAN *p) {
+  p->kondice = MAX(0, p->kondice - p->vlastnosti[VLS_KONDIC]/4);
+}
 
 void pomala_regenerace_postavy(THUMAN *p)
   {
@@ -1111,6 +1116,13 @@ void pomala_regenerace_postavy(THUMAN *p)
 char sleep_regenerace(THUMAN *p)
   {
   int mreg,mmax;
+  if (p->used && (!p->lives) && p->kondice>0) {
+    if (p->inmaphash == current_map_hash) {
+        p->lives = 1;
+    } else {
+        p->kondice = 0;
+    }
+  }
   if (p->used && p->lives && p->inmaphash == current_map_hash)
      {
      if (check_jidlo_voda(p)) return 1;
@@ -1135,8 +1147,12 @@ void real_regeneration(THE_TIMER *t)
   for(i=0;i<POCET_POSTAV;i++)
      {
      p=&postavy[i];
-     if (p->used && p->lives)
-        pomala_regenerace_postavy(p);
+     if (p->used)
+        if (p->lives) {
+          pomala_regenerace_postavy(p);
+        } else {
+          umirani_postavy(p);
+        }
      }
   send_message(E_KOUZLO_KOLO);
   sleep_ticks+=MAX_SLEEP/30;
@@ -2479,10 +2495,10 @@ T_CLK_MAP clk_shop[]=
   {
   {-1,54,378,497,479,shop_change_player,2+8,-1},
   {-1,0,0,639,479,_exit_shop,8,-1},
-  {-1,INV_X,INV_Y,INV_X+INV_XS*6,INV_Y+INV_YS*5,shop_bag_click,MS_EVENT_MOUSE_LDBLCLK|MS_EVENT_MOUSE_LPRESS,-1},
+  {-1,INV_X,INV_Y,INV_X+INV_XS*6,INV_Y+INV_YS*5,shop_bag_click,MS_EVENT_MOUSE_LPRESS,-1},
   {1,2+BUYBOX_X,39+BUYBOX_Y,22+BUYBOX_X,76+BUYBOX_Y,shop_block_click,2,H_MS_DEFAULT},
   {2,246+BUYBOX_X,39+BUYBOX_Y,266+BUYBOX_X,76+BUYBOX_Y,shop_block_click,2,H_MS_DEFAULT},
-  {-1,BUYBOX_X+SHP_ICPLCX,17,BUYBOX_X+SHP_ICPLCX+4*SHP_ICSIZX,BUYBOX_Y+SHP_ICPLCY+2*SHP_ICSIZY,shop_keeper_click,MS_EVENT_MOUSE_LDBLCLK|MS_EVENT_MOUSE_LPRESS,-1},
+  {-1,BUYBOX_X+SHP_ICPLCX,17,BUYBOX_X+SHP_ICPLCX+4*SHP_ICSIZX,BUYBOX_Y+SHP_ICPLCY+2*SHP_ICSIZY,shop_keeper_click,MS_EVENT_MOUSE_LPRESS,-1},
   {-1,0,17,BUYBOX_X+SHP_ICPLCX,BUYBOX_Y,shop_keeper_click,2,-1},
   {-1,337,0,357,14,go_map,2,H_MS_DEFAULT},
   {-1,87,0,142,14,game_setup,2,H_MS_DEFAULT},

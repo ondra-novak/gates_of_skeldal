@@ -1037,11 +1037,13 @@ char drop_character()
 
 static char dead_players=0;
 
- char is_player_near(int sector, THUMAN *p, int exclude_dir) {
+ char is_player_near(int sector, THUMAN *p) {
+   if (mob_map[sector]) return 0;
     if (sector == p->sektor) return 1;
-    for (int i = 0; i  < 4; ++i) if (i != exclude_dir) {
-        if (map_sectors[sector].step_next[i] == p->sektor
-                && (map_sides[sector * 4 + i].flags & SD_PLAY_IMPS) == 0) return 1;
+    for (int i = 0; i  < 4; ++i) {
+        int s = map_sectors[sector].step_next[i];
+        if (mob_map[s]) continue;
+        if (s == p->sektor && (map_sides[sector * 4 + i].flags & SD_PLAY_IMPS) == 0) return 1;
     }
     return 0;
 }
@@ -1052,10 +1054,10 @@ char can_select_player(THUMAN *p, char select_dead, char select_far) {
                 p->sektor == 0 || p->sektor == viewsector)) return 1;
     } else {
         int side = (viewsector << 2) + viewdir;
-    if (p->used && p->lives != 0 && (select_far ||
+    if (p->used && !(p->lives == 0 && p->kondice == 0) && (select_far ||
             (p->sektor == viewsector
                     || ((map_sides[side].flags & SD_PLAY_IMPS) == 0
-                            && is_player_near(map_sectors[viewsector].step_next[viewdir], p, viewdir)
+                            && is_player_near(map_sectors[viewsector].step_next[viewdir], p)
 
                     ))))
             return 1;

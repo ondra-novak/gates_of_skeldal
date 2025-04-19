@@ -14,7 +14,7 @@ extern "C" {
 #define MS_EVENT_MOUSE_RRELEASE 16
 #define MS_EVENT_MOUSE_MPRESS 32
 #define MS_EVENT_MOUSE_MRELEASE 64
-#define MS_EVENT_MOUSE_LDBLCLK 128
+
 
 typedef struct ms_event
   {

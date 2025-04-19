@@ -487,21 +487,21 @@ char je_mozne_videt(int sector1, int sector2, int flag) {
         for (x = 0; x <= xs; x++) {
             y = (x + 1) * ys / (xs + 1);
             while (y > ly) {
-                if ((map_sides[(s << 2)].flags & flag) != (unsigned) flag) {
+                if ((map_sides[(s << 2)].flags & flag) == 0) {
                     s = map_sectors[s].step_next[0];
                     ly++;
                 } else
                     return 0;
             }
             while (y < ly) {
-                if ((map_sides[(s << 2) + 2].flags & flag) != (unsigned) flag) {
+                if ((map_sides[(s << 2) + 2].flags & flag) == 0) {
                     s = map_sectors[s].step_next[2];
                     ly--;
                 } else
                     return 0;
             }
             if (x != xs) {
-                if ((map_sides[(s << 2) + 3].flags & flag) != (unsigned) flag) {
+                if ((map_sides[(s << 2) + 3].flags & flag) == 0) {
                     s = map_sectors[s].step_next[3];
                 } else {
                     return 0;
@@ -512,19 +512,19 @@ char je_mozne_videt(int sector1, int sector2, int flag) {
         for (x = 0; x >= xs; x--) {
             y = (x - 1) * ys / (xs - 1);
             while (y > ly)
-                if ((map_sides[(s << 2)].flags & flag) != (unsigned) flag) {
+                if ((map_sides[(s << 2)].flags & flag) == 0) {
                     s = map_sectors[s].step_next[0];
                     ly++;
                 } else
                     return 0;
             while (y < ly)
-                if ((map_sides[( s << 2) + 2].flags & flag) != (unsigned) flag) {
+                if ((map_sides[( s << 2) + 2].flags & flag) == 0) {
                     s = map_sectors[s].step_next[2];
                     ly--;
                 } else
                     return 0;
             if (x != xs) {
-                if ((map_sides[(s << 2) + 1].flags & flag) != (unsigned) flag) {
+                if ((map_sides[(s << 2) + 1].flags & flag) == 0) {
                     s = map_sectors[s].step_next[1];
                 } else {
                     return 0;
@@ -559,8 +559,10 @@ int q_vidis_postavu(int sector,int dir,TMOB *p,int *otocit_se,char ret)
             case 2:ok=ys<=0;break;
             case 3:ok=xs>=0;break;
             }
-      if (ok)
-         if (je_mozne_videt(sector,postavy[i].sektor,SD_MONST_IMPS | SD_PLAY_IMPS))
+      if (ok) {
+         char shoots = p->stay_strategy & MOB_ROGUE;
+         int block_flag = shoots && MIN(abs(xs),abs(ys))  == 0?(SD_THING_IMPS):(SD_MONST_IMPS|SD_PLAY_IMPS);
+         if (je_mozne_videt(sector,postavy[i].sektor,block_flag))
             {
                int alt = 0;
                if (ys>=abs(xs)) {nd=0;alt=xs>0?3:1;}
@@ -580,8 +582,8 @@ int q_vidis_postavu(int sector,int dir,TMOB *p,int *otocit_se,char ret)
                }
                }
             }
-         else d=255;
-      else d=255;
+            else d=255;
+         } else d=255;
       if (d!=255)
          {
          d*=2;
