@@ -1,9 +1,10 @@
-#include "achievements.h"
-#include <steam/steam_api.h>
-#include "error.h"
 #include <string.h>
 #include <sstream>
+#include "achievements.h"
+#include "error.h"
 #include "platform.h"
+#ifdef STEAM_ENABLED
+#include <steam/steam_api.h>
 
 extern "C" {
     #include <libs/event.h>
@@ -25,7 +26,7 @@ void steam_init()
         steam_initialized = 1;
         steam_available = SteamAPI_Init();
         if (steam_available) {
-            send_message(E_ADD, E_IDLE, &run_steam_callbacks);  
+            send_message(E_ADD, E_IDLE, &run_steam_callbacks);
             SteamUserStats()->RequestUserStats(SteamUser()->GetSteamID());
         } else {
             steam_available = 0;
@@ -57,7 +58,7 @@ int8_t set_achievement(const char *id)
     } else {
         return -1;
     }
-    
+
 }
 
 int8_t clear_achievement(const char *id)
@@ -81,7 +82,7 @@ int8_t clear_achievement(const char *id)
             return 0;
         } else {
             return -1;
-        }    
+        }
     }
 }
 
@@ -104,3 +105,11 @@ char *get_steam_status()
     char *out  = strdup(str.c_str());
     return out;
 }
+#else
+void steam_init() {}
+void steam_shutdown() {}
+int8_t set_achievement(const char *id) {return -1;}
+int8_t clear_achievement(const char *id) {return -1;}
+char is_steam_available() {return 0;}
+char *get_steam_status() {return NULL;}
+#endif

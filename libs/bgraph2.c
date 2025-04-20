@@ -538,11 +538,13 @@ void hide_ms_cursor()
   }
 
 void redraw_ms_cursor_on_screen(void) {
+#ifdef FORCE_SOFTWARE_CURSOR
     if (mssavebuffer) {
       integer xs=*(integer *)mssavebuffer;
       integer ys=*((integer *)mssavebuffer+1);
       showview(mscuroldx,mscuroldy,xs,ys);
     }
+#endif
 }
 
 

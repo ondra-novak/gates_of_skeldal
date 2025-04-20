@@ -358,6 +358,7 @@ int load_map(const char *filename)
                     {
                     load_enemies(temp,size,&ofsts,mob_template,mob_size);
                     ablock_free(mob_template);
+                    mob_template=NULL;
                     SEND_LOG("(GAME) Loading enemies from map template...");
                     }
                   free(temp);
@@ -365,6 +366,7 @@ int load_map(const char *filename)
          case A_MAPMACR:
                   SEND_LOG("(GAME) Loading multiactions...");
                   load_macros(size,temp);
+                  free(temp);
                   break;
          case A_MAPVYK:
                   map_vyk=temp;
@@ -373,6 +375,7 @@ int load_map(const char *filename)
          case A_MOBS:
                   mob_template=load_mob_legacy_format_direct(temp, &size,0);
                   mob_size=size;
+                  free(temp);
                   break;
          case A_MOBSND:
                   snd_load=1;
@@ -391,11 +394,13 @@ int load_map(const char *filename)
      else
         {
         if (temp!=NULL)free(temp);
+        ablock_free(mob_template);
         fclose(f);
         return -3;
         }
      }
   while (nmapend);
+  ablock_free(mob_template);
   fclose(f);
   flag_map=(char *)getmem(mapsize*4);
   memset(minimap,0,sizeof(minimap));

@@ -38,7 +38,7 @@
 
 #define SSAVE_VERSION 0
 
-static TMPFILE_WR *story=NULL;
+//static TMPFILE_WR *story=NULL;
 static char load_another;
 static unsigned long current_campaign = 0;
 static long prev_game_time_save = -999;
@@ -505,7 +505,7 @@ static void add_status_file(FILE *f, const char *name, size_t sz, void *data) {
     fwrite(name, 1, name_size_b, f);
     uint32_t data_size = sz;
     fwrite(&data_size,1,sizeof(data_size),f);
-    fwrite(data, 1,data_size, f);
+    if (data && data_size) fwrite(data,1,data_size, f);
 }
 
 static void pack_status_file_cb(const char *name, void *ctx) {
@@ -942,6 +942,7 @@ typedef struct {
     char skip_autosave;
 } TSAVEGAME_CB_STATE;
 
+/*
 static char is_same_prefix(const char *name, const char *prev_name) {
     const char *sep1 = strrchr(name, '.');
     const char *sep2 = strrchr(prev_name, '.');
@@ -950,7 +951,7 @@ static char is_same_prefix(const char *name, const char *prev_name) {
     if (strncmp(name, prev_name,sep1-name) == 0) return 1;
     return 0;
 }
-
+*/
 static int get_all_savegames_callback(const char *name, LIST_FILE_TYPE  type , size_t tm, void *ctx) {
     if (istrncmp(name, "sav.", 4) != 0
             && istrcmp(name+strlen(name)-4,".sav") != 0)
@@ -974,11 +975,11 @@ static int get_all_savegames_callback(const char *name, LIST_FILE_TYPE  type , s
     }
     return 0;
 }
-
+/*
 static int compare_strings (const void *a, const void *b) {
     return strcmp(*(const char **)a, *(const char **)b);
 }
-
+*/
 static int compare_strings_third_back (const void *a, const void *b) {
   const char *sa = *(const char **)a;
   const char *sb = *(const char **)b;
@@ -995,7 +996,7 @@ static int compare_strings_third_back (const void *a, const void *b) {
   return -strcmp(ba,bb);
 }
 
-
+/*
 static int dedup_strings_prefix(TSTR_LIST lst, int count) {
     int j = -1;
     for (int i = 0; i < count; ++i) {
@@ -1014,7 +1015,7 @@ static int dedup_strings_prefix(TSTR_LIST lst, int count) {
 }
 
 
-/*
+
 static void load_specific_file(int slot_num,char *filename,void **out,int32_t *size) //call it in task!
   {
   FILE *slot;
@@ -1596,7 +1597,7 @@ void wire_ask_gamename(int id)
   }
 
 static void save_as_dialog(int pos);
-static const char *find_autosave(const char *name);
+
 
 
 #define CLK_SAVELOAD 11
@@ -1799,24 +1800,20 @@ void wire_save_load(char save) {
 
 void open_story_file()
   {
-
-  story=temp_storage_append(STORY_BOOK);
-  SEND_LOG("(STORY) Story temp file is opened....");
   }
 
 
 void write_story_text(char *text)
   {
     int l = strlen(text);
+    TMPFILE_WR *story = temp_storage_append(STORY_BOOK);
     temp_storage_write( text, l, story);
     temp_storage_write("\n", 1, story);
+    temp_storage_close_wr(story);
   }
 
 void close_story_file()
   {
-  if (story!=NULL)  temp_storage_close_wr(story);
-  story=NULL;
-  SEND_LOG("(STORY) Story temp file is closed...");
   }
 
 #if 0
@@ -1909,6 +1906,7 @@ void do_autosave() {
               remove(build_pathname(2, gpathtable[SR_SAVES],n));
           }
       }
+      release_list(st.files);
     }
     save_game(get_save_game_slot_id(), game_name,1);
 }

@@ -34,3 +34,7 @@ void send_log_impl(const char *format, ...) {
     #endif
 
 }
+
+void throw_exception(const char *text) {
+    throw std::runtime_error(std::string("Invoked crash:") + text);
+}

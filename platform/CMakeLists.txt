@@ -35,23 +35,27 @@ if(WIN32)
         windows/skeldal.rc
     )
     target_compile_definitions(skeldal_platform PRIVATE PLATFORM_WINDOWS)
-    if(CMAKE_SIZEOF_VOID_P EQUAL 8)
-        # 64-bit
-        set(STEAMLIB ${STEAMWORKS_SDK_DIR}redistributable_bin/win64/steam_api64.lib)
-        set(STEAMDLL ${STEAMWORKS_SDK_DIR}redistributable_bin/win64/steam_api64.dll)
-        target_compile_definitions(skeldal_platform PRIVATE PLATFORM_WINDOWS_64)
+    if(STEAM_ENABLED) 
+        if(CMAKE_SIZEOF_VOID_P EQUAL 8)
+            # 64-bit
+            set(STEAMLIB ${STEAMWORKS_SDK_DIR}redistributable_bin/win64/steam_api64.lib)
+            set(STEAMDLL ${STEAMWORKS_SDK_DIR}redistributable_bin/win64/steam_api64.dll)
+        else()
+            # 32-bit
+            set(STEAMLIB ${STEAMWORKS_SDK_DIR}/redistributable_bin/win32/steam_api.lib)
+            set(STEAMDLL ${STEAMWORKS_SDK_DIR}redistributable_bin/win64/steam_api.dll)
+        endif()
     else()
-        # 32-bit
-        set(STEAMLIB ${STEAMWORKS_SDK_DIR}/redistributable_bin/win32/steam_api.lib)
-        set(STEAMDLL ${STEAMWORKS_SDK_DIR}redistributable_bin/win64/steam_api.dll)
-        target_compile_definitions(skeldal_platform PRIVATE PLATFORM_WINDOWS_32)
+        set(STEAMLIB "")
+        set(STEAMDLL "")
     endif()
     
     target_link_libraries(skeldal ${all_libs} ${STEAMLIB})
 
-    add_custom_command(TARGET skeldal POST_BUILD COMMAND ${CMAKE_COMMAND} -E copy_if_different
-                    ${STEAMDLL} $<TARGET_FILE_DIR:skeldal>
-)
+    if(STEAMDLL)
+        add_custom_command(TARGET skeldal POST_BUILD COMMAND ${CMAKE_COMMAND} -E copy_if_different
+                    ${STEAMDLL} $<TARGET_FILE_DIR:skeldal>)
+    endif()
 
     message(STATUS "Building for Windows")
 
@@ -65,14 +69,14 @@ elseif(UNIX AND NOT APPLE)
         linux/app_start.cpp
     )
     target_compile_definitions(skeldal_bin PRIVATE PLATFORM_LINUX)
-    if(CMAKE_SIZEOF_VOID_P EQUAL 8)
-        # 64-bit
-        set(STEAMLIB ${STEAMWORKS_SDK_DIR}/redistributable_bin/linux64/libsteam_api.so)
-        target_compile_definitions(skeldal_bin PRIVATE PLATFORM_LINUX_64)        
-    else()
-        # 32-bit
-        set(STEAMLIB ${STEAMWORKS_SDK_DIR}/redistributable_bin/linux32/libsteam_api.so)
-        target_compile_definitions(skeldal_bin PRIVATE PLATFORM_LINUX_32)  
+    if(STEAM_ENABLED) 
+        if(CMAKE_SIZEOF_VOID_P EQUAL 8)
+            # 64-bit
+            set(STEAMLIB ${STEAMWORKS_SDK_DIR}/redistributable_bin/linux64/libsteam_api.so)
+        else()
+            # 32-bit
+            set(STEAMLIB ${STEAMWORKS_SDK_DIR}/redistributable_bin/linux32/libsteam_api.so)
+        endif()
     endif()
     add_custom_command(
         TARGET skeldal_bin POST_BUILD

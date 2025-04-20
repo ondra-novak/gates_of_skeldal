@@ -463,7 +463,7 @@ void type_text_v2(va_list args)
         case 8:if (pos>0)
                  {
                  pos--;
-                 strcpy(&text[pos],&text[pos+1]);
+                 memmove(text+pos,text+pos+1, strlen(text+pos+1)+1);
                  len--;
                  }
               break;

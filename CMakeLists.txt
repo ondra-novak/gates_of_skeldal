@@ -3,19 +3,22 @@ project(skeldal)
 
 # Najít SDL2 knihovnu
 find_package(SDL2 REQUIRED)
-set(STEAMWORKS_SDK_DIR "${CMAKE_SOURCE_DIR}/external/steamworks/")
-# Check if Steamworks SDK directories exist
-if(NOT EXISTS "${STEAMWORKS_SDK_DIR}/public")
-    message(FATAL_ERROR "❌ Could not find Steamworks SDK 'public' headers. 
-    Make sure to download the Steamworks SDK and place it in:${STEAMWORKS_SDK_DIR}
-    Expected directory: ${STEAMWORKS_SDK_DIR}/public
-    ")
-endif()
-if(NOT EXISTS "${STEAMWORKS_SDK_DIR}/redistributable_bin")
-    message(FATAL_ERROR "❌ Could not find Steamworks SDK 'redistributable_bin' libraries.
-    Make sure to download the Steamworks SDK and place it in: ${STEAMWORKS_SDK_DIR}
-    Expected directory: ${STEAMWORKS_SDK_DIR}/redistributable_bin
-    ")
+
+set(STEAMWORKS_SDK_DIR "" CACHE PATH "Path to Steamworks SDK directory")
+
+if(NOT STEAMWORKS_SDK_DIR)
+    set(POSSIBLE_STEAMWORKS_DIR "${CMAKE_SOURCE_DIR}/external/steamworks")
+    if(EXISTS "${POSSIBLE_STEAMWORKS_DIR}/public")
+        if(NOT EXISTS "${STEAMWORKS_SDK_DIR}/redistributable_bin") 
+            set(STEAMWORKS_SDK_DIR "${POSSIBLE_STEAMWORKS_DIR}" CACHE PATH "Path to Steamworks SDK directory" FORCE)
+        endif()
+    endif()    
+    if (NOT STEAMWORKS_SDK_DIR)
+         message("!!! Steam is not installed")
+         message("!!! compiling without steam and without achievements support")
+         message("!!! To enable steam, set STEAMWORKS_SDK_DIR to correct value")
+         set(STEAMWORKS_SDK_DIR "none" CACHE PATH "Path to Steamworks SDK directory" FORCE) 
+    endif()
 endif()
 
 if (MSVC)
@@ -26,6 +29,18 @@ else()
     set(STANDARD_LIBRARIES "pthread")
 endif()
 
+
+
+if(${STEAMWORKS_SDK_DIR} STREQUAL "none")
+    set(STEAM_ENABLED 0)
+else()
+    add_compile_definitions(STEAM_ENABLED)
+    include_directories(${STEAMWORKS_SDK_DIR}/public)
+    set(STEAM_ENABLED 1)
+
+endif()
+
+
 include_directories(.)
 
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin/)
@@ -33,7 +48,6 @@ set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib/)
 set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib/)
 
 include_directories( ${SDL2_INCLUDE_DIRS})
-include_directories(${STEAMWORKS_SDK_DIR}/public)
 add_subdirectory(libs)
 add_subdirectory(platform)
 add_subdirectory(game)

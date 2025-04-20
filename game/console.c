@@ -2,6 +2,7 @@
 #include <libs/event.h>
 #include <platform/achievements.h>
 #include "globals.h"
+#include "../platform/error.h"
 #include "../platform/platform.h"
 
 #include <ctype.h>
@@ -227,7 +228,7 @@ static void flush_console_command() {
     if (console_command) {
         const char *cmd = concat2("> ", console_command);
         console_command = NULL;
-        console_add_line(cmd);        
+        console_add_line(cmd);
     }
 }
 
@@ -281,24 +282,6 @@ static PARSED_COMMAND parse_command(const char *cmd) {
 extern int ghost_walls;
 extern int nofloors;
 
-static int add_file_to_console(const char *name, LIST_FILE_TYPE _, size_t __, void *ctx) {
-    int *cnt = (void *)ctx;
-    char buff[20] = "";
-    for (int i = 0; i < 19; ++i) buff[i] = ' ';
-    buff[19] = 0;
-    int l = strlen(name);
-    if (l > 3 && istrcmp(name+l-4,".MAP") == 0) {
-        if (l>19) l = 19;
-        memcpy(buff, name, l);
-        wzprintf("%s", buff);
-        if (++(*cnt) == 6) {
-            wzprintf("\n");
-            *cnt = 0;
-        }
-    }
-    return 0;
-
-}
 
 static int process_on_off_command(const char *cmd, char on) {
     if (istrcmp(cmd, "inner-eye") == 0) {
@@ -358,9 +341,8 @@ static int process_on_off_command(const char *cmd, char on) {
 
 void postavy_teleport_effect(int sector,int dir,int postava,char effect);
 
-static int command_ls_callback(const char*name, void* ctx) {
+static void command_ls_callback(const char *name, void* ctx) {
     wzprintf("%s\n", name);
-    return 0;
 }
 
 static int process_actions(const char *command) {
@@ -605,7 +587,7 @@ static int process_with_params(const char *cmd, const char *args) {
     if (istrcmp(cmd, "unvisit") == 0) {
         if (args[0] == 0) return 0;
         int id = atoi(args);
-        return dialog_set_notvisited(id);        
+        return dialog_set_notvisited(id);
     }
 
     if (istrcmp(cmd, "cat") == 0) {
@@ -650,7 +632,26 @@ static int process_with_params(const char *cmd, const char *args) {
         free(data2);
         free(data);
         return 1;
-    } 
+    }
+
+    if (istrcmp(cmd, "rm") == 0) {
+        if (strcmp(args, "*") == 0) {
+            temp_storage_clear();
+        } else {
+            int32_t sz =temp_storage_find(args);
+            if (sz < 0) return 0;
+            temp_storage_delete(args);
+        }
+        return 1;
+    }
+    if (istrcmp(cmd, "crash") == 0) {
+        throw_exception(args);
+        return 1;
+    }
+
+
+
+
     return 0;
 }
 
@@ -676,7 +677,7 @@ static int process_command(PARSED_COMMAND cmd) {
 static void console_copy_to_clipboard() {
     size_t needsz = 0;
     for (unsigned int i = 0; i < console_max_lines; ++i) {
-        if (console_output_lines[i]) needsz = needsz + strlen(console_output_lines[i]) + 2;        
+        if (console_output_lines[i]) needsz = needsz + strlen(console_output_lines[i]) + 2;
     }
     needsz+=1;
     char *text = (char *)malloc(needsz);
@@ -690,7 +691,7 @@ static void console_copy_to_clipboard() {
             *iter = '\r';
             ++iter;
             *iter = '\n';
-            ++iter;            
+            ++iter;
         }
     }
     *iter = 0;
@@ -698,7 +699,7 @@ static void console_copy_to_clipboard() {
         copied_text = 20;
     }
     free(text);
-} 
+}
 
 static void console_keyboard(EVENT_MSG *msg, void **_) {
     if (msg->msg == E_KEYBOARD) {
@@ -731,7 +732,7 @@ static void console_keyboard(EVENT_MSG *msg, void **_) {
                 free(cmd.cmd_buffer);
                 msg->msg = -1;
             } else if (c == 3 && !get_shift_key_state()) {
-                console_copy_to_clipboard();                
+                console_copy_to_clipboard();
             } else if (c >=32 && len < console_max_characters) {
                 console_input_line[len] = c;
                 console_input_line[len+1] = 0;
@@ -802,7 +803,7 @@ static void wzputs(const char *text)
     while (sep != NULL) {
         console_add_line_s(text, sep-text);
         text = sep+1;
-        sep = strchr(text, '\n');   
+        sep = strchr(text, '\n');
     }
     if (text[0] != 0) console_add_line_s(text, strlen(text));
   }

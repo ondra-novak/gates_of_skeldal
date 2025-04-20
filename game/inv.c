@@ -1078,7 +1078,7 @@ char check_jidlo_voda(THUMAN *p)
 char check_map_specials(THUMAN *p)
   {
   char c=0;
-  if (p->inmaphash != current_map_hash) return;
+  if (p->inmaphash != current_map_hash) return c;
   switch(mglob.map_effector)
      {
      case ME_NORMAL:break;
@@ -1144,16 +1144,16 @@ void real_regeneration(THE_TIMER *t)
   int i;
   THUMAN *p;
 
-  for(i=0;i<POCET_POSTAV;i++)
-     {
+  for(i=0;i<POCET_POSTAV;i++) {
      p=&postavy[i];
-     if (p->used)
+     if (p->used) {
         if (p->lives) {
           pomala_regenerace_postavy(p);
         } else {
           umirani_postavy(p);
         }
      }
+  }
   send_message(E_KOUZLO_KOLO);
   sleep_ticks+=MAX_SLEEP/30;
   if (sleep_ticks>MAX_SLEEP) sleep_ticks=MAX_SLEEP;
@@ -2584,7 +2584,7 @@ static void rebuild_shops(const void *shop_ptr)
   const char *c=(const char *)shop_ptr;
   int i;
 
-  
+
 
   SEND_LOG("(SHOP) Rebuilding shops....");
   max_shops = *(const int32_t *)c;

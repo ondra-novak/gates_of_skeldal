@@ -11,7 +11,6 @@
 #include <stdexcept>
 #include <sstream>
 #include <algorithm>
-#include <steam/steam_api.h>
 #include <stdbool.h>
 #include <thread>
 #include <mutex>
