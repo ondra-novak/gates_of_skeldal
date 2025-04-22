@@ -678,6 +678,7 @@ void zacatek_kola()
   viewsector=postavy[select_player].sektor;
   viewdir=postavy[select_player].direction;
   redraw_scene();
+  recalc_volumes(viewsector,viewdir);
   }
 
 char check_end_game()
@@ -905,6 +906,7 @@ void prejdi_na_pohled(THUMAN *p)
   {
                  viewsector=p->sektor;
                  viewdir=p->direction;
+                 recalc_volumes(viewsector,viewdir);
                  pozdrz_akci();
                  hold_timer(TM_SCENE,1);
                  redraw_scene();
@@ -1440,6 +1442,7 @@ void jadro_souboje(EVENT_MSG *msg,void **unused) //!!!! Jadro souboje
            viewsector=postavy[i].sektor;
            viewdir=postavy[i].direction;
            build_player_map();
+           recalc_volumes(viewsector,viewdir);
 		   GlobEvent(MAGLOB_AFTERBATTLE,viewsector,viewdir);
 		   autosave();
            }
@@ -1924,6 +1927,7 @@ static void souboje_dalsi()
    while ((!postavy[select_player].used || postavy[select_player].inmaphash != current_map_hash || !postavy[select_player].actions || (postavy[select_player].groupnum!=cd && j>6)) && j);
    viewsector=postavy[select_player].sektor;
    viewdir=postavy[select_player].direction;
+   recalc_volumes(viewsector,viewdir);
    cur_group=postavy[select_player].groupnum;
   }
 
@@ -1944,6 +1948,7 @@ static void souboje_dalsi_user() {
     viewsector=postavy[select_player].sektor;
     viewdir=postavy[select_player].direction;
     cur_group=postavy[select_player].groupnum;
+    recalc_volumes(viewsector,viewdir);
 }
 
 void souboje_vybrano(int d)
