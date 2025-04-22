@@ -1,5 +1,6 @@
 id,string
-0,"A connected controller has been found|To activate the controller, press any button on the controller"
+0,"A connected controller has been found
+To activate the controller, press any button on the controller"
 1,FORWARD TRACK06.MUS TRACK07.MUS
 2,STRENGTH: %d-%d
 3,MAGIC: %d-%d
@@ -44,7 +45,7 @@ id,string
 48,Start
 49,Throw
 50,Combat in Progress
-51,Overall Music Sounds Treble Bass XBass
+51,Overall  Music Sounds  Treble Bass
 52,Stereo Settings (Ultrasound)
 53,Swap Sides
 54,Output Filter (SBPro)

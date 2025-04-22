@@ -1602,6 +1602,27 @@ THAGGLERESULT smlouvat_dlg(int cena,int puvod,int pocet,int posledni, int money,
   return res;
   }
 
+
+  static void save_dialog_keyboards(EVENT_MSG *msg,OBJREC *o)
+  {
+  o;
+  if (msg->msg==E_KEYBOARD)
+    {
+      int c = va_arg(msg->data, int);
+    switch(c & 0xFF)
+      {
+      case 13:goto_control(30);terminate_gui();break;
+      case 27:goto_control(20);terminate_gui();break;
+      }
+    }
+    if (msg->msg == E_MOUSE) {
+      const MS_EVENT *ev = va_arg(msg->data, MS_EVENT *);
+      if (ev->event_type & MS_EVENT_MOUSE_RRELEASE) {
+        goto_control(20);terminate_gui();
+      }
+    }
+  }
+
 char ask_save_dialog(char *name_buffer, size_t name_size, char allow_remove) {
 
     const char *str_label = texty[98];
@@ -1618,7 +1639,11 @@ char ask_save_dialog(char *name_buffer, size_t name_size, char allow_remove) {
     }
     redraw_window();
     goto_control(10);
+    send_message(E_ADD,E_KEYBOARD,save_dialog_keyboards);
+    send_message(E_ADD,E_MOUSE,save_dialog_keyboards);
     escape();
+    send_message(E_DONE,E_KEYBOARD,save_dialog_keyboards);
+    send_message(E_DONE,E_MOUSE,save_dialog_keyboards);
     get_value(0,10,name_buffer);
     char ret = o_aktual->id==40?2:o_aktual->id==30?1:0;
     close_current();

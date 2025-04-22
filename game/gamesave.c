@@ -1744,6 +1744,7 @@ void unwire_save_load(void)
   send_message(E_DONE,E_KEYBOARD,saveload_keyboard);
   send_message(E_DONE,E_KEYBOARD,saveload_keyboard_menu);
   free_savegame_list(&current_game_slot_list);
+  change_click_map(0,0);
   }
 
 

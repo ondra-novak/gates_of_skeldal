@@ -7,12 +7,12 @@ Jan Virt
 *head
 Game design and Story
 *name
-Jinøich Rohlík
+Jin©ich Rohl¡k
 
 *head
 Program
 *name
-Ondøej Novák
+Ond©ej Nov k
 
 *head
 Environment concept art
@@ -27,71 +27,71 @@ Daniel Falta
 *head
 2D Graphics
 *name
-Karel Matìjka
+Karel Matˆjka
 Peter Koubek
 
 *head
 3D Graphics
 *name
-Karel Matìjka
+Karel Matˆjka
 
 *head
 Animations
 *name
 Daniel Falta
-Karel Matìjka
+Karel Matˆjka
 
 *head
 Illustrations
 *name
 Daniel Falta
-Karel Matìjka
+Karel Matˆjka
 
 *head
 Fonts
 *name
-Ondøej Novák
-Karel Matìjka
+Ond©ej Nov k
+Karel Matˆjka
 
 *head
 Music
 *name
 Michal Stupka
-Jakub Preclík
-Petr Tøebický
-Martin Matìjka (outro)
+Jakub Precl¡k
+Petr T©ebick˜
+Martin Matˆjka (outro)
 
 *head
 Sound effects
 *name
-Jindøich Rohlík
+Jind©ich Rohl¡k
 
 *head
 Level design
 *name
-Jindøich Rohlík
+Jind©ich Rohl¡k
 
 *head
 Production
 *name
-Jindøich Rohlík
+Jind©ich Rohl¡k
 
 *head
 Betatesting
 *name
-Michal Maršál
-Tomáš Tøebický
-Jakub Motyèka
-Jan Císaø
-Michal Máèel
-Zbynìk Pochman
+Michal Mar¨ l
+Tom ¨ T©ebick˜
+Jakub Moty‡ka
+Jan C¡sa©
+Michal M ‡el
+Zbynˆk Pochman
 
 *head
 Special thanks
 *name
-Jan Virt and Václav Provazník
+Jan Virt and V clav Provazn¡k
 for their help during level design
-Marek Vondrák for graphics library in DOS version
+Marek Vondr k for graphics library in DOS version
 Dalibor Strak for lending us Gravis Ultrasound
 FTL for first real square-based dungeon
 *konec

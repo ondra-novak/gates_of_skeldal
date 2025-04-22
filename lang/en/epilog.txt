@@ -2,39 +2,40 @@
 *line 10
 *TEXT
 *SPEED 8
-You ascended to the highest floor of Skeldal, the magical
-tower built by five fallen mages, former
-disciples of the mage Nimeth, to protect themselves while
-immersed in the preparation of their ultimate spell, which
-is to open the gates to forbidden dimensions.
-Your party, with the Sword of Retribution, forged for them by a demon
-dwelling in the midst of the Labyrinth of Singing Waters, stormed into
-the guarded chamber, on whose purple stone floor a
-pentagram was carved, and caused a massacre among the mages, exhausted
-by the preparation of the demanding spell. You disrupted
-the circle, which had been maintained for many months by the slain mages,
-and which was essential for the spell's completion.
-It was, however, at the last moment. The spell was practically
-finished at the time of your intrusion, and the mana-soaked ground
-began to crack under the pressure of the monsters trying
-to break through from the underground spaces. Your strongest warrior
-raised the Sword of Retribution for the last time and with a mighty throw plunged it
-hilt-deep into the chest of the first demon that burst through from another
-dimension.
-Thus you completed your mission and restored hope for the future to this world.
-Life began to return to Rovenland,
-and this small island in the middle of the Dragon Sea once again became
-an important trading center. The three heroes who emerged
-from the Krow-Kane ritual returned to where they were summoned from.
-Roland became a respected merchant in Caredbar, Gralt journeyed
-after another obscure legend to the fire land of Hadim, and Erik returned
-to his father, whom he helped in the library for several years
-before departing with a merchant ship to the
-great continent.
-The great adventure, destined from the beginning of ages,
-has ended. The endless battle of good and evil, the forces
-of light and darkness, which creatures of all races and nations will
+You ascended to the highest floor of Skeldal, the magical tower  
+built by five fallen mages, former disciples of the mage Nimeth, 
+to  protect  themselves  while  immersed  in   the  preparation 
+of their ultimate spell, which is to open the gates to forbidden
+dimensions. Your party,  with the Sword of Retribution,  forged 
+for them  by a demon  dwelling  in the  midst of  the Labyrinth 
+of Singing Waters, stormed into  the guarded chamber, on whose 
+purple  stone  floor  a  pentagram   was  carved,  and  caused
+a massacre  among the mages,  exhausted by the preparation of 
+the demanding  spell. You disrupted  the circle,  which had been 
+maintained  for many months  by the slain mages, and  which was 
+essential  for  the  spell's  completion.  It  was,  however,  at 
+the last moment.  The spell was practically finished at the time 
+of your intrusion,  and the mana-soaked ground began to crack 
+under  the pressure of  the monsters trying  to break through 
+from  the underground spaces.  Your strongest  warrior raised 
+the Sword  of Retribution for  the last time  and with a mighty 
+throw  plunged it  hilt-deep into the chest  of the first demon 
+that burst through from another dimension.  Thus you completed 
+your mission and restored hope for the future to this world.
+
+Life  began  to return  to Rovenland,  and this  small island in 
+the  middle of  the Dragon Sea  once again became an important 
+trading   center.   The   three   heroes   who   emerged  from 
+the Krow-Kane  ritual  returned  to where  they were summoned 
+from.  Roland became a respected  merchant in Caredbar,  Gralt 
+journeyed  after another  obscure legend  to the fire  land of 
+Hadim,  and  Erik  returned  to  his  father, whom he helped in 
+the library for several years before departing with a merchant 
+ship to the great continent.
+
+The great adventure,  destined from the beginning of ages, has 
+ended.  The endless battle of good and evil, the forces of light  
+and  darkness, which creatures  of all races  and nations  will
 have to wage until the very end of eternity.
 
-And by the way, the password for the maps is: Věk nových Bohů
 *KONECSUB
