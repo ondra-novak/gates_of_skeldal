@@ -776,11 +776,12 @@ int save_game(long game_time,char *gamename, char is_autosave)
   temp_storage_store("playtime",&new_play_time, sizeof(new_play_time));
 
   svf=fopen_icase(sn,"wb");
-  if (svf==NULL)
-  {
-	char buff[256];
-	sprintf(buff,"Nelze ulozit pozici na cestu: %s", sn);
-    display_error(buff);
+  if (svf==NULL){
+    if (!is_autosave) {
+      char buff[256];
+      sprintf(buff,"Failed to create savegame at path %s", sn);    
+      message(1,0,0,"",buff,texty[80]);
+    }
   }
   else
   {
