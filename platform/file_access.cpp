@@ -32,6 +32,8 @@ std::filesystem::path break_and_compose_path(std::string_view pathname, char sep
 
         // Vše ostatní relativně vůči current_path
         return std::filesystem::current_path() / utf8_to_path(pathname);
+    } else if (p == 0) {
+        return std::filesystem::current_path().root_path() / utf8_to_path(pathname);
     }
 
     return break_and_compose_path(pathname.substr(0, p), sep) / utf8_to_path(pathname.substr(p + 1));
