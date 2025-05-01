@@ -1,6 +1,7 @@
 #include "../../game/skeldal.h"
 #include "../getopt.h"
 #include "../platform.h"
+#include "../error.h"
 #include <iostream>
 #include <string>
 #include <sstream>
@@ -82,7 +83,7 @@ int main(int argc, char **argv) {
         }
 
     } catch (const std::exception &e) {
-        cfg.show_error(e.what());
+        cfg.show_error(exception_to_string(e).c_str());
         return 1;
     }
     catch (...) {

@@ -74,7 +74,7 @@ SDLContext::SDLContext() {
 void handle_sdl_error(const char *msg) {
     char buff[512];
 
-    snprintf(buff, sizeof(buff), "SDL critical error (check video driver): %s %s",msg, SDL_GetError());
+    snprintf(buff, sizeof(buff), "SDL critical error: %s %s",msg, SDL_GetError());
     throw std::runtime_error(buff);
 }
 
