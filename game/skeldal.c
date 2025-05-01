@@ -989,7 +989,7 @@ void init_skeldal(const INI_CONFIG *cfg)
 
   cti_texty();
   timer_tree.next=NULL;
-  init_events();  
+  init_events();
 
   steam_init();
 
@@ -1579,7 +1579,7 @@ static void start(va_list args)
                    openning =0;
                    break;
        case V_OBNOVA_HRY:load_saved_game();break;
-       case V_AUTORI:run_titles(NULL);break;
+       case V_AUTORI:run_titles();break;
         }
      }
   while (!exit_wait);

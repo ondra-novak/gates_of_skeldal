@@ -1763,8 +1763,8 @@ char clk_enter(int id,int xa,int ya,int xr,int yr);
 //menu
 int enter_menu(char open); //task!
 void titles(va_list args); //task!
-void run_titles(va_list args); //task!
-void effect_show(void); //effektni zobrazeni 
+void run_titles(void );
+void effect_show(void); //effektni zobrazeni
 void konec_hry(void);
 
 

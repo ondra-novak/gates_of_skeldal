@@ -604,7 +604,7 @@ void titles(va_list args)
   if (send_back)send_message(E_KEYBOARD,27);
   }
 
-void run_titles(va_list args)
+void run_titles(void)
   {
   int task_id;
   task_id=add_task(8196,titles,1,"titulky.TXT");
@@ -612,12 +612,12 @@ void run_titles(va_list args)
   term_task(task_id);
   }
 
-void konec_hry()
+void konec_hry(void)
   {
   int task_id;
   int timer;
 
-  
+
   schovej_mysku();
   curcolor=0;
   bar32(0,0,639,479);
