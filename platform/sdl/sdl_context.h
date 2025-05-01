@@ -33,6 +33,7 @@ public:
         CrtFilterType  crt_filter;
         int composer;
         const char *scale_quality;
+        const char *hint_renderer;
         bool fullscreen;
         int aspect_x;
         int aspect_y;
@@ -238,8 +239,8 @@ protected:
     std::unique_ptr<SDL_Texture, SDL_Deleter> _crt_effect;
     std::unique_ptr<SDL_Texture, SDL_Deleter> _mouse;
     unique_value<SDL_AudioDeviceID, SDL_Audio_Deleter> _audio;
-    SDL_Texture *_visible_texture;
-    SDL_Texture *_hidden_texture;
+    SDL_Texture *_visible_texture = nullptr;
+    SDL_Texture *_hidden_texture = nullptr;
 
 
     bool _fullscreen_mode = false;
@@ -256,7 +257,7 @@ protected:
     std::queue<uint16_t> _keyboard_queue;
     SDL_Rect _mouse_rect;
     SDL_Point _mouse_finger;
-    float _mouse_size;
+    float _mouse_size = 1;
     SpriteList _sprites;
 
 

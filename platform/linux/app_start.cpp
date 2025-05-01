@@ -1,6 +1,7 @@
 #include "../../game/skeldal.h"
 #include "../getopt.h"
 #include "../platform.h"
+#include "../error.h"
 #include <iostream>
 #include <string>
 
@@ -63,7 +64,7 @@ int main(int argc, char **argv) {
         }
 
     } catch (const std::exception &e) {
-        std::cerr << "ERROR: " << e.what() << std::endl;
+        std::cerr << "ERROR: " << exception_to_string(e) << std::endl;
         return 1;
     }
 

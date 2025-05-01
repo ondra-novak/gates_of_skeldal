@@ -219,6 +219,9 @@ void SDLContext::init_video(const VideoConfig &config, const char *title) {
         _enable_crt = false;
     }
 
+    if (config.hint_renderer) {
+        SDL_SetHint(SDL_HINT_RENDER_DRIVER, config.hint_renderer);
+    }
 
     _fullscreen_mode = config.fullscreen;
     _mouse_size = config.cursor_size;
@@ -294,7 +297,15 @@ void SDLContext::init_video(const VideoConfig &config, const char *title) {
     done.wait(false);
     if (e) {
         _render_thread.join();
-        std::rethrow_exception(e);
+        try {
+            std::rethrow_exception(e);
+        } catch (...) {
+            std::throw_with_nested(
+                    std::runtime_error("Oops! The app couldn't start properly (problem during SDL initialization). "
+                                       "This may be caused by outdated or missing graphics or audio drivers."
+                                       "To fix this, please try the following: Restart your computer and try again/"
+                                       "Make sure your graphics and sound drivers are up to date."));
+        }
     }
 
 
