@@ -91,8 +91,8 @@ public:
                 } else {
                     (*iter) += value.left * vol[0];
                     ++iter;
-                    (*iter) += value.right * vol[0];
-                    ++iter;
+                    (*iter) += value.right * vol[1];
+                    std::advance(iter, channels-1);
                 }
             }
 
