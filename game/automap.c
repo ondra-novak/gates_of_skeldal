@@ -1109,3 +1109,9 @@ void free_map_description() {
     if (texty_v_mape!=NULL)release_list(texty_v_mape);
     texty_v_mape = NULL;
 }
+
+TSTR_LIST swap_map_description(TSTR_LIST new_list) {
+   TSTR_LIST old = texty_v_mape;
+   texty_v_mape = new_list;
+   return old;
+}

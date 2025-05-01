@@ -1402,7 +1402,7 @@ void destroy_all_fly();
 void stop_fly(LETICI_VEC *p,char zvuk);
 void herni_cas(char *s);
 
-
+typedef char **TSTR_LIST;
 
 //gamesaver
 void leave_current_map(void);
@@ -1415,6 +1415,7 @@ int save_game(long game_time,char *gamename, char is_autosave);
 void save_map_description(TMPFILE_WR *f);
 void load_map_description(TMPFILE_RD *f);
 void free_map_description();
+TSTR_LIST swap_map_description(TSTR_LIST new_list);
 void wire_save_load(char save);
 void do_save_dialog();
 char ask_save_dialog(char *name_buffer, size_t name_size, char allow_remove);
