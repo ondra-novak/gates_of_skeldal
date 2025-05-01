@@ -766,7 +766,7 @@ void wire_dialog_drw(void)
   wire_dialog();
   draw_all();
   ukaz_mysku();
-  effect_show(NULL);
+  effect_show();
   }
 void unwire_dialog(void)
   {

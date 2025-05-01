@@ -1770,12 +1770,12 @@ void wire_save_load(char save) {
         change_click_map(clk_save,CLK_SAVELOAD);
         redraw_save();
         send_message(E_ADD, E_KEYBOARD, saveload_keyboard);
-        effect_show(NULL);
+        effect_show();
 
     } else {
         curcolor = 0;
         redraw_load();
-        effect_show(NULL);
+        effect_show();
         if (save == 2)
             change_click_map(clk_load_error, CLK_LOAD_ERROR);
         else if (save == 4) {

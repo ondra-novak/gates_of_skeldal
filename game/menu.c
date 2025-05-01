@@ -350,8 +350,8 @@ int enter_menu(char open)
   put_picture(0,0,ablock(H_MENU_BAR));
   put_picture(0,56,ablock(H_ANIM));
   ukaz_mysku();
-  effect_show(NULL);
-  //if (open) effect_show(NULL);else showview(0,0,0,0);
+  effect_show();
+
   change_click_map(clk_main_menu,CLK_MAIN_MENU);
   send_message(E_ADD,E_TIMER,prehraj_animaci_v_menu);
   send_message(E_ADD,E_KEYBOARD,klavesnice);
@@ -552,7 +552,7 @@ void titles(va_list args)
   alock(H_PICTURE);
   picture=ablock(H_PICTURE);
   put_picture(0,0,picture);
-  effect_show(NULL);
+  effect_show();
   titlefont=H_FBIG;
   set_font(titlefont,RGB(158,210,25));charcolors[1]=0;
   counter=get_timer_value();newc=counter;
@@ -621,7 +621,7 @@ void konec_hry()
   schovej_mysku();
   curcolor=0;
   bar32(0,0,639,479);
-  effect_show(NULL);
+  effect_show();
   create_playlist(texty[205]);
   change_music(get_next_music_from_playlist());
   timer=get_timer_value();
@@ -641,7 +641,7 @@ void konec_hry()
   curcolor=0;
   bar32(0,0,639,479);
   ukaz_mysku();
-  effect_show(NULL);
+  effect_show();
   timer=get_timer_value();
   while (get_timer_value()-timer<150) task_sleep();
   }

@@ -745,7 +745,7 @@ static void wait_timer(EVENT_MSG *msg, void **udata) {
     }
 }
 
-void effect_show(va_list args)
+void effect_show()
   {
   int i;
   char s = exit_wait;

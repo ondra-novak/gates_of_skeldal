@@ -1764,7 +1764,7 @@ char clk_enter(int id,int xa,int ya,int xr,int yr);
 int enter_menu(char open); //task!
 void titles(va_list args); //task!
 void run_titles(va_list args); //task!
-void effect_show(va_list args); //effektni zobrazeni // task!
+void effect_show(void); //effektni zobrazeni 
 void konec_hry(void);
 
 

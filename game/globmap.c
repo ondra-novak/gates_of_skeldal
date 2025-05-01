@@ -637,7 +637,7 @@ struct _tag_map_save_state{
     uint32_t _hash;
 } MAP_SAVE_STATE;
 
-static struct _tag_map_save_state save_state = {NULL,NULL,NULL,0,0,0,0};
+static struct _tag_map_save_state save_state = {NULL,NULL,NULL,NULL,0,0,0,0};
 
 static void save_current_map() {
     if (save_state._map_coord) {
