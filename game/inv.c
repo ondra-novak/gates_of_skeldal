@@ -3099,6 +3099,7 @@ void unwire_shop(void)
   norefresh=0;
   wire_proc=wire_shop;
   inv_view_mode=old_inv_view_mode;
+  memset(shp_item_map, 0, sizeof(shp_item_map));
   }
 
 void wire_shop(void)
