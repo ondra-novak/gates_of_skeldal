@@ -94,7 +94,6 @@ elseif(APPLE)
     target_sources(skeldal PRIVATE
         linux/app_start.cpp
     )
-    target_compile_definitions(mylib PRIVATE PLATFORM_MACOS)
     if(STEAM_ENABLED)
         set(STEAMLIB ${STEAMWORKS_SDK_DIR}/redistributable_bin/osx/libsteam_api.dylib)
     endif()
