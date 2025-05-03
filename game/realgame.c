@@ -62,7 +62,8 @@ TSTENA *map_sides;
 TSECTOR *map_sectors;
 TVYKLENEK *map_vyk;         //mapa vyklenku
 word vyk_max;               //pocet vyklenku v mape
-short **map_items;
+short **map_items = 0;
+short *destroyed_items = 0;;
 char *flag_map;
 TMAP_EDIT_INFO *map_coord;
 TSTR_LIST level_texts;

@@ -586,6 +586,14 @@ int unpack_all_status(FILE *f)
     return -1;
   }
 
+static void save_destroyed_items(TMPFILE_WR *f) {
+  short c = (short)count_items_total(destroyed_items);
+  temp_storage_write(&c,sizeof(c), f);
+  if (c) {
+    temp_storage_write(destroyed_items,sizeof(short)*c, f);
+  }
+}
+
 int save_basic_info()
   {
   TMPFILE_WR *f;
@@ -645,10 +653,25 @@ int save_basic_info()
   for(i=0,h=postavy;i<POCET_POSTAV;h++,i++) if (h->demon_save!=NULL)
      temp_storage_write(h->demon_save,sizeof(THUMAN)*1,f);       //ulozeni polozek s demony
   res|=save_dialog_info(f);
+  save_destroyed_items(f);
   temp_storage_close_wr(f);
   SEND_LOG("(SAVELOAD) Done... Result: %d",res);
   return res;
   }
+
+static int load_destroyed_items(TMPFILE_RD *f) {
+  int res = 0;
+  short destroyed_items_count = 0;
+  temp_storage_read(&destroyed_items_count,sizeof(destroyed_items_count), f);
+  free(destroyed_items);
+  destroyed_items = NULL;
+  if (destroyed_items_count) {
+    destroyed_items = NewArr(short, destroyed_items_count+1);
+    res|=temp_storage_read(destroyed_items,destroyed_items_count*sizeof(short), f) != destroyed_items_count*sizeof(short);
+    destroyed_items[destroyed_items_count] = 0;
+  }
+  return res;
+}
 
 int load_basic_info()
   {
@@ -698,6 +721,7 @@ int load_basic_info()
           }
         }
   res|=load_dialog_info(f);
+  res|=load_destroyed_items(f);
   temp_storage_close_rd(f);
   viewsector=s.viewsector;
   viewdir=s.viewdir;

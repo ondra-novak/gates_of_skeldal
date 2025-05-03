@@ -577,6 +577,7 @@ extern int mapsize;                //pocet sektoru v mape
 extern int hl_ptr;                 //ukazatel na konec staticke tabulky registraci
 extern int end_ptr;                //ukazatel na uplny konec tabulky registraci
 extern short **map_items;          //ukazatel na mapu predmetu
+extern short *destroyed_items;     //list of destroyed items to be returned to the game
 extern int default_ms_cursor;      //cislo zakladniho mysiho kurzoru
 extern void (*unwire_proc)(void);      //procedura zajistujici odpojeni prave ukoncovane interakce
 extern void (*wire_proc)(void);        //procedura zajistujici pripojeni drive ukoncene interakce
@@ -990,10 +991,10 @@ char pick_item_(int id,int xa,int ya,int xr,int yr);
 void wire_inv_mode(THUMAN *select);
 void init_inventory(void);
 void init_items(void);
-void push_item(int sect,int pos,short *picked_item);
+void push_item(int sect,int pos,const short *picked_item);
 void pop_item(int sect,int pos,int mask,short **picked_item);
-int count_items_inside(short *place);
-int count_items_total(short *place);
+int count_items_inside(const short *place);
+int count_items_total(const short *place);
 char put_item_to_inv(THUMAN *p,short *picked_items); //funkce vklada predmet(y) do batohu postavy
 void pick_set_cursor(void);         //nastavuje kurzor podle vlozeneho predmetu;
 void calc_fly(THE_TIMER *t);
