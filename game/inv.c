@@ -2494,7 +2494,6 @@ static int shop_sector;
 T_CLK_MAP clk_shop[]=
   {
   {-1,54,378,497,479,shop_change_player,2+8,-1},
-  {-1,0,0,639,479,_exit_shop,8,-1},
   {-1,INV_X,INV_Y,INV_X+INV_XS*6,INV_Y+INV_YS*5,shop_bag_click,MS_EVENT_MOUSE_LPRESS,-1},
   {1,2+BUYBOX_X,39+BUYBOX_Y,22+BUYBOX_X,76+BUYBOX_Y,shop_block_click,2,H_MS_DEFAULT},
   {2,246+BUYBOX_X,39+BUYBOX_Y,266+BUYBOX_X,76+BUYBOX_Y,shop_block_click,2,H_MS_DEFAULT},
@@ -2503,6 +2502,7 @@ T_CLK_MAP clk_shop[]=
   {-1,337,0,357,14,go_map,2,H_MS_DEFAULT},
   {-1,87,0,142,14,game_setup,2,H_MS_DEFAULT},
   {-1,30,0,85,14,konec,2,H_MS_DEFAULT},
+  {-1,0,0,639,479,_exit_shop,8,-1},
   };
 
 static void shop_mouse_event(EVENT_MSG *msg,void **unused)
@@ -3207,7 +3207,6 @@ char _exit_shop(int id, int xa, int ya,int xr,int yr)
   {
   xr,yr,xa,ya,id;
   SEND_LOG("(SHOP) Exiting shop...");
-  memset(shp_item_map, 0, sizeof(shp_item_map));
   if (cur_owner==-1)
      {
      free(picked_item);
