@@ -1317,18 +1317,24 @@ void vymaz_zasahy(THE_TIMER *q)
   bott_draw(0);
   }
 
+static int select_drop_inventory_place(TMOB *p) {
+   int x,y,pl; 
+   if (p->locx>128) x=1;else if (p->locx<128) x=-1;else x=rnd(2)*2-1;
+   if (p->locy>128) y=1;else if (p->locy<128) y=-1;else y=rnd(2)*2-1;
+   pl=0;if (x>0) pl++;
+   if (y>0) pl=3-pl;
+   return pl;
+}
+
 static int drop_inventory(TMOB *p)
   {
-  int i,x,y,pl;
+  int i,pl;
   short c[]={0,0};
 
-  for(i=-1;i<MOBS_INV;i++)
+  for(i=-1;i<MOBS_INV;i++) {
      if (p->inv[i] || (i<0 && p->money))
         {
-        if (p->locx>128) x=1;else if (p->locx<128) x=-1;else x=rnd(2)*2-1;
-        if (p->locy>128) y=1;else if (p->locy<128) y=-1;else y=rnd(2)*2-1;
-        pl=0;if (x>0) pl++;
-        if (y>0) pl=3-pl;
+         pl = select_drop_inventory_place(p);
         if (i<0)
            {
            int z=(int)p->money+(int)(rnd(40)-20)*(int)p->money/(int)100;
@@ -1341,6 +1347,16 @@ static int drop_inventory(TMOB *p)
            }
         push_item(p->sector,pl,c);
         }
+      }
+   if (destroyed_items) {
+      int cnt = count_items_total(destroyed_items);
+      if (cnt) {
+         int idx = cnt -1;
+         pl = select_drop_inventory_place(p);
+         push_item(p->sector,pl, destroyed_items+idx);
+         destroyed_items[idx] = 0;
+      }
+   }
   return 0;
   }
 

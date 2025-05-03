@@ -879,7 +879,7 @@ char JePozdrzeno()
 
 void pozdrz_akci()
 {
-  int battlespeed=gamespeed-gamespeed*gamespeedbattle/5;
+  int battlespeed=gamespeedbattle;
   SPozdrzeno=get_game_tick_count()+battlespeed*2000/6;
 }
 
@@ -1146,7 +1146,7 @@ static void pouzij_svitek(THUMAN *p,int ruka)
 static void play_weapon_anim(int anim_num,int hitpos)
   {
   char count_save=global_anim_counter;
-  int battlespeed=gamespeed-gamespeed*gamespeedbattle/5;
+  int battlespeed=gamespeedbattle;
 
   if (anim_num==0) return;
   hold_timer(TM_SCENE,1);
@@ -1453,7 +1453,7 @@ void jadro_souboje(EVENT_MSG *msg,void **unused) //!!!! Jadro souboje
 
 void wire_jadro_souboje(void)
   {
-  int battlespeed=gamespeed-gamespeed*gamespeedbattle/5;
+  int battlespeed=gamespeedbattle;
   recalc_volumes(viewsector,viewdir);
   if (battlespeed<1) battlespeed=1;
   add_to_timer(TM_SCENE,battlespeed,-1,hrat_souboj);

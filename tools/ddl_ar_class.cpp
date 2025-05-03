@@ -45,7 +45,7 @@ DDLArchive::Extracted DDLArchive::extract_file(std::ifstream &s,
     std::vector<char> data;
     data.resize(sz);
     s.read(data.data(), sz);
-    if (s.gcount() != sz) return {fname, false, {}};
+    if (static_cast<uint32_t>(s.gcount()) != sz) return {fname, false, {}};
     return {fname, true, std::move(data)};
 
 }

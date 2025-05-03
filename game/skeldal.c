@@ -75,12 +75,13 @@ typedef struct inis
 THE_TIMER timer_tree;
 
 
+
 int hl_ptr=H_FIRST_FREE;
 int debug_enabled=0;
 char sound_detection=1;
 int snd_devnum,snd_parm1,snd_parm2,snd_parm3,snd_mixing=22000;
-char gamespeed=5;
-char gamespeedbattle=0;
+uint8_t gamespeed=GAMESPEED;
+uint8_t gamespeedbattle=GAMESPEED;
 char level_preload=1;
 char *level_fname=NULL;
 int game_extras=0;
@@ -823,6 +824,8 @@ void cti_texty(void)
      //patch stringtable
      if (!texty[98]) str_replace(&texty,98,"Ulo\x91it hru jako");
      if (!texty[99]) str_replace(&texty,99,"CRT Filter (>720p)");
+     str_replace(&texty, 144, "Zrychlit souboje");
+     str_replace(&texty, 51, "Celkov\x88 Hudba Efekty  V\x98\xA8ky  Basy Rychlost");
      str_replace(&texty,0,"Byl nalezen p\xA9ipojen\x98 ovlada\x87\nPro aktivaci ovlada\x87""e stiskn\x88te kter\x82koliv tla\x87\xA1tko na ovlada\x87i");
      lang_patch_stringtable(&texty, "ui.csv", "");
   }

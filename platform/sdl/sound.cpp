@@ -299,7 +299,8 @@ static void update_music_volume(){
     float v = music_volume * master_volume;
     for (int i = 0; i <2; i++)
         sound_mixer.visit_track(music_track_id_base+i,[&](WaveMixer<2> &m){
-        m.set_channel_volume(v, v);
+        m.set_channel_volume(0, v);
+        m.set_channel_volume(1, v);
     });
 }
 

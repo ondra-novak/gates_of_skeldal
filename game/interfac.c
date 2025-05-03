@@ -1486,8 +1486,9 @@ int smlouvat_prodej(int cena,int ponuka,int posledni,int puvod,int pocet)
 
   if (ponuka==0) return 0;
   if (ponuka<=cena) return 0;
-  if (posledni!=0) if (ponuka>=posledni || ponuka>min) return 1;
-  if (p_ok>r_ok) return 0;
+  if (ponuka <= min && (posledni==0 || ponuka<posledni)) {
+    if (p_ok>r_ok) return 0;
+  }
   if (p_ok>75) return 2;
   if (p_ok>50) return 3;
   if (p_ok>25) return 4;
@@ -1544,7 +1545,7 @@ THAGGLERESULT smlouvat_dlg(int cena,int puvod,int pocet,int posledni, int money,
   define(-1,150,15,100,13,0,label,int2ascii(cena,buffer,10));
   set_font(H_FBOLD,MSG_COLOR1);
   define(-1,10,30,1,1,0,label,texty[238]);
-  define(10,150,30,100,13,0,input_line,8,0,0,"");property(def_border(5,BAR_COLOR),NULL,NULL,0);set_default("");
+  define(10,150,30,100,13,0,input_line,7,0,0,"");property(def_border(5,BAR_COLOR),NULL,NULL,0);set_default("");
     on_control_event(smlouvat_enter);
   define(20,20,20,80,20,2,button,texty[239]);property(def_border(5,BAR_COLOR),NULL,NULL,BAR_COLOR);on_control_change(terminate_gui);
   define(30,110,20,80,20,2,button,texty[230]);property(def_border(5,BAR_COLOR),NULL,NULL,BAR_COLOR);on_control_change(terminate_gui);

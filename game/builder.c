@@ -327,14 +327,14 @@ static const void *bott_draw_normal(const void *pp, int32_t *s)
      {
      char c[]=" ";int z,lv,llv;
      put_picture(x,0,ablock(H_OKNO));lv=p->lives;llv=p->vlastnosti[VLS_MAXHIT];
-     if (lv || p->used & 0x80 || p->kondice > 0)
+     if (lv || p->used & 0x80)
         {
         z=3-((lv-1)*4/llv);if (lv==llv) z=0;
         z*=75;
         if (p->xicht>=0)put_8bit_clipped(ablock(H_XICHTY+i),bott_scr+PIC_X+x+PIC_Y*scr_linelen2,z,54,75);
-        if (!lv && !(p->used & 0x80) && p->kondice>0) {
+       /* if (!lv && !(p->used & 0x80) && p->kondice>0) {
           greyscale_rectangle(PIC_X+x,PIC_Y, 54, 75);
-        }
+        }*/
         if (p->bonus) draw_small_icone(0,PIC_X+x+1,PIC_Y+1);
         if (p->spell) draw_small_icone(1,PIC_X+x+1,PIC_Y+1);
         if (!p->voda) draw_small_icone(2,PIC_X+x+1,PIC_Y+1);
