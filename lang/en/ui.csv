@@ -45,7 +45,7 @@ To activate the controller, press any button on the controller"
 48,Start
 49,Throw
 50,Combat in Progress
-51,Overall  Music Sounds  Treble Bass
+51,Overall  Music Sounds  Treble Bass   Speed
 52,Stereo Settings (Ultrasound)
 53,Swap Sides
 54,Output Filter (SBPro)
@@ -117,7 +117,7 @@ To activate the controller, press any button on the controller"
 141,Rearrange Portraits
 142,Auto Attack
 143,Auto Save
-144,Load All Into Memory
+144,Speed up battles
 145,Adventure Length:
 146,%d day and
 147,%d days and

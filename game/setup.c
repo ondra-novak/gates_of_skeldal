@@ -44,7 +44,7 @@ static void checkbox_animator(THE_TIMER *t)
   animate_checkbox(10,130,10);
   }
 
-static int effects[]={SND_GVOLUME,SND_MUSIC,SND_GFX,SND_TREBL,SND_BASS,SND_XBASS};
+static int effects[]={SND_GVOLUME,SND_MUSIC,SND_GFX,SND_TREBL,SND_BASS};
 
 static void do_setup_change(void)
   {
@@ -55,6 +55,7 @@ static void do_setup_change(void)
      {
      case 10:set_snd_effect(SND_SWAP,c & 1);break;
      case 20:set_snd_effect(SND_OUTFILTER,c & 1);break;
+     case 250:timerspeed_val = TIMERSPEED- c;break;
      default:set_snd_effect(effects[o_aktual->id/10-20],c);break;
      }
   }
@@ -111,7 +112,7 @@ static void unwire_setup(void)
   enable_sort=f_get_value(0,100) & 1;
   autoattack=f_get_value(0,110) & 1;
   autosave_enabled=f_get_value(0,120) & 1;
-  level_preload=f_get_value(0,130) & 1;
+  gamespeedbattle=(f_get_value(0,130) & 1)?GAMESPEED_FASTBATTLE:gamespeed;
   delete_from_timer(TM_CHECKBOX);
   mix_back_sound(32768);
   close_current();
@@ -188,7 +189,7 @@ void new_setup()
         case 1:c_default(enable_sort);break;
         case 2:c_default(autoattack);break;
         case 3:c_default(autosave_enabled);break;
-        case 4:c_default(level_preload);break;
+        case 4:c_default(gamespeedbattle < gamespeed);break;
         }
      }
 
@@ -201,6 +202,9 @@ void new_setup()
        define(200+i*10,50+i*60,30,30,200,0,skeldal_soupak,effects[i]==SND_MUSIC?127:255);c_default(get_snd_effect(effects[i]));
        on_control_change(do_setup_change);
        }
+    define(200+5*10,50+5*60,30,30,200,0,skeldal_soupak,TIMERSPEED-1);c_default(timerspeed_val >TIMERSPEED?0:TIMERSPEED - timerspeed_val);
+    on_control_change(do_setup_change);
+
   define(300,559,336,81,21,0,setup_ok_button,texty[174]);on_control_change(exit_setup_action);
   property(NULL,ablock(H_FTINY),&color_topbar,0);
   redraw_window();

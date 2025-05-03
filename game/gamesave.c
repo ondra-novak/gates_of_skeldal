@@ -30,6 +30,9 @@
 #define SLOTS_MAX 10
 
 #define GM_MAPENABLE 0x1
+#define GM_FASTBATTLES 0x2
+#define GM_GAMESPEED_SHIFT 2
+#define GM_GAMESPEED_MASK 0x1F
 
 #define SAVE_SLOT_S 34
 #define LOAD_SLOT_S (372+34)
@@ -618,7 +621,14 @@ int save_basic_info()
   s.swapchans=MIN(get_snd_effect(SND_SWAP),255);
   s.out_filter=MIN(get_snd_effect(SND_OUTFILTER),255);
   s.autosave=autosave_enabled;
-	s.game_flags=(enable_glmap!=0);
+	s.game_flags=0;
+
+  if (enable_glmap!=0) s.game_flags |= GM_MAPENABLE;
+  if (gamespeedbattle<gamespeed) s.game_flags |= GM_FASTBATTLES;
+  if (timerspeed_val <= GM_GAMESPEED_MASK) {
+      s.game_flags |= (timerspeed_val & GM_GAMESPEED_MASK) << GM_GAMESPEED_SHIFT;
+  }
+
   strcopy_n(s.level_name,level_fname,sizeof(s.level_name));
   for(i=0;i<5;i++) s.runes[i]=runes[i];
   if (picked_item!=NULL)
@@ -654,6 +664,9 @@ int load_basic_info()
   if (f==NULL) return 1;
   res|=(temp_storage_read(&s,1*sizeof(s),f)!=sizeof(s));
 	if (s.game_flags & GM_MAPENABLE) enable_glmap=1;else enable_glmap=0;
+  gamespeedbattle =s.game_flags & GM_FASTBATTLES? GAMESPEED_FASTBATTLE:gamespeed;
+  int tmsp = (s.game_flags >> GM_GAMESPEED_SHIFT) & GM_GAMESPEED_MASK;
+  if (tmsp) timerspeed_val = tmsp;
   i=s.picks;
   if (picked_item!=NULL) free(picked_item);
   if (i)

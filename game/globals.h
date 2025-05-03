@@ -12,6 +12,10 @@
 #define POCET_POSTAV 6
 #define HODINA 360
 
+#define GAMESPEED 5
+#define GAMESPEED_FASTBATTLE 2
+
+
 #define MAX_FILESYSTEM_PATH 256
 
 #define A_SIDEMAP 0x8001
@@ -581,8 +585,8 @@ extern word minimap[VIEW3D_Z+1][VIEW3D_X*2+1]; //minimalizovana mapa s informace
 extern char norefresh;             //vypina refresh obrazovky
 extern char cancel_pass;           //okamzite zrusi plynuly prechod
 extern char reverse_draw ;         //kresba odpredu dozadu
-extern char gamespeed;             //rychlost hry
-extern char gamespeedbattle;	   //akcelerace rychlosti pro bitvy
+extern uint8_t gamespeed;             //rychlost hry
+extern uint8_t gamespeedbattle;	   //akcelerace rychlosti pro bitvy
 extern int num_ofsets[];           //tabulka offsetu pro steny
 extern int back_color;             //cislo barvy pozadi
 extern uint8_t cur_group;             //cislo aktualni skupiny
