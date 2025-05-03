@@ -479,19 +479,6 @@ int find_item(short *place,int mask)
   return lastitem;
   }
 
-static int lastsector;
-
-static char ValidateSector(word sector, void *_)
-  {
-  int pp=map_sectors[sector].sector_type;
-  if (pp==S_NORMAL || pp==S_SMER || pp==S_LEAVE || pp==S_FLT_SMER)
-	{
-	lastsector=sector;
-	return 1;
-	}
-  return 0;
-  }
-
 void push_to_destroyed_items(const short *picked_items) {
   int new_count = count_items_total(picked_items);
   if (new_count == 0) return;
@@ -515,11 +502,11 @@ void push_item(int sect,int pos,const short *picked_item)
   int tc;
   short *p;
   char s =  map_sectors[sect].sector_type;
-  
+
 
   if (s==S_DIRA || ISTELEPORTSECT(sect) || s == S_SCHODY)
      sect=map_sectors[sect].sector_tag;
-  if (sect==0 || s==S_VODA || s == S_LAVA || s == S_SSMRT) {
+  if (sect==0 || s==S_VODA || s == S_LAVA || s == S_SSMRT || s == S_LODKA) {
       push_to_destroyed_items(picked_item);
       return;
   }
