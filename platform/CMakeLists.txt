@@ -94,8 +94,9 @@ elseif(APPLE)
     target_sources(skeldal PRIVATE
         linux/app_start.cpp
     )
-    target_compile_definitions(mylib PRIVATE PLATFORM_MACOS)
-    set(STEAMLIB ${STEAMWORKS_SDK_DIR}/redistributable_bin/osx/libsteam_api.dylib)
+    if(STEAM_ENABLED)
+        set(STEAMLIB ${STEAMWORKS_SDK_DIR}/redistributable_bin/osx/libsteam_api.dylib)
+    endif()
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-deprecated-declarations")  
     message(STATUS "Building for macOS")
     target_link_libraries(skeldal ${all_libs} ${STEAMLIB})
