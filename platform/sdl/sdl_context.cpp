@@ -4,6 +4,7 @@
 #include <atomic>
 #include <cassert>
 #include "../platform.h"
+#include "../error.h"
 
 #include <cmath>
 #include <iostream>
@@ -33,6 +34,9 @@ void SDLContext::SDL_Deleter::operator ()(SDL_Surface* surface) {
 
 void SDLContext::SDL_Deleter::operator ()(SDL_Texture* texture) {
     SDL_DestroyTexture(texture);
+}
+void SDLContext::SDL_Deleter::operator ()(SDL_PixelFormat* f) {
+    SDL_FreeFormat(f);
 }
 
 void SDLContext::SDL_Audio_Deleter::operator()(SDL_AudioDeviceID x) {
@@ -78,6 +82,20 @@ void handle_sdl_error(const char *msg) {
     throw std::runtime_error(buff);
 }
 
+bool isFormatSupported(SDL_Renderer *renderer, Uint32 pixel_format) {
+    SDL_RendererInfo info;
+    if (SDL_GetRendererInfo(renderer, &info) != 0) {
+        handle_sdl_error("Failed to get renderer info");
+        return false;
+    }
+
+    for (Uint32 i = 0; i < info.num_texture_formats; ++i) {
+        if (info.texture_formats[i] == pixel_format) {
+            return true;
+        }
+    }
+    return false;
+}
 
 void SDLContext::generateCRTTexture(SDL_Renderer* renderer, SDL_Texture** texture, int width, int height, CrtFilterType type) {
 
@@ -95,6 +113,8 @@ void SDLContext::generateCRTTexture(SDL_Renderer* renderer, SDL_Texture** textur
         default: break;
     }
 
+    
+
     if (type == CrtFilterType::scanlines || type == CrtFilterType::scanlines_2) {
         width = 32;
     } else {
@@ -105,8 +125,11 @@ void SDLContext::generateCRTTexture(SDL_Renderer* renderer, SDL_Texture** textur
         unsigned int mult_of_base = std::max<unsigned int>((height+240)/480,interfer);
         height = height * interfer / mult_of_base;
     }
+
+    
+
     // Vytvoř novou texturu ve správné velikosti
-    *texture = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_RGBA8888, SDL_TEXTUREACCESS_STREAMING, width, height);
+    *texture = SDL_CreateTexture(renderer, _texture_render_format, SDL_TEXTUREACCESS_STREAMING, width, height);
     if (!*texture) {
         type = CrtFilterType::none;
         return;  //crt filter failed to create, do not use filter
@@ -125,11 +148,13 @@ void SDLContext::generateCRTTexture(SDL_Renderer* renderer, SDL_Texture** textur
     }
 
     Uint32* pixelArray = (Uint32*)pixels;
+   
 
     if (type == CrtFilterType::scanlines) {
 
-        Uint32 darkPixel = 0xA0A0A0FF;
-        Uint32 transparentPixel = 0xFFFFFFC0;
+
+        Uint32 darkPixel = SDL_MapRGBA(_main_pixel_format.get(), 0xA0, 0xA0, 0xA0, 0xFF);
+        Uint32 transparentPixel = SDL_MapRGBA(_main_pixel_format.get(), 0xFF, 0xFF, 0xFF, 0xC0);
 
         for (int y = 0; y < height; y++) {
             Uint32 color = ((y & 1)== 0) ? darkPixel : transparentPixel;
@@ -141,8 +166,8 @@ void SDLContext::generateCRTTexture(SDL_Renderer* renderer, SDL_Texture** textur
     else if (type == CrtFilterType::scanlines_2) {
 
 
-        Uint32 darkPixel = 0x808080FF;
-        Uint32 transparentPixel = 0xFFFFFFE0;
+        Uint32 darkPixel = SDL_MapRGBA(_main_pixel_format.get(), 0x80, 0x80, 0x80, 0xFF);
+        Uint32 transparentPixel = SDL_MapRGBA(_main_pixel_format.get(), 0xFF, 0xFF, 0xFF, 0xE0);
 
         for (int y = 0; y < height; y++) {
             Uint32 color = (y % 3== 2) ? darkPixel : transparentPixel;
@@ -152,10 +177,10 @@ void SDLContext::generateCRTTexture(SDL_Renderer* renderer, SDL_Texture** textur
         }
     } else {
 
-        static Uint32 red_pixel = 0xFF8080A0;
-        static Uint32 green_pixel = 0x80FF80A0;
-        static Uint32 blue_pixel = 0x8080FFA0;
-        static Uint32 dark_pixel = 0x000000C0;
+        static Uint32 red_pixel = SDL_MapRGBA(_main_pixel_format.get(), 0xFF, 0x80, 0x80, 0xA0);
+        static Uint32 green_pixel = SDL_MapRGBA(_main_pixel_format.get(), 0x80, 0xFF, 0x80, 0xA0);
+        static Uint32 blue_pixel = SDL_MapRGBA(_main_pixel_format.get(), 0x80, 0x80, 0xFF, 0xA0);
+        static Uint32 dark_pixel = SDL_MapRGBA(_main_pixel_format.get(), 0x0, 0x0, 0x00, 0xA0);
         for (int y = 2; y < height; y++) {
             if (type == CrtFilterType::rgb_matrix_2) {
                 for (int x = 2; x < width; x+=3) {
@@ -199,6 +224,30 @@ static void crash_sdl_exception() {
     abort();
 }
 
+static int select_best_rendered_driver(int max_texture_width, int max_texture_height, Uint32 texture_format, bool force_software) {
+    int best_index = -1;
+    int num_drivers = SDL_GetNumRenderDrivers();
+    for (int i = 0; i < num_drivers; ++i) {
+        SDL_RendererInfo info;
+        if (SDL_GetRenderDriverInfo(i, &info) == 0) {
+            bool found_format =  std::find(info.texture_formats, info.texture_formats + info.num_texture_formats, texture_format) != info.texture_formats + info.num_texture_formats;
+            if (found_format) {
+                if (force_software && (info.flags & SDL_RENDERER_SOFTWARE)) {
+                    best_index = i;
+                    break;
+                }
+                if (!force_software && (info.flags & SDL_RENDERER_ACCELERATED)) {
+                    if (info.max_texture_width >= max_texture_width &&
+                        info.max_texture_height >= max_texture_height) {
+                            best_index = i;
+                            break;
+                        }
+                    }
+                }
+        }
+    }
+    return best_index;
+}
 
 void SDLContext::init_video(const VideoConfig &config, const char *title) {
     static Uint32 update_request_event = SDL_RegisterEvents(1);
@@ -219,18 +268,16 @@ void SDLContext::init_video(const VideoConfig &config, const char *title) {
         _enable_crt = false;
     }
 
-    if (config.hint_renderer) {
-        SDL_SetHint(SDL_HINT_RENDER_DRIVER, config.hint_renderer);
-    }
-
     _fullscreen_mode = config.fullscreen;
     _mouse_size = config.cursor_size;
 
     std::atomic<bool> done = false;
     std::exception_ptr e;
+    std::string_view stage;
     _render_thread = std::jthread([&](std::stop_token stp){
         bool err = false;
         try {
+            stage = "window";
             SDL_Window *window = SDL_CreateWindow(title,
                         SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED,
                         width, height, SDL_WINDOW_RESIZABLE|(_fullscreen_mode?SDL_WINDOW_FULLSCREEN_DESKTOP:0));
@@ -239,10 +286,40 @@ void SDLContext::init_video(const VideoConfig &config, const char *title) {
                 handle_sdl_error("SDL Error create window");
             }
 
+            stage = "renderer";
+            int rindex = -1;        
+            if (rindex == -1) {
+                _texture_render_format = SDL_PIXELFORMAT_RGBA8888;
+                rindex = select_best_rendered_driver(640,480, _texture_render_format, config.composer & SDL_RENDERER_SOFTWARE);
+            }
+            if (rindex == -1) {
+                _texture_render_format = SDL_PIXELFORMAT_ARGB8888;
+                rindex = select_best_rendered_driver(640,480, _texture_render_format, config.composer & SDL_RENDERER_SOFTWARE);
+            }
+            if (rindex == -1){
+                _texture_render_format = SDL_PIXELFORMAT_ARGB8888;
+                rindex = select_best_rendered_driver(640,480, _texture_render_format, true);                
+            }
+            if (rindex == -1){
+                _texture_render_format = SDL_PIXELFORMAT_RGBA8888;
+                rindex = select_best_rendered_driver(640,480, _texture_render_format, true);                
+            }
+            if (rindex == -1) {
+                throw std::runtime_error("Unsupported graphic driver, (software fallback also failed)");
+            }
+
+
             _window.reset(window);
-            SDL_Renderer *renderer = SDL_CreateRenderer(_window.get(), -1, config.composer);
+            SDL_Renderer *renderer = SDL_CreateRenderer(_window.get(), rindex, config.composer);
             if (!renderer) {
                 handle_sdl_error("Failed to create composer");
+            }
+
+            stage = "pixel format";
+
+            _main_pixel_format.reset(SDL_AllocFormat(_texture_render_format));
+            if (!_main_pixel_format) {
+                handle_sdl_error("Failed to create texture format");
             }
 
             SDL_RendererInfo rinfo;
@@ -256,20 +333,31 @@ void SDLContext::init_video(const VideoConfig &config, const char *title) {
                 SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, config.scale_quality);
             }
 
+
             _renderer.reset(renderer);
-            SDL_Texture *texture = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_ARGB1555, SDL_TEXTUREACCESS_STREAMING, 640, 480);
+
+            stage = "main render target";
+
+
+            SDL_Texture *texture = SDL_CreateTexture(renderer, _texture_render_format, SDL_TEXTUREACCESS_STREAMING, 640, 480);
             if (!texture) {
                 handle_sdl_error("Failed to create render target");
             }
 
             SDL_SetTextureBlendMode(texture, SDL_BLENDMODE_BLEND);
             _texture.reset(texture);
-            texture = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_ARGB1555, SDL_TEXTUREACCESS_STREAMING, 640, 480);
+
+            stage = "secondary render target";
+
+            texture = SDL_CreateTexture(renderer, _texture_render_format, SDL_TEXTUREACCESS_STREAMING, 640, 480);
             if (!texture) {
                 handle_sdl_error("Failed to create second render target");
             }
             SDL_SetTextureBlendMode(texture, SDL_BLENDMODE_BLEND);
             _texture2.reset(texture);
+            
+            stage = "all done";
+
             _visible_texture = _texture.get();
             _hidden_texture = _texture2.get();
         } catch (...) {
@@ -301,10 +389,11 @@ void SDLContext::init_video(const VideoConfig &config, const char *title) {
             std::rethrow_exception(e);
         } catch (...) {
             std::throw_with_nested(
-                    std::runtime_error("Oops! The app couldn't start properly (problem during SDL initialization). "
+                    std::runtime_error(std::string("Oops! The application couldn't start properly (problem during SDL initialization). Stage: [")
+                                        .append(stage).append("]\n\n"
                                        "This may be caused by outdated or missing graphics or audio drivers."
-                                       "To fix this, please try the following: Restart your computer and try again/"
-                                       "Make sure your graphics and sound drivers are up to date."));
+                                       "To fix this, please try the following:\n- Restart your computer and try again\n- "
+                                       "Make sure your graphics and sound drivers are up to date.")));
         }
     }
 
@@ -344,6 +433,75 @@ int SDLContext::adjust_deadzone(int v, short deadzone) {
     if (v > deadzone) return v - deadzone;
     if (v < -deadzone) return v + deadzone;
     return 0;
+}
+
+void SDLContext::update_texture_with_conversion(SDL_Texture *texture, const SDL_Rect *rect, const void *pixels, int pitch)
+{
+    SDL_Rect r;
+    if (rect) {
+        r = *rect;
+    } else {
+        SDL_QueryTexture(texture, nullptr, nullptr, &r.w, &r.h);
+        r.x = 0;
+        r.y = 0;
+    }
+
+    converted_pixels.clear();
+    converted_pixels.resize(r.w * r.h);
+
+    switch (_texture_render_format) {
+        case SDL_PIXELFORMAT_RGBA8888: {
+            const Uint16* src = static_cast<const Uint16*>(pixels);
+            auto trg = converted_pixels.data();
+            for (int y = 0; y < r.h; ++y) {
+                for (int x = 0; x < r.w; ++x) {                
+                    Uint16 pixel = src[x];
+                    Uint32 a = (pixel & 0x8000) ? 0 : 0xFF;
+                    Uint32 r = ((pixel >> 10) & 0x1F);
+                    Uint32 g = ((pixel >> 5) & 0x1F);
+                    Uint32 b = (pixel & 0x1F);
+                    r = (r << 3) | (r >> 2);
+                    g = (g << 3) | (g >> 2);
+                    b = (b << 3) | (b >> 2);
+                    if constexpr (std::endian::native == std::endian::little) {
+                        trg[x] = (r << 24) | (g << 16) | (b << 8) | a;
+                    } else {
+                        trg[x] = (r) | (g << 8) | (b << 16) | (a << 24);
+                    }
+                }
+                trg += r.w;
+                src = src + pitch/2;
+            }            
+        }
+        break;
+        case SDL_PIXELFORMAT_ARGB8888: {
+            const Uint16* src = static_cast<const Uint16*>(pixels);
+            auto trg = converted_pixels.data();
+            for (int y = 0; y < r.h; ++y) {
+                for (int x = 0; x < r.w; ++x) {                
+                    Uint16 pixel = src[x];
+                    Uint32 a = (pixel & 0x8000) ? 0 : 0xFF;
+                    Uint32 r = ((pixel >> 10) & 0x1F);
+                    Uint32 g = ((pixel >> 5) & 0x1F);
+                    Uint32 b = (pixel & 0x1F);
+                    r = (r << 3) | (r >> 2);
+                    g = (g << 3) | (g >> 2);
+                    b = (b << 3) | (b >> 2);
+                    if constexpr (std::endian::native == std::endian::little) {
+                        trg[x] = (a << 24) | (r << 16) | (g << 8) | b;
+                    } else {
+                        trg[x] = (a) | (r << 8) | (g << 16) | (b << 24);
+                    }
+                }
+                trg += r.w;
+                src = src + pitch/2;
+            }
+        }
+        break;
+    }
+    if (SDL_UpdateTexture(texture, &r, converted_pixels.data(), r.w * 4) < 0) {
+        handle_sdl_error("Failed to update texture");
+    }
 }
 
 static int axis_dynamic(int c) {
@@ -709,19 +867,19 @@ void SDLContext::update_screen(bool force_refresh) {
                     SDL_Rect r;
                     pop_item(iter, r);
                     std::string_view data = pop_data(iter, r.w*r.h*2);
-                    if (SDL_UpdateTexture(_texture.get(), &r, data.data(), r.w*2)<0) handle_sdl_error("Update of render target failed");
+                    update_texture_with_conversion(_texture.get(), &r, data.data(), r.w*2);
                 }
                 break;
                 case DisplayRequest::show_mouse_cursor: {
                     SDL_Rect r;
                     pop_item(iter, r);
                     std::string_view data = pop_data(iter, r.w*r.h*2);
-                    _mouse.reset(SDL_CreateTexture(_renderer.get(), SDL_PIXELFORMAT_ARGB1555,SDL_TEXTUREACCESS_STATIC, r.w, r.h));
+                    _mouse.reset(SDL_CreateTexture(_renderer.get(), _texture_render_format,SDL_TEXTUREACCESS_STATIC, r.w, r.h));
                     if (!_mouse) handle_sdl_error("Failed to create surface for mouse cursor");
                     SDL_SetTextureBlendMode(_mouse.get(), SDL_BLENDMODE_BLEND);
                     _mouse_rect.w = r.w;
                     _mouse_rect.h = r.h;
-                    if (SDL_UpdateTexture(_mouse.get(), NULL, data.data(), r.w*2)<0) handle_sdl_error("Update of mouse cursor failed");
+                    update_texture_with_conversion(_mouse.get(), NULL, data.data(), r.w*2);                    
                 }
                 break;
                 case DisplayRequest::hide_mouse_cursor: {
@@ -758,10 +916,10 @@ void SDLContext::update_screen(bool force_refresh) {
                     if (iter == _sprites.end()) {
                         iter = _sprites.insert(iter,{id});
                     }
-                    iter->_txtr.reset(SDL_CreateTexture(_renderer.get(), SDL_PIXELFORMAT_ARGB1555, SDL_TEXTUREACCESS_STATIC,r.w, r.h));
+                    iter->_txtr.reset(SDL_CreateTexture(_renderer.get(), _texture_render_format, SDL_TEXTUREACCESS_STATIC,r.w, r.h));
                     if (!iter->_txtr) handle_sdl_error("Failed to create compositor sprite");
                     SDL_SetTextureBlendMode(iter->_txtr.get(), SDL_BLENDMODE_BLEND);
-                    if (SDL_UpdateTexture(iter->_txtr.get(), NULL, data.data(), r.w*2)<0) handle_sdl_error("Update of sprite failed");
+                    update_texture_with_conversion(iter->_txtr.get(), NULL, data.data(), r.w*2);
                     iter->_rect = r;
                     update_zindex();
                 } break;
@@ -862,10 +1020,8 @@ void SDLContext::push_update_msg(const SDL_Rect &rc, const uint16_t *data, int p
     _display_update_queue.resize(sz+rc.w*rc.h*2);
     short *trg = reinterpret_cast<short *>(_display_update_queue.data()+sz);
     for (int yp = 0; yp < rc.h; ++yp) {
-        for (int xp = 0; xp < rc.w; ++xp) {
-            *trg = data[xp] ^ 0x8000;
-            ++trg;
-        }
+        std::copy(data, data+rc.w, trg);
+        trg += rc.w;
         data += pitch;
     }
 }
@@ -1020,7 +1176,7 @@ void put_picture_ex(unsigned short x,unsigned short y,const void *p, unsigned sh
 }
 
 void  SDLContext::push_hi_image(const unsigned short *image) {
-    SDL_Rect rc;
+    SDL_Rect rc = {};
     rc.w= image[0];
     rc.h =image[1];
     push_item(rc);
@@ -1030,7 +1186,6 @@ void  SDLContext::push_hi_image(const unsigned short *image) {
     unsigned short *trg = reinterpret_cast<unsigned short *>(_display_update_queue.data()+sz);
     std::fill(trg, trg+imgsz, 0x8000);
     put_picture_ex(0, 0, image, trg, rc.w);
-    std::transform(trg, trg+imgsz, trg, [](unsigned short &x)->unsigned short {return x ^ 0x8000;});
 }
 
 void SDLContext::show_mouse_cursor(const unsigned short *ms_hi_format, SDL_Point finger) {

@@ -41,7 +41,6 @@ char game_display_init(const INI_CONFIG_SECTION *display_section, const char *ti
     else cfg.crt_filter = SDLContext::CrtFilterType::autoselect;
 
     cfg.cursor_size = ini_get_int(display_section, "cursor_size", 100)*0.01f;
-    cfg.hint_renderer = ini_get_string(display_section, "sdl_renderer_driver", NULL);
 
     screen_pitch = 640;
     get_sdl_global_context().init_video(cfg, title);

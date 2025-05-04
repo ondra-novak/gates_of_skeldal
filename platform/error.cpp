@@ -47,9 +47,9 @@ std::string exception_to_string(const std::exception& e) {
     try {
         std::rethrow_if_nested(e);
     } catch (const std::exception& nested) {
-        oss << " Reason: " << exception_to_string(nested);
+        oss << "\n\n Reason: " << exception_to_string(nested);
     } catch (...) {
-        oss << " Reason: unknown exception of crash";
+        oss << "\n\n Reason: unknown exception of crash";
     }
 
     return std::move(oss).str();
