@@ -316,4 +316,7 @@ protected:
         const SDL_Rect * rect,
         const void *pixels, int pitch);
 
+    template<Uint32 pixel_format>
+    void convert_bitmap(const void *pixels, SDL_Rect r, int pitch);
+
 };

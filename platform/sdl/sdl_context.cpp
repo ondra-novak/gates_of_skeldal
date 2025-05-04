@@ -1,5 +1,6 @@
 #include "sdl_context.h"
 #include "keyboard_map.h"
+#include "format_mapping.h"
 
 #include <atomic>
 #include <cassert>
@@ -113,7 +114,7 @@ void SDLContext::generateCRTTexture(SDL_Renderer* renderer, SDL_Texture** textur
         default: break;
     }
 
-    
+
 
     if (type == CrtFilterType::scanlines || type == CrtFilterType::scanlines_2) {
         width = 32;
@@ -126,7 +127,7 @@ void SDLContext::generateCRTTexture(SDL_Renderer* renderer, SDL_Texture** textur
         height = height * interfer / mult_of_base;
     }
 
-    
+
 
     // Vytvoř novou texturu ve správné velikosti
     *texture = SDL_CreateTexture(renderer, _texture_render_format, SDL_TEXTUREACCESS_STREAMING, width, height);
@@ -148,7 +149,7 @@ void SDLContext::generateCRTTexture(SDL_Renderer* renderer, SDL_Texture** textur
     }
 
     Uint32* pixelArray = (Uint32*)pixels;
-   
+
 
     if (type == CrtFilterType::scanlines) {
 
@@ -224,29 +225,47 @@ static void crash_sdl_exception() {
     abort();
 }
 
-static int select_best_rendered_driver(int max_texture_width, int max_texture_height, Uint32 texture_format, bool force_software) {
-    int best_index = -1;
-    int num_drivers = SDL_GetNumRenderDrivers();
-    for (int i = 0; i < num_drivers; ++i) {
-        SDL_RendererInfo info;
-        if (SDL_GetRenderDriverInfo(i, &info) == 0) {
-            bool found_format =  std::find(info.texture_formats, info.texture_formats + info.num_texture_formats, texture_format) != info.texture_formats + info.num_texture_formats;
-            if (found_format) {
-                if (force_software && (info.flags & SDL_RENDERER_SOFTWARE)) {
-                    best_index = i;
-                    break;
-                }
-                if (!force_software && (info.flags & SDL_RENDERER_ACCELERATED)) {
-                    if (info.max_texture_width >= max_texture_width &&
-                        info.max_texture_height >= max_texture_height) {
-                            best_index = i;
-                            break;
-                        }
-                    }
-                }
+// Seznam akceptovatelných formátů odpovídajících RGBA8888 (v různém pořadí)
+constexpr Uint32 acceptable_formats[] = {
+    SDL_PIXELFORMAT_RGBA8888,
+    SDL_PIXELFORMAT_ARGB8888,
+    SDL_PIXELFORMAT_BGRA8888,
+    SDL_PIXELFORMAT_ABGR8888,
+
+    SDL_PIXELFORMAT_RGBA4444,
+    SDL_PIXELFORMAT_ARGB4444,
+    SDL_PIXELFORMAT_BGRA4444,
+    SDL_PIXELFORMAT_ABGR4444,
+
+    SDL_PIXELFORMAT_ARGB2101010,
+};
+
+constexpr bool is_acceptable_format(Uint32 format) {
+    for (size_t i = 0; i < sizeof(acceptable_formats)/sizeof(acceptable_formats[0]); ++i) {
+        if (format == acceptable_formats[i]) {
+            return true;
         }
     }
-    return best_index;
+    return false;
+}
+
+static Uint32 find_best_rgba_like_format(SDL_Renderer* renderer) {
+    SDL_RendererInfo info;
+    if (SDL_GetRendererInfo(renderer, &info) != 0) {
+        return 0;
+    }
+
+    if ((info.max_texture_width != 0 && info.max_texture_width < 640) ||
+        (info.max_texture_height!= 0 && info.max_texture_height < 480)) return 0;
+
+    for (Uint32 i = 0; i < info.num_texture_formats; ++i) {
+        Uint32 fmt = info.texture_formats[i];
+        if (is_acceptable_format(fmt)) {
+            return fmt;
+        }
+    }
+
+    return 0;
 }
 
 void SDLContext::init_video(const VideoConfig &config, const char *title) {
@@ -274,6 +293,7 @@ void SDLContext::init_video(const VideoConfig &config, const char *title) {
     std::atomic<bool> done = false;
     std::exception_ptr e;
     std::string_view stage;
+    std::string rname;
     _render_thread = std::jthread([&](std::stop_token stp){
         bool err = false;
         try {
@@ -286,34 +306,43 @@ void SDLContext::init_video(const VideoConfig &config, const char *title) {
                 handle_sdl_error("SDL Error create window");
             }
 
-            stage = "renderer";
-            int rindex = -1;        
-            if (rindex == -1) {
-                _texture_render_format = SDL_PIXELFORMAT_RGBA8888;
-                rindex = select_best_rendered_driver(640,480, _texture_render_format, config.composer & SDL_RENDERER_SOFTWARE);
-            }
-            if (rindex == -1) {
-                _texture_render_format = SDL_PIXELFORMAT_ARGB8888;
-                rindex = select_best_rendered_driver(640,480, _texture_render_format, config.composer & SDL_RENDERER_SOFTWARE);
-            }
-            if (rindex == -1){
-                _texture_render_format = SDL_PIXELFORMAT_ARGB8888;
-                rindex = select_best_rendered_driver(640,480, _texture_render_format, true);                
-            }
-            if (rindex == -1){
-                _texture_render_format = SDL_PIXELFORMAT_RGBA8888;
-                rindex = select_best_rendered_driver(640,480, _texture_render_format, true);                
-            }
-            if (rindex == -1) {
-                throw std::runtime_error("Unsupported graphic driver, (software fallback also failed)");
-            }
-
-
             _window.reset(window);
-            SDL_Renderer *renderer = SDL_CreateRenderer(_window.get(), rindex, config.composer);
-            if (!renderer) {
-                handle_sdl_error("Failed to create composer");
+
+            auto composer = config.composer;
+
+            stage = "renderer";
+
+            while (true) {
+
+                SDL_Renderer *renderer = SDL_CreateRenderer(_window.get(), -1, composer);
+                if (!renderer) {
+                    if (config.composer & SDL_RENDERER_SOFTWARE) {
+                        handle_sdl_error("Failed to create composer");
+                    } else {
+                        composer |= SDL_RENDERER_SOFTWARE;
+                        continue;
+                    }
+                }
+
+                _texture_render_format = find_best_rgba_like_format(renderer);
+                if (_texture_render_format == 0) {
+                    if (composer & SDL_RENDERER_SOFTWARE) {
+                        throw std::runtime_error("Failed to create composer, failed software fallback");
+                    } else {
+                        SDL_DestroyRenderer(renderer);
+                        composer |= SDL_RENDERER_SOFTWARE;
+                        continue;
+                    }
+                }
+                _renderer.reset(renderer);
+                break;
             }
+
+
+            SDL_RendererInfo rinfo;
+            SDL_GetRendererInfo(_renderer.get(), &rinfo);
+
+            rname = rinfo.name;
 
             stage = "pixel format";
 
@@ -321,9 +350,6 @@ void SDLContext::init_video(const VideoConfig &config, const char *title) {
             if (!_main_pixel_format) {
                 handle_sdl_error("Failed to create texture format");
             }
-
-            SDL_RendererInfo rinfo;
-            SDL_GetRendererInfo(renderer, &rinfo);
 
             if (istrcmp(config.scale_quality, "auto") == 0) {
                 if (rinfo.flags & SDL_RENDERER_ACCELERATED) {
@@ -334,12 +360,11 @@ void SDLContext::init_video(const VideoConfig &config, const char *title) {
             }
 
 
-            _renderer.reset(renderer);
 
             stage = "main render target";
 
 
-            SDL_Texture *texture = SDL_CreateTexture(renderer, _texture_render_format, SDL_TEXTUREACCESS_STREAMING, 640, 480);
+            SDL_Texture *texture = SDL_CreateTexture(_renderer.get(), _texture_render_format, SDL_TEXTUREACCESS_STREAMING, 640, 480);
             if (!texture) {
                 handle_sdl_error("Failed to create render target");
             }
@@ -349,13 +374,13 @@ void SDLContext::init_video(const VideoConfig &config, const char *title) {
 
             stage = "secondary render target";
 
-            texture = SDL_CreateTexture(renderer, _texture_render_format, SDL_TEXTUREACCESS_STREAMING, 640, 480);
+            texture = SDL_CreateTexture(_renderer.get(), _texture_render_format, SDL_TEXTUREACCESS_STREAMING, 640, 480);
             if (!texture) {
                 handle_sdl_error("Failed to create second render target");
             }
             SDL_SetTextureBlendMode(texture, SDL_BLENDMODE_BLEND);
             _texture2.reset(texture);
-            
+
             stage = "all done";
 
             _visible_texture = _texture.get();
@@ -391,6 +416,7 @@ void SDLContext::init_video(const VideoConfig &config, const char *title) {
             std::throw_with_nested(
                     std::runtime_error(std::string("Oops! The application couldn't start properly (problem during SDL initialization). Stage: [")
                                         .append(stage).append("]\n\n"
+                                       "Renderer: ").append(rname).append("\n\n"
                                        "This may be caused by outdated or missing graphics or audio drivers."
                                        "To fix this, please try the following:\n- Restart your computer and try again\n- "
                                        "Make sure your graphics and sound drivers are up to date.")));
@@ -435,6 +461,52 @@ int SDLContext::adjust_deadzone(int v, short deadzone) {
     return 0;
 }
 
+template<int shift>
+constexpr Uint32 shift_bits_5(Uint32 val) {
+    if constexpr(shift > 0) {
+        return val << shift | shift_bits_5<shift-5>(val);
+    } else if constexpr(shift < 0) {
+        return val >> (-shift);
+    } else {
+        return val;
+    }
+}
+
+
+template<Uint32 pixel_format>
+void SDLContext::convert_bitmap(const void *pixels, SDL_Rect rect, int pitch) {
+
+    constexpr auto RShift = FormatMapping<pixel_format>::RShift;
+    constexpr auto GShift = FormatMapping<pixel_format>::GShift;
+    constexpr auto BShift = FormatMapping<pixel_format>::BShift;
+    constexpr auto AShift = FormatMapping<pixel_format>::AShift;
+    constexpr auto RBits = FormatMapping<pixel_format>::RBits;
+    constexpr auto GBits = FormatMapping<pixel_format>::GBits;
+    constexpr auto BBits = FormatMapping<pixel_format>::BBits;
+    constexpr auto ABits = FormatMapping<pixel_format>::ABits;
+
+    const Uint16 *src = static_cast<const Uint16*>(pixels);
+    auto trg = converted_pixels.data();
+    for (int y = 0; y < rect.h; ++y) {
+        for (int x = 0; x < rect.w; ++x) {
+            Uint16 pixel = src[x];
+            Uint32 a = (pixel & 0x8000) ? 0 : 0x1F;
+            Uint32 r = ((pixel >> 10) & 0x1F);
+            Uint32 g = ((pixel >> 5) & 0x1F);
+            Uint32 b = (pixel & 0x1F);
+
+            r = shift_bits_5<RBits-5>(r);
+            g = shift_bits_5<GBits-5>(g);
+            b = shift_bits_5<BBits-5>(b);
+            a = shift_bits_5<ABits-5>(a);
+
+            trg[x] = (r << RShift) | (g << GShift) | (b << BShift) | (a << AShift);
+        }
+        trg += rect.w;
+        src = src + pitch / 2;
+    }
+}
+
 void SDLContext::update_texture_with_conversion(SDL_Texture *texture, const SDL_Rect *rect, const void *pixels, int pitch)
 {
     SDL_Rect r;
@@ -450,55 +522,36 @@ void SDLContext::update_texture_with_conversion(SDL_Texture *texture, const SDL_
     converted_pixels.resize(r.w * r.h);
 
     switch (_texture_render_format) {
-        case SDL_PIXELFORMAT_RGBA8888: {
-            const Uint16* src = static_cast<const Uint16*>(pixels);
-            auto trg = converted_pixels.data();
-            for (int y = 0; y < r.h; ++y) {
-                for (int x = 0; x < r.w; ++x) {                
-                    Uint16 pixel = src[x];
-                    Uint32 a = (pixel & 0x8000) ? 0 : 0xFF;
-                    Uint32 r = ((pixel >> 10) & 0x1F);
-                    Uint32 g = ((pixel >> 5) & 0x1F);
-                    Uint32 b = (pixel & 0x1F);
-                    r = (r << 3) | (r >> 2);
-                    g = (g << 3) | (g >> 2);
-                    b = (b << 3) | (b >> 2);
-                    if constexpr (std::endian::native == std::endian::little) {
-                        trg[x] = (r << 24) | (g << 16) | (b << 8) | a;
-                    } else {
-                        trg[x] = (r) | (g << 8) | (b << 16) | (a << 24);
-                    }
-                }
-                trg += r.w;
-                src = src + pitch/2;
-            }            
-        }
-        break;
-        case SDL_PIXELFORMAT_ARGB8888: {
-            const Uint16* src = static_cast<const Uint16*>(pixels);
-            auto trg = converted_pixels.data();
-            for (int y = 0; y < r.h; ++y) {
-                for (int x = 0; x < r.w; ++x) {                
-                    Uint16 pixel = src[x];
-                    Uint32 a = (pixel & 0x8000) ? 0 : 0xFF;
-                    Uint32 r = ((pixel >> 10) & 0x1F);
-                    Uint32 g = ((pixel >> 5) & 0x1F);
-                    Uint32 b = (pixel & 0x1F);
-                    r = (r << 3) | (r >> 2);
-                    g = (g << 3) | (g >> 2);
-                    b = (b << 3) | (b >> 2);
-                    if constexpr (std::endian::native == std::endian::little) {
-                        trg[x] = (a << 24) | (r << 16) | (g << 8) | b;
-                    } else {
-                        trg[x] = (a) | (r << 8) | (g << 16) | (b << 24);
-                    }
-                }
-                trg += r.w;
-                src = src + pitch/2;
-            }
-        }
-        break;
+        case SDL_PIXELFORMAT_ABGR8888:
+            convert_bitmap<SDL_PIXELFORMAT_ABGR8888>(pixels, r, pitch);break;
+        case SDL_PIXELFORMAT_ARGB8888:
+            convert_bitmap<SDL_PIXELFORMAT_ARGB8888>(pixels, r, pitch);break;
+        case SDL_PIXELFORMAT_ARGB2101010:
+            convert_bitmap<SDL_PIXELFORMAT_ARGB2101010>(pixels, r, pitch);break;
+        case SDL_PIXELFORMAT_RGBA8888:
+            convert_bitmap<SDL_PIXELFORMAT_RGBA8888>(pixels, r, pitch);break;
+        case SDL_PIXELFORMAT_BGRA8888:
+            convert_bitmap<SDL_PIXELFORMAT_BGRA8888>(pixels, r, pitch);break;
+        case SDL_PIXELFORMAT_ABGR4444:
+            convert_bitmap<SDL_PIXELFORMAT_ABGR4444>(pixels, r, pitch);break;
+        case SDL_PIXELFORMAT_ARGB4444:
+            convert_bitmap<SDL_PIXELFORMAT_ARGB4444>(pixels, r, pitch);break;
+        case SDL_PIXELFORMAT_BGRA4444:
+            convert_bitmap<SDL_PIXELFORMAT_BGRA4444>(pixels, r, pitch);break;
+        case SDL_PIXELFORMAT_RGBA4444:
+            convert_bitmap<SDL_PIXELFORMAT_RGBA4444>(pixels, r, pitch);break;
+        case SDL_PIXELFORMAT_ABGR1555:
+            convert_bitmap<SDL_PIXELFORMAT_ABGR1555>(pixels, r, pitch);break;
+        case SDL_PIXELFORMAT_ARGB1555:
+            convert_bitmap<SDL_PIXELFORMAT_ARGB1555>(pixels, r, pitch);break;
+        case SDL_PIXELFORMAT_RGBA5551:
+            convert_bitmap<SDL_PIXELFORMAT_RGBA5551>(pixels, r, pitch);break;
+        case SDL_PIXELFORMAT_BGRA5551:
+            convert_bitmap<SDL_PIXELFORMAT_BGRA5551>(pixels, r, pitch);break;
+        default:
+            return;
     }
+
     if (SDL_UpdateTexture(texture, &r, converted_pixels.data(), r.w * 4) < 0) {
         handle_sdl_error("Failed to update texture");
     }
@@ -879,7 +932,7 @@ void SDLContext::update_screen(bool force_refresh) {
                     SDL_SetTextureBlendMode(_mouse.get(), SDL_BLENDMODE_BLEND);
                     _mouse_rect.w = r.w;
                     _mouse_rect.h = r.h;
-                    update_texture_with_conversion(_mouse.get(), NULL, data.data(), r.w*2);                    
+                    update_texture_with_conversion(_mouse.get(), NULL, data.data(), r.w*2);
                 }
                 break;
                 case DisplayRequest::hide_mouse_cursor: {

@@ -20,6 +20,7 @@
 
 #include "ach_events.h"
 #include "lang.h"
+#include <version.h>
 
 #define MUSIC "TRACK06.MUS"
 
@@ -334,6 +335,12 @@ static void klavesnice(EVENT_MSG *msg,void **unused)
      }
   }
 
+static void show_version() {
+    const char *verstr = "Version: " SKELDAL_VERSION;
+    set_font(H_FLITT5, RGB888(255,255,255));
+    set_aligned_position(639, 479, 2, 2, verstr);
+    outtext(verstr);
+}
 
 int enter_menu(char open)
   {
@@ -350,6 +357,7 @@ int enter_menu(char open)
   put_picture(0,0,ablock(H_MENU_BAR));
   put_picture(0,56,ablock(H_ANIM));
   ukaz_mysku();
+  show_version();
   effect_show();
 
   change_click_map(clk_main_menu,CLK_MAIN_MENU);
