@@ -1,9 +1,11 @@
 #pragma once
-#include <SDL_pixels.h>
+#include <SDL_surface.h>
 
 
 template<Uint32 format>
-struct FormatMapping;
+struct FormatMapping {
+    static_assert(false, "Unsupported pixel format");
+};
 
 template<>
 struct FormatMapping<SDL_PIXELFORMAT_ARGB2101010> {
@@ -145,9 +147,9 @@ struct FormatMapping<SDL_PIXELFORMAT_ARGB1555> {
     static constexpr int BShift = 0;
     static constexpr int AShift = 15;
 
-    static constexpr int RBits = 8;
-    static constexpr int GBits = 8;
-    static constexpr int BBits = 8;
+    static constexpr int RBits = 5;
+    static constexpr int GBits = 5;
+    static constexpr int BBits = 5;
     static constexpr int ABits = 1;
 };
 
