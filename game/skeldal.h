@@ -13,6 +13,7 @@ typedef struct {
     const char *config_path;
     const char *lang_path;
 
+    const char *sse_hostport;
 
 } SKELDAL_CONFIG;
 

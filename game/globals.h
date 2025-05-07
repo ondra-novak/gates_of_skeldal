@@ -39,7 +39,7 @@
 #define E_MENU_SELECT 36
 #define E_CLOSE_MAP 37
 #define E_CLOSE_GEN 38
-#define E_HACKER 39
+#define E_EXTERNAL_MSG 40 //external message arrived from sse_listener
 
 //side flags
 

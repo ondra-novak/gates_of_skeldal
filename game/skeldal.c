@@ -280,6 +280,10 @@ INIS sinit[]=
 int last_ms_cursor=-1;
 int vmode=2;
 
+#include <platform/sse_receiver.h>
+
+static SSE_RECEIVER *sse_receiver = NULL;
+static MTQUEUE *mtqueue = NULL;
 
 void purge_temps(char _) {
     temp_storage_clear();
@@ -741,7 +745,8 @@ void done_skeldal(void)
         cur_config = NULL;
     }
   kill_timer();
-
+  if (sse_receiver) sse_receiver_stop(sse_receiver);
+  if (mtqueue) mtqueue_destroy(mtqueue);
   }
 
 
@@ -980,6 +985,38 @@ void show_loading_picture(char *filename)
   ablock_free(p);
   }
 
+void sse_listener_watch(EVENT_MSG *msg, void **userdata) {
+    if (msg->msg == E_WATCH) {
+        char *s = mtqueue_pop(mtqueue);
+        if (s) {
+            send_message(E_EXTERNAL_MSG, s);
+            free(s);
+        }
+    }
+}
+void sse_listener_init(const char *hostport) {
+
+    char *host = local_strdup(hostport);
+    char *port = strrchr(host,':');
+    if (port == NULL) {
+        port = local_strdup("80");
+    } else {
+        *port = 0;
+        ++port;
+    }
+
+    MTQUEUE *q = mtqueue_create();
+    SSE_RECEIVER *rcv = sse_receiver_install(q, host, port);
+
+    if (rcv == NULL) {
+        mtqueue_destroy(q);
+        return;
+    }
+    mtqueue = q;
+    sse_receiver = rcv;
+    send_message(E_ADD, E_WATCH, sse_listener_watch);
+
+}
 
 void init_skeldal(const INI_CONFIG *cfg)
   {
@@ -989,9 +1026,10 @@ void init_skeldal(const INI_CONFIG *cfg)
 
   cti_texty();
   timer_tree.next=NULL;
-  init_events();  
+  init_events();
 
   steam_init();
+
 
   char verr = game_display_init(ini_section_open(cfg, "video"), "Skeldal");
   if (!verr)
@@ -1120,15 +1158,21 @@ char doNotLoadMapState=0;
 static int reload_map_handler(EVENT_MSG *msg,void **usr)
 {
 extern char running_battle;
-  if (msg->msg==E_RELOADMAP)
+  if (msg->msg==E_EXTERNAL_MSG)
   {
-	int i;
-	ReloadMapInfo *minfo=va_arg(msg->data, ReloadMapInfo *);
-	const char *fname=minfo->fname;
-	int sektor=minfo->sektor;
-	strcopy_n(loadlevel.name,fname,sizeof(loadlevel.name));
-	loadlevel.start_pos=sektor;
-    for(i=0;i<POCET_POSTAV;i++)postavy[i].sektor=loadlevel.start_pos;
+    const char *m = va_arg(msg->data, const char *);
+    char fname[13];
+    int sector;
+    int i;
+
+    if (sscanf(m, "RELOAD %12s %d", fname, &sector) != 2) return 0;
+
+    strcopy_n(loadlevel.name,fname,sizeof(loadlevel.name));
+	loadlevel.start_pos=sector;
+    for(i=0;i<POCET_POSTAV;i++) {
+        postavy[i].sektor=loadlevel.start_pos;
+        postavy[i].groupnum = 1;
+    }
     SEND_LOG("(WIZARD) Load map '%s' %d",loadlevel.name,loadlevel.start_pos);
     unwire_proc();
     if (battle) konec_kola();
@@ -1749,6 +1793,10 @@ int skeldal_entry_point(const SKELDAL_CONFIG *start_cfg)
 
   if (!start_cfg->adventure_path) {
     enable_achievements(1);
+  }
+
+  if (start_cfg->sse_hostport) {
+      sse_listener_init(start_cfg->sse_hostport);
   }
 
   start_check();

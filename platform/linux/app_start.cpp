@@ -19,6 +19,7 @@ void show_help(const char *arg0) {
            "-a <adv>        path for adventure file (.adv)\n"
            "-l <lang>       set language (cz|en)\n"
            "-s <directory>  generate string-tables (for localization) and exit\n"
+           "-L <host:port>  connect to host:port to listen commands (mapedit)\n"
            "-h              this help\n");
     exit(1);
 }
@@ -33,13 +34,15 @@ int main(int argc, char **argv) {
     std::string adv_config_file;
     std::string gen_stringtable_path;
     std::string lang;
-    for (int optchr = -1; (optchr = getopt(argc, argv, "hf:a:s:l:")) != -1; ) {
+    std::string sse_hostport;
+    for (int optchr = -1; (optchr = getopt(argc, argv, "hf:a:s:l:L:")) != -1; ) {
         switch (optchr) {
             case 'f': config_name = optarg;break;
             case 'a': adv_config_file = optarg;break;
             case 'h': show_help(argv[0]);break;
             case 'l': lang = optarg;break;
             case 's': gen_stringtable_path = optarg;break;
+            case 'L': sse_hostport = optarg;break;
             default: show_help_short();
                      return 1;
         }
@@ -53,6 +56,7 @@ int main(int argc, char **argv) {
     cfg.adventure_path = adv_config_file.empty()?NULL:adv_config_file.c_str();
     cfg.config_path = config_name.c_str();
     cfg.lang_path = lang.empty()?NULL:lang.c_str();
+    cfg.sse_hostport = sse_hostport.c_str();
     try {
 
         if (!gen_stringtable_path.empty()) {
