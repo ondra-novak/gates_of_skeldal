@@ -283,7 +283,7 @@ int vmode=2;
 #include <platform/sse_receiver.h>
 
 static SSE_RECEIVER *sse_receiver = NULL;
-static MTQUEUE *mtqueue = NULL;
+
 
 void purge_temps(char _) {
     temp_storage_clear();
@@ -745,8 +745,7 @@ void done_skeldal(void)
         cur_config = NULL;
     }
   kill_timer();
-  if (sse_receiver) sse_receiver_stop(sse_receiver);
-  if (mtqueue) mtqueue_destroy(mtqueue);
+  if (sse_receiver) sse_receiver_destroy(sse_receiver);
   }
 
 
@@ -987,10 +986,9 @@ void show_loading_picture(char *filename)
 
 void sse_listener_watch(EVENT_MSG *msg, void **userdata) {
     if (msg->msg == E_WATCH) {
-        char *s = mtqueue_pop(mtqueue);
+        const char *s = sse_receiver_receive(sse_receiver);
         if (s) {
             send_message(E_EXTERNAL_MSG, s);
-            free(s);
         }
     }
 }
@@ -1005,14 +1003,11 @@ void sse_listener_init(const char *hostport) {
         ++port;
     }
 
-    MTQUEUE *q = mtqueue_create();
-    SSE_RECEIVER *rcv = sse_receiver_install(q, host, port);
+    SSE_RECEIVER *rcv = sse_receiver_create(host, port);
 
     if (rcv == NULL) {
-        mtqueue_destroy(q);
         return;
     }
-    mtqueue = q;
     sse_receiver = rcv;
     send_message(E_ADD, E_WATCH, sse_listener_watch);
 
@@ -1165,28 +1160,32 @@ extern char running_battle;
     int sector;
     int i;
 
-    if (sscanf(m, "RELOAD %12s %d", fname, &sector) != 2) return 0;
+    if (sscanf(m, "RELOAD %12s %d", fname, &sector) == 2) {
 
-    strcopy_n(loadlevel.name,fname,sizeof(loadlevel.name));
-	loadlevel.start_pos=sector;
-    for(i=0;i<POCET_POSTAV;i++) {
-        postavy[i].sektor=loadlevel.start_pos;
-        postavy[i].groupnum = 1;
+        strcopy_n(loadlevel.name,fname,sizeof(loadlevel.name));
+      loadlevel.start_pos=sector;
+        for(i=0;i<POCET_POSTAV;i++) if (postavy[i].used) {
+            postavy[i].sektor=loadlevel.start_pos;
+            postavy[i].groupnum = 1;
+        }
+        SEND_LOG("(WIZARD) Load map '%s' %d",loadlevel.name,loadlevel.start_pos);
+        unwire_proc();
+        if (battle) konec_kola();
+      battle=0;
+      running_battle=0;
+      doNotLoadMapState=1;
+      hl_ptr=ikon_libs;
+      destroy_fly_map();
+      load_items();
+      zneplatnit_block(H_ENEMY);
+      zneplatnit_block(H_SHOP_PIC);
+      zneplatnit_block(H_DIALOGY_DAT);
+        load_shops();
+        send_message(E_CLOSE_MAP);
+    } else if (strncmp(m, "MESSAGE ", 8) == 0) {
+        bott_disp_text(m+8);
     }
-    SEND_LOG("(WIZARD) Load map '%s' %d",loadlevel.name,loadlevel.start_pos);
-    unwire_proc();
-    if (battle) konec_kola();
-	battle=0;
-	running_battle=0;
-	doNotLoadMapState=1;
-	hl_ptr=ikon_libs;
-	destroy_fly_map();
-	load_items();
-	zneplatnit_block(H_ENEMY);
-	zneplatnit_block(H_SHOP_PIC);
-	zneplatnit_block(H_DIALOGY_DAT);
-    load_shops();
-    send_message(E_CLOSE_MAP);
+      
   }
   return 0;
 }

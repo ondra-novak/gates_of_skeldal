@@ -12,8 +12,7 @@ target_sources(skeldal_platform PRIVATE
     timer.cpp
     getopt.c
     achievements.cpp
-    mtqueue.cpp
-    sse_receiver.cpp
+    sse_receiver.c
 )
 
 set(all_libs
