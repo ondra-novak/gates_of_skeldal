@@ -1,9 +1,7 @@
 
 
-extern "C" {
 #include "map_file.h"
 #include "../error.h"
-}
 
 #include <stdio.h>
 #include <stdlib.h>

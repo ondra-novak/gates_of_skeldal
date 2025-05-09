@@ -4,6 +4,7 @@
 #include <cstdarg>
 #include <cstdint>
 #include <iostream>
+#include <sstream>
 #include "error.h"
 #include "platform.h"
 
@@ -37,4 +38,19 @@ void send_log_impl(const char *format, ...) {
 
 void throw_exception(const char *text) {
     throw std::runtime_error(std::string("Invoked crash:") + text);
+}
+
+std::string exception_to_string(const std::exception& e) {
+    std::ostringstream oss;
+    oss << e.what();
+
+    try {
+        std::rethrow_if_nested(e);
+    } catch (const std::exception& nested) {
+        oss << "\n\n Reason: " << exception_to_string(nested);
+    } catch (...) {
+        oss << "\n\n Reason: unknown exception of crash";
+    }
+
+    return std::move(oss).str();
 }

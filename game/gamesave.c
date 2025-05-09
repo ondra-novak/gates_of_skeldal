@@ -30,6 +30,9 @@
 #define SLOTS_MAX 10
 
 #define GM_MAPENABLE 0x1
+#define GM_FASTBATTLES 0x2
+#define GM_GAMESPEED_SHIFT 2
+#define GM_GAMESPEED_MASK 0x1F
 
 #define SAVE_SLOT_S 34
 #define LOAD_SLOT_S (372+34)
@@ -583,6 +586,14 @@ int unpack_all_status(FILE *f)
     return -1;
   }
 
+static void save_destroyed_items(TMPFILE_WR *f) {
+  short c = (short)count_items_total(destroyed_items);
+  temp_storage_write(&c,sizeof(c), f);
+  if (c) {
+    temp_storage_write(destroyed_items,sizeof(short)*c, f);
+  }
+}
+
 int save_basic_info()
   {
   TMPFILE_WR *f;
@@ -618,7 +629,14 @@ int save_basic_info()
   s.swapchans=MIN(get_snd_effect(SND_SWAP),255);
   s.out_filter=MIN(get_snd_effect(SND_OUTFILTER),255);
   s.autosave=autosave_enabled;
-	s.game_flags=(enable_glmap!=0);
+	s.game_flags=0;
+
+  if (enable_glmap!=0) s.game_flags |= GM_MAPENABLE;
+  if (gamespeedbattle<gamespeed) s.game_flags |= GM_FASTBATTLES;
+  if (timerspeed_val <= GM_GAMESPEED_MASK) {
+      s.game_flags |= (timerspeed_val & GM_GAMESPEED_MASK) << GM_GAMESPEED_SHIFT;
+  }
+
   strcopy_n(s.level_name,level_fname,sizeof(s.level_name));
   for(i=0;i<5;i++) s.runes[i]=runes[i];
   if (picked_item!=NULL)
@@ -635,10 +653,25 @@ int save_basic_info()
   for(i=0,h=postavy;i<POCET_POSTAV;h++,i++) if (h->demon_save!=NULL)
      temp_storage_write(h->demon_save,sizeof(THUMAN)*1,f);       //ulozeni polozek s demony
   res|=save_dialog_info(f);
+  save_destroyed_items(f);
   temp_storage_close_wr(f);
   SEND_LOG("(SAVELOAD) Done... Result: %d",res);
   return res;
   }
+
+static int load_destroyed_items(TMPFILE_RD *f) {
+  int res = 0;
+  short destroyed_items_count = 0;
+  temp_storage_read(&destroyed_items_count,sizeof(destroyed_items_count), f);
+  free(destroyed_items);
+  destroyed_items = NULL;
+  if (destroyed_items_count) {
+    destroyed_items = NewArr(short, destroyed_items_count+1);
+    res|=temp_storage_read(destroyed_items,destroyed_items_count*sizeof(short), f) != destroyed_items_count*sizeof(short);
+    destroyed_items[destroyed_items_count] = 0;
+  }
+  return res;
+}
 
 int load_basic_info()
   {
@@ -654,6 +687,9 @@ int load_basic_info()
   if (f==NULL) return 1;
   res|=(temp_storage_read(&s,1*sizeof(s),f)!=sizeof(s));
 	if (s.game_flags & GM_MAPENABLE) enable_glmap=1;else enable_glmap=0;
+  gamespeedbattle =s.game_flags & GM_FASTBATTLES? GAMESPEED_FASTBATTLE:gamespeed;
+  int tmsp = (s.game_flags >> GM_GAMESPEED_SHIFT) & GM_GAMESPEED_MASK;
+  if (tmsp) timerspeed_val = tmsp;
   i=s.picks;
   if (picked_item!=NULL) free(picked_item);
   if (i)
@@ -685,6 +721,7 @@ int load_basic_info()
           }
         }
   res|=load_dialog_info(f);
+  res|=load_destroyed_items(f);
   temp_storage_close_rd(f);
   viewsector=s.viewsector;
   viewdir=s.viewdir;
@@ -776,11 +813,12 @@ int save_game(long game_time,char *gamename, char is_autosave)
   temp_storage_store("playtime",&new_play_time, sizeof(new_play_time));
 
   svf=fopen_icase(sn,"wb");
-  if (svf==NULL)
-  {
-	char buff[256];
-	sprintf(buff,"Nelze ulozit pozici na cestu: %s", sn);
-    display_error(buff);
+  if (svf==NULL){
+    if (!is_autosave) {
+      char buff[256];
+      sprintf(buff,"Failed to create savegame at path %s", sn);    
+      message(1,0,0,"",buff,texty[80]);
+    }
   }
   else
   {
@@ -1769,12 +1807,12 @@ void wire_save_load(char save) {
         change_click_map(clk_save,CLK_SAVELOAD);
         redraw_save();
         send_message(E_ADD, E_KEYBOARD, saveload_keyboard);
-        effect_show(NULL);
+        effect_show();
 
     } else {
         curcolor = 0;
         redraw_load();
-        effect_show(NULL);
+        effect_show();
         if (save == 2)
             change_click_map(clk_load_error, CLK_LOAD_ERROR);
         else if (save == 4) {

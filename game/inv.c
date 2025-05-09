@@ -432,7 +432,7 @@ void draw_placed_items_normal(int celx,int cely,int sect,int side)
      }
   }
 
-int count_items_total(short *place)
+int count_items_total(const short *place)
   {
   int c=0;
 
@@ -441,7 +441,7 @@ int count_items_total(short *place)
   return c;
   }
 
-int count_items_visible(short *place)
+int count_items_visible(const short *place)
   {
   int c=0;
 
@@ -455,7 +455,7 @@ int count_items_visible(short *place)
   }
 
 
-int count_items_inside(short *place)
+int count_items_inside(const short *place)
   {
   int c=1;
 
@@ -479,43 +479,37 @@ int find_item(short *place,int mask)
   return lastitem;
   }
 
-static int lastsector;
-
-static char ValidateSector(word sector, void *_)
-  {
-  int pp=map_sectors[sector].sector_type;
-  if (pp==S_NORMAL || pp==S_SMER || pp==S_LEAVE || pp==S_FLT_SMER)
-	{
-	lastsector=sector;
-	return 1;
-	}
-  return 0;
+void push_to_destroyed_items(const short *picked_items) {
+  int new_count = count_items_total(picked_items);
+  if (new_count == 0) return;
+  int cur_destroyed = count_items_total(destroyed_items);
+  short *nw = NewArr(short, new_count+cur_destroyed+1);
+  for (int i = 0; i < new_count; ++i) {
+    nw[i] = abs(picked_items[i]);
   }
+  for (int i = 0; i < cur_destroyed; ++i) {
+    nw[new_count+i] = destroyed_items[i];
+  }
+  nw[new_count+cur_destroyed] = 0;
+  free(destroyed_items);
+  destroyed_items = nw;
+}
 
-void push_item(int sect,int pos,short *picked_item)
+void push_item(int sect,int pos,const short *picked_item)
   {
   int bc;
   int pc;
   int tc;
   short *p;
+  char s =  map_sectors[sect].sector_type;
 
-  if (map_sectors[sect].sector_type==S_DIRA || ISTELEPORTSECT(sect))
+
+  if (s==S_DIRA || ISTELEPORTSECT(sect) || s == S_SCHODY)
      sect=map_sectors[sect].sector_tag;
-  if (sect==0 || map_sectors[sect].sector_type==S_VODA)
-     {
-	 if (game_extras & EX_RECOVER_DESTROYED_ITEMS)
-	   {
-	   labyrinth_find_path(viewsector,65535,SD_PLAY_IMPS,ValidateSector,NULL, NULL);
-	   push_item(lastsector,viewdir,picked_item);
-	   return;
-	   }
-	 else
-	   {
-	   free(picked_item);
-	   picked_item=NULL;
-	   return;
-	   }
-     }
+  if (sect==0 || s==S_VODA || s == S_LAVA || s == S_SSMRT || s == S_LODKA) {
+      push_to_destroyed_items(picked_item);
+      return;
+  }
   sect=(sect<<2)+pos;
   bc=count_items_total(map_items[sect]);
   pc=count_items_total(picked_item);
@@ -682,7 +676,7 @@ char pick_item_(int id,int xa,int ya,int xr,int yr)
   idd=(id+viewdir)&0x3;
   if (picked_item!=NULL)
      {
-     if (map_sectors[sect].sector_type==S_DIRA)
+      if (map_sectors[sect].sector_type==S_DIRA)
         {
         throw_fly(xa,ya,0);
         letici_veci->speed=0;
@@ -2494,7 +2488,6 @@ static int shop_sector;
 T_CLK_MAP clk_shop[]=
   {
   {-1,54,378,497,479,shop_change_player,2+8,-1},
-  {-1,0,0,639,479,_exit_shop,8,-1},
   {-1,INV_X,INV_Y,INV_X+INV_XS*6,INV_Y+INV_YS*5,shop_bag_click,MS_EVENT_MOUSE_LPRESS,-1},
   {1,2+BUYBOX_X,39+BUYBOX_Y,22+BUYBOX_X,76+BUYBOX_Y,shop_block_click,2,H_MS_DEFAULT},
   {2,246+BUYBOX_X,39+BUYBOX_Y,266+BUYBOX_X,76+BUYBOX_Y,shop_block_click,2,H_MS_DEFAULT},
@@ -2503,6 +2496,7 @@ T_CLK_MAP clk_shop[]=
   {-1,337,0,357,14,go_map,2,H_MS_DEFAULT},
   {-1,87,0,142,14,game_setup,2,H_MS_DEFAULT},
   {-1,30,0,85,14,konec,2,H_MS_DEFAULT},
+  {-1,0,0,639,479,_exit_shop,8,-1},
   };
 
 static void shop_mouse_event(EVENT_MSG *msg,void **unused)

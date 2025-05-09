@@ -20,6 +20,7 @@
 
 #include "ach_events.h"
 #include "lang.h"
+#include <version.h>
 
 #define MUSIC "TRACK06.MUS"
 
@@ -334,6 +335,12 @@ static void klavesnice(EVENT_MSG *msg,void **unused)
      }
   }
 
+static void show_version() {
+    const char *verstr = "Version: " SKELDAL_VERSION;
+    set_font(H_FLITT5, RGB888(255,255,255));
+    set_aligned_position(639, 479, 2, 2, verstr);
+    outtext(verstr);
+}
 
 int enter_menu(char open)
   {
@@ -350,8 +357,9 @@ int enter_menu(char open)
   put_picture(0,0,ablock(H_MENU_BAR));
   put_picture(0,56,ablock(H_ANIM));
   ukaz_mysku();
-  effect_show(NULL);
-  //if (open) effect_show(NULL);else showview(0,0,0,0);
+  show_version();
+  effect_show();
+
   change_click_map(clk_main_menu,CLK_MAIN_MENU);
   send_message(E_ADD,E_TIMER,prehraj_animaci_v_menu);
   send_message(E_ADD,E_KEYBOARD,klavesnice);
@@ -552,7 +560,7 @@ void titles(va_list args)
   alock(H_PICTURE);
   picture=ablock(H_PICTURE);
   put_picture(0,0,picture);
-  effect_show(NULL);
+  effect_show();
   titlefont=H_FBIG;
   set_font(titlefont,RGB(158,210,25));charcolors[1]=0;
   counter=get_timer_value();newc=counter;
@@ -604,7 +612,7 @@ void titles(va_list args)
   if (send_back)send_message(E_KEYBOARD,27);
   }
 
-void run_titles(va_list args)
+void run_titles(void)
   {
   int task_id;
   task_id=add_task(8196,titles,1,"titulky.TXT");
@@ -612,16 +620,16 @@ void run_titles(va_list args)
   term_task(task_id);
   }
 
-void konec_hry()
+void konec_hry(void)
   {
   int task_id;
   int timer;
 
-  
+
   schovej_mysku();
   curcolor=0;
   bar32(0,0,639,479);
-  effect_show(NULL);
+  effect_show();
   create_playlist(texty[205]);
   change_music(get_next_music_from_playlist());
   timer=get_timer_value();
@@ -641,7 +649,7 @@ void konec_hry()
   curcolor=0;
   bar32(0,0,639,479);
   ukaz_mysku();
-  effect_show(NULL);
+  effect_show();
   timer=get_timer_value();
   while (get_timer_value()-timer<150) task_sleep();
   }

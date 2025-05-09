@@ -12,6 +12,10 @@
 #define POCET_POSTAV 6
 #define HODINA 360
 
+#define GAMESPEED 5
+#define GAMESPEED_FASTBATTLE 2
+
+
 #define MAX_FILESYSTEM_PATH 256
 
 #define A_SIDEMAP 0x8001
@@ -573,6 +577,7 @@ extern int mapsize;                //pocet sektoru v mape
 extern int hl_ptr;                 //ukazatel na konec staticke tabulky registraci
 extern int end_ptr;                //ukazatel na uplny konec tabulky registraci
 extern short **map_items;          //ukazatel na mapu predmetu
+extern short *destroyed_items;     //list of destroyed items to be returned to the game
 extern int default_ms_cursor;      //cislo zakladniho mysiho kurzoru
 extern void (*unwire_proc)(void);      //procedura zajistujici odpojeni prave ukoncovane interakce
 extern void (*wire_proc)(void);        //procedura zajistujici pripojeni drive ukoncene interakce
@@ -581,8 +586,8 @@ extern word minimap[VIEW3D_Z+1][VIEW3D_X*2+1]; //minimalizovana mapa s informace
 extern char norefresh;             //vypina refresh obrazovky
 extern char cancel_pass;           //okamzite zrusi plynuly prechod
 extern char reverse_draw ;         //kresba odpredu dozadu
-extern char gamespeed;             //rychlost hry
-extern char gamespeedbattle;	   //akcelerace rychlosti pro bitvy
+extern uint8_t gamespeed;             //rychlost hry
+extern uint8_t gamespeedbattle;	   //akcelerace rychlosti pro bitvy
 extern int num_ofsets[];           //tabulka offsetu pro steny
 extern int back_color;             //cislo barvy pozadi
 extern uint8_t cur_group;             //cislo aktualni skupiny
@@ -986,10 +991,10 @@ char pick_item_(int id,int xa,int ya,int xr,int yr);
 void wire_inv_mode(THUMAN *select);
 void init_inventory(void);
 void init_items(void);
-void push_item(int sect,int pos,short *picked_item);
+void push_item(int sect,int pos,const short *picked_item);
 void pop_item(int sect,int pos,int mask,short **picked_item);
-int count_items_inside(short *place);
-int count_items_total(short *place);
+int count_items_inside(const short *place);
+int count_items_total(const short *place);
 char put_item_to_inv(THUMAN *p,short *picked_items); //funkce vklada predmet(y) do batohu postavy
 void pick_set_cursor(void);         //nastavuje kurzor podle vlozeneho predmetu;
 void calc_fly(THE_TIMER *t);
@@ -1402,7 +1407,7 @@ void destroy_all_fly();
 void stop_fly(LETICI_VEC *p,char zvuk);
 void herni_cas(char *s);
 
-
+typedef char **TSTR_LIST;
 
 //gamesaver
 void leave_current_map(void);
@@ -1415,6 +1420,7 @@ int save_game(long game_time,char *gamename, char is_autosave);
 void save_map_description(TMPFILE_WR *f);
 void load_map_description(TMPFILE_RD *f);
 void free_map_description();
+TSTR_LIST swap_map_description(TSTR_LIST new_list);
 void wire_save_load(char save);
 void do_save_dialog();
 char ask_save_dialog(char *name_buffer, size_t name_size, char allow_remove);
@@ -1762,8 +1768,8 @@ char clk_enter(int id,int xa,int ya,int xr,int yr);
 //menu
 int enter_menu(char open); //task!
 void titles(va_list args); //task!
-void run_titles(va_list args); //task!
-void effect_show(va_list args); //effektni zobrazeni // task!
+void run_titles(void );
+void effect_show(void); //effektni zobrazeni
 void konec_hry(void);
 
 

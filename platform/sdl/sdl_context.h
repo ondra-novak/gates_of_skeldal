@@ -170,6 +170,7 @@ protected:
         void operator()(SDL_Renderer *);
         void operator()(SDL_Surface *);
         void operator()(SDL_Texture *);
+        void operator()(SDL_PixelFormat* f);
     };
 
     struct BlendTransitionReq {
@@ -237,13 +238,16 @@ protected:
     std::unique_ptr<SDL_Texture, SDL_Deleter> _texture2;
     std::unique_ptr<SDL_Texture, SDL_Deleter> _crt_effect;
     std::unique_ptr<SDL_Texture, SDL_Deleter> _mouse;
+    std::unique_ptr<SDL_PixelFormat, SDL_Deleter> _main_pixel_format;
     unique_value<SDL_AudioDeviceID, SDL_Audio_Deleter> _audio;
-    SDL_Texture *_visible_texture;
-    SDL_Texture *_hidden_texture;
+    SDL_Texture *_visible_texture = nullptr;
+    SDL_Texture *_hidden_texture = nullptr;
+    uint32_t _texture_render_format = SDL_PIXELFORMAT_ARGB1555;
 
 
     bool _fullscreen_mode = false;
     bool _present = false;
+    bool _convert_format = false;
     std::atomic<bool> _key_control = false;
     std::atomic<bool> _key_shift = false;
     std::atomic<bool> _key_capslock = false;
@@ -252,11 +256,12 @@ protected:
 
 
     std::vector<char> _display_update_queue;
+    std::vector<uint32_t> converted_pixels;
     using QueueIter = const char *;
     std::queue<uint16_t> _keyboard_queue;
     SDL_Rect _mouse_rect;
     SDL_Point _mouse_finger;
-    float _mouse_size;
+    float _mouse_size = 1;
     SpriteList _sprites;
 
 
@@ -306,5 +311,12 @@ protected:
     void joystick_handle();
     void generate_j_event(int button, char up);
     static int adjust_deadzone(int v, short deadzone);
+
+    void update_texture_with_conversion(SDL_Texture * texture,
+        const SDL_Rect * rect,
+        const void *pixels, int pitch);
+
+    template<Uint32 pixel_format>
+    void convert_bitmap(const void *pixels, SDL_Rect r, int pitch);
 
 };

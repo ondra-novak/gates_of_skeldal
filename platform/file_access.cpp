@@ -7,23 +7,37 @@
 #include "../libs/logfile.h"
 
 
-std::filesystem::path break_and_compose_path(const std::string_view &pathname, char sep) {
+
+std::filesystem::path break_and_compose_path(std::string_view pathname, char sep) {
+    auto utf8_to_path = [](std::string_view sv) -> std::filesystem::path {
+        return std::filesystem::path(std::u8string(reinterpret_cast<const char8_t*>(sv.data()), sv.size()));
+    };
+
     auto p = pathname.rfind(sep);
+
     if (p == pathname.npos) {
         if (pathname == "." || pathname == "..") {
             return std::filesystem::canonical(".");
-        } else if (pathname.empty()) {
-            return std::filesystem::current_path().root_path();
-        } else if (pathname == std::filesystem::current_path().root_name()) {
-            return std::filesystem::current_path().root_path();
-        } else {
-            return std::filesystem::current_path()/pathname;
         }
 
-    }
-    return break_and_compose_path(pathname.substr(0,p), sep) / pathname.substr(p+1);
-}
+        // Detekce Windows drive letter jako "C:"
+        if (pathname.size() == 2 && std::isalpha(static_cast<unsigned char>(pathname[0])) && pathname[1] == ':') {
+            return utf8_to_path(std::string(pathname) + "\\"); // vždy konstruujeme s \ pro root disku
+        }
 
+        // Kontrola na root (např. "/") – musíme převést pro porovnání
+        if (utf8_to_path(pathname) == std::filesystem::current_path().root_path()) {
+            return std::filesystem::current_path().root_path();
+        }
+
+        // Vše ostatní relativně vůči current_path
+        return std::filesystem::current_path() / utf8_to_path(pathname);
+    } else if (p == 0) {
+        return std::filesystem::current_path().root_path() / utf8_to_path(pathname);
+    }
+
+    return break_and_compose_path(pathname.substr(0, p), sep) / utf8_to_path(pathname.substr(p + 1));
+}
 
 std::filesystem::path convert_pathname_to_path(const std::string_view &pathname) {
     auto p = pathname.find('\\');
@@ -81,7 +95,12 @@ const char *file_icase_find(const char *pathname) {
 
 FILE *fopen_icase(const char *pathname, const char *mode) {
     std::filesystem::path path = try_to_find_file(convert_pathname_to_path(pathname));
+#ifdef _WIN32
+    std::wstring wmode(mode, mode + std::strlen(mode)); // bezpečnější převod
+    return _wfopen(path.wstring().c_str(), wmode.c_str());
+#else
     return fopen(path.string().c_str(), mode);
+#endif
 }
 
 static thread_local std::string build_pathname_buffer;

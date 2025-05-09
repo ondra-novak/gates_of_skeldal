@@ -2,6 +2,7 @@
 temp_file=$(mktemp /tmp/skeldal.XXXXXX.log)
 CURDIR=`dirname "$0"`
 
+chmod +x "$CURDIR/skeldal_bin"
 LD_LIBRARY_PATH=$CURDIR:$LD_LIBRARY_PATH "$CURDIR/skeldal_bin" $* > "$temp_file" 2>&1
 
 exit_code=$?
@@ -24,5 +25,4 @@ if [ $exit_code -ne 0 ]; then
 fi
 rm $temp_file
 exit $exit_code
-
 

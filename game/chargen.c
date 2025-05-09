@@ -745,7 +745,7 @@ static void wait_timer(EVENT_MSG *msg, void **udata) {
     }
 }
 
-void effect_show(va_list args)
+void effect_show(void)
   {
   int i;
   char s = exit_wait;
@@ -861,7 +861,7 @@ char enter_generator()
      memset(&cur_stats,0,sizeof(cur_stats));
      vypocet_vlastnosti(cur_angle,&cur_vls);
      b_disables=0x7;
-     redraw_generator(rep);if (!rep)effect_show(NULL);rep=1;
+     redraw_generator(rep);if (!rep)effect_show();rep=1;
      edit_name();
      change_click_map(clk_page1,CLK_PAGE1);
      was_enter=0;

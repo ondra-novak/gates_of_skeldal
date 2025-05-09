@@ -630,13 +630,14 @@ struct _tag_map_save_state{
     TSTENA *_map_sides;
     TSECTOR *_map_sectors;
     TMAP_EDIT_INFO *_map_coord;
+    TSTR_LIST _map_desc;
     int _map_size;
     int _viewsector;
     int _viewdir;
     uint32_t _hash;
 } MAP_SAVE_STATE;
 
-static struct _tag_map_save_state save_state = {NULL,NULL,NULL,0,0,0,0};
+static struct _tag_map_save_state save_state = {NULL,NULL,NULL,NULL,0,0,0,0};
 
 static void save_current_map() {
     if (save_state._map_coord) {
@@ -647,6 +648,7 @@ static void save_current_map() {
     save_state._map_coord = map_coord;
     save_state._map_sectors = map_sectors;
     save_state._map_size = mapsize;
+    save_state._map_desc = swap_map_description(NULL);
     save_state._viewsector = viewsector;
     save_state._viewdir = viewdir;
     save_state._hash = current_map_hash;
@@ -661,6 +663,7 @@ static void restore_saved_map() {
         free(map_sides);
         free(map_sectors);
         free(map_coord);
+        free_map_description();
         mapsize =save_state._map_size;
         map_sides = save_state._map_sides;
         map_sectors = save_state._map_sectors;
@@ -668,9 +671,11 @@ static void restore_saved_map() {
         viewsector = save_state._viewsector;
         viewdir = save_state._viewdir;
         current_map_hash = save_state._hash;
+        swap_map_description(save_state._map_desc);
         save_state._map_sides = NULL;
         save_state._map_coord = NULL;
         save_state._map_sectors = NULL;
+        save_state._map_desc = NULL;
     }
 }
 
