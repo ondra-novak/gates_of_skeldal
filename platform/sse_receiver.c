@@ -1,5 +1,7 @@
 // sse_receiver.c
 #include "sse_receiver.h"
+
+#include <ctype.h>
 #include <stdlib.h>
 #include <string.h>
 #include <time.h>
@@ -34,7 +36,7 @@ struct tag_sse_receiver {
     char port[16];
     sock_t sock;
     int connected;
-    char buffer[BUFFER_SIZE+1];    
+    char buffer[BUFFER_SIZE+1];
     size_t buf_len;
     size_t line_len;
     time_t next_attempt;
@@ -118,7 +120,7 @@ const char *sse_receiver_receive(SSE_RECEIVER *sse) {
         if (rm) {
             const char *r = sse->buffer+sse->line_len;
             size_t sep = find_sep(r, rm, '\n');
-            if (sep < rm) {                
+            if (sep < rm) {
                 sep += sse->line_len;
                 sse->buffer[sep] = 0;
                 sse->line_len = sep+1;
@@ -129,13 +131,13 @@ const char *sse_receiver_receive(SSE_RECEIVER *sse) {
                     if (*r) {
                         return r;
                     }
-                } 
+                }
                 continue;
             }
             if (r != sse->buffer) memmove(sse->buffer, r, rm);
-        } 
+        }
         sse->line_len = 0;
-        sse->buf_len = rm;    
+        sse->buf_len = rm;
 
         if (!sse->connected) {
             time_t t = time(NULL);
@@ -143,8 +145,8 @@ const char *sse_receiver_receive(SSE_RECEIVER *sse) {
                 return NULL;
             }
             if (!connect_and_handshake(sse)) {
-                snprintf(sse->buffer, sizeof(sse->buffer) - 1, 
-                            "MESSAGE Failed to connect the command server %s:%s ", 
+                snprintf(sse->buffer, sizeof(sse->buffer) - 1,
+                            "MESSAGE Failed to connect the command server %s:%s ",
                             sse->host, sse->port);
                 sse->next_attempt = t+5;
                 return sse->buffer;
@@ -169,7 +171,7 @@ const char *sse_receiver_receive(SSE_RECEIVER *sse) {
         }
 
         sse->buf_len += n;
-    } 
+    }
 }
 
 void sse_receiver_destroy(SSE_RECEIVER *sse) {
