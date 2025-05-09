@@ -1,10 +1,11 @@
 #pragma once
 #include <SDL_surface.h>
 
+template<Uint32 format> constexpr bool assert_false = false;
 
 template<Uint32 format>
 struct FormatMapping {
-    static_assert(false, "Unsupported pixel format");
+    static_assert(assert_false<format>, "Unsupported pixel format");
 };
 
 template<>
