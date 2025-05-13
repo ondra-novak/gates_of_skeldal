@@ -27,6 +27,7 @@ if(WIN32)
     target_sources(skeldal_platform PRIVATE
         windows/save_folder.cpp
         windows/map_file.cpp
+        windows/minidump.cpp
     )
     add_executable(skeldal WIN32)
     target_sources(skeldal PRIVATE

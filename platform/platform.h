@@ -2,8 +2,10 @@
 #include <stdint.h>
 #include <stdio.h>
 
+
 #ifndef _SKELDAL_PLATFORM_HEADER_
 #define _SKELDAL_PLATFORM_HEADER_
+
 
 #define BGSWITCHBIT 0x8000
 
@@ -124,6 +126,16 @@ typedef int (*LIST_FILES_CALLBACK)(const char *, LIST_FILE_TYPE , size_t, void *
 int list_files(const char *directory, int type, LIST_FILES_CALLBACK cb, void *ctx);
 
 
+#define WM_RELOADMAP (WM_APP+215)
+#define E_RELOADMAP 40
+
+typedef struct _ReloadMapInfo {
+        const char *fname;
+        int sektor;
+   } ReloadMapInfo;
+
+
+
 #ifdef __cplusplus
   }
 #endif
@@ -134,15 +146,5 @@ int list_files(const char *directory, int type, LIST_FILES_CALLBACK cb, void *ct
 void init_joystick(const INI_CONFIG_SECTION *section);
 char is_joystick_used();
 char is_joystick_enabled();
-
-#define WM_RELOADMAP (WM_APP+215)
-#define E_RELOADMAP 40
-
-typedef struct _ReloadMapInfo {
-        const char *fname;
-        int sektor;
-   } ReloadMapInfo;
-
-
 
 #endif

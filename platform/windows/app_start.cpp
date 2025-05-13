@@ -2,6 +2,7 @@
 #include "../getopt.h"
 #include "../platform.h"
 #include "../error.h"
+#include "../seh.h"
 #include <iostream>
 #include <string>
 #include <sstream>
@@ -108,6 +109,10 @@ int __stdcall WinMain(HINSTANCE,HINSTANCE ,LPSTR, INT) {
         argv[i][need-1] = 0;
     }
     GlobalFree(szArglist);
-    return main(argc, argv);
+    int r = -256;
+    SEH_MONITOR_BEGIN {
+        r = main(argc, argv);
+    } SEH_MONITOR_END;
+    return r;
 }
 

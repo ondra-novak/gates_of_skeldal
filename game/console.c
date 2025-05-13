@@ -5,6 +5,7 @@
 #include "../platform/error.h"
 #include "../platform/platform.h"
 
+
 #include <ctype.h>
 #define console_max_characters  120
 #define console_max_lines  300
@@ -88,6 +89,8 @@ void show_flags(int number,char **flags,char nums)
      number>>=1;
      }
   }
+
+
 
 void spell_group_invis()
   {
@@ -243,6 +246,11 @@ static void console_add_line_s(const char *line, size_t sz) {
 
 static void console_add_line(const char *line) {
     console_add_line_s(line, strlen(line));
+}
+
+static void crash_task(va_list lst) {
+    char *c = (char *)0x1;
+    *c = 1;
 }
 
 typedef struct {
@@ -645,6 +653,13 @@ static int process_with_params(const char *cmd, const char *args) {
         return 1;
     }
     if (istrcmp(cmd, "crash") == 0) {
+        if (istrcmp(args,"seh") == 0) {
+            char *c = (char *)(args - (uintptr_t)args);
+            *c = 'x';
+        }
+        else if (istrcmp(args, "task") == 0) {
+            add_task(65536,crash_task);
+        }
         throw_exception(args);
         return 1;
     }

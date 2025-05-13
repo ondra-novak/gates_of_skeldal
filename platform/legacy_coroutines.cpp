@@ -1,5 +1,6 @@
 #include "legacy_coroutines.h"
 #include "error.h"
+#include "seh.h"
 
 #include <thread>
 #include <atomic>
@@ -116,7 +117,7 @@ static void broadcast_message(EVENT_MSG *msg) {
     clean_task_table();
 }
 
-static void crash_task_exception() {
+/*static void crash_task_exception() {
     try {
         throw;
     } catch (std::exception &e) {
@@ -125,7 +126,7 @@ static void crash_task_exception() {
         display_error("Unhandled exception in task %d:  unknown/crash",q_current_task());        
     }
     abort();
-}
+}*/
 
 
 int add_task(int stack,TaskerFunctionName fcname,...) {
@@ -135,14 +136,12 @@ int add_task(int stack,TaskerFunctionName fcname,...) {
     va_list args;
     va_start(args, fcname);
     new_task->thr = std::thread([&]{
-       new_task->resume_flag.wait(false);
-       new_task->resume_flag = false;
-       try {
+       SEH_MONITOR_BEGIN {
+        new_task->resume_flag.wait(false);
+        new_task->resume_flag = false;
         fcname(args);
         clean_up_current_task();
-       } catch (...) {
-        crash_task_exception();
-       }
+        }SEH_MONITOR_END;
     });
     switch_to_task(new_task);
     return id;
