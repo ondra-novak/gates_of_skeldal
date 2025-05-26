@@ -23,7 +23,7 @@ void show_help(std::ostream &out, const char *arg0) {
            "-a <adv>        path for adventure file (.adv)\n"
            "-l <lang>       set language (cz|en)\n"
            "-s <directory>  generate string-tables (for localization) and exit\n"
-           "-L <host:port>  connect to host:port to listen commands (mapedit)\n"
+           "-c <host:port>  connect to host:port for remote control (mapedit)\n"
            "-h              this help\n";
 }
 
@@ -39,7 +39,7 @@ int main(int argc, char **argv) {
     std::string lang;
     std::string sse_hostport;
     std::ostringstream console;
-    for (int optchr = -1; (optchr = getopt(argc, argv, "hf:a:s:l:L:")) != -1; ) {
+    for (int optchr = -1; (optchr = getopt(argc, argv, "hf:a:s:l:c:")) != -1; ) {
         switch (optchr) {
             case 'f': config_name = optarg;break;
             case 'a': adv_config_file = optarg;break;

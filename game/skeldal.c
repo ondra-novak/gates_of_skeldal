@@ -1036,7 +1036,7 @@ void init_skeldal(const INI_CONFIG *cfg)
       exit(1);
      }
   showview = game_display_update_rect;
-  game_display_set_icon(getWindowIcon(), getWindowIconSize());
+//  game_display_set_icon(getWindowIcon(), getWindowIconSize());
   init_joystick(ini_section_open(cfg, "controller"));
 
   general_engine_init();
@@ -1188,7 +1188,7 @@ extern char running_battle;
     } else if (strncmp(m, "MESSAGE ", 8) == 0) {
         bott_disp_text(m+8);
     }
-      
+
   }
   return 0;
 }
