@@ -3,6 +3,7 @@
 #include "globals.h"
 #include "lang.h"
 #include <libs/strlite.h>
+#include <libs/memman.h>
 
 
 static char *lang_folder = NULL;
@@ -46,4 +47,20 @@ const char *lang_replace_path_if_exists(const char *file) {
     const char *path = build_pathname(2, lang_folder, file);
     if (check_file_exists(path)) return path;
     return NULL;
+}
+
+
+char *lang_load_string(const char *filename) {
+    if (lang_folder == NULL) return NULL;
+    const char *path = build_pathname(2, lang_folder, filename);
+    FILE *f = fopen(path, "r");
+    if (f == NULL) return NULL;
+    fseek(f, 0, SEEK_END);
+    long sz = ftell(f);
+    char *trg = getmem(sz+1);
+    fseek(f, 0, SEEK_SET);
+    fread(trg, 1 , sz, f);
+    fclose(f);
+    trg[sz] = 0;
+    return trg;
 }

@@ -50,6 +50,7 @@
 #include <libs/event.h>
 #include "globals.h"
 
+#include "lang.h"
 #define XMAX 254
 #define YMAX 390
 #define XLEFT 34
@@ -535,18 +536,37 @@ static void seek_section(TMPFILE_RD *txt,int sect_number)
   exit(1);
   }
 
-void add_text_to_book(const char *filename,int odst)
+void add_to_book(int odst) {
+    add_text_to_book("kniha.txt", SR_MAP, odst);
+}
+
+
+
+void add_text_to_book(const char *filename,int group, int odst)
   {
-  TMPFILE_RD *fl;
+  TMPFILE_RD *fl = NULL;
 
   set_font(H_FKNIHA,NOSHADOW(0));
   if (all_text==NULL) all_text=create_list(256);
-  fl=enc_open(filename);
-  if (fl==NULL) return;
+
+  if (istrcmp(filename, "kniha.txt") == 0) {
+
+      if (lang_get_folder()) {
+          char *text = lang_load_string("book.txt");
+          if (text) {
+              fl = temp_storage_from_binary(text,strlen(text),free, text);
+          }
+      }
+  }
+
+  if (!fl) {
+      fl=enc_open(filename, group);
+      if (fl==NULL) return;
+  }
   seek_section(fl,odst);
   read_text(fl);
   next_line(1000);
-  enc_close(fl);
+  temp_storage_close_rd(fl);
   }
 
 static char *displ_picture(char *c)

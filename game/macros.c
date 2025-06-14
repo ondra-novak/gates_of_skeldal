@@ -572,8 +572,7 @@ static int ma_picki(const TMA_TWOP *i,int abs_pos)
 
 static void ma_wbook(const TMA_LOADLEV *l)
   {
-  const char *s = build_pathname(2, gpathtable[SR_MAP], l->name);
-  add_text_to_book(s,l->start_pos);
+  add_text_to_book(l->name, SR_MAP,l->start_pos);
   play_fx_at(FX_BOOK);
   }
 

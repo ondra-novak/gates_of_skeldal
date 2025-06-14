@@ -608,7 +608,6 @@ extern char set_halucination;
 extern int hal_sector;    //cislo sektoru a smeru pri halucinaci
 extern int hal_dir;
 extern char side_touched;    //promena se nastavuje na 1 pri kazdem uspesnem dotyku steny
-extern const char *texty_knihy;     //jmeno souboru s textamy knihy
 extern int cur_page;         //cislo stranky v knize;
 extern int32_t game_time;              //hraci cas
 extern char autoattack;
@@ -755,7 +754,9 @@ void turn_zoom(int smer);
 void a_touch(int sector,int dir);
 int do_action(int action_numb,int sector,int direct,int flags,int nosend);
 void delay_action(int action_numb,int sector,int direct,int flags,int nosend,int delay);
-int32_t load_section(FILE *f,void **section, int *sct_type,int32_t *sect_size);
+//int32_t load_section(FILE *f,void **section, int *sct_type,int32_t *sect_size);
+int32_t load_section_mem(TMPFILE_RD *f,void **section, int *sct_type,int32_t *sect_size);
+TMPFILE_RD *open_ddl_file(const char *name, int group);
 int prepare_graphics(int *ofs,char *names,int32_t size,ABLOCK_DECODEPROC decomp,int class);
 void show_automap(char full);
 void draw_medium_map(void);
@@ -1721,9 +1722,9 @@ void check_global_fletna(THE_TIMER *t);
 void fletna_glob_add_note(uint8_t note);
 
 
-TMPFILE_RD *enc_open(const char *filename); //dekoduje a otevira TXT soubor (ENC)
-void enc_close(TMPFILE_RD *fil);
-int load_string_list_ex(char ***list,const char *filename);
+TMPFILE_RD *enc_open(const char *filename, int group); //dekoduje a otevira TXT soubor (ENC)
+int load_string_list_ex(char ***list,const char *filename, int group);
+
 
 typedef struct {
     int hprice;
@@ -1756,8 +1757,8 @@ extern char trace_dialogs;
 char enter_generator(void);
 
 //kniha
-#define add_to_book(odst) add_text_to_book(texty_knihy,odst)
-void add_text_to_book(const char *filename,int odst);
+void add_to_book(int odst);
+void add_text_to_book(const char *filename,int group, int odst);
 void write_book(int page);
 int count_pages(void);
 void save_book(void);

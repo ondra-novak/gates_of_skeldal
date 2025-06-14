@@ -63,7 +63,7 @@ static int convert_map_strings_1(const char *source_name, LIST_FILE_TYPE type, s
     const char *target_name = set_file_extension(concat2("map_", source_name),".csv");
     const char *target_path = *(const char **)context;
     TSTR_LIST lst = create_list(100);
-    int err = load_string_list_ex(&lst, build_pathname(2, gpathtable[SR_MAP], source_name));
+    int err = load_string_list_ex(&lst, source_name, SR_MAP);
     if (err) {
         release_list(lst);
         fprintf(stderr,"Failed to read: %s, error code: %d\n",source_name, err);
@@ -95,7 +95,7 @@ static int make_map_name_stringtable_cb(const char *source_name, LIST_FILE_TYPE 
     uint32_t id = fnv1a_hash(source_name);
     fprintf(ctx->out, "%u,%s\n", id, source_name);
     return 0;
-}   
+}
 
 static char make_map_name_stringtable(const char *target_path) {
     const char *target_file = build_pathname(2,target_path,"mapnames.csv");
@@ -115,9 +115,9 @@ static char make_map_name_stringtable(const char *target_path) {
 }
 
 
-static char convert_file_to(const char *src_file, const char *target_file) {
-    TMPFILE_RD *rd = enc_open(src_file);
-    size_t sz = temp_storage_find("__enc_temp");
+static char convert_file_to(const char *src_file, int group, const char *target_file) {
+    TMPFILE_RD *rd = enc_open(src_file,group);
+    size_t sz = temp_storage_remain_size(rd);
     char *buff = malloc(sz);
     temp_storage_retrieve("__enc_temp", buff, sz);
     FILE *out = fopen_icase(target_file, "w");
@@ -128,31 +128,31 @@ static char convert_file_to(const char *src_file, const char *target_file) {
     printf("Writing %s\n", target_file);
     fwrite(buff,1,sz,out);
     fclose(out);
-    enc_close(rd);
+    temp_storage_close_rd(rd);
     return 1;
 }
 
 static char convert_book(const char *target_path) {
     const char *path = build_pathname(2, target_path, "book.txt");
     path = local_strdup(path);
-    return convert_file_to(build_pathname(2, gpathtable[SR_MAP], "kniha.txt"), path);
+    return convert_file_to("kniha.txt", SR_MAP, path);
 }
 
 static char convert_end_titles(const char *target_path) {
     const char *path = build_pathname(2, target_path, "end_titles.txt");
     path = local_strdup(path);
 
-    return convert_file_to(build_pathname(2, gpathtable[SR_DATA], "titulky.txt"), path);
+    return convert_file_to("titulky.txt",SR_DATA, path);
 }
 
 static char convert_epilog(const char *target_path) {
     const char *path = build_pathname(2, target_path, "epilog.txt");
     path = local_strdup(path);
-    return convert_file_to(build_pathname(2, gpathtable[SR_DATA], "endtext.txt"), path);
+    return convert_file_to("endtext.txt",SR_DATA, path);
 }
 static char convert_intro_titles(const char *target_path) {
     TSTR_LIST lst = create_list(100);
-    int err = load_string_list_ex(&lst, build_pathname(2, gpathtable[SR_VIDEO], "intro.txt"));
+    int err = load_string_list_ex(&lst, "intro.txt", SR_VIDEO);
     if (err) {
         release_list(lst);
         fprintf(stderr,"Failed to read: %s, error code: %d\n","intro.txt", err);

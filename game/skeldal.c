@@ -103,7 +103,6 @@ const void *pcx_8bit_decomp(const void *p, int32_t *s, int h);
 const void *pcx_fade_decomp(const void *p, int32_t *s, int h);
 const void *load_text_decomp(const void *p, int32_t *s, int h);
 
-const char *texty_knihy;
 static const char *patch_file=NULL;
 int cur_page=0;
 
@@ -805,14 +804,13 @@ void cti_texty(void)
   {
   int err;
   texty=(TSTR_LIST)create_list(4);
-  const char *path = build_pathname(2,gpathtable[SR_DATA], TEXTY);
-  if ((err=load_string_list_ex(&texty,path))!=0)
+  if ((err=load_string_list_ex(&texty,TEXTY, SR_DATA))!=0)
      {
 	 char buff[256];
      closemode();
      switch (err)
         {
-        case -1:sprintf(buff,"Can't load string table. File %s has not been found\n",path);break;
+        case -1:sprintf(buff,"Can't load string table. File %s has not been found\n",TEXTY);break;
         case -2:sprintf(buff,"Missing end mark (-1) at the end of string table\n");break;
         case -3:sprintf(buff,"Memory very low (need min 4MB)\n");break;
         default:sprintf(buff,"Error in string table at line %d\n",err);break;
@@ -1012,16 +1010,6 @@ void init_skeldal(const INI_CONFIG *cfg)
   init_DDL_manager();
   show_loading_picture("LOADING.HI");
 
-  if (lang_get_folder()) {
-      texty_knihy = build_pathname(2, lang_get_folder(), "book.txt");
-      if (!check_file_exists(texty_knihy)) {
-          texty_knihy=strdup(build_pathname(2,gpathtable[SR_MAP],"kniha.txt"));
-      } else {
-          texty_knihy=strdup(texty_knihy);
-      }
-  } else {
-      texty_knihy=strdup(build_pathname(2,gpathtable[SR_MAP],"kniha.txt"));
-  }
 
   install_gui();
   if (is_joystick_enabled()) {
@@ -1335,8 +1323,8 @@ void play_anim(int anim_num)
      TSTR_LIST titl=NULL;
      const char *s = build_pathname(2,gpathtable[SR_VIDEO], texty[anim_num]);
      s = local_strdup(s);
-     char *n = set_file_extension(s, ".TXT");
-     if (load_string_list_ex(&titl,n)) titl=NULL;
+     char *n = set_file_extension(texty[anim_num], ".TXT");
+     if (load_string_list_ex(&titl,n, SR_VIDEO)) titl=NULL;
      else {
          lang_patch_stringtable(&titl, "intro", "");
      }

@@ -113,19 +113,19 @@ static void unable_write_temp(char *c)
 
 int load_org_map(const char *filename,TSTENA **sides,TSECTOR **sectors,TMAP_EDIT_INFO **coords,int *mapsize)
   {
-  FILE *f;
+  TMPFILE_RD *f;
   void *temp;
   int sect;
   int32_t size,r;
   char nmapend=1;
 
 
-	const char *c=build_pathname(2, gpathtable[SR_MAP],filename);
-	f=fopen_icase(c,"rb");
+
+  f = open_ddl_file(filename, SR_MAP);
   if (f==NULL) return -1;
   do
      {
-     r=load_section(f,&temp,&sect,&size);
+     r=load_section_mem(f,&temp,&sect,&size);
      if (r==size)
         switch (sect)
          {
@@ -152,12 +152,12 @@ int load_org_map(const char *filename,TSTENA **sides,TSECTOR **sectors,TMAP_EDIT
      else
         {
         if (temp!=NULL)free(temp);
-        fclose(f);
+        temp_storage_close_rd(f);
         return -1;
         }
      }
   while (nmapend);
-  fclose(f);
+  temp_storage_close_rd(f);
   return 0;
   }
 
@@ -816,7 +816,7 @@ int save_game(long game_time,char *gamename, char is_autosave)
   if (svf==NULL){
     if (!is_autosave) {
       char buff[256];
-      sprintf(buff,"Failed to create savegame at path %s", sn);    
+      sprintf(buff,"Failed to create savegame at path %s", sn);
       message(1,0,0,"",buff,texty[80]);
     }
   }

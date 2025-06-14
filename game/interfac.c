@@ -1350,64 +1350,39 @@ void check_global_fletna(THE_TIMER *t)
 //---------------------------------------
 
 
-static char *load_file_to_string(FILE *f, int *size) {
-    fseek(f,0, SEEK_END);
-    int sz = ftell(f);
-    fseek(f, 0 , SEEK_SET);
-    char *c = getmem(sz+1);
-    fread(c,1,sz,f);
-    *size = sz;
-    c[sz] = 0;
-    return c;
-}
 
-TMPFILE_RD *enc_open(const char *filename)
+TMPFILE_RD *enc_open(const char *filename, int group)
   {
-  FILE *f;
-  char *c,*enc;
+  TMPFILE_RD *f;
   int last=0;
-  int size;
-  char *encdata;
 
-  f=fopen_icase(filename,"r");
+  f=open_ddl_file(filename, group);
   if (f!=NULL) {
-      encdata = load_file_to_string(f, &size);
-      fclose(f);
+      return f;
   } else {
-
-      enc=alloca(strlen(filename)+5);
-      strcpy(enc,filename);
-      c=strrchr(enc,'.');
-      if (c==NULL) c=strchr(enc,0);
-      strcpy(c,".ENC");
-      f=fopen_icase(enc,"rb");
-      if (f==NULL) return NULL;
-      encdata = load_file_to_string(f, &size);
-      fclose(f);
-      for (int i = 0; i < size; ++i) {
+      const char *enc_name = set_file_extension(filename, ".ENC");
+      int32_t sz;
+      void *data = afile_copy(enc_name,group,&sz);
+      if (data == NULL) return NULL;
+      char *encdata = (char *)data;
+      for (int i = 0; i < sz; ++i) {
           last = (last + encdata[i]) & 0xFF;
           encdata[i] = last;
       }
+      f = temp_storage_from_binary(encdata, sz, &free, data);
+      return f;
   }
-  temp_storage_store("__enc_temp", encdata, size);
-  free(encdata);
-  return temp_storage_open("__enc_temp");
-  }
-
-void enc_close(TMPFILE_RD *fil)
-  {
-    temp_storage_close_rd(fil);
-    temp_storage_delete("__enc_temp");
   }
 
 
-int load_string_list_ex(TSTR_LIST *list,const char *filename)
+
+int load_string_list_ex(TSTR_LIST *list,const char *filename, int group)
   {
   char c[1024],*p;
   int i=0,j,lin=0;
   TMPFILE_RD *f;
 
-  f=enc_open(filename);
+  f=enc_open(filename, group);
   if (*list==NULL) *list=create_list(256);
   if (f==NULL) return -1;
   do
@@ -1424,12 +1399,12 @@ int load_string_list_ex(TSTR_LIST *list,const char *filename)
      j=temp_storage_scanf(f,"%d",&i);
      if (j==EOF)
         {
-        enc_close(f);
+        temp_storage_close_rd(f);
         return -2;
         }
      if (j!=1)
         {
-        enc_close(f);
+         temp_storage_close_rd(f);
         return lin;
         }
      if (i==-1) break;
@@ -1437,7 +1412,7 @@ int load_string_list_ex(TSTR_LIST *list,const char *filename)
      if (j!=EOF) temp_storage_ungetc(f);
      if (temp_storage_gets(c,1022,f)==NULL)
         {
-        enc_close(f);
+         temp_storage_close_rd(f);
         return lin;
         }
 
@@ -1449,12 +1424,12 @@ int load_string_list_ex(TSTR_LIST *list,const char *filename)
      for(p=c;*p;p++) *p=*p=='|'?'\n':*p;
      if (str_replace(list,i,c)==NULL)
         {
-        enc_close(f);
+         temp_storage_close_rd(f);
         return -3;
         }
      }
   while (1);
-  enc_close(f);
+  temp_storage_close_rd(f);
   return 0;
   }
 

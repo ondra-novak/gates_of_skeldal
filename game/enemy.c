@@ -160,7 +160,7 @@ static void mob_reload(EVENT_MSG *msg,void **_){
         TMOB *m;
         int32_t vl;
 
-        static int last;
+        static int last = 0;
         counter=0;
         while (last<MAX_MOBS)
            {
@@ -1318,7 +1318,7 @@ void vymaz_zasahy(THE_TIMER *q)
   }
 
 static int select_drop_inventory_place(TMOB *p) {
-   int x,y,pl; 
+   int x,y,pl;
    if (p->locx>128) x=1;else if (p->locx<128) x=-1;else x=rnd(2)*2-1;
    if (p->locy>128) y=1;else if (p->locy<128) y=-1;else y=rnd(2)*2-1;
    pl=0;if (x>0) pl++;

@@ -144,7 +144,7 @@ typedef struct tkouzlo
   char povaha;
   char traceon;    //jinak noanim - neprehravaji se animace a zvuky
   union {
-    word backfire; //backfire 
+    word backfire; //backfire
     word demon;     // 1 = demon , 0 = bez demona
   } bkdm;
   word wait;   //wait - cekani pocet animaci
@@ -565,9 +565,7 @@ void zmen_vlastnost(int num,int cil,int what,int how)
      postavy[cil].stare_vls[what]+=how;
      prepocitat_postavu(&postavy[cil]);
      if (p->lives>p->vlastnosti[VLS_MAXHIT]) p->lives=p->vlastnosti[VLS_MAXHIT];
-     //if (p->mana>p->vlastnosti[VLS_MAXMANA]) p->lives=p->vlastnosti[VLS_MAXMANA];
-     if (p->kondice>p->vlastnosti[VLS_KONDIC]) p->lives=p->vlastnosti[VLS_KONDIC];
-
+     if (p->kondice>p->vlastnosti[VLS_KONDIC]) p->kondice=p->vlastnosti[VLS_KONDIC];
      }
   }
 
@@ -1481,7 +1479,7 @@ void call_spell(int i)
      cil--;
      if (postavy[cil].vlastnosti[VLS_KOUZLA] & SPL_DEMON && !p->bkdm.demon && !p->delay)
         {
-        p->delay=1;        
+        p->delay=1;
         }
      }
   if (p->delay) return;

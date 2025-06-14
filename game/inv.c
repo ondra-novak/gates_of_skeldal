@@ -149,8 +149,7 @@ void item_sound_event(int item,int sector)
 
 void load_items()
   {
-  const char *name;
-  FILE *f;
+  TMPFILE_RD *f;
   int sect,i,hs;
   int32_t size;
   void *p;
@@ -167,8 +166,7 @@ void load_items()
             break;
         }
     } while (1);
-	name=build_pathname(2, gpathtable[SR_MAP],ITEM_FILE);
-  f=fopen_icase(name,"rb");
+  f=open_ddl_file(ITEM_FILE,SR_MAP);
   if (f==NULL)
      {
         closemode();
@@ -177,7 +175,7 @@ void load_items()
      }
   do
      {
-     load_section(f,&p,&sect,&size);
+     load_section_mem(f,&p,&sect,&size);
      switch (sect)
         {
         case 1:
@@ -218,7 +216,7 @@ void load_items()
         }
      }
   while (sect!=SV_END);
-  fclose(f);
+  temp_storage_close_rd(f);
      {
      TITEM *t;
      for(i=0,t=glob_items;i<it_count_orgn;i++,t++) if (t->druh==TYP_SPECIALNI)
@@ -606,11 +604,7 @@ void do_items_specs(void)
                         cur_page&=~0x1;
                         cur_page++;
                         if (p->popis[0]==0) add_to_book(p->user_value);
-                          else
-                             {
-                             const char *s = build_pathname(2, gpathtable[SR_MAP], p->popis);
-                             add_text_to_book(s,p->user_value);
-                             }
+                        else add_text_to_book(p->popis,SR_MAP,p->user_value);
                         play_fx_at(FX_BOOK);
 						if (game_extras & EX_AUTOOPENBOOK) autoopenaction=1;
                         break;
@@ -1867,7 +1861,7 @@ static char uloz_sip_action(char fast_key) {
   return 1;
   }
 
-static char MakeItemCombinations(short *itm1, short *itm2)
+/*static char MakeItemCombinations(short *itm1, short *itm2)
 {
   short i1=*itm1-1,i2=*itm2-1;
   int src1;
@@ -1877,12 +1871,11 @@ static char MakeItemCombinations(short *itm1, short *itm2)
   int cnt;
   char succ=0;
 
-  FILE *table;
+  TMPFILE_RD *table;
 
-  const char *fname = build_pathname(2,gpathtable[SR_MAP],"COMBITEM.DAT");
-  table=fopen_icase(fname,"r");
+  table=open_ddl_file("COMBITEM.DAT",SR_MAP);
   if (table==NULL) return 0;
-  cnt=fscanf(table,"%d %d -> %d %d",&src1,&src2,&trg1,&trg2);
+  cnt=temp_storage_scanf(table,"%d %d -> %d %d",&src1,&src2,&trg1,&trg2);
   while(cnt>=3)
   {
     if (src1==i1 && src2==i2)
@@ -1915,13 +1908,18 @@ static char MakeItemCombinations(short *itm1, short *itm2)
       succ=1;
       break;
     }
-    if (fscanf(table," ;")==-1) break;
-    cnt=fscanf(table,"%d %d -> %d %d",&src1,&src2,&trg1,&trg2);
+    int x = temp_storage_getc(table);
+    while (x >= 0 && isspace(x)) x = temp_storage_getc(table);
+    if (x )
+
+
+    if (temp_storage_scanf(table," ;")==-1) break;
+    cnt=temp_storage_scanf(table,"%d %d -> %d %d",&src1,&src2,&trg1,&trg2);
   }
-  fclose(table);
+  temp_storage_close_rd(table);
   return succ;
 }
-
+*/
 static char bag_action(int xr, int yr);
 char bag_click(int id,int xa,int ya,int xr,int yr)
   {
@@ -1940,7 +1938,7 @@ static char bag_action(int xr, int yr) {
    if (pk!=NULL)
      {
      if (picked_item[1]!=0 && vejdou_se(count_items_total(picked_item))) return 0;
-     if (picked_item[1]!=0 || human_selected->inv[id]==0 || !MakeItemCombinations(picked_item,human_selected->inv+id))
+     if (picked_item[1]!=0 || human_selected->inv[id]==0 /* || !MakeItemCombinations(picked_item,human_selected->inv+id)*/)
       while (*pk)
         {
         p=human_selected->inv[id];

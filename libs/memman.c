@@ -140,7 +140,7 @@ uint32_t bk_global_counter=0;
 char *swap_path;
 
 
-static int test_file_exist_DOS(int group,char *filename)
+static int test_file_exist_DOS(int group,const char *filename)
   {
      const char *f = build_pathname(2, mman_pathlist[group], filename);
      if (!check_file_exists(f)) return 0;
@@ -180,7 +180,7 @@ static TNAMETABLE_REF load_file_table(const void *bmf_m)
   }
 
 
-int get_file_entry_in_table(const TNAMETABLE_REF *where, char *name) {
+int get_file_entry_in_table(const TNAMETABLE_REF *where, const char *name) {
   for(uint32_t i = 0; i< where->count; ++i) {
       if (strncmp(where->data[i].name, name, 12) == 0) {
           return where->data[i].seek;
@@ -192,7 +192,7 @@ int get_file_entry_in_table(const TNAMETABLE_REF *where, char *name) {
 
 
 
-char get_file_entry(int group,char *name, THANDLE_DATA *h) {
+char get_file_entry(int group,const char *name, THANDLE_DATA *h) {
   char ex;
 
   ex=mman_patch && test_file_exist_DOS(group,name);
@@ -327,7 +327,7 @@ int find_handle(const char *name,ABLOCK_DECODEPROC decomp)
   return find_same(name,decomp);
   }
 
-int test_file_exist(int group,char *filename)
+int test_file_exist(int group,const char *filename)
   {
     THANDLE_DATA h;
     if (get_file_entry(group, filename, &h) == 0)  return test_file_exist_DOS(group,filename);
@@ -369,7 +369,7 @@ THANDLE_DATA *def_handle(int handle,const char *filename,ABLOCK_DECODEPROC decom
   return h;
   }
 
-const void *afile(char *filename,int group,int32_t *blocksize)
+const void *afile(const char *filename,int group,int32_t *blocksize)
   {
   char *d;
   char entr;
@@ -401,7 +401,7 @@ const void *afile(char *filename,int group,int32_t *blocksize)
   return p;
   }
 
-void *afile_copy(char *filename,int group,int32_t *blocksize) {
+void *afile_copy(const char *filename,int group,int32_t *blocksize) {
     const void *ptr = afile(filename, group, blocksize);
     if (need_to_be_free(ptr)) return (void *)ptr;
     void *cpy = getmem(*blocksize);

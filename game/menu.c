@@ -376,44 +376,30 @@ int enter_menu(char open)
   return c;
   }
 
-static const char *end_titles_path(const char *fname) {
-    if (istrcmp(fname,"TITULKY.TXT") == 0) fname = "end_titles.txt";
-    else if (istrcmp(fname,"ENDTEXT.TXT") == 0) fname = "epilog.txt";
-    return lang_replace_path_if_exists(fname);
-}
 
+static TMPFILE_RD *end_titles_lang(const char *filename) {
+    if (istrcmp(filename,"TITULKY.TXT") == 0) filename = "end_titles.txt";
+    else if (istrcmp(filename,"ENDTEXT.TXT") == 0) filename = "epilog.txt";
+    char *c = lang_load_string(filename);
+    if (!c) return NULL;
+    return temp_storage_from_binary(c, strlen(c), free, c);
+}
 char *get_next_title(signed char control,const char  *filename)
   {
 
   static TMPFILE_RD *titles=NULL;
   static char buffer[81];
   char *c;
-  const char *path;
 
   switch(control)
      {
      case 1:
-         path = end_titles_path(filename);
-         if (path == NULL) {
-             path = build_pathname(2, gpathtable[SR_MAP],filename);
+         titles = end_titles_lang(filename);
+         if (titles != NULL) {
+             return (char *)titles;
          }
-         path = local_strdup(path);
-            titles=enc_open(path);
-            if (titles==NULL)
-              {
-                const char *path2 = build_pathname(2, gpathtable[SR_DATA],filename);
-                path2 = local_strdup(path2);
-              titles=enc_open(path2);
-              if (titles==NULL)
-                {
-			    char popis[300];
-                closemode();
-                sprintf(popis,"Soubor nenalezen: %s nebo %s\n",path,path2);
-				display_error(popis);
-                exit(1);
-                }
-              }
-            return (char *)titles;
+         titles = enc_open(filename, SR_DATA);
+         return (char *)titles;
      case 0:if (titles!=NULL && temp_storage_gets(buffer,80,titles)) {
                  c=strchr(buffer,'\n');if (c!=NULL) *c=0;
                  c=strchr(buffer,'\r');if (c!=NULL) *c=0;
@@ -421,7 +407,7 @@ char *get_next_title(signed char control,const char  *filename)
                 strcpy(buffer, "*KONEC");
             }
             return buffer;
-     case -1:if (titles!=NULL)enc_close(titles);
+     case -1:if (titles!=NULL)temp_storage_close_rd(titles);
             break;
      }
   return NULL;

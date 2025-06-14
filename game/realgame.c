@@ -99,6 +99,7 @@ char runes[5]={0,0,0,0,0};
 
 char group_sort[POCET_POSTAV]={0,1,2,3,4,5};
 
+/*
 int32_t load_section(FILE *f,void **section, int *sct_type,int32_t *sect_size)
 //
   {
@@ -115,6 +116,33 @@ int32_t load_section(FILE *f,void **section, int *sct_type,int32_t *sect_size)
   s=fread(*section,1,*sect_size,f);
   return s;
   }
+*/
+static void ddl_file_deleter(void *ctx) {
+    ablock_free(ctx);
+}
+
+TMPFILE_RD *open_ddl_file(const char *name, int group) {
+    int32_t size;
+    if (!test_file_exist(group, name)) return NULL;
+    const void *data = afile(name, group, &size);
+    if (!data) return NULL;
+    return temp_storage_from_binary(data, size, &ddl_file_deleter, (void *)data);
+}
+
+int32_t load_section_mem(TMPFILE_RD *f,void **section, int *sct_type,int32_t *sect_size) {
+    int32_t s;
+    char c[20];
+
+    *section=NULL;
+    temp_storage_read(c,sizeof(sekceid),f);
+    if (strcmp(c,sekceid)) return -1;
+    temp_storage_read(sct_type,sizeof(*sct_type),f);
+    temp_storage_read(sect_size,sizeof(*sect_size),f);
+    temp_storage_read(&s,sizeof(s),f);
+    *section=getmem(*sect_size);
+    s=temp_storage_read(*section,*sect_size,f);
+    return s;
+}
 
 
 int prepare_graphics(int *ofs,char *names,int32_t size,ABLOCK_DECODEPROC  decomp,int class)
@@ -142,7 +170,7 @@ int load_level_texts(const char *filename)
   int err;
 
   level_texts=create_list(10);
-  err=load_string_list_ex(&level_texts,filename);
+  err=load_string_list_ex(&level_texts,filename, SR_MAP);
   return err;
   }
 
@@ -243,7 +271,7 @@ void translate_map_name(const char *mapfile, MAPGLOBAL *mglob) {
 
 int load_map(const char *filename)
   {
-  FILE *f;
+  TMPFILE_RD *f;
   void *temp;
   int sect;
   int32_t size,r;
@@ -255,11 +283,9 @@ int load_map(const char *filename)
   int failed = 0;
 
   map_with_password=0;
-  const char *mpath = build_pathname(2, gpathtable[SR_MAP], filename);
-  mpath = local_strdup(mpath);
   schovej_mysku();
   zobraz_mysku();
-  f=fopen_icase(mpath,"rb");
+  f=open_ddl_file(filename, SR_MAP);
   if (level_fname!=NULL) free(level_fname);
   level_fname=(char *)getmem(strlen(filename)+1);
   strcpy(level_fname,filename);
@@ -270,7 +296,7 @@ int load_map(const char *filename)
   if (f==NULL) return -1;
   do
      {
-     r=load_section(f,&temp,&sect,&size);
+     r=load_section_mem(f,&temp,&sect,&size);
      if (r==size)
         switch (sect)
          {
@@ -396,17 +422,17 @@ int load_map(const char *filename)
         {
         if (temp!=NULL)free(temp);
         ablock_free(mob_template);
-        fclose(f);
+        temp_storage_close_rd(f);
         return -3;
         }
      }
   while (nmapend);
   ablock_free(mob_template);
-  fclose(f);
+  temp_storage_close_rd(f);
   flag_map=(char *)getmem(mapsize*4);
   memset(minimap,0,sizeof(minimap));
   end_ptr=ofsts;
-  const char *tpath=set_file_extension(mpath,".txt");
+  const char *tpath=set_file_extension(filename,".txt");
   failed=load_level_texts(tpath);
   if (!failed && level_texts!=NULL) {
       lang_patch_stringtable(&level_texts, filename, "map_");

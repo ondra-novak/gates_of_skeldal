@@ -18,6 +18,8 @@ typedef struct _temp_storage_file_wr {
 typedef struct _temp_storage_file_rd {
     std::string_view _data;
     int skp = 0;
+    void (*deleter)(void *ctx) = nullptr;
+    void *deleter_ctx = nullptr;
 } TMPFILE_RD;
 
 struct icompare {
@@ -87,6 +89,7 @@ TMPFILE_WR* temp_storage_append(const char *name) {
 }
 
 void temp_storage_close_rd(TMPFILE_RD *f) {
+    if (f->deleter) f->deleter(f->deleter_ctx);
     delete f;
 }
 
@@ -166,4 +169,10 @@ void temp_storage_ungetc(TMPFILE_RD *f) {
 
 TMPFILE_RD *temp_storage_from_string(const char *content) {
     return new TMPFILE_RD{{content, std::strlen(content)}};
+}
+TMPFILE_RD *temp_storage_from_binary(const void *content, size_t sz, void (*deleter)(void *ctx), void *ctx) {
+    return new TMPFILE_RD{{static_cast<const char *>(content), sz}, 0, deleter, ctx};
+}
+uint32_t temp_storage_remain_size(TMPFILE_RD *f) {
+    return f->_data.size();
 }
