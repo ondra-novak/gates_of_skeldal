@@ -117,17 +117,6 @@ int32_t load_section(FILE *f,void **section, int *sct_type,int32_t *sect_size)
   return s;
   }
 */
-static void ddl_file_deleter(void *ctx) {
-    ablock_free(ctx);
-}
-
-TMPFILE_RD *open_ddl_file(const char *name, int group) {
-    int32_t size;
-    if (!test_file_exist(group, name)) return NULL;
-    const void *data = afile(name, group, &size);
-    if (!data) return NULL;
-    return temp_storage_from_binary(data, size, &ddl_file_deleter, (void *)data);
-}
 
 int32_t load_section_mem(TMPFILE_RD *f,void **section, int *sct_type,int32_t *sect_size) {
     int32_t s;

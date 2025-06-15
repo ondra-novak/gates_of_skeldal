@@ -24,14 +24,19 @@ SND_MAXFUNCT} AUDIO_PROPERTY;
 
 void game_sound_init_device(const INI_CONFIG_SECTION *audio_section);
 
+
+typedef char (*TEND_OF_SONG_CALLBACK)(void *ctx, TMUSIC_SOURCE *, TMUSIC_SOURCE_TYPE *);
+
+
 char start_mixing();
 void stop_mixing();
 void play_sample(int channel,const void *sample,int32_t size,int32_t lstart,int32_t sfreq,int type);
 void set_channel_volume(int channel,int left,int right);
-void set_end_of_song_callback(const char * (*cb)(void *), void *ctx);
+void set_end_of_song_callback(TEND_OF_SONG_CALLBACK cb, void *ctx);
+void play_music(const TMUSIC_SOURCE *source, TMUSIC_SOURCE_TYPE type);
+void stop_play_music();
 void fade_music();
 int mix_back_sound(int synchro);
-void change_music(const char *filename);
 char get_channel_state(int channel);
 void get_channel_volume(int channel,int *left,int *right);
 void mute_channel(int channel);

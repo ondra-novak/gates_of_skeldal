@@ -14,6 +14,7 @@ SET(files basicobj.c
           wav_mem.c
           strlite.c
           cztable.c
+          minimp3.c
           music.cpp
           string_table.cpp )
 

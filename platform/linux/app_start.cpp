@@ -14,10 +14,11 @@ void show_help(const char *arg0) {
             "\n"
             "Usage:"
     );
-    printf("%s [-f <file>] [-a <file>] [-l <lang>] [-s <dir>] [-h]\n\n", arg0);
+    printf("%s [-f <file>] [-a <file>] [-p <file> ] [-l <lang>] [-s <dir>] [-h]\n\n", arg0);
 
     printf("-f <file>       path to configuration file\n"
            "-a <adv>        path for adventure file (.adv)\n"
+           "-p <file>       patch data with custom DDL\n"
            "-l <lang>       set language (cz|en)\n"
            "-s <directory>  generate string-tables (for localization) and exit\n"
            "-h              this help\n");
@@ -33,12 +34,14 @@ int main(int argc, char **argv) {
     std::string config_name = SKELDALINI;
     std::string adv_config_file;
     std::string gen_stringtable_path;
+    std::string patch;
     std::string lang;
-    for (int optchr = -1; (optchr = getopt(argc, argv, "hf:a:s:l:")) != -1; ) {
+    for (int optchr = -1; (optchr = getopt(argc, argv, "hf:a:s:l:p:")) != -1; ) {
         switch (optchr) {
             case 'f': config_name = optarg;break;
             case 'a': adv_config_file = optarg;break;
             case 'h': show_help(argv[0]);break;
+            case 'p': patch = optarg; break;
             case 'l': lang = optarg;break;
             case 's': gen_stringtable_path = optarg;break;
             default: show_help_short();
@@ -54,6 +57,7 @@ int main(int argc, char **argv) {
     cfg.adventure_path = adv_config_file.empty()?NULL:adv_config_file.c_str();
     cfg.config_path = config_name.c_str();
     cfg.lang_path = lang.empty()?NULL:lang.c_str();
+    cfg.patch_file = patch.empty()?NULL:patch.c_str();
     try {
 
         if (!gen_stringtable_path.empty()) {

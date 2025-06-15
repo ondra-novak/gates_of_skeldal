@@ -96,11 +96,17 @@ THANDLE_DATA *zneplatnit_block(int handle); //zneplatni data bloku
 THANDLE_DATA *get_handle(int handle); //vraci informace o rukojeti
 int find_handle(const char *name,ABLOCK_DECODEPROC decomp);   //hleda mezi rukojeti stejnou definici
 int test_file_exist(int group,const char *filename); //testuje zda soubor existuje v ramci mmanageru
+int file_is_in_ddl(int group, const char *filename); //testuje zde je soubor v DDL
 const void *afile(const char *filename,int group,int32_t *blocksize); //nahraje do pameti soubor registrovany v ramci mmanageru
 void *afile_copy(const char *filename,int group,int32_t *blocksize); //nahraje do pameti soubor registrovany v ramci mmanageru
 int32_t get_handle_size(int handle);
 //void get_mem_info(MEMORYSTATUS *mem);
 void ablock_free(const void *ptr);
+
+//access file using memory mapping feature
+const void *afile_mapped(const char *filename,int group,int32_t *blocksize);
+//free file memory opened by afile_mapped
+void afile_mapped_free(const void *ptr, int32_t sz);
 
 
 int read_group(int index);

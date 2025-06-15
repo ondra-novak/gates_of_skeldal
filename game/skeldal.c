@@ -103,7 +103,8 @@ const void *pcx_8bit_decomp(const void *p, int32_t *s, int h);
 const void *pcx_fade_decomp(const void *p, int32_t *s, int h);
 const void *load_text_decomp(const void *p, int32_t *s, int h);
 
-static const char *patch_file=NULL;
+static const char *patch_files[4]={NULL};
+
 int cur_page=0;
 
 TSTR_LIST cur_config=NULL;
@@ -530,6 +531,17 @@ void clrscr(void)
   }
 
 
+static void ddl_file_deleter(void *ctx) {
+    ablock_free(ctx);
+}
+
+TMPFILE_RD *open_ddl_file(const char *name, int group) {
+    int32_t size;
+    if (!test_file_exist(group, name)) return NULL;
+    const void *data = afile(name, group, &size);
+    if (!data) return NULL;
+    return temp_storage_from_binary(data, size, &ddl_file_deleter, (void *)data);
+}
 
 
 
@@ -538,18 +550,6 @@ void back_music(THE_TIMER *t)
   mix_back_sound(0);
   }
 
-/*void *anim_idle(EVENT_MSG *msg,void **usr)
-  {
-  usr;
-  if (msg->msg==E_TIMER) calc_animations();
-  return &anim_idle;
-  }*/
-
-/*void timer_error(void)
-  {
-  puts("\x7");
-  }
-*/
 void timming(EVENT_MSG *msg,void **data)
   {
   THE_TIMER *p,*q;
@@ -881,37 +881,6 @@ const void *boldcz;
 #define ERR_WINX 320
 #define ERR_WINY 100
 
-/*
-
-char device_error(int chyba,char disk,char info)
-  {
-  char c;
-  void *old;
-
-  old=_STACKLOW;
-  _STACKLOW=NULL;
-  chyba,disk,info;
-  curfont=&boldcz;
-  charcolors[0]=0xffff;
-  for(c=1;c<5;c++) charcolors[c]=0x7fff;
-  memcpy(buffer_2nd,screen,screen_buffer_size);
-  trans_bar(320-ERR_WINX/2,240-ERR_WINY/2,ERR_WINX,ERR_WINY,0);
-  curcolor=0x7fff;
-  rectangle(320-ERR_WINX/2,240-ERR_WINY/2,320+ERR_WINX/2,240+ERR_WINY/2,0x7fff);
-  set_aligned_position(320,230,1,1,texty[8]);outtext(texty[8]);
-  set_aligned_position(320,250,1,1,texty[9]);outtext(texty[9]);
-  showview(0,0,0,0);
-  do
-     {
-     c=getche();
-     }
-  while (c!=13 && c!=27);
-  memcpy(screen,buffer_2nd,screen_buffer_size);
-  showview(0,0,0,0);
-  _STACKLOW=old;
-  return (c==13?_ERR_RETRY:_ERR_FAIL);
-  }
-*/
 
 void init_DDL_manager() {
 
@@ -919,9 +888,14 @@ void init_DDL_manager() {
     ddlfile = local_strdup(ddlfile);
 
     init_manager();
-    if (patch_file && !add_patch_file(patch_file)) {
-        display_error("Can't open resource file (adv_patch): %s", ddlfile);
-        abort();
+    for (size_t sz = countof(patch_files); sz > 0;) {
+        --sz;
+        if (patch_files[sz]) {
+            if (!add_patch_file(patch_files[sz])) {
+                display_error("Can't open resource file (adv_patch): %s", patch_files[sz]);
+                abort();
+            }
+        }
     }
     const char *lang_fld = lang_get_folder();
     if (lang_fld) {
@@ -980,6 +954,12 @@ void show_loading_picture(char *filename)
   showview(0,0,0,0);
   ablock_free(p);
   }
+
+char end_of_song_callback(void *, TMUSIC_SOURCE *s, TMUSIC_SOURCE_TYPE *t) {
+    const char *ms =  get_next_music_from_playlist();
+    return resolve_music_source(ms, s, t);
+}
+
 
 
 void init_skeldal(const INI_CONFIG *cfg)
@@ -1173,121 +1153,7 @@ void enter_game(void)
   if (end==255) konec_hry();
   }
 
-/*int dos58(int mode);
-#pragma aux dos58=\
-  "mov  al,1"\
-  "mov  ah,58h"\
-  "int  21h"\
- parm[ebx] value [eax]
-*/
 
-/*
-static int do_config_skeldal(int num,int numdata,char *txt)
-  {
-  switch (num)
-     {
-     case 0:vmode=numdata;break;
-     case 1:zoom_speed(numdata);break;
-     case 2:turn_speed(numdata);break;
-     case 3:init_music_vol=numdata;break;
-     case 4:init_gfx_vol=numdata;break;
-     case 5:sscanf(txt,"%d %x %d %d",&snd_devnum,&snd_parm1,&snd_parm2,&snd_parm3);
-            sound_detection=0;
-            break;
-     case 6:snd_mixing=numdata;break;
-     case 7:strcopy_n(default_map,txt,20);default_map[19]='\0';break;
-     case 8:gamespeed=numdata;break;
-     case 9:level_preload=numdata;break;
-//     case 10:system(txt);break;
-     case 11:mman_patch=numdata;break;
-     case 12:skip_intro=numdata;break;
-     case 13:autosave_enabled=numdata;break;
-     case 14: debug_enabled=numdata;break;
-     case 15:full_video=numdata;break;
-		 case 16:patch_file=getmem(strlen(txt)+1);
-						 strcpy(patch_file,txt);
-						 txt=strchr(patch_file,'\n');if (txt!=NULL) txt[0]=0;
-						 break;
-     case 17:titles_on=numdata;break;
-     case 18:charmin=numdata;break;
-     case 19:charmax=numdata;break;
-	 case 20:game_extras=numdata;break;
-	 case 21:windowed=numdata;break;
-	 case 22:gamespeedbattle=numdata;break;
-	 case 23:windowedzoom=numdata;break;
-     case 24:monitor=numdata;break;
-     case 25:if (VERSIONNUM<numdata)
-               display_error("Pozor! Hra je starsi verze, nez vyzaduje dobrodruzstvi. Ve vlastnim zajmu si stahnete novou verzi, protoze toto dobrodruzstvi nemusi byt s aktualni verzi dohratelne");
-            break;
-     case 26:refresh=numdata;break;
-     default:num-=CESTY_POS;
-             gpathtable[num] = strdup(txt);
-             SEND_LOG("(GAME) Directory '%s' has been assigned to group nb. %d",txt,num);
-             break;
-
-     }
- return 0;
-  }
-*/
-/*
-static void config_skeldal(const char *line)
-  {
-  int ndata=0,i,maxi;
-
-  char *data=0;char *c;
-
-  c=strchr(line,' ');if (c==NULL) return;
-  c++;
-  maxi=strlen(c);
-  data=alloca(maxi+1);
-  strcpy(data,c);
-  while (maxi && (isspace(data[maxi-1]))) {
-      --maxi;
-      data[maxi]=0;
-  }
-  maxi=(sizeof(sinit)/sizeof(INIS));
-  for(i=0;i<maxi;i++) if (comcmp(line,sinit[i].heslo)) break;
-  if (i==maxi)
-     {
-     char s[256];
-     i=data-line;
-
-     strcpy(s,"Chyba v INI souboru: Neznama promenna - ");
-     strncat(s,line,i);
-     SEND_LOG("(ERROR) %s",s);
-     }
-  else
-     {
-     if (sinit[i].parmtype==INI_INT) if (sscanf(data,"%d",&ndata)!=1)
-        {
-        char s[256];
-
-        sprintf(s,"Chyba v INI souboru: Ocekava se ciselna hodnota\n%s\n",line);
-        SEND_LOG("(ERROR) %s",s);
-        }
-     do_config_skeldal(i,ndata,data);
-     }
-  }
-*/
-/*
-static void configure(char *filename)
-  {
-  SEND_LOG("(GAME) Reading config. file '%s'",filename);
-  cur_config=read_config(filename);
-  if (cur_config==NULL)
-     {
-     char s[256];
-
-     sprintf(s,"\nNemohu precist konfiguracni soubor \"%s\".\n",filename);
-     SEND_LOG("(ERROR) %s",s);
-     puts(s);
-     exit(1);
-     }
-
-  process_ini(cur_config,config_skeldal);
-
-  }
-*/
 static int update_config(void)
   {
 
@@ -1314,6 +1180,7 @@ void set_verify(char state);
 */
 void play_movie_seq(const char *s,int y)
   {
+   change_music(NULL);
   play_animation(s,0,y,0);
   }
 
@@ -1647,7 +1514,7 @@ const char *configure_pathtable(const INI_CONFIG *cfg) {
     if (defmap) {
         strcopy_n(default_map, defmap, sizeof(default_map));
     }
-    patch_file = ini_get_string(paths, "patch_file", NULL);
+    patch_files[0] = ini_get_string(paths, "patch_file", NULL);
     if (ini_get_boolean(paths, "patch_mode", 0)) {
         mman_patch = 1;
     }
@@ -1719,6 +1586,10 @@ int skeldal_entry_point(const SKELDAL_CONFIG *start_cfg)
   if (!change_current_directory(groot)) {
       start_cfg->show_error(concat2("Can't change directory to: ", groot));
       return 1;
+  }
+
+  if (start_cfg->patch_file) {
+      patch_files[1] = start_cfg->patch_file;
   }
 
   if (start_cfg->adventure_path) {

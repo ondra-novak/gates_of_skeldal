@@ -334,6 +334,12 @@ int test_file_exist(int group,const char *filename)
     return 1;
   }
 
+int file_is_in_ddl(int group, const char *filename) {
+    THANDLE_DATA h;
+    return get_file_entry(group, filename, &h);
+
+}
+
 THANDLE_DATA *def_handle(int handle,const char *filename,ABLOCK_DECODEPROC decompress,char path)
   {
   THANDLE_DATA *h;
@@ -369,11 +375,11 @@ THANDLE_DATA *def_handle(int handle,const char *filename,ABLOCK_DECODEPROC decom
   return h;
   }
 
-const void *afile(const char *filename,int group,int32_t *blocksize)
+static const void *afile2(const char *filename,int group,int32_t *blocksize, char mapped)
   {
   char *d;
   char entr;
-  void *p;
+  const void *p;
 
   d=alloca(strlen(filename)+1);
   strcpy(d,filename);
@@ -388,18 +394,36 @@ const void *afile(const char *filename,int group,int32_t *blocksize)
 		 *blocksize = *szptr;
 		 return szptr+1;
      }
-  else if (mman_pathlist!=NULL)
-     {
+  else if (mman_pathlist!=NULL) {
       const char *name = build_pathname(2,mman_pathlist[group],d);
       size_t sz;
 
      SEND_LOG("(LOAD) Afile is loading file '%s' from disk (group %d)",d,group);
-     p=load_file(name, &sz);
-     *blocksize=sz;
+     if (mapped) {
+         const char *iname = file_icase_find(name);
+         p = map_file_to_memory(iname, &sz);
+         *blocksize = sz;
+
      }
-  else return NULL;
-  return p;
+     else {
+         p=load_file(name, &sz);
+         *blocksize=sz;
+     }
   }
+  else {
+      return NULL;
+  }
+  return p;
+}
+
+const void *afile(const char *filename,int group,int32_t *blocksize) {
+    return afile2(filename, group, blocksize, 0);
+}
+
+const void *afile_mapped(const char *filename,int group,int32_t *blocksize) {
+    return afile2(filename, group, blocksize, 1);
+}
+
 
 void *afile_copy(const char *filename,int group,int32_t *blocksize) {
     const void *ptr = afile(filename, group, blocksize);
@@ -721,3 +745,8 @@ int32_t get_handle_size(int handle)
 void ablock_free(const void *ptr) {
     if (need_to_be_free(ptr)) free((void *)ptr);
 }
+
+void afile_mapped_free(const void *ptr, int32_t sz) {
+    if (need_to_be_free(ptr)) unmap_file(ptr, sz);
+}
+

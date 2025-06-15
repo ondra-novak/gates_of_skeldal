@@ -12,7 +12,7 @@ extern "C" {
 #include <stdexcept>
 
 // Funkce pro mapování souboru do paměti
-void* map_file_to_memory_cpp(const char *name, size_t *sz) {
+const void* map_file_to_memory_cpp(const char *name, size_t *sz) {
     if (!name || !sz) {
         return NULL;
     }
@@ -26,7 +26,7 @@ void* map_file_to_memory_cpp(const char *name, size_t *sz) {
         throw std::runtime_error(std::string("failed to get size of file:").append(name));
     }
 
-    
+
 
     HANDLE hMapping = CreateFileMapping(h,NULL,PAGE_READONLY,0,0,NULL);
     if (hMapping == NULL || hMapping == INVALID_HANDLE_VALUE) {
@@ -40,16 +40,16 @@ void* map_file_to_memory_cpp(const char *name, size_t *sz) {
     if (mappedData == NULL) {
         throw std::runtime_error(std::string("Failed to map file:").append(name));
     }
-    
+
     *sz = fsize.LowPart;
     return mappedData;
 }
 
-void* map_file_to_memory(const char *name, size_t *sz) {
+const void* map_file_to_memory(const char *name, size_t *sz) {
     return map_file_to_memory_cpp(name, sz);
 }
 
 // Funkce pro zrušení mapování
-void unmap_file(void *ptr, size_t) {
-    UnmapViewOfFile(ptr);
+void unmap_file(const void *ptr, size_t) {
+    UnmapViewOfFile((void *)ptr);
 }

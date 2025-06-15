@@ -12,6 +12,7 @@ typedef struct {
     const char *adventure_path;
     const char *config_path;
     const char *lang_path;
+    const char *patch_file;
 
 
 } SKELDAL_CONFIG;

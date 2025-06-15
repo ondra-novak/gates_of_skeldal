@@ -8,6 +8,7 @@
 #include <stdlib.h>
 #include <malloc.h>
 #include <libs/memman.h>
+#include <libs/music.h>
 
 #define POCET_POSTAV 6
 #define HODINA 360
@@ -1448,12 +1449,15 @@ void show_textured_button(int x,int y,int xs,int ys,int texture,CTL3D *border3d)
 extern short sample_volume;           //hlastitost samplu
 extern char **sound_table;
 
+
+
 void init_tracks(void);
 void recalc_volumes(int sector,int side);
 void play_effekt(int x,int y,int xd,int yd,int sector, int side,const TMA_SOUND *p);
+void change_music(const char *name);
+char resolve_music_source(const char *name, TMUSIC_SOURCE *new_source, TMUSIC_SOURCE_TYPE *new_type);
 void create_playlist(char *playlist);
 const char *get_next_music_from_playlist(void);
-const char * end_of_song_callback(void *ctx);
 void purge_playlist(void);
 void play_sample_at_sector(int sample,int listener,int source,int track, char loop);
 void play_sample_at_channel(int sample,int channel,int vol);
@@ -1462,7 +1466,7 @@ char test_playing(int track);
 void stop_track_free(int track);
 void mute_all_tracks(char all);
 void kill_all_sounds(void);
-void create_sound_table(char *template,int32_t size);
+void create_sound_table(char *t,int32_t size);
 void create_sound_table_old(void);
 void start_play_flute(char );
 void stop_play_flute(void);

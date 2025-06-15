@@ -11,7 +11,7 @@
 #include <shellapi.h>
 
 void show_help(std::ostream &out, const char *arg0) {
-    out << 
+    out <<
             "Brany Skeldalu (Gates of Skeldal) portable game player\n"
             "Copyright (c) 2025 Ondrej Novak. All rights reserved.\n\n"
             "This work is licensed under the terms of the MIT license.\n"
@@ -21,9 +21,10 @@ void show_help(std::ostream &out, const char *arg0) {
     out << arg0 << " [-f <file>] [-a <file>] [-l <lang>] [-s <dir>] [-h]\n\n";
     out << "-f <file>       path to configuration file\n"
            "-a <adv>        path for adventure file (.adv)\n"
+           "-p <file>       patch data with custom DDL\n"
            "-l <lang>       set language (cz|en)\n"
            "-s <directory>  generate string-tables (for localization) and exit\n"
-           "-h              this help\n";    
+           "-h              this help\n";
 }
 
 void show_help_short(std::ostream &out) {
@@ -31,20 +32,22 @@ void show_help_short(std::ostream &out) {
 }
 
 
-int main(int argc, char **argv) {    
+int main(int argc, char **argv) {
     std::string config_name = SKELDALINI;
     std::string adv_config_file;
     std::string gen_stringtable_path;
     std::string lang;
+    std::string patch;
     std::ostringstream console;
-    for (int optchr = -1; (optchr = getopt(argc, argv, "hf:a:s:l:")) != -1; ) {
+    for (int optchr = -1; (optchr = getopt(argc, argv, "hf:a:s:l:p:")) != -1; ) {
         switch (optchr) {
             case 'f': config_name = optarg;break;
             case 'a': adv_config_file = optarg;break;
             case 'h': show_help(console, argv[0]);break;
+            case 'p': patch = optarg; break;
             case 'l': lang = optarg;break;
             case 's': gen_stringtable_path = optarg;break;
-            default:  show_help_short(console);break;                    
+            default:  show_help_short(console);break;
         }
     }
 
@@ -64,6 +67,7 @@ int main(int argc, char **argv) {
     cfg.adventure_path = adv_config_file.empty()?NULL:adv_config_file.c_str();
     cfg.config_path = config_name.c_str();
     cfg.lang_path = lang.empty()?NULL:lang.c_str();
+    cfg.patch_file = patch.empty()?NULL:patch.c_str();
 
     {
         std::string msg = console.str();

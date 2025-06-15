@@ -130,10 +130,10 @@ size_t copy_to_music_buffer(const void *data, size_t data_size) {
 }
 
 
-static const char * (*end_of_song_callback)(void *ctx) = NULL;
+static TEND_OF_SONG_CALLBACK end_of_song_callback;
 static void *end_of_song_callback_ctx = NULL;
 
-void set_end_of_song_callback(const char * (*cb)(void *), void *ctx) {
+void set_end_of_song_callback(TEND_OF_SONG_CALLBACK cb, void *ctx) {
     end_of_song_callback = cb;
     end_of_song_callback_ctx = ctx;
 }
@@ -191,9 +191,9 @@ void create_new_music_track(int freq, int buffsize) {
     music_buffer_write_pos = buffsize/2;
 }
 
-static std::unique_ptr<IMusicStream> load_music_ex(const char *name) {
-    if (name) {
-        TMUSIC_STREAM *stream = music_open(name);
+static std::unique_ptr<IMusicStream> load_music_ex(const TMUSIC_SOURCE *src, TMUSIC_SOURCE_TYPE type) {
+    if (src) {
+        TMUSIC_STREAM *stream = music_open(src, type);
         if (stream) {
             TMUSIC_STREAM_INFO nfo = music_get_info(stream);
             if (nfo.channels != 2) {
@@ -212,8 +212,10 @@ static std::unique_ptr<IMusicStream> load_music_ex(const char *name) {
 static void handle_end_of_song() {
     current_music.reset();
     if (end_of_song_callback != NULL) {
-        const char *new_music = end_of_song_callback(end_of_song_callback_ctx);
-        current_music = load_music_ex(new_music);
+        TMUSIC_SOURCE src;
+        TMUSIC_SOURCE_TYPE type;
+        char ok = end_of_song_callback(end_of_song_callback_ctx, &src, &type);
+        current_music = ok?load_music_ex(&src, type):std::unique_ptr<IMusicStream>{};
         if (current_music) {
             auto nfo = current_music->get_info();
             create_new_music_track(nfo.freq, BACK_BUFF_SIZE);
@@ -246,13 +248,16 @@ int mix_back_sound(int _) {
 
 }
 
-//int open_backsound(char *filename);
-void change_music(const char *filename) {
+void stop_play_music() {
     if (music_source) {
-        fade_music();
-        stop_music();
+       fade_music();
+       stop_music();
     }
-    current_music = load_music_ex(filename);
+}
+
+void play_music(const TMUSIC_SOURCE *source, TMUSIC_SOURCE_TYPE type) {
+    stop_play_music();
+    current_music = load_music_ex(source, type);
     if (current_music) {
         auto nfo = current_music->get_info();
         create_new_music_track(nfo.freq, BACK_BUFF_SIZE);
@@ -309,7 +314,7 @@ char set_snd_effect(AUDIO_PROPERTY funct,int data) {
         case SND_PING: break;
         case SND_GFX: sound_effect_volume = data/256.0;break;
         case SND_MUSIC: music_volume = data/128.0;update_music_volume();break;
-        case SND_GVOLUME: master_volume = data/512.0;update_music_volume();break;        
+        case SND_GVOLUME: master_volume = data/512.0;update_music_volume();break;
         case SND_SWAP: swap_channels = !!data;break;
         case SND_BASS: bass_boost = data/25.0;sound_mixer.set_bass(bass_boost);break;
         case SND_TREBL: treble_boost = data/25.0;sound_mixer.set_treble(treble_boost);break;

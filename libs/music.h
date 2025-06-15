@@ -5,6 +5,17 @@
 extern "C" {
 #endif
 
+typedef enum music_source_type {
+    MUSIC_SOURCE_MUS,
+    MUSIC_SOURCE_MP3
+} TMUSIC_SOURCE_TYPE;
+
+typedef struct music_source_t {
+    const void *data;
+    size_t size;
+    void (*destructor)(struct music_source_t *me);
+} TMUSIC_SOURCE;
+
 typedef struct music_stream_t {
     char dummy;
 } TMUSIC_STREAM;
@@ -23,8 +34,23 @@ typedef struct music_stream_chunk_t {
 
 
 
-///open music stream
-TMUSIC_STREAM *music_open(const char *filename);
+
+///open music stream MUS file
+/**
+ * @param source source descriptor - it is copied into reader
+ * @return music stream if valid, or NULL, if not
+ */
+TMUSIC_STREAM *music_open_mus(const TMUSIC_SOURCE *source);
+
+///open music stream MP3 file
+/**
+ * @param source source descriptor - it is copied into reader
+ * @return music stream if valid, or NULL, if not
+ */
+TMUSIC_STREAM *music_open_mp3(const TMUSIC_SOURCE *source);
+
+TMUSIC_STREAM *music_open(const TMUSIC_SOURCE *source, TMUSIC_SOURCE_TYPE type);
+
 ///retrieve information
 TMUSIC_STREAM_INFO music_get_info(const TMUSIC_STREAM *stream);
 
@@ -36,6 +62,7 @@ void music_put_back_chunk(TMUSIC_STREAM *stream, const TMUSIC_STREAM_CHUNK *chun
 
 ///close music stream
 void music_close(TMUSIC_STREAM *stream);
+
 
 
 #ifdef __cplusplus

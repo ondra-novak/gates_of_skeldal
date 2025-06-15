@@ -498,9 +498,6 @@ void create_playlist(char *playlist)
   playing_track=-1;
   }
 
-const char * end_of_song_callback(void *ctx) {
-    return get_next_music_from_playlist();
-}
 const char *get_next_music_from_playlist()
   {
   int i,step;
@@ -520,10 +517,7 @@ const char *get_next_music_from_playlist()
      }
   while (step);
   playing_track=i;
-  const char *d = build_pathname(2, gpathtable[SR_MUSIC], cur_playlist[i]+1);
-  if (!check_file_exists(d)) {
-     return NULL;
-  }
+  const char *d = cur_playlist[i]+1;
   cur_playlist[i][0]=33;
   remain_play--;
   return d;
@@ -722,3 +716,37 @@ char enable_sound(char enbl)
   SEND_LOG("(SOUND) Sound status (en/dis) changed: new %d, old %d",enbl,save);
   return save;
   }
+
+
+void change_music(const char *name) {
+    TMUSIC_SOURCE src;
+    TMUSIC_SOURCE_TYPE t;
+    if (resolve_music_source(name, &src, &t)) {
+        play_music(&src, t);
+    } else {
+        stop_play_music();
+    }
+
+}
+
+static void music_destructor(TMUSIC_SOURCE *me) {
+    afile_mapped_free(me->data, me->size);
+}
+
+char resolve_music_source(const char *name, TMUSIC_SOURCE *new_source, TMUSIC_SOURCE_TYPE *new_type) {
+    if (name == NULL || !test_file_exist(SR_MUSIC, name)) return 0;
+    int32_t sz;
+    size_t l = strlen(name);
+    if (l<4) return 0;
+
+    if (istrcmp(name+l-4, ".MUS") == 0) *new_type = MUSIC_SOURCE_MUS;
+    else if (istrcmp(name+l-4, ".MP3") == 0) *new_type = MUSIC_SOURCE_MP3;
+    else return 0;
+
+    const void *v = afile_mapped(name, SR_MUSIC, &sz);
+    new_source->data = v;
+    new_source->size = sz;
+    new_source->destructor = music_destructor;
+    return 1;
+}
+
