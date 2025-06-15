@@ -76,6 +76,7 @@ typedef handle_list *handle_groups[BK_MAJOR_HANDLES];
 #define BK_PRELOAD 8
 #define BK_HSWAP 16
 #define BK_READONLY 32
+#define BK_KILL_ON_UNLOCK 64
 
 //extern  char *const * mman_pathlist;  //tento pointer musi byt naplnen ukazatelem na tabulku cest
 extern char mman_patch;    //jednicka zapina moznost pouziti patchu
@@ -83,6 +84,7 @@ void *getmem(int32_t size);        //alokace pameti pres memman. alokovat pomoci
 void *grealloc(void *m,int32_t size); //realokace pameti pres memman
 void *load_file(const char *filename, size_t *size); //obycejne natahne soubor do pameti a vrati ukazatel.
 void init_manager(void); //inicializuje manager. Jmeno filename i swapname nejsou povinne (musi byt NULL kdyz nejsou pouzity)
+void reload_ddls(void);;
 void def_mman_group_table(const char ** ); //define pointer to table of paths, for each group there is path
 THANDLE_DATA *def_handle(int handle,const char *filename,ABLOCK_DECODEPROC decompress,char path); //deklaruje rukojet. promenna decompress je ukazatel na funkci ktera upravi data pred vracenim ukazatele
 const void *ablock(int handle);             //vraci ukazatel bloku spojeneho s handlem

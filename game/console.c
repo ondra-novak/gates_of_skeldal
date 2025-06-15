@@ -470,6 +470,10 @@ static int process_actions(const char *command) {
         temp_storage_list(command_ls_callback,NULL);
         return 1;
     }
+    if (istrcmp(command, "reload-ddl") == 0) {
+        reload_ddls();
+        return 1;
+    }
 
 
     return 0;

@@ -457,7 +457,6 @@ void mouse_set_cursor(int cursor)
   if (last_ms_cursor>0) aunlock(last_ms_cursor);
   if (cursor>0)
      {
-     alock(cursor);
      schovej_mysku();
      nastav_mysku_kurzor(ablock(cursor),0,0);
      last_ms_cursor=cursor;
@@ -492,9 +491,9 @@ void set_font(int font,int c1,...)
   va_start(lst, c1);
   int i;
 
-  if (last_font!=-1 && last_font!=font)
+  if (last_font!=font)
      {
-     aunlock(last_font);
+     if (last_font!=-1) aunlock(last_font);
      alock(font);
      }
   curfont=ablock(font);
