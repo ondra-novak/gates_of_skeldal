@@ -362,9 +362,9 @@ void spell_anim(char *name)
 void spell_sound(char *name)
   {
   int i;
-  i=find_handle(name,wav_load);
+  i=find_handle(name,soundfx_load);
   if (i==-1) i=end_ptr++;
-  def_handle(i,name,wav_load,SR_ZVUKY);
+  def_handle(i,name,soundfx_load,SR_ZVUKY);
   play_sample_at_channel(i,0,100);
   }
 

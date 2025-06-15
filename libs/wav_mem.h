@@ -15,7 +15,7 @@ typedef struct t_wave
   int32_t freq,bps;
   }T_WAVE;
 
-const char *find_chunk(const char *wav,char *name);
+const char *find_chunk(const char *wav,char *name, const char *wav_end);
 int get_chunk_size(const char *wav);
 int read_chunk(const char *wav,void *mem);
 

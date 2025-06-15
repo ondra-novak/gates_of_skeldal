@@ -5,6 +5,7 @@
 #include <libs/memman.h>
 #include <platform/sound.h>
 #include <libs/wav_mem.h>
+#include <libs/minimp3.h>
 #include <libs/event.h>
 #include "globals.h"
 #include <math.h>
@@ -227,45 +228,25 @@ int set_channel_volume_from_sector(int channel,
 
 }
 
-/*int calcul_volume(int chan,int x,int y,int side,int volume)
-  {
-  int lv,rv;
-  int ds,bal,i;
-
-  if (side==-1) side=viewdir;
-  side&=3;
-  ds=calc_volume(&x,&y,side);
-  if (ds<=0)
-     {
-     release_channel(chan);
-     return -1;
-     }
-  for(i=0;i<viewdir;i++)
-    {
-    bal=x;
-    x=y;
-    y=-bal;
+static const void *err_sound_load(const void *p, int32_t *s, int h) {
+    *s = sizeof(struct t_wave)+4+1000;
+    void *d = getmem(*s);
+    struct t_wave *hdr = (struct t_wave *)d;
+    uint32_t *sz = (uint32_t *)(hdr+1);
+    uint8_t *data = (uint8_t *)(sz+1);
+    hdr->freq = 1000;
+    hdr->chans = 1;
+    hdr->bps = 1000;
+    hdr->wav_mode = 1;
+    *sz = 1000;
+    for (int i = 0; i < 1000; ++i) {
+        data[i] = (i & 8)?64:192;
     }
-  y=abs(y);
-  if (abs(x)>y)
-    if (x>0) bal=100-y*50/x;else bal=-100-y*50/x;
-  else bal=50*x/y;
-  ds=ds*volume/100;
-  if (bal<0)
-     {
-     lv=ds*(100+bal)/100;rv=ds;
-     }
-  else
-     {
-     rv=ds*(100-bal)/100;lv=ds;
-     }
-  lv=(lv*sample_volume)>>8;
-  rv=(rv*sample_volume)>>8;
-  set_channel_volume(chan,lv,rv);
-  return 0;
-  }
-*/
-const void *wav_load(const void *p, int32_t *s, int h)
+    return d;
+}
+
+
+static const void *wav_load(const void *p, int32_t *s, int h)
   {
   const char *sr;
   char *tg;
@@ -273,10 +254,12 @@ const void *wav_load(const void *p, int32_t *s, int h)
   struct t_wave x[3];
 
   sr=p;
-  sr=find_chunk(sr,WAV_FMT);
+  sr=find_chunk(sr,WAV_FMT, sr + *s);
+  if (sr == NULL) return err_sound_load(p, s, h);
   read_chunk(sr,&x);
   sr=p;
-  sr=find_chunk(sr,WAV_DATA);
+  sr=find_chunk(sr,WAV_DATA, sr+*s);
+  if (sr == NULL) return err_sound_load(p, s, h);
   *s=get_chunk_size(sr);
   tgr=tg=getmem(*s+sizeof(struct t_wave)+4);
   memcpy(tgr,x,sizeof(struct t_wave));
@@ -288,6 +271,75 @@ const void *wav_load(const void *p, int32_t *s, int h)
   *s+=sizeof(struct t_wave)+4;
   return tgr;
   }
+
+static const void *mp3_load(const void *p, int32_t *s, int h) {
+    const uint8_t *ptr = (const uint8_t *)p;
+    size_t count_samples = 0;
+    size_t sz = *s;
+    size_t ofs = 0;
+    mp3dec_t decoder;
+    mp3d_sample_t pcm[MINIMP3_MAX_SAMPLES_PER_FRAME];
+    mp3dec_frame_info_t frame;
+
+    mp3dec_init(&decoder);
+    while (ofs<sz) {
+        int samples = mp3dec_decode_frame(&decoder, ptr+ofs, sz - ofs, pcm, &frame);
+        if (samples == 0) {
+            ++ofs;
+        } else {
+            ofs += frame.frame_bytes;
+            count_samples += samples/frame.channels;
+        }
+    }
+    if (count_samples == 0) return err_sound_load(p, s, h);
+
+    *s = count_samples * 2 + sizeof(struct t_wave)+4;
+    void *trg = getmem(*s);
+    struct t_wave *hdr = (struct t_wave *)trg;
+    hdr->bps = frame.hz * 2;
+    hdr->chans = 1;
+    hdr->freq = frame.hz;
+    hdr->wav_mode = 1;
+    uint32_t *len = (uint32_t *)(hdr+1);
+    *len = count_samples * 2;
+    uint16_t *data = (uint16_t *)(len+1);
+    mp3dec_init(&decoder);
+    ofs = 0;
+    int wrofs = 0;
+    while (ofs < sz) {
+        int samples = mp3dec_decode_frame(&decoder, ptr+ofs, sz - ofs, pcm, &frame);
+        if (samples == 0) {
+           ++ofs;
+        } else {
+            ofs += frame.frame_bytes;
+            for (int i = 0; i < samples; i+=frame.channels) {
+                if (frame.channels == 1) {
+                    data[wrofs] = pcm[i];
+                } else if (frame.channels> 1) { //only mono are supported, downgrade
+                    data[wrofs] = (pcm[i] + pcm[i+1]) / 2;
+                }
+                ++wrofs;
+            }
+
+        }
+    }
+    return trg;
+}
+
+const void *soundfx_load(const void *p, int32_t *s, int h) {
+    if (*s >= 12) {
+        const char *hdr =(const char *)p;
+        if (hdr[0] == 'R' && hdr[1] == 'I' && hdr[2] == 'F' && hdr[3] == 'F') {
+            return wav_load(p,s,h);
+        }
+        if ((hdr[0] == 'I' && hdr[1] == 'D' && hdr[2] == '3')
+                || (hdr[0]==0xFF && (hdr[1] & 0xE0))) {
+            return mp3_load(p,s,h);
+        }
+    }
+    return err_sound_load(p, s, h);;
+}
+
 
 void play_effekt(int x,int y,int xd,int yd,int sector,int side,const TMA_SOUND *p)
   {

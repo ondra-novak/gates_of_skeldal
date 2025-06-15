@@ -650,7 +650,7 @@ const void *pcx_8bit_decomp(const void *p, int32_t *s, int h);
 const void *hi_8bit_correct(const void *p, int32_t *s, int h);
 const void *pcx_8bit_nopal(const void *p, int32_t *s, int h);
 const void *set_background(const void *p, int32_t *s, int h);
-const void *wav_load(const void *p, int32_t *s, int h);
+const void *soundfx_load(const void *p, int32_t *s, int h);
 const void *load_mob_legacy_format_direct(const void *p, int32_t *s, int h);
 const void *load_mob_legacy_format(const void *p, int32_t *s, int h);
 const void *load_spells_legacy_format(const void *p, int32_t *s, int h);

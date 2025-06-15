@@ -265,7 +265,7 @@ static void register_mob_sounds(int hlptr,word *sounds)
      z=sounds[i];
      if (z)
         {
-        def_handle(hlptr,sound_table[z-1],wav_load,SR_ZVUKY);
+        def_handle(hlptr,sound_table[z-1],soundfx_load,SR_ZVUKY);
         }
      hlptr++;
      }

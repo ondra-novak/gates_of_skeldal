@@ -3,19 +3,19 @@
 #include <stdio.h>
 #include "wav_mem.h"
 
-const char *find_chunk(const char *wav,char *name) //TODO improve
+const char *find_chunk(const char *wav,char *name, const char *wav_end) //TODO improve
   {
   int32_t next;
 
   wav+=12;
-  do
+  while (wav < wav_end)
      {
      if (!strncmp(name,wav,4)) return wav+4;
      wav+=4;
      memcpy(&next,wav,4);
      wav+=next+4;
      }
-  while (1);
+  return NULL;
   }
 
 int get_chunk_size(const char *wav)

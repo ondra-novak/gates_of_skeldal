@@ -206,7 +206,7 @@ void load_items()
            break;
         case SV_SNDLIST:
            hs=hl_ptr;
-           prepare_graphics(&hl_ptr,(char *)p,size,wav_load,SR_ZVUKY);
+           prepare_graphics(&hl_ptr,(char *)p,size,soundfx_load,SR_ZVUKY);
            sound_handle=hs-1;
            free(p);
            break;
