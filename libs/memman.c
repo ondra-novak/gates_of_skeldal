@@ -125,6 +125,7 @@ typedef struct ddlmap_info {
     const void *ptr;
     size_t size;
     TNAMETABLE_REF nametable;
+    char *path;
 } TDDLMAP_INFO;
 
 #define MAX_PATCHES 4
@@ -273,12 +274,13 @@ THANDLE_DATA *zneplatnit_block(int handle)
   }
 
 
-static void add_patch(const void *bmf, size_t sz) {
+static void add_patch(const void *bmf, size_t sz, const char *filename) {
     for (int i = 0; i < MAX_PATCHES; ++i) {
         if (ddlmap[i].ptr == NULL) {
             ddlmap[i].ptr = bmf;
             ddlmap[i].size = sz;
             ddlmap[i].nametable = load_file_table(bmf);
+            ddlmap[i].path = strdup(filename);
             return;
         }
     }
@@ -290,7 +292,7 @@ char add_patch_file(const char *filename) {
     size_t bmf_s;
     const void *bmf = map_file_to_memory(file_icase_find(filename), &bmf_s);
     if (bmf) {
-        add_patch(bmf, bmf_s);
+        add_patch(bmf, bmf_s, filename);
         return 1;
     }
     return 0;
@@ -303,6 +305,45 @@ void init_manager(void) {
   memset(ddlmap,0,sizeof(ddlmap));
 }
 
+void reload_ddls(void) {
+    int i,j;
+    THANDLE_DATA *p;
+
+    for(i=0;i<BK_MAJOR_HANDLES;i++) if (_handles[i]!=NULL) {
+       p=(THANDLE_DATA *)(_handles[i]);
+       for(j=0;j<BK_MINOR_HANDLES;j++) {
+          THANDLE_DATA *h = p+j;
+          if (h->status == BK_PRESENT && h->blockdata) {
+             if (need_to_be_free(h->blockdata)) {
+                 if (!(h->flags & BK_LOCKED)) {
+                     free((void *)h->blockdata);
+                 } else {
+                     h->flags |= BK_KILL_ON_UNLOCK;
+                 }
+             } else if (h->flags & BK_LOCKED) {
+                 display_error("Reload ddls cannot be perfomed, locked blocks %s", h->src_file);
+                 return;
+             }
+             h->status = BK_NOT_LOADED;
+             h->blockdata = NULL;
+          }
+       }
+    }
+    for (int i = 0; i < MAX_PATCHES;++i) {
+        TDDLMAP_INFO *dinfo = &ddlmap[i];
+        if (dinfo->ptr != NULL) {
+            unmap_file(dinfo->ptr, dinfo->size);
+            size_t bmf_s;
+            const void *bmf = map_file_to_memory(file_icase_find(dinfo->path), &bmf_s);
+            if (bmf == NULL) {
+                abort();
+            }
+            dinfo->ptr = bmf;
+            dinfo->size = bmf_s;
+            dinfo->nametable = load_file_table(bmf);
+        }
+    }
+}
 
 
 int find_same(const char *name,ABLOCK_DECODEPROC decomp)
@@ -388,11 +429,11 @@ static const void *afile2(const char *filename,int group,int32_t *blocksize, cha
   entr = get_file_entry(group, d, &hd);
   if (entr!=0)
      {
-		 SEND_LOG("(LOAD) Afile is loading file '%s' from group %d",d,group);
-		 const TDDLMAP_INFO *nfo = &ddlmap[hd.src_index];
-		 const int32_t * szptr = (const int32_t *)((const char *)nfo->ptr+hd.offset);
-		 *blocksize = *szptr;
-		 return szptr+1;
+         SEND_LOG("(LOAD) Afile is loading file '%s' from group %d",d,group);
+         const TDDLMAP_INFO *nfo = &ddlmap[hd.src_index];
+         const int32_t * szptr = (const int32_t *)((const char *)nfo->ptr+hd.offset);
+         *blocksize = *szptr;
+         return szptr+1;
      }
   else if (mman_pathlist!=NULL) {
       const char *name = build_pathname(2,mman_pathlist[group],d);
@@ -438,6 +479,10 @@ static void decompress_data(THANDLE_DATA *h, int handle) {
     if (h->loadproc) {
         int32_t sz = h->size;
         const void *r = h->loadproc(h->blockdata, &sz, handle);
+        if (r == NULL && h->blockdata != NULL) {
+            display_error("Failed to load %s - decompress_data returned NULL", h->src_file);
+            abort();
+        }
         if (r != h->blockdata) {
             ablock_free(h->blockdata);
             h->blockdata = r;
@@ -500,6 +545,11 @@ const void *ablock(int handle)
            h->status=BK_PRESENT;
            h->size=s;
            decompress_data(h, handle);
+           if ((h->flags & BK_LOCKED) && !need_to_be_free(h->blockdata)) {
+               void *cpy = getmem(h->size);
+               memcpy(cpy, h->blockdata, h->size);
+               h->blockdata = cpy;
+           }
            return h->blockdata;
            }
         }
@@ -538,7 +588,14 @@ void aunlock(int handle)
   if (!h->lockcount)
      {
      h->flags&=~BK_LOCKED;
+     if (h->flags & BK_KILL_ON_UNLOCK) {
+         ablock_free(h->blockdata);
+         h->flags &= ~(BK_KILL_ON_UNLOCK);
+         h->status = BK_NOT_LOADED;
+         h->blockdata = NULL;
+     }
      if (h->status==BK_SAME_AS) aunlock(h->offset);
+
      }
   //SEND_LOG("(LOCK) Handle unlocked %04X (count %d)",handle,h->lockcount);
   }
@@ -572,6 +629,7 @@ void close_manager()
      }
   for (int i = 0; i < MAX_PATCHES; ++i) {
       unmap_file((void *)ddlmap[i].ptr, ddlmap[i].size);
+      free(ddlmap[i].path);
   }
 
   max_handle=0;

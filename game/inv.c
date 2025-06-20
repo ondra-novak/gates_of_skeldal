@@ -760,16 +760,16 @@ char put_item_to_inv(THUMAN *p,short *picked_items)
   if (picked_items==NULL) return 0;
   if (isdemon(p)) return 0;
   it=*picked_items;
-  if (it && glob_items[it-1].umisteni==PL_SIP && !neprezbrojit())
-        {
-        int u;
-        u=glob_items[it-1].user_value;if (!u) u=1;
-        if (p->sipy+u<100)
-           {
-           p->sipy+=u;
-           return 1;
-           }
-        }
+  if (it && glob_items[it-1].umisteni==PL_SIP && !neprezbrojit()) {
+    int u=glob_items[it-1].user_value;if (!u) u=1;
+    uint8_t sip_druh = glob_items[it-1].druh_sipu;
+    if (p->sipy+u<100 && (p->sip_druh == sip_druh || p->sipy == 0))
+       {
+       p->sipy+=u;
+       p->sip_druh = sip_druh;
+       return 1;
+       }
+  }
   for(i=0;picked_items[i];i++);
   while (i)
      {
@@ -1817,9 +1817,11 @@ static char uloz_sip_action(char fast_key) {
   if (neprezbrojit()) return 0;
   if (picked_item!=NULL && picked_item[1]==0 && glob_items[picked_item[0]-1].umisteni==PL_SIP) {
      int pocet=glob_items[picked_item[0]-1].user_value;
+     int druh=glob_items[picked_item[0]-1].druh_sipu;
      if (pocet==0) pocet=1;
-     if (human_selected->sipy+pocet>99) return 1;
+     if (human_selected->sipy+pocet>99 && (human_selected->sip_druh == druh || human_selected->sipy == 0)) return 1;
      human_selected->sipy+=pocet;
+     human_selected->sip_druh = druh;
      free(picked_item);
      picked_item=NULL;
   } else {
@@ -1833,7 +1835,8 @@ static char uloz_sip_action(char fast_key) {
             for (int i = 0; i < item_count; ++i) {
                 if (glob_items[i].umisteni == PL_SIP
                         && glob_items[i].user_value > max_arrows
-                        && glob_items[i].user_value <= human_selected->sipy) {
+                        && glob_items[i].user_value <= human_selected->sipy
+                        && glob_items[i].druh_sipu == human_selected->sip_druh) {
                     max_arrows = glob_items[i].user_value;
                     best_item = i;
                 }
@@ -1845,7 +1848,7 @@ static char uloz_sip_action(char fast_key) {
                 human_selected->sipy-=max_arrows;
             }
         } else {
-            for(i=0;i<item_count;i++) if (glob_items[i].umisteni==PL_SIP && glob_items[i].user_value==0)
+            for(i=0;i<item_count;i++) if (glob_items[i].umisteni==PL_SIP && glob_items[i].user_value<=1 && glob_items[i].druh_sipu == human_selected->sip_druh)
                {
                picked_item=(short *)getmem(2*sizeof(short));
                picked_item[0] = i+1;
@@ -1853,7 +1856,11 @@ static char uloz_sip_action(char fast_key) {
                human_selected->sipy--;
                break;
                }
+            if (picked_item == NULL) {
+                human_selected->sipy = 0;
             }
+        }
+
         }
   }
   pick_set_cursor();

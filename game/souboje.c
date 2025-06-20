@@ -1032,19 +1032,21 @@ void vystrel_sip(THUMAN *p,int bonus)
   int attack_roll;
   LETICI_VEC *v;
   TITEM *t;
+  char err = 0;
 
   ps=trace_path(p->sektor,p->direction);
   if (ps==-255) return;
-  if (!p->sipy)
-     {
-     char s[100];
 
-     sprintf(s,texty[72],p->jmeno);
-     bott_disp_text(s);
-     return;
-     }
-  for(i=0;i<item_count;i++) if (glob_items[i].umisteni==PL_SIP && glob_items[i].user_value==0) break;
-  if (i==item_count) return;
+  if (!p->sipy) err = 1;
+  for(i=0;i<item_count;i++) if (glob_items[i].umisteni==PL_SIP && glob_items[i].druh  == TYP_VRHACI && glob_items[i].druh_sipu == p->sip_druh) break;
+  if (i==item_count) err = 1;
+  if (err) {
+      char s[100];
+
+      sprintf(s,texty[72],p->jmeno);
+      bott_disp_text(s);
+      return;
+  }
   t=glob_items+i;
   pp=picked_item;
   picked_item=getmem(2*sizeof(short));
@@ -2116,7 +2118,7 @@ static void zahajit_kolo(char prekvapeni)
   rozhodni_o_poradi();
   unwire_proc();
   wire_jadro_souboje();
-  
+
   }
 
 static char add_pc_action(int d) {

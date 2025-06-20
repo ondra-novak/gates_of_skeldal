@@ -229,6 +229,7 @@ static void generate_vlastnosti(THUMAN *p, int povolani)
   p->used=1;
   p->groupnum=1;
   p->sipy=0;
+  p->sip_druh = 0;
   p->inv_size=6;
   p->level=1;
   p->exp=rnd(200);

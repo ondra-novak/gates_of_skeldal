@@ -1461,14 +1461,27 @@ void mob_strelba(TMOB *p)
   int i;
   TITEM *t;
 
-  for(i=0;i<item_count;i++) if (glob_items[i].umisteni==PL_SIP && glob_items[i].druh==TYP_VRHACI) break;
-  if (i==item_count)
-     {
-     closemode();
-     display_error("Nestvura nemuze strilet. Neni nadefinovan obekt sipu");
-     exit(1);
-     }
-  t=glob_items+i;
+
+  for(i=0;i<(int)countof(p->inv);++i) {
+      int itm = p->inv[i];
+      if (itm) {
+          t = &glob_items[itm-1];
+          if (t->druh == TYP_VRHACI && t->umisteni == PL_SIP && t->user_value <= 1) break;
+          t = NULL;
+      }
+  }
+  if (t == 0) {
+      for(i=0;i<item_count;i++) {
+          t = &glob_items[i];
+          if (t->umisteni == PL_SIP && t->druh == TYP_VRHACI && t->user_value <= 1) break;
+          t = NULL;
+      }
+  }
+  if (t == NULL) {
+      bott_disp_text("Enemy has no arrows. Put an arrow to their inventory");
+      return;
+  }
+
   t->zmeny[VLS_MGSIL_H]=p->vlastnosti[VLS_MGSIL_H];  //adjust zmen v magickem utoku
   t->zmeny[VLS_MGSIL_L]=p->vlastnosti[VLS_MGSIL_L];
   t->zmeny[VLS_MGZIVEL]=p->vlastnosti[VLS_MGZIVEL];

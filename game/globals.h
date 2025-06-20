@@ -917,7 +917,7 @@ typedef struct titem
   short keynum;                //148 cislo klice
   short polohy[2][2];          //156 souradnice poloh pro zobrazeni v inv
   uint8_t typ_zbrane;              //160 Typ zbrane
-  char unused;
+  uint8_t druh_sipu;             //pridano, aby slo vytvaret ruzne sipy a toulce (bylo unused)
   short sound;                  //cislo zvuku
   short v_letu[16];             //192
   unsigned short cena;
@@ -958,7 +958,8 @@ typedef struct thuman
   short stare_vls[VLS_MAX];     //mapa vlastnosti pred korekcemi
   short wearing[HUMAN_PLACES];  //nosene predmety
   short prsteny[HUMAN_RINGS];   //nosene prsteny
-  short sipy;                   //pocet sipu v toulci
+  uint8_t sipy;                 //pocet sipu v toulci
+  uint8_t sip_druh;             //druh sipu v toulci
   short inv_size;               //velikost inventare 6-30
   short inv[MAX_INV];           //inventar
   short level;                  //uroven
