@@ -316,7 +316,7 @@ chsend: and     eax,0ffffh
   }
 
 
-void put_picture_ex(word x,word y,const void *p, word *target_addr, size_t pitch)
+void put_picture_ex(word x,word y,const void *p, word *target_addr, size_t pitch, size_t height)
 //#pragma aux put_picture parm [esi] [eax] [edi] modify [ebx ecx edx]
   {
   int32_t scr_linelen2 = pitch;
@@ -328,11 +328,11 @@ void put_picture_ex(word x,word y,const void *p, word *target_addr, size_t pitch
   word xss=xs;
   word yss=ys;
 
-  if (x > DxGetResX() || y > DxGetResY()) return;
+  if (x > pitch || y > height) return;
 
 
-  if (x+xss>=DxGetResX()) xss=DxGetResX()-x;
-  if (y+yss>=DxGetResY()) yss=DxGetResY()-y;
+  if (x+xss>=pitch) xss=pitch-x;
+  if (y+yss>=height) yss=height-y;
 
   data+=3;
 
@@ -344,8 +344,7 @@ void put_picture_ex(word x,word y,const void *p, word *target_addr, size_t pitch
     for (i=0;i<yss;i++,adr+=scr_linelen2,data+=(xs-xss))
       for (j=0;j<xss;j++)
         {
-//        adr[j]=((*data & ~0x1f)<<1) | (*data & 0x1f);
-        adr[j]=*data;
+        if (!(*data & 0x8000)) adr[j]=*data;
         data++;
         }
     }
@@ -393,7 +392,7 @@ void put_picture_ex(word x,word y,const void *p, word *target_addr, size_t pitch
     }
   }
 void put_picture(word x,word y,const void *p) {
-    put_picture_ex(x, y, p, GetScreenAdr(), GetScreenPitch());
+    put_picture_ex(x, y, p, GetScreenAdr(), GetScreenPitch(), DxGetResY());
 
 }
 void get_picture(word x,word y,word xs,word ys,void *p)

@@ -52,7 +52,7 @@ word charsize(const word *font,char znak);
 //#pragma aux charsize parm [esi] [eax]
 void put_picture(word x,word y,const void *p);
 
-void put_picture_ex(word x,word y,const void *p, word *target_addr, size_t pitch);
+void put_picture_ex(word x,word y,const void *p, word *target_addr, size_t pitch, size_t height);
 //#pragma aux put_picture parm [esi] [eax] [edi] modify [ebx ecx edx]
 void get_picture(word x,word y,word xs,word ys,void *p);
 //#pragma aux get_picture parm [esi] [eax] [ebx] [ecx] [edi] modify [edx]

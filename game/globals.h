@@ -121,8 +121,8 @@ static __inline int rangrnd(int a, int b) {return rnd(b-a+1)+a;}
 
 #undef RGB
 #define RGB(r,g,b) RGB888(r,g,b)
-#define GET_R_COLOR(col) ((col & 0xF800)>>8)
-#define GET_G_COLOR(col) ((col & 0x07E0)>>3)
+#define GET_R_COLOR(col) ((col & 0x7C00)>>7)
+#define GET_G_COLOR(col) ((col & 0x03E0)>>2)
 #define GET_B_COLOR(col) ((col & 0x001F)<<3)
 
 #define NOSHADOW(x) ((x)|BGSWITCHBIT)
@@ -938,15 +938,17 @@ typedef struct hum_action
   }HUM_ACTION;
 
 
+#define NPCFLAG_HIDE_INVENTORY 0x1  //< character doesn't show inventory (stats only)
+#define NPCFLAG_NO_GEAR 0x2         //< character doesn't show gear (only graphic)
 
 typedef struct thuman
   {
-  char used;                    //1 kdyz je pozice pouzita
-  char spell;                   //1 kdyz postava ma na sobe aspon 1 kouzlo.
+  uint8_t used;                    //1 kdyz je pozice pouzita
+  uint8_t spell;                   //1 kdyz postava ma na sobe aspon 1 kouzlo.
   uint8_t groupnum;                //cislo skupiny 0-6
   int8_t xicht;                   //cislo obliceje 0-5
   uint8_t direction;               //smer otoceni
-  uint8_t downpoints;           //pokud mrtva postava ma nejake body, tak ji lze ozivit lecenim
+  uint8_t npcflags;                //some flags for npc in group
   short sektor;                 //sektor postaveni
   short vlastnosti[VLS_MAX];    //mapa aktualnich vlastnosti po korekcich
   short bonus_zbrani[TPW_MAX];  //bonusy za zbrane

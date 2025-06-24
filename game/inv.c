@@ -3,6 +3,7 @@
 #include <stdlib.h>
 #include <malloc.h>
 #include <math.h>
+#include <limits.h>
 
 
 #include <libs/types.h>
@@ -118,26 +119,25 @@ void place_human_item(word *obrazek,int x,int y,int item)
   put_picture2picture(p,obrazek,PO_XSS-p[0]/2+x,PO_YS-p[1]-y-20);
   }
 
-/*
-void init_item_sounds(int *ptr)
-  {
-  int i;
-  char *c;
+static char can_see_inventory(const THUMAN *h) {
+    return
+            !isdemon(h)
+            && (h->vlastnosti[VLS_KOUZLA] & SPL_STONED) == 0
+            && (h->npcflags & NPCFLAG_HIDE_INVENTORY) == 0;
+}
 
-  for(i=0;i<item_count;i++)
-     if (glob_items[i].sound)
-        {
-        c=(char *)ablock(H_SOUND_DAT)+sound_table[glob_items[i].sound-1];
-        if (c==NULL || c[0]==0)
-           {
-           closemode();
-           puts("Invalid Sound Table integrity - rebuild SOUND.DAT using MapEdit");
-           exit(1);
-           }
-        def_handle(glob_items[i].sound_handle=ptr[0]++,c,wav_load,SR_ZVUKY);
-        }
-  }
-*/
+static char can_see_gear(const THUMAN *h) {
+    return (h->npcflags & NPCFLAG_NO_GEAR) == 0 && !isdemon(h);
+}
+
+static char can_manage_gear(const THUMAN *h) {
+    return (h->npcflags & NPCFLAG_NO_GEAR) == 0 && !isdemon(h)
+            && (h->vlastnosti[VLS_KOUZLA] & SPL_STONED) == 0;
+}
+static char can_manage_arrows_and_rings(const THUMAN *h) {
+    return !isdemon(h) && (h->vlastnosti[VLS_KOUZLA] & SPL_STONED) == 0;
+}
+
 void item_sound_event(int item,int sector)
   {
   if (!item) return;
@@ -758,7 +758,7 @@ char put_item_to_inv(THUMAN *p,short *picked_items)
 
   if (p->inv_size>MAX_INV) p->inv_size=MAX_INV;
   if (picked_items==NULL) return 0;
-  if (isdemon(p)) return 0;
+  if ((p)) return 0;
   it=*picked_items;
   if (it && glob_items[it-1].umisteni==PL_SIP && !neprezbrojit()) {
     int u=glob_items[it-1].user_value;if (!u) u=1;
@@ -770,18 +770,21 @@ char put_item_to_inv(THUMAN *p,short *picked_items)
        return 1;
        }
   }
-  for(i=0;picked_items[i];i++);
-  while (i)
-     {
-     for(;pos<p->inv_size && p->inv[pos];pos++);
-     if (pos>=p->inv_size) break;
-     i--;
-     it=abs(picked_items[i]);
-     p->inv[pos]=it;
-     ach_event_inv_add(it-1);
-     picked_items[i]=0;
-     }
-  return (i==0);
+  if (can_see_inventory(p)) {
+      for(i=0;picked_items[i];i++);
+      while (i)
+         {
+         for(;pos<p->inv_size && p->inv[pos];pos++);
+         if (pos>=p->inv_size) break;
+         i--;
+         it=abs(picked_items[i]);
+         p->inv[pos]=it;
+         ach_event_inv_add(it-1);
+         picked_items[i]=0;
+         }
+      return (i==0);
+  }
+  return 0;
   }
 
 //-----------------------------------Inventory viewer-------------------
@@ -883,6 +886,7 @@ char exit_inv(int id,int xa,int ya,int xr,int yr)
 void definuj_postavy()
   {
   int i,num1,r,inv=0,z;
+  int rings = 0;
   char *c,*end;
   const char *tmpptr;
   char cc;
@@ -898,6 +902,7 @@ void definuj_postavy()
      {
      THUMAN *p=&postavy_2[i];
      inv=0;
+     rings = 0;
      memset(p,0,sizeof(*p));r=1;
      p->inv_size=6;
      while (c<end && *c!='\n' && *c!='\r' && r==1)
@@ -925,7 +930,7 @@ void definuj_postavy()
            case 133:r=sscanf(c,"%d",&num1);
                     while(r==1 && num1!=-1)
                        {
-                       p->inv[inv++]=num1+1;
+                       if (inv < MAX_INV) p->inv[inv++]=num1+1;
                        c=strchr(c,'\n')+1;
                        r=sscanf(c,"%d",&num1);
                        }
@@ -939,10 +944,24 @@ void definuj_postavy()
                     r=sscanf(c,"%hd",&p->wearing[num1]);
                     p->wearing[num1]++;
                     break;
-					 case 136:r=sscanf(c,"%d",&num1);if (r!=1) break;
-										p->sipy=num1;
+           case 136:r=sscanf(c,"%d",&num1);if (r!=1) break;
+									p->sipy=num1;
 										break;
-           default:r=sscanf(c,"%hd",&p->stare_vls[num1]);break;
+           case 137:r=sscanf(c,"%d",&num1);if (r!=1) break;
+                                    p->sip_druh=num1;
+                                        break;
+           case 138:r=sscanf(c,"%d",&num1);
+                   while(r==1 && num1!=-1)
+                      {
+                      if (rings < HUMAN_RINGS) p->inv[rings++]=num1+1;
+                      c=strchr(c,'\n')+1;
+                      r=sscanf(c,"%d",&num1);
+                      }
+                   break;
+
+           default:if(num1 < VLS_MAX) {
+                   r=sscanf(c,"%hd",&p->stare_vls[num1]);break;
+                   }
            }
         if (c>=end) break;
         c=strchr(c,'\n')+1;
@@ -1208,6 +1227,156 @@ void display_rings()
      }
   }
 
+struct ColorHistogram {
+    int r;
+    int g;
+    int b;
+    int c;
+};
+
+int compare_histogram_value(const void *a, const void *b) {
+    return ((const struct ColorHistogram *)b)->c - ((const struct ColorHistogram *)a)->c;
+}
+
+void *build_items_wearing_hi(THUMAN *h, int32_t *s) { //returns 256 color type with palettes
+    size_t imgsz = PO_XS*PO_YS;
+    uint16_t *workspace = NewArr(uint16_t, imgsz);
+    memset(workspace,0xFF, imgsz * sizeof(uint16_t));
+
+    const word *p=ablock(H_CHARS+h-postavy);
+    word hx=p[0];
+    word hy=p[1];
+    put_picture_ex(PO_XSS-hx/2, PO_YS-hy-20, p, workspace, PO_XS, PO_YS);
+    if (can_see_gear(h)) {
+        for(int i=1;i<HUMAN_PLACES;i++) {
+            int it;
+           if ((it=h->wearing[i])!=0)
+              {
+              TITEM *itt;
+
+              itt=&glob_items[it-1];
+              int vzhled=itt->vzhled;
+              if (h->female==1) vzhled+=face_arr[2];else vzhled+=face_arr[1];
+              int r = i == PO_RUKA_L?1:0;
+              const word *q=(const word *)ablock(vzhled);
+              int x = PO_XSS-q[0]/2+itt->polohy[r][0];
+              int y = PO_YS-q[1]-itt->polohy[r][1]-20;
+              put_picture_ex(x,y, q, workspace, PO_XS, PO_YS);
+              }
+        }
+    }
+
+    struct ColorHistogram *histogram = NewArr(struct ColorHistogram, 32768);
+    memset(histogram,0,32768*sizeof(*histogram));
+    for (size_t i = 0; i < imgsz; ++i) {
+        uint16_t c = workspace[i];
+        if (c & 0x8000) continue;
+        histogram[c].b += GET_B_COLOR(c);
+        histogram[c].g += GET_G_COLOR(c);
+        histogram[c].r += GET_R_COLOR(c);
+        histogram[c].c += 1;
+    }
+    qsort(histogram,32768,sizeof(*histogram), compare_histogram_value);
+    for (int i = 254; i < 32768; ++i) {
+        if (!histogram[i].c) break;
+        int best = INT_MAX;
+        int best_index = 0;
+        int cnt = histogram[i].c;
+        int cr = histogram[i].r/cnt;
+        int cg = histogram[i].g/cnt;
+        int cb = histogram[i].b/cnt;
+        for (int j = 0; j < 255; ++j) {
+            int cnt2 = histogram[j].c;
+            int dr = histogram[j].r/cnt2 - cr;
+            int dg = histogram[j].g/cnt2 - cg;
+            int db = histogram[j].b/cnt2 - cb;
+            int dist = dr *dr + dg * dg + db *db;
+            if (dist < best) {
+                best = dist;
+                best_index = j;
+            }
+        }
+        histogram[best_index].b += histogram[i].b;
+        histogram[best_index].g += histogram[i].g;
+        histogram[best_index].r += histogram[i].r;
+        histogram[best_index].c += histogram[i].c;
+    }
+    char paleta[768];
+    for (int i = 0; i < 254; ++i) {
+        int c = histogram[i].c;
+        if (c == 0) break;
+        int r = histogram[i].r/c;
+        int g = histogram[i].g/c;
+        int b = histogram[i].b/c;
+        paleta[(i+2)*3] = r;
+        paleta[(i+2)*3+1] = g;
+        paleta[(i+2)*3+2] = b;
+    }
+
+    char *fin_image = NewArr(char, PIC_FADE_PAL_SIZE + imgsz);
+    word *hdr = (word *)fin_image;
+    hdr[0] = PO_XS;
+    hdr[1] = PO_YS;
+    hdr[2] = A_FADE_PAL;
+    unsigned short (*pal)[256] = (unsigned short (*)[256])(hdr+3);
+    char *pixels = fin_image + PIC_FADE_PAL_SIZE;
+    palette_shadow(paleta, pal, mglob.fade_r, mglob.fade_g, mglob.fade_b);
+    for (size_t i = 0; i < imgsz; ++i) {
+        if (workspace[i] & 0x8000) {
+            pixels[i] = 0;
+        } else {
+            int r= GET_R_COLOR(workspace[i]);
+            int g= GET_G_COLOR(workspace[i]);
+            int b= GET_B_COLOR(workspace[i]);
+            int best = INT_MAX;
+            int best_index = 0;
+            for (int j = 2; j < 255; ++j) {
+                int dr = (r - paleta[j*3]);
+                int dg = (g - paleta[j*3+1]);
+                int db = (b - paleta[j*3+2]);
+                int dist = dr * dr + dg * dg + db * db;
+                if (dist < best) {
+                    best_index = j;
+                    best = dist;
+                    if (best <= 8) break;
+                }
+            }
+            pixels[i] = best_index;
+        }
+    }
+
+    free(histogram);
+    free(workspace);
+    *s = PIC_FADE_PAL_SIZE + imgsz;
+    return fin_image;
+}
+
+void *build_items_wearing(THUMAN *h, int32_t *s) {
+    word *ob = (word *)build_items_wearing_hi(h, s);
+    char *pp=(char *)ob;
+    if (h->vlastnosti[VLS_KOUZLA] & SPL_STONED)
+    {
+      int i;
+      for (i=0;i<(PIC_FADE_PAL_SIZE>>1);++i) if (i>3)
+      {
+        unsigned short col=ob[i];
+        int bw=(GET_R_COLOR(col)+GET_G_COLOR(col)+GET_B_COLOR(col))/3;
+        if (bw>255) bw=255;
+        ob[i]=RGB(bw,bw,bw);
+      }
+    }
+    else
+    {
+      pp+=PIC_FADE_PAL_SIZE;
+      if (h->vlastnosti[VLS_KOUZLA] & SPL_INVIS)
+         for(int i=0;i<PO_XS*PO_YS;i++,pp++) if (*pp!=0) *pp=1;
+    }
+     return ob;
+
+}
+
+
+/*
 void *build_items_wearing(THUMAN *h, int32_t *s)
   {
   int i,vzhled,it;
@@ -1258,7 +1427,7 @@ void *build_items_wearing(THUMAN *h, int32_t *s)
   }
     return ob;
   }
-
+*/
 
 const void *build_items_called(const void *p, int32_t *s, int h)
   {
@@ -1273,7 +1442,7 @@ void display_items_wearing(THUMAN *h)
   zneplatnit_block(h-postavy+H_POSTAVY);
   enemy_draw(ablock(h-postavy+H_POSTAVY),GetScreenAdr()+HUMAN_X+HUMAN_Y*scr_linelen2,6,320,HUMAN_Y,640*65536);
   it=h->wearing[PO_BATOH];
-  if (it)
+  if (it && can_see_gear(h))
         {
         TITEM *itt;
         const word *w;int vzhled;
@@ -1590,6 +1759,7 @@ void write_pocet_sipu()
 static const void *shop_keeper_picture = NULL;
 
 
+
 void redraw_inventory()
   {
   update_mysky();
@@ -1597,7 +1767,7 @@ void redraw_inventory()
   curcolor=0;
   bar32(0,16,30,16+360);
   bar32(620,16,640,16+360);
-  if (inv_view_mode==0 && ~human_selected->stare_vls[VLS_KOUZLA] & SPL_DEMON && ~human_selected->vlastnosti[VLS_KOUZLA] & SPL_STONED) display_items_in_inv(human_selected);
+  if (inv_view_mode==0 && can_see_inventory(human_selected)) display_items_in_inv(human_selected);
   else inv_display_vlastnosti();
   display_items_wearing(human_selected);
   write_human_big_name(human_selected->jmeno);
@@ -1813,7 +1983,7 @@ char uloz_sip(int id,int xa,int ya,int xr,int yr)
   }
 
 static char uloz_sip_action(char fast_key) {
-  if (isdemon(human_selected)) return 0;
+  if (!can_manage_arrows_and_rings(human_selected)) return 0;
   if (neprezbrojit()) return 0;
   if (picked_item!=NULL && picked_item[1]==0 && glob_items[picked_item[0]-1].umisteni==PL_SIP) {
      int pocet=glob_items[picked_item[0]-1].user_value;
@@ -1931,7 +2101,7 @@ static char bag_action(int xr, int yr);
 char bag_click(int id,int xa,int ya,int xr,int yr)
   {
 
-  if (inv_view_mode || human_selected->stare_vls[VLS_KOUZLA] & SPL_DEMON || human_selected->vlastnosti[VLS_KOUZLA] & SPL_STONED) return vls_click(id,xa,ya,xr,yr);
+  if (inv_view_mode || !can_see_inventory(human_selected)) return vls_click(id,xa,ya,xr,yr);
   xa;ya;id;
   return bag_action(xr, yr);
 
@@ -2018,8 +2188,7 @@ char ring_place(int id,int xa,int ya,int xr,int yr)
 
   xa,ya,xr,yr;
   if (neprezbrojit()) return 0;
-  if (isdemon(human_selected)) return 0;
-  if (human_selected->vlastnosti[VLS_KOUZLA] & SPL_STONED) return 0;
+  if (!can_manage_arrows_and_rings(human_selected)) return 0;
   ring=human_selected->prsteny[id];
   if (picked_item==NULL)
      if (ring)
@@ -2183,8 +2352,8 @@ char human_click(int id,int xa,int ya,int xr,int yr)
 
 
   xr;yr;id;
-  if ((battle && ((battle_mode!=MD_PREZBROJIT) || (select_player!=human_selected-postavy))) || (human_selected->vlastnosti[VLS_KOUZLA] & SPL_STONED)) return 0;
-  if (isdemon(human_selected)) return 0;
+  if ((battle && ((battle_mode!=MD_PREZBROJIT) || (select_player!=human_selected-postavy)))) return 0;
+  if (!can_manage_gear(human_selected)) return 0;
   if (picked_item!=NULL)
    if (muze_nosit(*picked_item))
      if (glob_items[(*picked_item)-1].umisteni==PL_BATOH)

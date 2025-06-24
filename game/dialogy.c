@@ -102,7 +102,7 @@ static int dialog_mob=0;
 
 static char code_page=1;
 
-char trace_dialogs=0;	
+char trace_dialogs=0;
 
 static char case_click(int id,int xa,int ya,int xr,int yr);
 static char ask_who_proc(int id,int xa,int ya,int xr,int yr);
@@ -961,7 +961,7 @@ static void exit_dialog()
 static void picture(char *c)
   {
   undef_handle(H_DIALOG_PIC);
-  if (strcmp(c,"SCREEN")) def_handle(H_DIALOG_PIC,c,hi_8bit_correct,SR_DIALOGS),back_pic_enable=0;
+  if (strcmp(c,"SCREEN")) def_handle(H_DIALOG_PIC,c,0,SR_DIALOGS),back_pic_enable=0;
   else back_pic_enable=1;
   }
 
@@ -1528,4 +1528,4 @@ char load_dialog_info(TMPFILE_RD *f)
     set_nvisited(pgf);
     return 1;
   }
-  
+

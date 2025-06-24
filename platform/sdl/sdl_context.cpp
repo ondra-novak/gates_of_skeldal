@@ -1225,7 +1225,7 @@ void SDLContext::set_window_icon(const void *icon_data, size_t icon_size) {
 }
 
 extern "C" {
-void put_picture_ex(unsigned short x,unsigned short y,const void *p, unsigned short *target_addr, size_t pitch);
+void put_picture_ex(unsigned short x,unsigned short y,const void *p, unsigned short *target_addr, size_t pitch, size_t height);
 }
 
 void  SDLContext::push_hi_image(const unsigned short *image) {
@@ -1238,7 +1238,7 @@ void  SDLContext::push_hi_image(const unsigned short *image) {
     _display_update_queue.resize(sz+imgsz*2);
     unsigned short *trg = reinterpret_cast<unsigned short *>(_display_update_queue.data()+sz);
     std::fill(trg, trg+imgsz, 0x8000);
-    put_picture_ex(0, 0, image, trg, rc.w);
+    put_picture_ex(0, 0, image, trg, rc.w, rc.h);
 }
 
 void SDLContext::show_mouse_cursor(const unsigned short *ms_hi_format, SDL_Point finger) {
