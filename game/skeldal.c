@@ -281,6 +281,10 @@ INIS sinit[]=
 int last_ms_cursor=-1;
 int vmode=2;
 
+#include <platform/sse_receiver.h>
+
+static SSE_RECEIVER *sse_receiver = NULL;
+
 
 void purge_temps(char _) {
     temp_storage_clear();
@@ -740,7 +744,7 @@ void done_skeldal(void)
         cur_config = NULL;
     }
   kill_timer();
-
+  if (sse_receiver) sse_receiver_destroy(sse_receiver);
   }
 
 
@@ -960,6 +964,34 @@ char end_of_song_callback(void *, TMUSIC_SOURCE *s, TMUSIC_SOURCE_TYPE *t) {
 }
 
 
+void sse_listener_watch(EVENT_MSG *msg, void **userdata) {
+    if (msg->msg == E_WATCH) {
+        const char *s = sse_receiver_receive(sse_receiver);
+        if (s) {
+            send_message(E_EXTERNAL_MSG, s);
+        }
+    }
+}
+void sse_listener_init(const char *hostport) {
+
+    char *host = local_strdup(hostport);
+    char *port = strrchr(host,':');
+    if (port == NULL) {
+        port = local_strdup("80");
+    } else {
+        *port = 0;
+        ++port;
+    }
+
+    SSE_RECEIVER *rcv = sse_receiver_create(host, port);
+
+    if (rcv == NULL) {
+        return;
+    }
+    sse_receiver = rcv;
+    send_message(E_ADD, E_WATCH, sse_listener_watch);
+
+}
 
 void init_skeldal(const INI_CONFIG *cfg)
   {
@@ -973,6 +1005,7 @@ void init_skeldal(const INI_CONFIG *cfg)
 
   steam_init();
 
+
   char verr = game_display_init(ini_section_open(cfg, "video"), "Skeldal");
   if (!verr)
      {
@@ -980,7 +1013,7 @@ void init_skeldal(const INI_CONFIG *cfg)
       exit(1);
      }
   showview = game_display_update_rect;
-  game_display_set_icon(getWindowIcon(), getWindowIconSize());
+//  game_display_set_icon(getWindowIcon(), getWindowIconSize());
   init_joystick(ini_section_open(cfg, "controller"));
 
   general_engine_init();
@@ -1090,29 +1123,39 @@ char doNotLoadMapState=0;
 static int reload_map_handler(EVENT_MSG *msg,void **usr)
 {
 extern char running_battle;
-  if (msg->msg==E_RELOADMAP)
+  if (msg->msg==E_EXTERNAL_MSG)
   {
-	int i;
-	ReloadMapInfo *minfo=va_arg(msg->data, ReloadMapInfo *);
-	const char *fname=minfo->fname;
-	int sektor=minfo->sektor;
-	strcopy_n(loadlevel.name,fname,sizeof(loadlevel.name));
-	loadlevel.start_pos=sektor;
-    for(i=0;i<POCET_POSTAV;i++)postavy[i].sektor=loadlevel.start_pos;
-    SEND_LOG("(WIZARD) Load map '%s' %d",loadlevel.name,loadlevel.start_pos);
-    unwire_proc();
-    if (battle) konec_kola();
-	battle=0;
-	running_battle=0;
-	doNotLoadMapState=1;
-	hl_ptr=ikon_libs;
-	destroy_fly_map();
-	load_items();
-	zneplatnit_block(H_ENEMY);
-	zneplatnit_block(H_SHOP_PIC);
-	zneplatnit_block(H_DIALOGY_DAT);
-    load_shops();
-    send_message(E_CLOSE_MAP);
+    const char *m = va_arg(msg->data, const char *);
+    char fname[13];
+    int sector;
+    int i;
+
+    if (sscanf(m, "RELOAD %12s %d", fname, &sector) == 2) {
+
+        strcopy_n(loadlevel.name,fname,sizeof(loadlevel.name));
+      loadlevel.start_pos=sector;
+        for(i=0;i<POCET_POSTAV;i++) if (postavy[i].used) {
+            postavy[i].sektor=loadlevel.start_pos;
+            postavy[i].groupnum = 1;
+        }
+        SEND_LOG("(WIZARD) Load map '%s' %d",loadlevel.name,loadlevel.start_pos);
+        unwire_proc();
+        if (battle) konec_kola();
+      battle=0;
+      running_battle=0;
+      doNotLoadMapState=1;
+      hl_ptr=ikon_libs;
+      destroy_fly_map();
+      load_items();
+      zneplatnit_block(H_ENEMY);
+      zneplatnit_block(H_SHOP_PIC);
+      zneplatnit_block(H_DIALOGY_DAT);
+        load_shops();
+        send_message(E_CLOSE_MAP);
+    } else if (strncmp(m, "MESSAGE ", 8) == 0) {
+        bott_disp_text(m+8);
+    }
+
   }
   return 0;
 }
@@ -1610,6 +1653,10 @@ int skeldal_entry_point(const SKELDAL_CONFIG *start_cfg)
 
   if (!start_cfg->adventure_path) {
     enable_achievements(1);
+  }
+
+  if (start_cfg->sse_hostport) {
+      sse_listener_init(start_cfg->sse_hostport);
   }
 
   start_check();

@@ -24,6 +24,7 @@ void show_help(std::ostream &out, const char *arg0) {
            "-p <file>       patch data with custom DDL\n"
            "-l <lang>       set language (cz|en)\n"
            "-s <directory>  generate string-tables (for localization) and exit\n"
+           "-c <host:port>  connect to host:port for remote control (mapedit)\n"
            "-h              this help\n";
 }
 
@@ -38,8 +39,9 @@ int main(int argc, char **argv) {
     std::string gen_stringtable_path;
     std::string lang;
     std::string patch;
+    std::string sse_hostport;
     std::ostringstream console;
-    for (int optchr = -1; (optchr = getopt(argc, argv, "hf:a:s:l:p:")) != -1; ) {
+    for (int optchr = -1; (optchr = getopt(argc, argv, "hf:a:s:l:c:p:")) != -1; ) {
         switch (optchr) {
             case 'f': config_name = optarg;break;
             case 'a': adv_config_file = optarg;break;
@@ -47,6 +49,7 @@ int main(int argc, char **argv) {
             case 'p': patch = optarg; break;
             case 'l': lang = optarg;break;
             case 's': gen_stringtable_path = optarg;break;
+            case 'c': sse_hostport = optarg;break;
             default:  show_help_short(console);break;
         }
     }
@@ -56,7 +59,7 @@ int main(int argc, char **argv) {
         show_help(console, argv[0]);
     }
 
-    SKELDAL_CONFIG cfg;
+    SKELDAL_CONFIG cfg = {};
     cfg.short_help = []{};
     cfg.show_error = [](const char *txt) {
         char buff[MAX_PATH];
@@ -68,6 +71,7 @@ int main(int argc, char **argv) {
     cfg.config_path = config_name.c_str();
     cfg.lang_path = lang.empty()?NULL:lang.c_str();
     cfg.patch_file = patch.empty()?NULL:patch.c_str();
+    cfg.sse_hostport = sse_hostport.c_str();
 
     {
         std::string msg = console.str();

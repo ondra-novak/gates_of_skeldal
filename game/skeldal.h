@@ -14,6 +14,7 @@ typedef struct {
     const char *lang_path;
     const char *patch_file;
 
+    const char *sse_hostport;
 
 } SKELDAL_CONFIG;
 
