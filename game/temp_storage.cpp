@@ -114,7 +114,7 @@ uint32_t temp_storage_read(void *data, uint32_t size, TMPFILE_RD *f) {
 
 const void *temp_storage_get_binary(TMPFILE_RD *f, uint32_t size, uint32_t *retrieved) {
     auto &d = f->_data;
-    if (size > d.size()) size = d.size();
+    if (size > d.size()) size = static_cast<uint32_t>(d.size());
     const void *ret = d.data();
     d = d.substr(size);
     *retrieved = size;
@@ -183,5 +183,5 @@ TMPFILE_RD *temp_storage_from_binary(const void *content, size_t sz, void (*dele
     return new TMPFILE_RD{{static_cast<const char *>(content), sz}, 0, deleter, ctx};
 }
 uint32_t temp_storage_remain_size(TMPFILE_RD *f) {
-    return f->_data.size();
+    return static_cast<uint32_t>(f->_data.size());
 }

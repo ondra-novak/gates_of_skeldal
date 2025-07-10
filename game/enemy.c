@@ -221,10 +221,10 @@ static const void *load_SEQ_file(const void *src, int *sc, int handle) {
         memcpy(seq_iter2, seq_items, seq_len * sizeof(struct tmobanimseqitem));
         memcpy(gr, allnames, strtable_len);
         for (int i = 0; i < 6; ++i) {
-            newseq->seq[i] = sseq.seq[i] + (seq_iter2 - seq_items) + 1;
+            newseq->seq[i] = seq_iter2 + (sseq.seq[i] - seq_items) + 1;
         }
         for (int i = 0; i < 4; ++i) {
-            newseq->seq[i+6] = sseq.seq[i] + (seq_iter2 - seq_items);
+            newseq->seq[i+6] = seq_iter2 + (sseq.seq[i] - seq_items) ;
             newseq->seq_len[i+6] = 1;
         }
 
@@ -1616,7 +1616,7 @@ void mob_hit(TMOB *mm, int dostal) {
 void mob_strelba(TMOB *p)
   {
   int i;
-  TITEM *t;
+  TITEM *t = NULL;
 
 
   for(i=0;i<(int)countof(p->inv);++i) {

@@ -958,7 +958,7 @@ void show_loading_picture(char *filename)
   ablock_free(p);
   }
 
-char end_of_song_callback(void *, TMUSIC_SOURCE *s, TMUSIC_SOURCE_TYPE *t) {
+char end_of_song_callback(void *userdata, TMUSIC_SOURCE *s, TMUSIC_SOURCE_TYPE *t) {
     const char *ms =  get_next_music_from_playlist();
     return resolve_music_source(ms, s, t);
 }
