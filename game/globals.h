@@ -1481,13 +1481,14 @@ void unwire_main_functs(void);
 //enemy
 #define MOBS_INV 16
 #define MOB_POSIT 0
-#define MOB_ATTACK 1
+#define MOB_ATTACK 3
 #define MOB_TOHIT 2
 
 #define MAX_MOBS 255
 
 
-#define MOB_ATTACKING 0x2
+#define MOB_STANDING   0x0
+#define MOB_WALKING    0x1
 #define MOB_TO_HIT    0x4
 #define MOB_DEATH     0x5
 #define MOB_START 1
@@ -1517,11 +1518,11 @@ typedef struct tmob
   {
   char name[30];           //jmeno moba
   short casting;
-  short adjusting[6*16];     //volba stredu pro animace
+  short _deprecated_adjusting[6*16];     //volba stredu pro animace
   unsigned short sector,dir;        //pozice
   char locx,locy;         //presna pozice
   char headx,heady;        //pozice kam mob miri
-  short anim_counter;        //citac animaci
+  uint16_t anim_counter;        //citac animaci
   short vlastnosti[24];     //zakladni vlastnosti potvory
   short inv[MOBS_INV];      //batoh potvory
   short lives;              //pocet zivotu potvory
@@ -1533,7 +1534,7 @@ typedef struct tmob
   char walk_data;           //cislo potrebne pro pohyb moba v bludisti
   unsigned short bonus;              //bonus za zabiti
   char flee_num;             //pravdepodobnost uteku
-  char anim_counts[6];     //pocet animacnich policek pro kazdy pohyb
+  char _deprecated_anim_counts[6];     //pocet animacnich policek pro kazdy pohyb
   char mobs_name[7];       //zaklad jmena souboru pro moba
   char vlajky2;             //vlajky pro summon z konzoli (BIT0 - neukladat)
   uint8_t id;               //mobile id (template index);
@@ -1544,7 +1545,7 @@ typedef struct tmob
   short home_pos;          //domaci pozice
   short next;              //Cislo dalsiho moba, ktery stoji na jeho pozici
   char actions;            //pocet akci ktere muze potvora provest v kole
-  char hit_pos;           //animacni pozice, kdy potvora zasahne
+  char _deprecated_hit_pos;           //animacni pozice, kdy potvora zasahne
   unsigned short sounds[4];          //zvuky z listu
   signed char palette;           // pocet pouzitelnych palet / cislo palety
   char mode;              //akce potvory

@@ -76,6 +76,165 @@ typedef struct tmobsavedata
 
 static TMOBSAVEDATA **mobsavedata=0;
 
+#define MOBFACECOUNT 10
+
+#define MOB_FACE_WALK_FRONT 0
+#define MOB_FACE_WALK_LEFT 1
+#define MOB_FACE_WALK_BACK 2
+#define MOB_FACE_WALK_RIGHT 3
+#define MOB_FACE_ATTACK 4
+#define MOB_FACE_DAMAGED 5
+#define MOB_FACE_IDLE_FRONT 6
+#define MOB_FACE_IDLE_LEFT 7
+#define MOB_FACE_IDLE_BACK 8
+#define MOB_FACE_IDLE_RIGHT 9
+
+struct tmobanimseqitem {
+    int16_t file;
+    int16_t offsetx;
+    int16_t unused;
+};
+
+typedef struct tmobanimseq {
+    uint8_t seq_len[MOBFACECOUNT]; ///<count of frames for each sequence
+    struct tmobanimseqitem *seq[MOBFACECOUNT];
+    const char *graphics;          ///<pointer to graphics
+    int32_t graphics_size;
+    char big;                      ///<1 if monster is big
+    uint8_t hitpos;                ///hit frame for attack
+} TMOBANIMSEQ;
+
+
+static const void *load_SEQ_file(const void *src, int *sc, int handle) {
+    const THANDLE_DATA *hdata = get_handle(handle);
+    const TMOB *mob = (const TMOB *)(hdata->context);
+    if (strcmp((const char *)src, "<BLOCK>") == 0) {
+
+        uint32_t phases_size= 0;
+        uint32_t graphics_size = 0;
+        const void *sect = NULL;
+        uint32_t sect_size = 0;
+        int type = 0;
+
+
+        //phase 1
+        TMPFILE_RD *f = temp_storage_from_binary(src, *sc, NULL, NULL);
+        while ((load_section_mem(f, &sect, &type, &sect_size)) && type) {
+            switch(type) {
+                case 1: phases_size = sect_size;break;
+                case 2: graphics_size = sect_size;break;
+                default: break;
+            }
+        }
+        temp_storage_close_rd(f);
+        size_t total_size = sizeof(TMOBANIMSEQ)+graphics_size+phases_size;
+        //phase 2
+        TMOBANIMSEQ *newseq = getmem(total_size);
+        f = temp_storage_from_binary(src, *sc, NULL, NULL);
+        char *gr = (char *)(newseq+1);
+        char *iter = gr + graphics_size;
+        char *iend = iter + phases_size;
+        while ((load_section_mem(f, &sect, &type, &sect_size)) && type) {
+            switch(type) {
+                case 1: memcpy(iter, sect, sect_size);break;
+                case 2: memcpy(gr, sect, sect_size);break;
+                case 3: {
+                    const char *c = (const char *)sect;
+                    newseq->big = c[0] != 0;
+                    newseq->hitpos = (uint8_t)(c[1]);
+                    break;
+                }
+                default: break;
+            }
+        }
+        temp_storage_close_rd(f);
+
+        newseq->graphics = gr;
+        newseq->graphics_size = graphics_size;
+        while (iter < iend) {
+            uint8_t row = iter[0] % MOBFACECOUNT;
+            uint8_t count = iter[1];
+            iter+=2;
+            newseq->seq[row] = (struct tmobanimseqitem *)(iter);
+            newseq->seq_len[row] = count;
+            iter+=6*count;
+        }
+
+        *sc = total_size;
+        CHECK_MEMORY(newseq, total_size);
+        return newseq;
+    } else {
+        char fulname[14];
+        char znaky[]=MOB_ZNAKY;
+        int i,j;
+        const char *seq = (const char *)src;
+
+        char allnames[96*13];
+        char *allnames_iter=allnames;
+        int findex = 0;
+        struct tmobanimseqitem seq_items[96];
+        struct tmobanimseqitem *seq_iter = seq_items;
+
+        TMOBANIMSEQ sseq;
+
+        strcpy(fulname,mob->mobs_name);
+        strcat(fulname,"??.PCX");
+        for(i=0;i<6;i++) {
+            int k = i;
+            int l = i == 3?1:i;
+            if (!mob->_deprecated_anim_counts[i]) k = 0;
+            sseq.seq[i] = seq_iter;
+            sseq.seq_len[i] = mob->_deprecated_anim_counts[k];
+           for(j=0;j<16;j++) {
+              fulname[6]=znaky[k];
+              if (j<=mob->_deprecated_anim_counts[k]) {
+                 fulname[7]=*seq++;
+                 strcpy(allnames_iter, fulname);
+                 allnames_iter+=strlen(fulname)+1;
+                 seq_iter->file = findex;
+                 seq_iter->offsetx = mob->_deprecated_adjusting[l * 16 + j];
+                 seq_iter->unused = 0;
+                 ++seq_iter;
+                 ++findex;
+              }
+              if (*seq=='\r') {
+                 char buff[256];
+                 closemode();
+                 sprintf(buff,"Soubor sekvence %s obsahuje chybne udaje nebo je sekvence je moc kratka\n", fulname);
+                 display_error(buff);
+                 exit(0);
+              }
+           }
+           seq=strchr(seq,'\n')+1;
+        }
+        sseq.big = (mob->stay_strategy & MOB_BIG) != 0;
+        sseq.hitpos = mob->_deprecated_hit_pos;
+
+        size_t strtable_len = allnames_iter - allnames;
+        size_t seq_len = seq_iter - seq_items;
+        size_t total_size = sizeof(sseq) + (seq_len)*sizeof(struct tmobanimseqitem) + (strtable_len)*sizeof(char);
+        TMOBANIMSEQ *newseq = (TMOBANIMSEQ *)getmem(total_size);
+        memcpy(newseq, &sseq, sizeof (TMOBANIMSEQ));
+        char *gr = (char *)(newseq+1);
+        newseq->graphics = gr;
+        struct tmobanimseqitem *seq_iter2 = (struct tmobanimseqitem *)(gr+strtable_len);
+        memcpy(seq_iter2, seq_items, seq_len * sizeof(struct tmobanimseqitem));
+        memcpy(gr, allnames, strtable_len);
+        for (int i = 0; i < 6; ++i) {
+            newseq->seq[i] = sseq.seq[i] + (seq_iter2 - seq_items) + 1;
+        }
+        for (int i = 0; i < 4; ++i) {
+            newseq->seq[i+6] = sseq.seq[i] + (seq_iter2 - seq_items);
+            newseq->seq_len[i+6] = 1;
+        }
+
+        newseq->graphics_size = strtable_len;
+        *sc = total_size;
+        CHECK_MEMORY(newseq, total_size);
+        return newseq;
+    }
+}
+
 static void register_mob_path(int mob,word *path) //registruje cestu pro potvoru
   {
   mob_paths[mob]=path;
@@ -206,7 +365,7 @@ void init_mobs()
   send_message(E_DONE,E_KOUZLO_KOLO,mob_reload);
   send_message(E_ADD,E_KOUZLO_KOLO,mob_reload);
   }
-
+/*
 static void register_mob_graphics(int num,char *name_part,const char *anims,const char *seq)
   {
   char fulname[14];
@@ -253,7 +412,7 @@ static void register_mob_graphics(int num,char *name_part,const char *anims,cons
      }
   }
 
-
+*/
 
 
 static void register_mob_sounds(int hlptr,word *sounds)
@@ -344,12 +503,12 @@ static void mob_sound_event(TMOB *m, int event) {
             && ~m->vlastnosti[VLS_KOUZLA] & SPL_STONED) {
         if (event == MBS_WALK) {
             play_sample_at_sector(
-                    m->cislo_vzoru + 16 * 6 + event + monster_block, viewsector,
+                    m->cislo_vzoru + 1 + event + monster_block, viewsector,
                     m->sector, m - mobs + 256,
                     (m->vlajky & MOB_SAMPLE_LOOP) != 0);
         } else {
             play_sample_at_sector(
-                    m->cislo_vzoru + 16 * 6 + event + monster_block, viewsector,
+                    m->cislo_vzoru + 1 + event + monster_block, viewsector,
                     m->sector, 0, 0);
         }
     }
@@ -398,17 +557,21 @@ void load_enemies(const short *data,int size,int *grptr,const TMOB *template,int
         else
            {
            char s[20];
+           int h = *grptr;
 
+           *grptr = h + 1;
            sprintf(s,"%s.SEQ",mobs[i].mobs_name);
-           def_handle(grptr[0]++,s,NULL,SR_ENEMIES);
-           mobs[i].cislo_vzoru=*grptr-monster_block;
-           register_mob_graphics(*grptr,mobs[i].mobs_name,mobs[i].anim_counts,ablock(grptr[0]-1));
-           grptr[0]+=6*16;
+           def_handle(h,s,load_SEQ_file,SR_ENEMIES)->context = mobs+i;
+
            register_mob_sounds(*grptr,mobs[i].sounds);
            grptr[0]+=4;
            sprintf(s,"%s.COL",mobs[i].mobs_name);
            def_handle(grptr[0],s,col_load,SR_ENEMIES);
            grptr[0]++;
+
+           mobs[i].cislo_vzoru=h-monster_block;
+           const TMOBANIMSEQ *seq = (const TMOBANIMSEQ *)ablock(h);
+           prepare_graphics(grptr, seq->graphics,seq->graphics_size , pcx_8bit_nopal, SR_ENEMIES);
            }
         }
      else
@@ -416,7 +579,7 @@ void load_enemies(const short *data,int size,int *grptr,const TMOB *template,int
         mobs[i].cislo_vzoru=-1;
         mobs[i].vlajky&=~MOB_LIVE;
         }
-     for(j=0;j<6;j++) if (mobs[i].anim_counts[j]==0) mobs[i].anim_counts[j]=mobs[i].anim_counts[0];
+//     for(j=0;j<6;j++) if (mobs[i].anim_counts[j]==0) mobs[i].anim_counts[j]=mobs[i].anim_counts[0];
      data+=2;
      }
   for(;i<MAX_MOBS;i++) mobs[i].vlajky&=~MOB_LIVE;
@@ -890,7 +1053,10 @@ void rozhodni_o_smeru(TMOB *p)
            }
        }
   end1:
-  if (p->headx!=p->locx || p->heady!=p->locy) mob_sound_event(p,MBS_WALK);
+  if (p->headx!=p->locx || p->heady!=p->locy) {
+      mob_sound_event(p,MBS_WALK);
+      p->anim_phase = MOB_WALKING;
+  }
   }
 
 void krok_moba(TMOB *p)
@@ -904,8 +1070,8 @@ void krok_moba(TMOB *p)
 
 
 typedef struct enemy_face_tag {
-    int pos;
-    int face;
+    struct tmobanimseqitem face;
+    int action;
     int mirror;
 } TENEMY_FACE;
 
@@ -913,8 +1079,9 @@ typedef struct enemy_face_tag {
 TENEMY_FACE get_enemy_face(TMOB *p,int dirmob,int action,int curdir)
   {
 
-    TENEMY_FACE ret;
-  int view;int pos;
+  TENEMY_FACE ret;
+  const TMOBANIMSEQ *seq = ablock(p->cislo_vzoru+monster_block);
+  int pos;
   int xs,ys;
 
   ret.mirror = 0;
@@ -922,9 +1089,9 @@ TENEMY_FACE get_enemy_face(TMOB *p,int dirmob,int action,int curdir)
   else if (action==MOB_TO_HIT) pos=5;
   else if (action==MOB_DEATH)
      {
-      ret.pos = 0;
-     ret.face = 0;
-     return ret;
+      ret.face.file = 0;
+      ret.face.offsetx = 0;
+      return ret;
      }
   else
      {
@@ -937,7 +1104,7 @@ TENEMY_FACE get_enemy_face(TMOB *p,int dirmob,int action,int curdir)
      if (xs) dirmob=(xs<0)?3:1;
      if (ys) dirmob=(ys<0)?0:2;
      pos=(2+dirmob-curdir)&0x3;
-	 if (game_extras & EX_WALKDIAGONAL && !( p->stay_strategy & MOB_BIG))
+	 if ((game_extras & EX_WALKDIAGONAL) && !( p->stay_strategy & MOB_BIG))
 	   {
 	   switch (curdir & 0x3)
 		  {
@@ -947,12 +1114,14 @@ TENEMY_FACE get_enemy_face(TMOB *p,int dirmob,int action,int curdir)
 		  case 3: if (p->locy>p->heady) pos=3;else if (p->locy<p->heady) pos=1;break;
 		 }
 	   }
+	 if (pos==3) ret.mirror=1;
+	 if (action == MOB_STANDING) {
+	     pos+=6;
+	 }
      }
-  if (pos==3) ret.mirror=1;
-  if (p->anim_counter==-1) view=pos*16;
-  else view=pos*16+(p->anim_counter % (MAX(p->anim_counts[pos],1)))+1;
-  ret.face = view;
-  ret.pos = pos;
+
+  ret.face = seq->seq[pos][p->anim_counter % seq->seq_len[pos]];
+  ret.action = pos;
   return ret;
   }
 
@@ -977,7 +1146,7 @@ static const void *mob_select_palette(TMOB *p)
   {
   const char *palet;
 
-  palet=ablock(p->cislo_vzoru+6*16+4+monster_block);
+  palet=ablock(p->cislo_vzoru+5+monster_block);
   return palet+(p->palette)*PIC_FADE_PAL_SIZE;
   }
 
@@ -1037,18 +1206,12 @@ static void fill_drw_enemy_struct(TMOB *m, DRW_ENEMY *enm, char *buff, int curdi
     const char *modes[] = {"NONE","CAST","FLEE","ATTACK"};
 
     const char *actions[] = {
-            "STANDFWD","STANDLEFT","STANDBACK","STANDRIGHT","STANDLEFTMIRR",
-            "WALKFWD","WALKLEFT","WALKBACK","WALKRIGHT","WALKLEFTMIRR",
-            "ATTACK","ATTACKMIRR","INPAIN","INPAINMIRR","ERR"};
+            "WALKFWD","WALKLEFT","WALKBACK","WALKRIGHT","ATTACK",
+            "DAMAGED","IDLEFWD","IDLELEFT","IDLEBACK","IDLERIGHT","ERR"};
 
     TENEMY_FACE fc = get_enemy_face(m,m->dir,m->anim_phase,curdir);
-    int action = countof(actions)-1;
-    int stand = (fc.face & 0xF) == 0;
-    if (fc.pos < 4) {
-        action = (fc.mirror?4:fc.pos) + (stand?0:5);
-    } else {
-        action = ((fc.pos - 4)*2+(fc.mirror?1:0))+10;
-    }
+    int ca =countof(actions);
+    int action = fc.action>=ca?ca-1:fc.action;
 
     for (int i = 0; i < 8; i++) {
         if (m->stay_strategy & (1<<i)) {
@@ -1068,7 +1231,8 @@ static void fill_drw_enemy_struct(TMOB *m, DRW_ENEMY *enm, char *buff, int curdi
                  "intent: %s\n"
                  "strategy: %s\n"
                  "flags: %s\n"
-                 "has_path: %s",
+                 "has_path: %s\n"
+                 "locx,locy: %d,%d",
                 m->name,
                 actions[action],
                 m->walk_data,
@@ -1078,7 +1242,8 @@ static void fill_drw_enemy_struct(TMOB *m, DRW_ENEMY *enm, char *buff, int curdi
                 modes[(uint8_t)m->mode],
                 strategy_buff,
                 flag_buff,
-                mob_paths[m - mobs]!=NULL?"YES":"NO"
+                mob_paths[m - mobs]!=NULL?"YES":"NO",
+                m->locx,m->locy
            );
     enm->more_info = buff;
 }
@@ -1101,7 +1266,7 @@ void draw_mob_call(int num,int curdir,int celx,int cely,char shiftup)
 
   get_pos(p->locx-128,p->locy-128,&drw1.posx,&drw1.posy,curdir);
   view=get_enemy_face(p,p->dir,p->anim_phase,curdir);
-  vw=p->cislo_vzoru+view.face+monster_block;
+  vw=p->cislo_vzoru+view.face.file+monster_block+6;
     if ((p->vlastnosti[VLS_KOUZLA] & SPL_INVIS) && !true_seeing) {
         drw1.txtr = NULL;
         vw = 0;
@@ -1111,7 +1276,7 @@ void draw_mob_call(int num,int curdir,int celx,int cely,char shiftup)
   drw1.celx=celx;
   drw1.cely=cely;
   drw1.mirror=view.mirror;
-  drw1.adjust=p->adjusting[view.face];
+  drw1.adjust=view.face.offsetx;
   drw1.shiftup=shiftup;
   drw1.num=p->lives;
   drw1.palette=mob_select_palette(p);
@@ -1124,12 +1289,10 @@ void draw_mob_call(int num,int curdir,int celx,int cely,char shiftup)
      q=&mobs[p->next-MOB_START];
      get_pos(q->locx-128,q->locy-128,&drw2.posx,&drw2.posy,curdir);
      view2=get_enemy_face(q,q->dir,q->anim_phase,curdir);
-     vw2=view2.face+q->cislo_vzoru+monster_block;
+     vw2=q->cislo_vzoru+view2.face.file+monster_block+6;
      drw2.shiftup=shiftup;
      drw2.celx=celx;
      drw2.cely=cely;
-     alock(vw);
-     alock(vw+6*16+5);
         if ((q->vlastnosti[VLS_KOUZLA] & SPL_INVIS) && !true_seeing) {
             drw2.txtr = NULL;
             vw2 = 0;
@@ -1137,9 +1300,7 @@ void draw_mob_call(int num,int curdir,int celx,int cely,char shiftup)
             drw2.txtr = ablock(vw2);
         }
      drw2.mirror=view2.mirror;
-     alock(vw2);
-     alock(vw2+6*16+5);
-     drw2.adjust=q->adjusting[view2.face];
+     drw2.adjust=view2.face.offsetx;
      drw2.num=q->lives;
      drw2.palette=mob_select_palette(q);
      drw2.stoned=(q->vlastnosti[VLS_KOUZLA] & SPL_STONED)!=0;
@@ -1161,10 +1322,6 @@ void draw_mob_call(int num,int curdir,int celx,int cely,char shiftup)
      draw_enemy(&drw2);
      draw_enemy(&drw1);
      }
-  aunlock(vw);
-  aunlock(vw2);
-  aunlock(vw+6*16+5);
-  aunlock(vw2+6*16+5);
   }
 
 void draw_mob(int num,int curdir,int celx,int cely,char shiftup)
@@ -1658,10 +1815,9 @@ void mobs_live(int num)
      display_error(buff);
      exit(1);
      }
-  if (p->headx==p->locx && p->heady==p->locy && !p->anim_phase)
+  if (p->headx==p->locx && p->heady==p->locy
+          && (p->anim_phase == MOB_WALKING || p->anim_phase == MOB_STANDING))
      {
-     //zde se bude rozhodovat co dal;
-     p->anim_counter=-1;
      stop_track_free(num+256);
      if (battle)
         {
@@ -1674,7 +1830,11 @@ void mobs_live(int num)
            mobs_live(num);
            return;
            }
-        if (p->mode==MBA_NONE) return;
+        if (p->mode==MBA_NONE) {
+            p->anim_phase = MOB_STANDING;
+            p->anim_counter++;
+            return;
+        }
         rozhodni_o_smeru(p);
         return;
         }
@@ -1689,10 +1849,11 @@ void mobs_live(int num)
         if (p->walk_data>=224)
            if (++p->walk_data<255)
            {
-           p->anim_counter=-1;
+           p->anim_phase = MOB_STANDING;
            return;
            }
         p->anim_counter=0;
+        p->anim_phase = MOB_WALKING;
         rozhodni_o_smeru(p);
         }
      else
@@ -1703,6 +1864,7 @@ void mobs_live(int num)
      }
   else
      {
+     const TMOBANIMSEQ *seq = ablock(p->cislo_vzoru+monster_block);
      if (p->anim_phase<MOB_ATTACK)
         {
         int spd;
@@ -1726,6 +1888,7 @@ void mobs_live(int num)
         else if (ys<-spd) ys=-spd;
         p->locx+=xs;
         p->locy+=ys;
+        p->anim_phase = MOB_WALKING;
 		if (xs!=0 || ys!=0) neco_v_pohybu=1;
         if (p->locx>192 || p->locx<64 || p->locy>192 || p->locy<64) mob_check(num,p);
         }
@@ -1733,20 +1896,19 @@ void mobs_live(int num)
      if (p->anim_phase==MOB_ATTACK)
         {
 		neco_v_pohybu=1;
-        if (p->anim_counter==p->hit_pos) mobs_hit(p);
-        if (p->anim_counter>=p->anim_counts[4])
+        if (p->anim_counter==seq->hitpos) mobs_hit(p);
+        if (p->anim_counter>=seq->seq_len[4])
            {
            if (p->lives<1) p->anim_phase=MOB_TO_HIT;else p->anim_phase=0;
-           p->anim_counter=-1;
+           p->anim_phase = MOB_STANDING;
            p->mode=MBA_NONE;
            }
         }
      else
-     if (p->anim_phase==MOB_TO_HIT && p->anim_counter>=p->anim_counts[5])
+     if (p->anim_phase==MOB_TO_HIT && p->anim_counter>=seq->seq_len[5])
         {
 		neco_v_pohybu=1;
-        p->anim_phase=0;
-        p->anim_counter=-1;
+        p->anim_phase=MOB_STANDING;
         mob_check_death(num,p);
         }
      else
@@ -1756,8 +1918,7 @@ void mobs_live(int num)
         if (p->anim_counter==2) mob_check_death(num,p);
         else if (p->anim_counter>12)
            {
-           p->anim_phase=0;
-           p->anim_counter=-1;
+            p->anim_phase=MOB_STANDING;
            }
         }
      }
@@ -2370,17 +2531,24 @@ void load_enemy_to_map(int i, int sector, int dir, const TMOB *t) {
     int h = find_handle(s, NULL);
     int *grptr = &h;
     if (h == -1) {
+
         grptr = &end_ptr;
-        def_handle(grptr[0]++,s,NULL,SR_ENEMIES);
-        mobs[i].cislo_vzoru=*grptr-monster_block;
-        register_mob_graphics(*grptr,mobs[i].mobs_name,mobs[i].anim_counts,ablock(grptr[0]-1));
-        grptr[0]+=6*16;
+        h = *grptr;
+        *grptr = h +1 ;
+        def_handle(h,s,load_SEQ_file,SR_ENEMIES)->context = mobs+i;
+
         register_mob_sounds(*grptr,mobs[i].sounds);
         grptr[0]+=4;
         sprintf(s,"%s.COL",mobs[i].mobs_name);
         def_handle(grptr[0],s,col_load,SR_ENEMIES);
         grptr[0]++;
+
+        mobs[i].cislo_vzoru=h-monster_block;
+        const TMOBANIMSEQ *seq = (const TMOBANIMSEQ *)ablock(h);
+        prepare_graphics(grptr, seq->graphics,seq->graphics_size , pcx_8bit_nopal, SR_ENEMIES);
+
+
     } else {
-        mobs[i].cislo_vzoru=(h+1)-monster_block;
+        mobs[i].cislo_vzoru=h-monster_block;
     }
 }

@@ -53,6 +53,7 @@ typedef struct thandle_data
   unsigned short lockcount;
   uint32_t counter;
   uint32_t size;
+  void *context;
   }THANDLE_DATA;
 
 #define BK_MAJOR_HANDLES 256 // maximalni pocet skupin rukojeti
@@ -104,6 +105,13 @@ void *afile_copy(const char *filename,int group,int32_t *blocksize); //nahraje d
 int32_t get_handle_size(int handle);
 //void get_mem_info(MEMORYSTATUS *mem);
 void ablock_free(const void *ptr);
+
+#ifdef NDEBUG
+inline void CHECK_MEMORY(const void *x,size_t sz) {}
+#else
+void CHECK_MEMORY(const void *ptr, size_t sz);
+#endif
+
 
 //access file using memory mapping feature
 const void *afile_mapped(const char *filename,int group,int32_t *blocksize);

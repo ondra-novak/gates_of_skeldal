@@ -1805,6 +1805,14 @@ void wire_select_power(void)
   add_to_timer(TM_DELAIER,12,1,display_power_bar_tm);
   }
 
+void animate_mobs(){
+for (int i = 0; i < MAX_MOBS; ++i) {
+    if (mobs[i].vlajky & MOB_LIVE) {
+        ++mobs[i].anim_counter;
+    }
+}
+}
+
 
 
 void program_draw()
@@ -1882,14 +1890,13 @@ void program_draw()
 
     }
 
-
      ukaz_mysku();
   }
 
 
 void souboje_redrawing(THE_TIMER *_)
   {
-  if (neco_v_pohybu) calc_mobs();
+  if (neco_v_pohybu) calc_mobs(); else mob_animuj();
   calc_animations();
   redraw_scene();
   if (!norefresh)
@@ -1900,6 +1907,7 @@ void souboje_redrawing(THE_TIMER *_)
      showview(0,0,0,0);
      }
   }
+
 
 
 void souboje_stisknout(int d)

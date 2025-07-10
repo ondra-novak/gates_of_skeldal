@@ -453,8 +453,10 @@ int load_map_state_ex(const char *level_fname, int mapsize, char partial)
     {
     for(i=0;i<MAX_MOBS;(mobs[i].vlajky &=~MOB_LIVE),i++);
     while (temp_storage_read(&i,sizeof(i),fsta) && i>=0 && i<=MAX_MOBS) {
+       int h = mobs[i].cislo_vzoru;
        if (temp_storage_read(mobs+i,1*sizeof(TMOB),fsta)!=sizeof(TMOB)) goto err;
        mobs[i].vlajky2 = 0;
+       mobs[i].cislo_vzoru = h;
     }
 
     }

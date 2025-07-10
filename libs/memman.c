@@ -9,6 +9,7 @@
 #include "swaper.c"
 #include <fcntl.h>
 #include <string.h>
+#include <assert.h>
 #include <sys/stat.h>
 
 
@@ -65,24 +66,26 @@ void (*swap_error)()=standard_swap_error;
 
 void *getmem(int32_t size)
   {
-  void *p,*res;
+  void *p;
 
-  if (!size) return NULL;
-  do
-     {
-     res=malloc(NON_GETMEM_RESERVED);
-     if (res!=NULL)
-        {
-        p=(void *)malloc(size);
-        free(res);
-        }
-     else p=NULL;
-     if (p==NULL) mem_error(size);
-     }
-  while (p==NULL);
-//  SEND_LOG("(ALLOC) **** Alloc: %p size %d",p,*((int32_t *)p-1));
+#ifndef NDEBUG
+  p = malloc(size+4);
+  memset(p, 0xCD, size);
+  memset((char *)p+size,0xEE,4);
   return p;
-  }
+#else
+  return malloc(size);
+#endif
+}
+
+#ifndef NDEBUG
+void CHECK_MEMORY(const void *ptr, size_t sz) {
+    uint8_t *p = (uint8_t *)ptr + sz;
+    for (int i = 0; i < 4; i++) {
+        assert(p[i] == 0xEE);
+    }
+}
+#endif
 
 
 void *load_file(const char *filename, size_t *sz)

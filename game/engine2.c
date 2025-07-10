@@ -718,9 +718,10 @@ void enemy_draw_transp(const void *src,void *trg,const void *shade,int scale,int
 	//prepare xtable
 	{
 		int *w = xtable;
+		int *we = xtable+sizeof(xtable)/sizeof(xtable[0]);
 		int ofs = 0;
 		int accu = 0;
-		while (ofs < pcx) {
+		while (ofs < pcx && w < we) {
 			*w++ = ofs;
 			accu+=320;
 			while (accu >= scale) {

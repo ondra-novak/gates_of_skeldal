@@ -71,7 +71,7 @@ int main(int argc, char **argv) {
     cfg.config_path = config_name.c_str();
     cfg.lang_path = lang.empty()?NULL:lang.c_str();
     cfg.patch_file = patch.empty()?NULL:patch.c_str();
-    cfg.sse_hostport = sse_hostport.c_str();
+    cfg.sse_hostport = sse_hostport.empty()?NULL:sse_hostport.c_str();
 
     {
         std::string msg = console.str();
