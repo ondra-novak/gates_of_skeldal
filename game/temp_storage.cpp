@@ -112,6 +112,15 @@ uint32_t temp_storage_read(void *data, uint32_t size, TMPFILE_RD *f) {
     return static_cast<uint32_t>(p.size());
 }
 
+const void *temp_storage_get_binary(TMPFILE_RD *f, uint32_t size, uint32_t *retrieved) {
+    auto &d = f->_data;
+    if (size > d.size()) size = d.size();
+    const void *ret = d.data();
+    d = d.substr(size);
+    *retrieved = size;
+    return ret;
+}
+
 void temp_storage_skip(TMPFILE_RD *f, int bytes) {
     auto &d = f->_data;
     auto p = d.substr(0,bytes);

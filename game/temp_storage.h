@@ -28,6 +28,14 @@ void temp_storage_ungetc(TMPFILE_RD *f);
 void temp_storage_write(const void *data, uint32_t size, TMPFILE_WR *f);
 uint32_t temp_storage_read(void *data, uint32_t size, TMPFILE_RD *f);
 uint32_t temp_storage_remain_size(TMPFILE_RD *f);
+///retrievies pointer to underlying stream binary (zero copy)
+/**
+ * @param f source file
+ * @param size requested size
+ * @param retrieved retrieved size
+ * @return pointer to retrieved data. It remains valid until the storage handle is closed
+ */
+const void *temp_storage_get_binary(TMPFILE_RD *f, uint32_t size, uint32_t *retrieved);
 void temp_storage_skip(TMPFILE_RD *f, int bytes);
 
 #ifdef _MSC_VER

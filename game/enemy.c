@@ -355,7 +355,7 @@ static void mob_sound_event(TMOB *m, int event) {
     }
 }
 
-void load_enemies(short *data,int size,int *grptr,const TMOB *template,int32_t tsize)
+void load_enemies(const short *data,int size,int *grptr,const TMOB *template,int32_t tsize)
   {
   int i;
   short cisla[256];
@@ -948,7 +948,7 @@ TENEMY_FACE get_enemy_face(TMOB *p,int dirmob,int action,int curdir)
 		 }
 	   }
      }
-  if (pos==3) ret.mirror=pos=1;
+  if (pos==3) ret.mirror=1;
   if (p->anim_counter==-1) view=pos*16;
   else view=pos*16+(p->anim_counter % (MAX(p->anim_counts[pos],1)))+1;
   ret.face = view;

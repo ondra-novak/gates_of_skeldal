@@ -151,8 +151,8 @@ void load_items()
   {
   TMPFILE_RD *f;
   int sect,i,hs;
-  int32_t size;
-  void *p;
+  uint32_t size;
+  const void *p;
 
   f=NULL;i=0;
   ikon_libs=hl_ptr;
@@ -182,22 +182,20 @@ void load_items()
         case 4:
            face_arr[sect-1]=hl_ptr-1;
            prepare_graphics(&hl_ptr,(char *)p,size,pcx_fade_decomp,SR_ITEMS);
-           free(p);
            break;
         case 2:
         case 3:
            face_arr[sect-1]=hl_ptr-1;
            prepare_graphics(&hl_ptr,(char *)p,size,pcx_fade_decomp,SR_ITEMS);
-           free(p);
            break;
         case 5:
            face_arr[sect-1]=hl_ptr-1;
            prepare_graphics(&hl_ptr,(char *)p,size,NULL,SR_ITEMS);
-           free(p);
            break;
         case SV_ITLIST:
-           glob_items=p;
-           it_count_orgn=item_count=size/sizeof(TITEM);
+            it_count_orgn=item_count = size/sizeof(TITEM);
+           glob_items=NewArr(TITEM, item_count);;
+           memcpy(glob_items, p, sizeof(TITEM)*item_count);
            for (int i = 0; i < it_count_orgn; ++i) {
                if (glob_items[i].cena_high != 0) {
                    SEND_LOG("(ITEMS) Over-priced item %i %s %d > 65535", i, glob_items[i].jmeno, glob_items[i].cena + 65536*glob_items[i].cena_high);
@@ -208,10 +206,8 @@ void load_items()
            hs=hl_ptr;
            prepare_graphics(&hl_ptr,(char *)p,size,soundfx_load,SR_ZVUKY);
            sound_handle=hs-1;
-           free(p);
            break;
         default:
-           free(p);
            break;
         }
      }
@@ -374,7 +370,7 @@ short create_item_money(int obnos)
   return i+1;
   }
 
-void load_item_map(void *p,int32_t s)
+void load_item_map(const void *p,uint32_t s)
   {
   word itmc;
   int sect;

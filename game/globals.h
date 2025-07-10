@@ -756,9 +756,9 @@ void a_touch(int sector,int dir);
 int do_action(int action_numb,int sector,int direct,int flags,int nosend);
 void delay_action(int action_numb,int sector,int direct,int flags,int nosend,int delay);
 //int32_t load_section(FILE *f,void **section, int *sct_type,int32_t *sect_size);
-int32_t load_section_mem(TMPFILE_RD *f,void **section, int *sct_type,int32_t *sect_size);
+uint32_t load_section_mem(TMPFILE_RD *f,const void **section, int *sct_type,uint32_t *sect_size);
 TMPFILE_RD *open_ddl_file(const char *name, int group);
-int prepare_graphics(int *ofs,char *names,int32_t size,ABLOCK_DECODEPROC decomp,int class);
+int prepare_graphics(int *ofs,const char *names,int32_t size,ABLOCK_DECODEPROC decomp,int cls);
 void show_automap(char full);
 void draw_medium_map(void);
 void anim_sipky(int h,int mode);
@@ -833,7 +833,7 @@ extern short water_breath;       //vec pro dychani pod vodou
 extern short flute_item;
 
 void load_items(void);
-void load_item_map(void *p,int32_t s);
+void load_item_map(const void *p,uint32_t s);
 void draw_placed_items_normal(int celx,int cely,int sect,int side);
 
 #define SPL_INVIS 0x1           //hrac je neviditelny
@@ -1348,7 +1348,7 @@ extern TMULTI_ACTION_STATE  macro_state_block;
 extern void *macro_block;          //alokovany blok maker (pri unloadu free!)
 extern int macro_block_size;       //velikost bloku;
 
-void load_macros(int size,void *data);
+void load_macros(int size,const void *data);
 void call_macro(int side,int flags);
 void call_macro_ex(int side,int flags, int runatsect);
 char get_player_triggered(int p);  //zjistuje zda hrac s cislem p byl makrem zasazen;
@@ -1469,7 +1469,7 @@ char test_playing(int track);
 void stop_track_free(int track);
 void mute_all_tracks(char all);
 void kill_all_sounds(void);
-void create_sound_table(char *t,int32_t size);
+void create_sound_table(const char *t,int32_t size);
 void create_sound_table_old(void);
 void start_play_flute(char );
 void stop_play_flute(void);
@@ -1580,7 +1580,7 @@ char track_mob(int sect,int dir);//trackuje pritomnost potvory v urcitem smeru
 void stop_all_mobs(void);
 int utok_na_sektor(THUMAN *p,TMOB *m,int chaos,int bonus, int ruka);
 int vyber_potvoru(int sect,int dir,int *chaos); //vybere potvoru ze sektoru a smeru. Vraci take pocet potvor v promenne *chaos
-void load_enemies(short *data,int size,int *grptr,const TMOB *template,int32_t tsize);
+void load_enemies(const short *data,int size,int *grptr,const TMOB *template,int32_t tsize);
 char mob_test_na_bitvu(TMOB *p);  //nastavi p->vlajky|MOB_INBATTLE pokud potvora muze vstoupit do bitvy;
 void send_mob_to(int m,word *path);
 void save_enemy_paths(TMPFILE_WR *f);

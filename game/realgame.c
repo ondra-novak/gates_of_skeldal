@@ -118,8 +118,8 @@ int32_t load_section(FILE *f,void **section, int *sct_type,int32_t *sect_size)
   }
 */
 
-int32_t load_section_mem(TMPFILE_RD *f,void **section, int *sct_type,int32_t *sect_size) {
-    int32_t s;
+uint32_t load_section_mem(TMPFILE_RD *f,const void **section, int *sct_type,uint32_t *sect_size) {
+    uint32_t s;
     char c[20];
 
     *section=NULL;
@@ -127,23 +127,22 @@ int32_t load_section_mem(TMPFILE_RD *f,void **section, int *sct_type,int32_t *se
     if (strcmp(c,sekceid)) return -1;
     temp_storage_read(sct_type,sizeof(*sct_type),f);
     temp_storage_read(sect_size,sizeof(*sect_size),f);
-    temp_storage_read(&s,sizeof(s),f);
-    *section=getmem(*sect_size);
-    s=temp_storage_read(*section,*sect_size,f);
+    temp_storage_read(&s,sizeof(s),f);  //unused
+    *section = temp_storage_get_binary(f, *sect_size, &s);
     return s;
 }
 
 
-int prepare_graphics(int *ofs,char *names,int32_t size,ABLOCK_DECODEPROC  decomp,int class)
+int prepare_graphics(int *ofs,const char *names,int32_t size,ABLOCK_DECODEPROC  decomp,int cls)
   {
-  char *p,*end;
+  const char *p,*end;
   int count = 0;
 
   end=names+size;
   p=names;
   while (p<end)
      {
-     def_handle(*ofs,p,decomp,class);
+     def_handle(*ofs,p,decomp,cls);
      p=strchr(p,'\0');
      p++;
      (*ofs)++;
@@ -261,9 +260,9 @@ void translate_map_name(const char *mapfile, MAPGLOBAL *mglob) {
 int load_map(const char *filename)
   {
   TMPFILE_RD *f;
-  void *temp;
+  const void *temp;
   int sect;
-  int32_t size,r;
+  uint32_t size;
   char nmapend=1;
   int ofsts=START_HANDLE;
   char snd_load=0;
@@ -285,67 +284,61 @@ int load_map(const char *filename)
   if (f==NULL) return -1;
   do
      {
-     r=load_section_mem(f,&temp,&sect,&size);
+     uint32_t r=load_section_mem(f,&temp,&sect,&size);
      if (r==size)
         switch (sect)
          {
          case A_SIDEMAP:
-                  map_sides=temp;
+                  map_sides = getmem(size);
+                  memcpy(map_sides, temp, size);
                   break;
          case A_SECTMAP:
-                  map_sectors=temp;
+                  map_sectors = getmem(size);
+                  memcpy(map_sectors, temp, size);
                   break;
          case A_MAPINFO:
-                  map_coord=temp;
+                  map_coord = getmem(size);
+                  memcpy(map_coord, temp, size);
                   mapsize=size / sizeof(TMAP_EDIT_INFO);
                   init_items();
                   init_mobs();
                   break;
          case A_MAPEND:
                   nmapend=0;
-                  free(temp);
                   break;
          case A_STRMAIN:
                   num_ofsets[MAIN_NUM]=ofsts-1;
                   num_ofsets_count[MAIN_NUM]=prepare_graphics(&ofsts,temp,size,pcx_fade_decomp,SR_GRAFIKA);
-                  free(temp);
                   break;
          case A_STRLEFT:
                   num_ofsets[LEFT_NUM]=ofsts-1;
                   num_ofsets_count[LEFT_NUM]=prepare_graphics(&ofsts,temp,size,pcx_fade_decomp,SR_GRAFIKA);
-                  free(temp);
                   break;
          case A_STRRIGHT:
                   num_ofsets[RIGHT_NUM]=ofsts-1;
                   num_ofsets_count[RIGHT_NUM] = prepare_graphics(&ofsts,temp,size,pcx_fade_decomp,SR_GRAFIKA);
-                  free(temp);
                   break;
          case A_STRCEIL:
                   num_ofsets[CEIL_NUM]=ofsts-1;
                   num_ofsets_count[CEIL_NUM]=prepare_graphics(&ofsts,temp,size,pcx_15bit_autofade,SR_GRAFIKA);
-                  free(temp);
                   break;
          case A_STRFLOOR:
                   num_ofsets[FLOOR_NUM]=ofsts-1;
                   num_ofsets_count[FLOOR_NUM]=prepare_graphics(&ofsts,temp,size,pcx_15bit_autofade,SR_GRAFIKA);
-                  free(temp);
                   break;
          case A_STRARC:
                   num_ofsets[OBL_NUM]=ofsts-1;
                   num_ofsets_count[OBL_NUM]=prepare_graphics(&ofsts,temp,size,pcx_fade_decomp,SR_GRAFIKA);
-                  free(temp);
                   break;
          case A_STRARC2:
                   num_ofsets[OBL2_NUM]=ofsts-1;
                   num_ofsets_count[OBL2_NUM]=prepare_graphics(&ofsts,temp,size,pcx_fade_decomp,SR_GRAFIKA);
-                  free(temp);
                   break;
          case A_MAPGLOB:
                   num_ofsets[BACK_NUM]=ofsts;
                   num_ofsets_count[BACK_NUM]=1;
 				      memset(&mglob,0,sizeof(mglob));
                   memcpy(&mglob,temp,MIN((int)size,(int)sizeof(mglob)));
-                  free(temp);
                   for(r=0;r<4;r++) {
                         def_handle(ofsts++,mglob.back_fnames[r],pcx_fade_decomp,SR_GRAFIKA);
                   }
@@ -355,7 +348,6 @@ int load_map(const char *filename)
          case A_MAPITEM:
                   SEND_LOG("(GAME) Loading items...");
                   load_item_map(temp,size);
-                  free(temp);
                   break;
          case A_MAPMOBS:
                   if (snd_load==0) create_sound_table_old();
@@ -377,39 +369,36 @@ int load_map(const char *filename)
                     mob_template=NULL;
                     SEND_LOG("(GAME) Loading enemies from map template...");
                     }
-                  free(temp);
                   break;
          case A_MAPMACR:
                   SEND_LOG("(GAME) Loading multiactions...");
                   load_macros(size,temp);
-                  free(temp);
                   break;
          case A_MAPVYK:
-                  map_vyk=temp;
+                  map_vyk = getmem(size);
+                  memcpy(map_vyk, temp, size);
                   vyk_max=size/sizeof(TVYKLENEK);
                   break;
-         case A_MOBS:
-                  mob_template=load_mob_legacy_format_direct(temp, &size,0);
-                  mob_size=size;
-                  free(temp);
+         case A_MOBS: {
+                 int32_t s = size;
+                      mob_template=load_mob_legacy_format_direct(temp, &s,0);
+                      mob_size=s;
                   break;
+                  }
          case A_MOBSND:
                   snd_load=1;
                   create_sound_table(temp,size);
-                  free(temp);
                   break;
 		 case A_PASSW :
 				  map_with_password=1;
-				  free(temp);
 				  break;
 
 
 
-         default:free(temp);
+         default:break;
          }
      else
         {
-        if (temp!=NULL)free(temp);
         ablock_free(mob_template);
         temp_storage_close_rd(f);
         return -3;
@@ -429,7 +418,7 @@ int load_map(const char *filename)
   }
   init_tracks();
   change_music(get_next_music_from_playlist());
-  for(r=0;r<mapsize*4;r++) flag_map[r]=(char)map_sides[r].flags;
+  for(int r=0;r<mapsize*4;r++) flag_map[r]=(char)map_sides[r].flags;
   if (!doNotLoadMapState && load_map_state()==-2)
      {
      closemode();

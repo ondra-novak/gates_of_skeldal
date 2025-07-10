@@ -114,9 +114,9 @@ static void unable_write_temp(char *c)
 int load_org_map(const char *filename,TSTENA **sides,TSECTOR **sectors,TMAP_EDIT_INFO **coords,int *mapsize)
   {
   TMPFILE_RD *f;
-  void *temp;
+  const void *temp;
   int sect;
-  int32_t size,r;
+  uint32_t size,r;
   char nmapend=1;
 
 
@@ -130,28 +130,30 @@ int load_org_map(const char *filename,TSTENA **sides,TSECTOR **sectors,TMAP_EDIT
         switch (sect)
          {
          case A_SIDEMAP:
-                  *sides=temp;
+                  *sides=getmem(size);
+                  memcpy(*sides,temp,size);
                   break;
          case A_SECTMAP:
-                  *sectors=temp;
+                  *sectors=getmem(size);
+                  memcpy(*sectors,temp,size);
                   if (mapsize!=NULL) *mapsize=size/sizeof(TSECTOR);
                   break;
          case A_MAPINFO:
-                  if (coords!=NULL) *coords=temp;else free(temp);
+                  if (coords!=NULL) {
+                      *coords=getmem(size);
+                      memcpy(*coords,temp,size);
+                  }
                   break;
          case A_MAPGLOB:
                   //memcpy(&mglob,temp,min(sizeof(mglob),size));
-                  free(temp);
                   break;
          case A_MAPEND :
                   nmapend=0;
-                  free(temp);
                   break;
-         default: free(temp);
+         default: break;
          }
      else
         {
-        if (temp!=NULL)free(temp);
         temp_storage_close_rd(f);
         return -1;
         }

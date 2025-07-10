@@ -93,10 +93,10 @@ static void read_macro_item(const char *iter, size_t sz, TMULTI_ACTION *target) 
     }
 }
 
-void load_macros(int size,void *data)
+void load_macros(int size,const void *data)
   {
 
-  char *iter = data;
+  const char *iter = data;
   size_t count_s = mapsize*4;
   size_t count_m = 0;
   size_t i;

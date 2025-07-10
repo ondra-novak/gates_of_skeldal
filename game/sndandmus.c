@@ -640,9 +640,9 @@ void play_sample_at_channel(int sample,int channel,int vol)
   }
 
 
-void create_sound_table(char *template,int32_t size)
+void create_sound_table(const char *template,int32_t size)
   {
-  char *c,*s;
+  const char *c,*s;
   int i=0;
 
   if (sound_table==NULL) sound_table=create_list(2);
