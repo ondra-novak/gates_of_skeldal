@@ -817,7 +817,7 @@ static const void *check_autofade(const void *image, char ceil, int dark)
 
 #define draw_floor(s,celx,cely,dark) if (s->floor) draw_floor_ceil(celx,cely,0,check_autofade(ablock(num_ofsets[FLOOR_NUM]+fc_num(global_anim_counter,sector,1)),0,dark));
 #define draw_ceil(s,celx,cely,dark) if (s->ceil)  draw_floor_ceil(celx,cely,1,check_autofade(ablock(num_ofsets[CEIL_NUM]+fc_num(global_anim_counter,sector,0)),1,dark));
-#define GET_OBLOUK(p) ((p->oblouk & 0xf)+(p->prim_anim>>4))
+#define GET_OBLOUK(p) ((p->oblouk & 0xf))
 
 static int left_shiftup,right_shiftup;
 
