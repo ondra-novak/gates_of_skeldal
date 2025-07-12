@@ -245,20 +245,24 @@ void restore_items(TMPFILE_RD *f)
 
 void save_vyklenky(TMPFILE_WR *fsta)
   {
-    temp_storage_write(&vyk_max,1*sizeof(vyk_max),fsta);
-  if (vyk_max)
-      temp_storage_write(map_vyk,vyk_max*sizeof(TVYKLENEK),fsta);
+    uint16_t cnt =0;
+    for (int i = 0; i < 4*mapsize; ++i) if (map_vyk[i]) cnt++;
+    temp_storage_write(&cnt,sizeof(cnt),fsta);
+    for (int i = 0; i < 4*mapsize; ++i) if (map_vyk[i]) {
+        temp_storage_write(map_vyk[i],sizeof(TVYKLENEK),fsta);
+    }
   }
 
 int load_vyklenky(TMPFILE_RD *fsta)
   {
-  int i=0;
-  temp_storage_read(&i,1*sizeof(vyk_max),fsta);
-  if (vyk_max)
-     {
-     if (i>vyk_max) return -2;
-     temp_storage_read(map_vyk,vyk_max*sizeof(TVYKLENEK),fsta);
-     }
+  uint16_t cnt=0;
+  temp_storage_read(&cnt,sizeof(cnt),fsta);
+  for (uint32_t i = 0; i < cnt; ++i) {
+      TVYKLENEK v;
+      temp_storage_read(&v,sizeof(TVYKLENEK), fsta);
+      uint32_t pos = v.sector * 4 + v.dir;
+      if (map_vyk[pos]) *map_vyk[pos] = v;
+  }
   return 0;
   }
 

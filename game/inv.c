@@ -754,7 +754,7 @@ char put_item_to_inv(THUMAN *p,short *picked_items)
 
   if (p->inv_size>MAX_INV) p->inv_size=MAX_INV;
   if (picked_items==NULL) return 0;
-  if ((p)) return 0;
+  if (!can_see_inventory(p)) return 0;
   it=*picked_items;
   if (it && glob_items[it-1].umisteni==PL_SIP && !neprezbrojit()) {
     int u=glob_items[it-1].user_value;if (!u) u=1;

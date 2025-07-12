@@ -855,11 +855,9 @@ static int calc_item_shiftup(TITEM *it)
 void draw_vyklenek(int celx,int cely,int sector,int dir)
   {
   int i,j;
-  TVYKLENEK *v;
+  TVYKLENEK *v = map_vyk[sector * 4 + dir];
 
-  for(i=0;i<vyk_max;i++) if (map_vyk[i].sector==sector && map_vyk[i].dir==dir) break;
-  if (i==vyk_max) return;
-  v=map_vyk+i;
+  if (!v) return ;
   for(i=0;(j=v->items[i])!=0;i++)
      {
      TITEM *it=&glob_items[j-1];
@@ -906,8 +904,7 @@ static int draw_basic_sector(int celx, int cely, int sector) {
                         q->ysec << 1, 0, ghost_walls | (q->flags & tmask));
             }
         }
-        if (q->oblouk & 0x10)
-            draw_vyklenek(celx, cely, sector, dirs[1]);
+        draw_vyklenek(celx, cely, sector, dirs[1]);
     }
     if (celx <= 0) {
         q = &w[dirs[0]];

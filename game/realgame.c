@@ -60,8 +60,7 @@ MAPGLOBAL mglob={
 };
 TSTENA *map_sides;
 TSECTOR *map_sectors;
-TVYKLENEK *map_vyk;         //mapa vyklenku
-word vyk_max;               //pocet vyklenku v mape
+TVYKLENEK **map_vyk;         //mapa vyklenku
 short **map_items = 0;
 short *destroyed_items = 0;;
 char *flag_map;
@@ -282,6 +281,7 @@ int load_map(const char *filename)
   mob_template=NULL;
   mob_size=0;
   if (f==NULL) return -1;
+  mapsize = 0;
   do
      {
      uint32_t r=load_section_mem(f,&temp,&sect,&size);
@@ -375,9 +375,16 @@ int load_map(const char *filename)
                   load_macros(size,temp);
                   break;
          case A_MAPVYK:
-                  map_vyk = getmem(size);
-                  memcpy(map_vyk, temp, size);
-                  vyk_max=size/sizeof(TVYKLENEK);
+                  map_vyk = NewArr(TVYKLENEK *, mapsize*4);
+                  memset(map_vyk, 0, sizeof(TVYKLENEK *)*mapsize*4);
+                  for (size_t i = 0, cnt = size/sizeof(TVYKLENEK); i < cnt; ++i) {
+                      TVYKLENEK *x = (TVYKLENEK *)temp + i;
+                      uint32_t pos = x->sector *4 +x->dir;
+                      if (map_vyk[pos]) continue;
+                      TVYKLENEK *y = NewArr(TVYKLENEK, 1);
+                      *y = *x;
+                      map_vyk[pos] = y;
+                  }
                   break;
          case A_MOBS: {
                  int32_t s = size;
@@ -479,7 +486,11 @@ void leave_current_map()
   free(map_sectors);
   free(flag_map);
   free(map_coord);
-  free(map_vyk);map_vyk=NULL;vyk_max=0;
+  if (map_vyk) {
+      for (int i = 0; i < 4*mapsize; ++i) free(map_vyk[i]);
+      free(map_vyk);
+      map_vyk=NULL;
+  }
   free_map_description();
   while (d_action!=NULL)
     {

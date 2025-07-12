@@ -78,7 +78,7 @@
 
 //extended side flags (oblouky)
 #define SD_POSITION    0x60
-#define SD_RECESS      0x10     //vyklenek
+#define SD_OLD_RECESS  0x10     //vyklenek (not used)
 #define SD_ITPUSH      0x80     //vec lze zkrs tuto stenu polozit na dalsi sektor
 
 
@@ -561,8 +561,7 @@ extern word color_topbar[7];
 extern MAPGLOBAL mglob;            //globalni informace o levelu
 extern TSTENA *map_sides;          //popisy jednotlivych sten (map_sides[(sector<<2)+dir])
 extern TSECTOR *map_sectors;       //popisy sektoru map_sectors[sector]
-extern TVYKLENEK *map_vyk;         //mapa vyklenku
-extern word vyk_max;               //pocet vyklenku v mape
+extern TVYKLENEK **map_vyk;         //mapa vyklenku
 extern char *flag_map;             //mapa prenasenych flagu
 extern TMAP_EDIT_INFO *map_coord;  //mapa souradnic a flagu
 extern int viewsector;             //aktualni sektor vyhledu

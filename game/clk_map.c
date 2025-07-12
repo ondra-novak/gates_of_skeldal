@@ -34,13 +34,12 @@ char clk_step(int id,int xa,int ya,int xr,int yr)
 
 char clk_touch_vyk(int sector,int side,int xr,int yr)
   {
-  int i;
-  TVYKLENEK *v;
+  int i = sector * 4 + side;
+  TVYKLENEK *v= map_vyk[i];
   int x1,y1,x2,y2;
 
-  if (picked_item!=NULL && picked_item[1]!=0) return 0;
-  for(i=0;v=map_vyk+i,i<vyk_max;i++) if (v->sector==sector && v->dir==side) break;
-  if (i==vyk_max) return 0;
+  if (!v || (picked_item!=NULL && picked_item[1]!=0)) return 0;
+
   x1=v->xpos-v->xs/2;
   x2=v->xpos+v->xs/2;
   y1=320-(v->ypos+v->ys);
@@ -102,7 +101,7 @@ char clk_touch(int id,int xa,int ya,int xr,int yr)
   spell_cast=0;
   pick_set_cursor();
   id=viewsector*4+viewdir;
-  if (map_sides[id].oblouk & 0x10) if (clk_touch_vyk(viewsector,viewdir,xr,yr))return 1;
+  if (clk_touch_vyk(viewsector,viewdir,xr,yr))return 1;
   if (map_sides[id].flags & SD_SEC_VIS && map_sides[id].sec!=0)
      {
      xa=map_sides[id].xsec<<1;
