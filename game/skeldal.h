@@ -15,6 +15,7 @@ typedef struct {
     const char *patch_file;
 
     const char *sse_hostport;
+    char launcher; //<run launcher
 
 } SKELDAL_CONFIG;
 

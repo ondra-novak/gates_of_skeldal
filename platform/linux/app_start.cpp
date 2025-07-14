@@ -22,6 +22,7 @@ void show_help(const char *arg0) {
            "-l <lang>       set language (cz|en)\n"
            "-s <directory>  generate string-tables (for localization) and exit\n"
            "-c <host:port>  connect to host:port for remote control (mapedit)\n"
+           "-L              run launcher - select workshop adventure\n"
            "-h              this help\n");
     exit(1);
 }
@@ -38,13 +39,15 @@ int main(int argc, char **argv) {
     std::string patch;
     std::string lang;
     std::string sse_hostport;
-    for (int optchr = -1; (optchr = getopt(argc, argv, "hf:a:s:l:p:c:")) != -1; ) {
+    bool launcher = false;
+    for (int optchr = -1; (optchr = getopt(argc, argv, "hLf:a:s:l:p:c:")) != -1; ) {
         switch (optchr) {
             case 'f': config_name = optarg;break;
             case 'a': adv_config_file = optarg;break;
             case 'h': show_help(argv[0]);break;
             case 'p': patch = optarg; break;
             case 'l': lang = optarg;break;
+            case 'L': launcher = true;break;
             case 's': gen_stringtable_path = optarg;break;
             case 'c': sse_hostport = optarg;break;
             default: show_help_short();
@@ -62,6 +65,7 @@ int main(int argc, char **argv) {
     cfg.lang_path = lang.empty()?NULL:lang.c_str();
     cfg.patch_file = patch.empty()?NULL:patch.c_str();
     cfg.sse_hostport = sse_hostport.empty()?NULL:sse_hostport.c_str();
+    cfg.launcher = launcher?1:0;
     try {
 
         if (!gen_stringtable_path.empty()) {
