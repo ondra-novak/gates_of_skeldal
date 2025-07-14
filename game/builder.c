@@ -725,7 +725,7 @@ void crt_minimap_itr(int sector,int smer,int itrx,int itry, int automap)
   if (itrx<0 || itrx>VIEW3D_X*2 || itry>VIEW3D_Z) return;
   if (minimap[itry][itrx]) return;
   minimap[itry][itrx]=sector;
-  if (!set_halucination) map_coord[sector].flags|=automap & (itrx<=VIEW3D_X+1 && itrx>=VIEW3D_X-1)  ;
+  if (automap && !set_halucination && (itrx<=VIEW3D_X+1 && itrx>=VIEW3D_X-1)) map_coord[sector].flags|=MC_AUTOMAP;
   if (itrx<=VIEW3D_X)
      {
      sector_temp=map_sectors[sector].step_next[dirs[0]];
@@ -734,7 +734,7 @@ void crt_minimap_itr(int sector,int smer,int itrx,int itry, int automap)
         {
         savee=enter;
         enter=-enter_tab[itry][itrx];
-        crt_minimap_itr(sector_temp,smer,itrx-1,itry,automap &(sideflags & 1));
+        crt_minimap_itr(sector_temp,smer,itrx-1,itry,automap &(sideflags & SD_AUTOMAP));
         enter=savee;
         }
      }
@@ -746,7 +746,7 @@ void crt_minimap_itr(int sector,int smer,int itrx,int itry, int automap)
         {
         savee=enter;
         enter=enter_tab[itry][itrx];
-        crt_minimap_itr(sector_temp,smer,itrx+1,itry,automap &(sideflags & 1));
+        crt_minimap_itr(sector_temp,smer,itrx+1,itry,automap &(sideflags & SD_AUTOMAP));
         enter=savee;
         }
      }
@@ -756,7 +756,7 @@ void crt_minimap_itr(int sector,int smer,int itrx,int itry, int automap)
      {
      savee=enter;
      enter-=(enter>0)-(enter<0);
-     crt_minimap_itr(sector_temp,smer,itrx,itry+1,automap &(sideflags & 1));
+     crt_minimap_itr(sector_temp,smer,itrx,itry+1,automap &(sideflags & SD_AUTOMAP));
      enter=savee;
      }
   }
