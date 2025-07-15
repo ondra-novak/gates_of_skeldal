@@ -13,6 +13,7 @@ target_sources(skeldal_platform PRIVATE
     getopt.c
     achievements.cpp
     sse_receiver.c
+    ugc.cpp
 )
 
 set(all_libs

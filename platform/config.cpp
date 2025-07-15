@@ -5,6 +5,7 @@
 #include <map>
 #include <string>
 #include <string_view>
+#include <filesystem>
 
 typedef struct ini_config_section_tag {
     using Section = std::map<std::string, std::string, std::less<>>;
@@ -59,7 +60,8 @@ void parseIniStream(std::istream& input, Callback &&callback) {
 
 INI_CONFIG* ini_open(const char *filename) {
 
-    std::fstream input(filename);
+    std::filesystem::path fname(reinterpret_cast<const char8_t *>(filename));
+    std::fstream input(fname);
     if (!input) return NULL;
     INI_CONFIG *c = new INI_CONFIG;
     parseIniStream(input, [&](std::string_view section, std::string_view key, std::string_view value) {

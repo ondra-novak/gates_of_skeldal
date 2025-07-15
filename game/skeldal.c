@@ -16,6 +16,7 @@
 #include <libs/mgfplay.h>
 #include <libs/inicfg.h>
 #include <platform/save_folder.h>
+#include <platform/ugc.h>
 #include "globals.h"
 #include "resources.h"
 //
@@ -825,6 +826,8 @@ void cti_texty(void)
      //patch stringtable
      if (!texty[98]) str_replace(&texty,98,"Ulo\x91it hru jako");
      if (!texty[99]) str_replace(&texty,99,"CRT Filter (>720p)");
+     if (!texty[198]) str_replace(&texty,198,"Zvol dobrodru\x91stv\xA1");
+     if (!texty[199]) str_replace(&texty,199,"Br\xA0ny Skeldalu (p\x96vodn\xA1 dobrodru\x91stv\xA1)");
      str_replace(&texty, 144, "Zrychlit souboje");
      str_replace(&texty, 51, "Celkov\x88 Hudba Efekty  V\x98\xA8ky  Basy Rychlost");
      str_replace(&texty,0,"Byl nalezen p\xA9ipojen\x98 ovlada\x87\nPro aktivaci ovlada\x87""e stiskn\x88te kter\x82koliv tla\x87\xA1tko na ovlada\x87i");
@@ -888,14 +891,17 @@ const void *boldcz;
 void init_DDL_manager() {
 
     const char *ddlfile = build_pathname(2, gpathtable[SR_DATA],"SKELDAL.DDL");
-    ddlfile = local_strdup(ddlfile);
+    ddlfile = local_strdup(ddlfile);    
 
     init_manager();
-    for (size_t sz = countof(patch_files); sz > 0;) {
-        --sz;
-        if (patch_files[sz]) {
-            if (!add_patch_file(patch_files[sz])) {
-                display_error("Can't open resource file (adv_patch): %s", patch_files[sz]);
+    if (!add_patch_file(ddlfile)) {
+        display_error("Can't open resource file (main): %s", ddlfile);
+        abort();
+    }
+    for (size_t i = 0; i <= countof(patch_files); ++i) {
+        if (patch_files[i]) {
+            if (!add_patch_file(patch_files[i])) {
+                display_error("Can't open resource file (adv_patch): %s", patch_files[i]);
                 abort();
             }
         }
@@ -905,10 +911,6 @@ void init_DDL_manager() {
         const char *gfx = build_pathname(2, lang_fld, "gfx.ddl");
         gfx = local_strdup(gfx);
         add_patch_file(gfx);
-    }
-    if (!add_patch_file(ddlfile)) {
-        display_error("Can't open resource file (main): %s", ddlfile);
-        abort();
     }
 
     SEND_LOG("(GAME) Memory manager initialized. Using DDL: '%s'",ddlfile);
@@ -1196,21 +1198,7 @@ void enter_game(void)
   }
 
 
-static int update_config(void)
-  {
 
-
-  return 0;
-  }
-
-void help(void)
-  {
-  printf("Pouziti:\n\n   S <filename.MAP> <start_sector>\n\n"
-         "<filename.MAP> jmeno mapy\n"
-         "<start_sector> Cislo startovaciho sektoru\n"
-         );
-  exit(0);
-  }
 
 extern char nofloors;
 
@@ -1496,11 +1484,6 @@ static void start_from_mapedit(va_list args)
   }
 #endif
 
-void disable_intro(void)
-  {
-  add_field_num(&cur_config,sinit[12].heslo,1);
-  update_config();
-  }
 
 /*
  * -char def_path[]="";
@@ -1560,6 +1543,8 @@ const char *configure_pathtable(const INI_CONFIG *cfg) {
     if (ini_get_boolean(paths, "patch_mode", 0)) {
         mman_patch = 1;
     }
+    const char *ugc_path = ini_get_string(paths, "local_ugc", "adv");
+    UGCSetLocalFoler(ugc_path);
 
     return groot;
 }
@@ -1610,6 +1595,7 @@ int skeldal_gen_string_table_entry_point(const SKELDAL_CONFIG *start_cfg, const 
     return 0;
 }
 
+const char *run_launcher();
 int skeldal_entry_point(const SKELDAL_CONFIG *start_cfg)
   {
   def_mman_group_table(gpathtable);
@@ -1665,19 +1651,27 @@ int skeldal_entry_point(const SKELDAL_CONFIG *start_cfg)
 
   init_skeldal(cfg);
 
+  if (start_cfg->launcher) {
+    const char *ddl = run_launcher();
+    if (ddl==NULL) goto cleanup;
+    if (ddl[0]) {
+      add_patch_file(ddl);
+      reload_ddls();
+    }
+  }
+
   int start_task = add_task(65536,start);
 
   escape();
 
   term_task_wait(start_task);
 
+cleanup:;
   closemode();
-
-
   ini_close(cfg);
-
   return 0;
   }
+
 
 
 #include "version.h"

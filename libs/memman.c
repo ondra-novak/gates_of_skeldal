@@ -131,7 +131,7 @@ typedef struct ddlmap_info {
     char *path;
 } TDDLMAP_INFO;
 
-#define MAX_PATCHES 4
+#define MAX_PATCHES 8
 
 static TDDLMAP_INFO ddlmap[MAX_PATCHES];
 
@@ -201,7 +201,8 @@ char get_file_entry(int group,const char *name, THANDLE_DATA *h) {
 
   ex=mman_patch && test_file_exist_DOS(group,name);
   if (!ex) {
-      for (int i = 0; i < MAX_PATCHES; ++i) {
+      for (int i = MAX_PATCHES; i >0 ; ) {
+          --i;
           const TDDLMAP_INFO *nfo = &ddlmap[i];
           if (nfo->ptr) {
               int sk =  get_file_entry_in_table(&nfo->nametable, name);
@@ -329,6 +330,7 @@ void reload_ddls(void) {
              }
              h->status = BK_NOT_LOADED;
              h->blockdata = NULL;
+             get_file_entry(h->path,h->src_file,h);
           }
        }
     }
