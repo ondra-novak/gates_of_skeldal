@@ -1354,3 +1354,12 @@ SDLContext::JoystickButton SDLContext::button_from_string(std::string_view s) {
 void SDLContext::disable_crt_effect_temprary(bool disable) {
     _disable_crt_tmp = disable;
 }
+
+void SDLContext::raise_window() const
+{
+    SDL_RaiseWindow(_window.get());
+    SDL_SetWindowAlwaysOnTop(_window.get(),SDL_TRUE);
+    SDL_Delay(100); // malá pauza (volitelné)
+    SDL_SetWindowAlwaysOnTop(_window.get(),SDL_FALSE);
+
+}

@@ -54,7 +54,7 @@ static void set_nonblocking(sock_t sock) {
 static int connect_and_handshake(SSE_RECEIVER *sse) {
     struct addrinfo hints = {0}, *res = NULL;
 
-    hints.ai_family = AF_INET;
+    hints.ai_family = AF_UNSPEC;
     hints.ai_socktype = SOCK_STREAM;
 
     if (getaddrinfo(sse->host, sse->port, &hints, &res) != 0) {
@@ -128,6 +128,12 @@ const char *sse_receiver_receive(SSE_RECEIVER *sse) {
                 if (strncmp(r,"data:",5) == 0) {
                     r+=5;
                     while (*r && isspace(*r)) ++r;
+                    char *s = strchr(r, 0)-1;
+                    while (s > r && isspace(*s)) {
+                        *s = 0;
+                        --s;
+                    }
+
                     if (*r) {
                         return r;
                     }

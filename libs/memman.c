@@ -348,6 +348,15 @@ void reload_ddls(void) {
             dinfo->nametable = load_file_table(bmf);
         }
     }
+    for(i=0;i<BK_MAJOR_HANDLES;i++) if (_handles[i]!=NULL) {
+       p=(THANDLE_DATA *)(_handles[i]);
+       for(j=0;j<BK_MINOR_HANDLES;j++) {
+          THANDLE_DATA *h = p+j;
+          if (h->src_file[0]) {
+             get_file_entry(h->path,h->src_file,h);
+          }
+       }
+    }
 }
 
 

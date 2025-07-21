@@ -898,7 +898,7 @@ void init_DDL_manager() {
         display_error("Can't open resource file (main): %s", ddlfile);
         abort();
     }
-    for (size_t i = 0; i <= countof(patch_files); ++i) {
+    for (size_t i = 0; i < countof(patch_files); ++i) {
         if (patch_files[i]) {
             if (!add_patch_file(patch_files[i])) {
                 display_error("Can't open resource file (adv_patch): %s", patch_files[i]);
@@ -970,7 +970,12 @@ void sse_listener_watch(EVENT_MSG *msg, void **userdata) {
     if (msg->msg == E_WATCH) {
         const char *s = sse_receiver_receive(sse_receiver);
         if (s) {
-            send_message(E_EXTERNAL_MSG, s);
+            if (strcmp(s,"STOP") == 0) {
+              closemode();
+              exit(0);
+            } else {
+              send_message(E_EXTERNAL_MSG, s);
+            }
         }
     }
 }
@@ -1072,8 +1077,6 @@ void init_skeldal(const INI_CONFIG *cfg)
 
   load_shops();
   memset(&loadlevel,0,sizeof(loadlevel));
-  loadlevel.eflags = 0xFF;
-
   }
 
 void wire_main_functs();
@@ -1130,29 +1133,35 @@ extern char running_battle;
     const char *m = va_arg(msg->data, const char *);
     char fname[13];
     int sector;
+    int side;
     int i;
 
-    if (sscanf(m, "RELOAD %12s %d", fname, &sector) == 2) {
+    if (sscanf(m, "RELOAD %12s %d %d", fname, &sector, &side) == 3) {
 
+        reload_ddls();
         strcopy_n(loadlevel.name,fname,sizeof(loadlevel.name));
-      loadlevel.start_pos=sector;
+        loadlevel.start_pos=sector;
+        loadlevel.dir = side;
         for(i=0;i<POCET_POSTAV;i++) if (postavy[i].used) {
             postavy[i].sektor=loadlevel.start_pos;
+            postavy[i].direction=loadlevel.dir;
             postavy[i].groupnum = 1;
         }
-        SEND_LOG("(WIZARD) Load map '%s' %d",loadlevel.name,loadlevel.start_pos);
+        SEND_LOG("(WIZARD) Load map '%s' %d %d",loadlevel.name,loadlevel.start_pos, loadlevel.dir);
         unwire_proc();
         if (battle) konec_kola();
-      battle=0;
-      running_battle=0;
-      doNotLoadMapState=1;
-      hl_ptr=ikon_libs;
-      destroy_fly_map();
-      load_items();
-      zneplatnit_block(H_ENEMY);
-      zneplatnit_block(H_SHOP_PIC);
-      zneplatnit_block(H_DIALOGY_DAT);
+        battle=0;
+        running_battle=0;
+        doNotLoadMapState=1;
+        hl_ptr=ikon_libs;
+        destroy_fly_map();
+        load_items();
+        zneplatnit_block(H_ENEMY);
+        zneplatnit_block(H_SHOP_PIC);
+        zneplatnit_block(H_DIALOGY_DAT);
         load_shops();
+        autosave_on_enter = 0;
+        game_display_focus();
         send_message(E_CLOSE_MAP);
     } else if (strncmp(m, "MESSAGE ", 8) == 0) {
         bott_disp_text(m+8);
@@ -1182,8 +1191,8 @@ void enter_game(void)
 
   send_message(E_ADD,E_RELOADMAP,reload_map_handler);
   {
-      EVENT_MSG *msg = task_wait_event(E_CLOSE_MAP);
-      end = va_arg(msg->data, int);
+      EVENT_MSG *msg = task_wait_event(E_CLOSE_MAP);      
+      end = msg != NULL?va_arg(msg->data, int):0;
   }
   send_message(E_DONE,E_RELOADMAP,reload_map_handler);
 
