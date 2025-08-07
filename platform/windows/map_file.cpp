@@ -20,7 +20,7 @@ const void* map_file_to_memory_cpp(const char *name, size_t *sz) {
 
     std::filesystem::path p(reinterpret_cast<const char8_t *>(name));
 
-    HANDLE h = CreateFileW(p.c_str(), GENERIC_READ, FILE_SHARE_READ|FILE_SHARE_DELETE,NULL,OPEN_EXISTING,FILE_ATTRIBUTE_NORMAL,NULL);
+    HANDLE h = CreateFileW(p.c_str(), GENERIC_READ, FILE_SHARE_READ|FILE_SHARE_DELETE|FILE_SHARE_WRITE,NULL,OPEN_EXISTING,FILE_ATTRIBUTE_NORMAL,NULL);
     if (h == INVALID_HANDLE_VALUE) throw std::runtime_error(std::string("Failed to open file for mapping: ")+p.string());
 
     LARGE_INTEGER fsize;
