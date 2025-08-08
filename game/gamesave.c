@@ -320,7 +320,89 @@ int load_all_fly(TMPFILE_RD *fsta)
   return sz != 0;
   }
 
+typedef struct {
+    unsigned short home_pos;
+    unsigned short sector;
+    short dir;        //pozice
+    short vlastnosti[24];     //zakladni vlastnosti potvory
+    short inv[MOBS_INV];      //batoh potvory
+    short lives;              //pocet zivotu potvory
+    short stay_strategy;      //chovani moba ve statickem modu (nepronasleduje)
+    short walk_data;           //cislo potrebne pro pohyb moba v bludisti
+    short vlajky;             //BIT0 - 1 v boji
+    short csektor;            //Cilovy sektor
+    short palette;     // pocet pouzitelnych palet / cislo palety
+    short dialog_flags;      //vlajky mapovane do dialogu;
+    short user_data;         //data uzivatelem definovane - treba pro spec.
+} MOB_SAVE_STATUS;
 
+static void save_mob_state(TMPFILE_WR *fsta) {
+    MOB_SAVE_STATUS sts[MAX_MOBS];
+    int iter = 0;
+    for (int i = 0; i < MAX_MOBS; ++i) {
+        TMOB *m = &mobs[i];
+        if (m->vlajky & MOB_LIVE && (m->vlajky2 & MOB_F2_DONT_SAVE) == 0) {
+            MOB_SAVE_STATUS *st = &sts[iter++];
+            st->home_pos = m->home_pos;
+            st->csektor = m->csektor;
+            st->dialog_flags = m->dialog_flags;
+            st->dir = m->dir;
+            memcpy(st->inv, m->inv, sizeof(st->inv));
+            st->lives = m->lives;
+            st->palette = m->palette;
+            st->sector = m->sector;
+            st->stay_strategy = m->stay_strategy;
+            st->user_data = m->user_data;
+            st->vlajky = m->vlajky;
+            memcpy(st->vlastnosti, m->vlastnosti, sizeof(st->vlastnosti));
+        }
+    }
+    uint32_t sz = iter * sizeof (MOB_SAVE_STATUS);
+    temp_storage_write(&sz, 4, fsta);
+    temp_storage_write(sts, sz, fsta);
+
+}
+
+static void load_mob_state(TMPFILE_RD *fsta) {
+    uint32_t sz = 0;
+    temp_storage_read(&sz, 4, fsta);
+    uint32_t rmd = sz % sizeof(MOB_SAVE_STATUS);
+    if (rmd) {
+        temp_storage_skip(fsta, sz);
+        return;
+    }
+
+    uint32_t rd;
+    const MOB_SAVE_STATUS *sts = temp_storage_get_binary(fsta, sz, &rd);
+    uint32_t count = rd / sizeof(MOB_SAVE_STATUS);
+    for (uint32_t i = 0; i< count; ++i) {
+        const MOB_SAVE_STATUS *st = &sts[i];
+        for (int i = 0; i < MAX_MOBS; ++i) {
+            if (mobs[i].home_pos == st->home_pos) {
+                TMOB *m = &mobs[i];
+                m->home_pos = st->home_pos;
+                m->csektor = st->csektor;
+                m->dialog_flags = st->dialog_flags;
+                m->dir = st->dir;
+                memcpy(m->inv, st->inv, sizeof(m->inv));
+                m->lives = st->lives;
+                m->palette = st->palette;
+                m->sector = st->sector;
+                m->stay_strategy = st->stay_strategy;
+                m->user_data = st->user_data;
+                m->vlajky = st->vlajky;
+                m->headx = 128;
+                m->heady = 128;
+                m->locx = 128;
+                m->locy = 128;
+                memcpy(m->vlastnosti, st->vlastnosti, sizeof(m->vlastnosti));
+                break;
+            }
+        }
+    }
+    refresh_mob_map();
+
+}
 
 
 int save_map_state() //uklada stav mapy pro savegame (neuklada aktualni pozici);
@@ -369,13 +451,9 @@ int save_map_state() //uklada stav mapy pro savegame (neuklada aktualni pozici);
         }
   i=-1;
   temp_storage_write(&i,sizeof(i),fsta);
-  for(i=0;i<MAX_MOBS;i++) if ((mobs[i].vlajky & MOB_LIVE) && !(mobs[i].vlajky2 & MOB_F2_DONT_SAVE))
-     {
-      temp_storage_write(&i,sizeof(i),fsta);
-      temp_storage_write(mobs+i,sizeof(TMOB),fsta); //save_mobmap
-     }
-  i=-1;
+  i=-2;
   temp_storage_write(&i,sizeof(i),fsta);
+  save_mob_state(fsta);
   i=mapsize*4;
   temp_storage_write(&i,sizeof(i),fsta); //save flag maps //<-------------------------
   temp_storage_write(flag_map,i,fsta);
@@ -441,29 +519,20 @@ int load_map_state_ex(const char *level_fname, int mapsize, char partial)
       res = 0;
       goto err;
   }
-  if (reset_mobiles)  //reloads mobiles if flag present
-    {
-    char mm[MAX_MOBS];
-    for(i=0;i<MAX_MOBS;mobs[i].vlajky &=~MOB_LIVE,i++)
-      if (mobs[i].vlajky & MOB_LIVE) mm[i]=1;else mm[i]=0;
-    while (temp_storage_read(&i,1*2,fsta) && i<=MAX_MOBS)
-      {
-      if (mm[i]) mobs[i].vlajky |=MOB_LIVE;
-      temp_storage_skip(fsta,sizeof(TMOB));
-      }
-    reset_mobiles=0;
-    }
-  else
-    {
     for(i=0;i<MAX_MOBS;(mobs[i].vlajky &=~MOB_LIVE),i++);
     while (temp_storage_read(&i,sizeof(i),fsta) && i>=0 && i<=MAX_MOBS) {
-       int h = mobs[i].cislo_vzoru;
-       if (temp_storage_read(mobs+i,1*sizeof(TMOB),fsta)!=sizeof(TMOB)) goto err;
-       mobs[i].vlajky2 = 0;
-       mobs[i].cislo_vzoru = h;
+        TMOB mb;
+        if (temp_storage_read(&mb,sizeof(TMOB),fsta)!=sizeof(TMOB)) goto err;
+        mb.cislo_vzoru = mobs[i].cislo_vzoru;
+        memcpy(mb.sounds, mobs[i].sounds, sizeof(mb.sounds));
+        mb.vlajky2 = 0;
+        mobs[i] = mb;
+    }
+    if (i == -2) {
+        //new mob format
+        load_mob_state(fsta);
     }
 
-    }
   for(i=0;i<MAX_MOBS;i++) mobs[i].vlajky &=~MOB_IN_BATTLE;
   refresh_mob_map();
   temp_storage_read(&i,sizeof(i),fsta);

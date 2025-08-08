@@ -6,6 +6,7 @@
 
 #include <libs/types.h>
 #include <libs/event.h>
+#include <libs/strlite.h>
 #include <libs/memman.h>
 #include <libs/bgraph.h>
 #include <platform/sound.h>
@@ -58,8 +59,12 @@ char going[]={0,0,1,0,1,1};
 static word *mob_paths[MAX_MOBS];
 static word *mob_path_ptr[MAX_MOBS];
 static int monster_block = 0;
+static int monster_sound_block= 0;
 
-void *sound_template=NULL;
+#define MOB_SEQ_FILE 0
+#define MOB_COL_FILE 1
+#define MOB_GRF_OFS 2
+
 
 short att_sect;
 char battle=0;
@@ -415,7 +420,7 @@ static void register_mob_graphics(int num,char *name_part,const char *anims,cons
 */
 
 
-static void register_mob_sounds(int hlptr,word *sounds)
+/*static void register_mob_sounds(int hlptr,word *sounds)
   {
   int i,z;
 
@@ -429,7 +434,7 @@ static void register_mob_sounds(int hlptr,word *sounds)
      hlptr++;
      }
   }
-
+*/
 static char miri_middle(TMOB *p) //procedura zjisti zda li potvora miri do dveri
   {
   int ss;
@@ -501,15 +506,16 @@ static char seber_predmet(TMOB *m)
 static void mob_sound_event(TMOB *m, int event) {
     if (m->sounds[event] && m->vlajky & MOB_LIVE
             && ~m->vlastnosti[VLS_KOUZLA] & SPL_STONED) {
-        if (event == MBS_WALK) {
-            play_sample_at_sector(
-                    m->cislo_vzoru + 1 + event + monster_block, viewsector,
-                    m->sector, m - mobs + 256,
-                    (m->vlajky & MOB_SAMPLE_LOOP) != 0);
-        } else {
-            play_sample_at_sector(
-                    m->cislo_vzoru + 1 + event + monster_block, viewsector,
-                    m->sector, 0, 0);
+        int handle = m->sounds[event];
+        if (handle) {
+            handle = handle +monster_sound_block - 1;
+            if (event == MBS_WALK) {
+                play_sample_at_sector(
+                        handle, viewsector,m->sector, m - mobs + 256,
+                        (m->vlajky & MOB_SAMPLE_LOOP) != 0);
+            } else {
+                play_sample_at_sector(handle, viewsector,m->sector, 0, 0);
+            }
         }
     }
 }
@@ -518,6 +524,15 @@ void load_enemies(const short *data,int size,int *grptr,const TMOB *template,int
   {
   int i;
   short cisla[256];
+
+  monster_sound_block = *grptr;
+  int sndcount = str_count(sound_table);
+  for (int i = 0 ;i < sndcount; ++i) {
+      if (sound_table[i]) {
+          def_handle(*grptr,sound_table[i],soundfx_load,SR_ZVUKY);
+      }
+      (*grptr)++;
+  }
 
   monster_block=*grptr;
   memset(cisla,0xff,sizeof(cisla));
@@ -563,8 +578,7 @@ void load_enemies(const short *data,int size,int *grptr,const TMOB *template,int
            sprintf(s,"%s.SEQ",mobs[i].mobs_name);
            def_handle(h,s,load_SEQ_file,SR_ENEMIES)->context = mobs+i;
 
-           register_mob_sounds(*grptr,mobs[i].sounds);
-           grptr[0]+=4;
+//           register_mob_sounds(*grptr,mobs[i].sounds);
            sprintf(s,"%s.COL",mobs[i].mobs_name);
            def_handle(grptr[0],s,col_load,SR_ENEMIES);
            grptr[0]++;
@@ -1080,7 +1094,7 @@ TENEMY_FACE get_enemy_face(TMOB *p,int dirmob,int action,int curdir)
   {
 
   TENEMY_FACE ret;
-  const TMOBANIMSEQ *seq = ablock(p->cislo_vzoru+monster_block);
+  const TMOBANIMSEQ *seq = ablock(p->cislo_vzoru+monster_block+MOB_SEQ_FILE);
   int pos;
   int xs,ys;
 
@@ -1146,7 +1160,7 @@ static const void *mob_select_palette(TMOB *p)
   {
   const char *palet;
 
-  palet=ablock(p->cislo_vzoru+5+monster_block);
+  palet=ablock(p->cislo_vzoru+monster_block+MOB_COL_FILE);
   return palet+(p->palette)*PIC_FADE_PAL_SIZE;
   }
 
@@ -1266,7 +1280,7 @@ void draw_mob_call(int num,int curdir,int celx,int cely,char shiftup)
 
   get_pos(p->locx-128,p->locy-128,&drw1.posx,&drw1.posy,curdir);
   view=get_enemy_face(p,p->dir,p->anim_phase,curdir);
-  vw=p->cislo_vzoru+view.face.file+monster_block+6;
+  vw=p->cislo_vzoru+view.face.file+monster_block+MOB_GRF_OFS;
     if ((p->vlastnosti[VLS_KOUZLA] & SPL_INVIS) && !true_seeing) {
         drw1.txtr = NULL;
         vw = 0;
@@ -1289,7 +1303,7 @@ void draw_mob_call(int num,int curdir,int celx,int cely,char shiftup)
      q=&mobs[p->next-MOB_START];
      get_pos(q->locx-128,q->locy-128,&drw2.posx,&drw2.posy,curdir);
      view2=get_enemy_face(q,q->dir,q->anim_phase,curdir);
-     vw2=q->cislo_vzoru+view2.face.file+monster_block+6;
+     vw2=q->cislo_vzoru+view2.face.file+monster_block+MOB_GRF_OFS;
      drw2.shiftup=shiftup;
      drw2.celx=celx;
      drw2.cely=cely;
@@ -1864,7 +1878,7 @@ void mobs_live(int num)
      }
   else
      {
-     const TMOBANIMSEQ *seq = ablock(p->cislo_vzoru+monster_block);
+     const TMOBANIMSEQ *seq = ablock(p->cislo_vzoru+monster_block+MOB_SEQ_FILE);
      if (p->anim_phase<MOB_ATTACK)
         {
         int spd;
@@ -2537,8 +2551,8 @@ void load_enemy_to_map(int i, int sector, int dir, const TMOB *t) {
         *grptr = h +1 ;
         def_handle(h,s,load_SEQ_file,SR_ENEMIES)->context = mobs+i;
 
-        register_mob_sounds(*grptr,mobs[i].sounds);
-        grptr[0]+=4;
+/*        register_mob_sounds(*grptr,mobs[i].sounds);
+        grptr[0]+=4;*/ //TODO - fix sounds
         sprintf(s,"%s.COL",mobs[i].mobs_name);
         def_handle(grptr[0],s,col_load,SR_ENEMIES);
         grptr[0]++;
