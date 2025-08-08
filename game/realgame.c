@@ -430,7 +430,7 @@ int load_map(const char *filename)
      {
      closemode();
      display_error("Bug in temp file. Please purge some status blocks in last load savegame file.");
-     exit(0);
+     exit(1);
      }
   doNotLoadMapState=0;
   current_map_hash = fnv1a_hash(filename);

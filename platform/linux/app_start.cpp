@@ -59,6 +59,7 @@ int main(int argc, char **argv) {
     cfg.short_help = show_help_short;
     cfg.show_error = [](const char *txt) {
         std::cerr << "ERROR: " << txt << std::endl;
+        abort();
     };
     cfg.adventure_path = adv_config_file.empty()?NULL:adv_config_file.c_str();
     cfg.config_path = config_name.c_str();

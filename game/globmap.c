@@ -174,7 +174,7 @@ static void error(const char *text)
   SEND_LOG("(ERROR) %s : %s",popis,text);
   closemode();
   display_error(popis);
-  exit(0);
+  exit(1);
   }
 
 static void ex_error(char znak)

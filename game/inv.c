@@ -171,7 +171,7 @@ void load_items()
      {
         closemode();
 	    display_error("Selhalo otevreni souboru ITEMS.DAT. Zkotroluj zda vubec existuje.");
-        exit(0);
+        exit(1);
      }
   do
      {
@@ -966,7 +966,7 @@ void definuj_postavy()
         {
         closemode();
 	    display_error("Error in file POSTAVY.DAT. May be missing a parameter in some definition.");
-        exit(0);
+        exit(1);
         }
      c=strchr(c,'\n')+1;
      prepocitat_postavu(p);
