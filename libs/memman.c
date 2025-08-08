@@ -427,7 +427,7 @@ THANDLE_DATA *def_handle(int handle,const char *filename,ABLOCK_DECODEPROC decom
       get_file_entry(path,h->src_file,h);
   }
   SEND_LOG("(REGISTER) File/Block registred '%-.12s' handle %04X",h->src_file,handle);
-  SEND_LOG("(REGISTER) Seekpos=%d",h->seekpos);
+  SEND_LOG("(REGISTER) Seekpos=%d",h->offset);
   h->flags=0;
   h->path=path;
   if (h->status!=BK_DIRLIST) h->status=BK_NOT_LOADED;

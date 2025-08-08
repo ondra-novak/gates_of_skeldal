@@ -1,5 +1,8 @@
 #include "ugc.h"
 #include "config.h"
+
+#include <algorithm>
+#include <cstring>
 #include <fstream>
 #include <vector>
 #include <filesystem>
@@ -16,7 +19,7 @@ std::wstring toWideChar(std::string_view text) {
         if ((c & 0x80) == 0) out.push_back(c);
         else {
             if ((c & 0xC0) == 0x80) {
-                codepoint = (codepoint << 6) | (c & 0x3F); 
+                codepoint = (codepoint << 6) | (c & 0x3F);
             } else if ((c & 0xE0) == 0xC0) {
                 bytes=2; codepoint = c & 0x1F;
             } else if ((c & 0xF0) == 0xE0) {
@@ -81,7 +84,7 @@ constexpr std::pair<int,int> cztable[]={
         {0x00AB,'<'},
         {0x00BB,'>'},
 };
-        
+
 
 std::string toKEYBCS2(const char *text) {
     auto wstr = toWideChar(text);
@@ -107,7 +110,7 @@ struct tag_UGCManager {
 };
 
 UGCManager *UGC_create() {
-    return new UGCManager;    
+    return new UGCManager;
 }
 void UGC_Destroy(UGCManager *inst) {
     delete inst;
@@ -121,14 +124,14 @@ void UGCSetLocalFoler(const char *path) {
 
 size_t UGC_Fetch(UGCManager *manager) {
 
-    manager->_list.clear();    
+    manager->_list.clear();
     std::error_code ec;
     auto iter = std::filesystem::directory_iterator(ugc_local_path,ec);
     if (ec == std::error_code()) {
         auto fend = std::filesystem::directory_iterator();
         while (iter != fend) {
             const auto &entry = *iter;
-            if (entry.is_directory()) { 
+            if (entry.is_directory()) {
                 auto entry_path =std::filesystem::weakly_canonical(entry.path()) ;
                 auto info_path =  entry_path / "content.ini";
                 if (std::filesystem::is_regular_file(info_path)) {
@@ -147,7 +150,7 @@ size_t UGC_Fetch(UGCManager *manager) {
 
                             auto tlen = title.size()+1;
                             auto alen = author.size()+1;
-                            auto dlen = strlen(ddl)+1;
+                            auto dlen = std::strlen(ddl)+1;
 
                             r.text_data = std::make_unique<char[]>(tlen+alen+dlen);
                             char *c = r.text_data.get();

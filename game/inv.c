@@ -2797,7 +2797,7 @@ static void rebuild_shops(const void *shop_ptr)
           ++state_iter;
       }
       ++shop_iter;
-      SEND_LOG("(SHOP) Shop found: '%s', products %d",shop_list[i]->keeper,shop_list[i]->products);
+      SEND_LOG("(SHOP) Shop found: '%s', id=%d, products %d",shop_list[i]->keeper,shop_list[i]->shop_id, shop_list[i]->products);
   }
   stringtable_free(stbl);
   free(shop_hacek);
@@ -3404,20 +3404,22 @@ static void reroll_shop(TSHOP *p)
         }
      }
   pr=p->list;
-  for(i=0;i<p->spec_max;i++)
-     {
-     int i=0;
-     r=rnd(poc_spec)+1;
-     for(j=0;i<r;j++) if (pr[j].trade_flags & SHP_SPECIAL) i++;
-     j--;
-     const TPRODUCT *sel = pr+j;
-     int maxp = sel->max_pocet;
-     if (maxp) {
-         *get_product_count(pr+j)=rnd(maxp)+1;
-     } else {
-         *get_product_count(pr+j) = 0;
-     }
-     }
+  if (poc_spec) {
+      for(i=0;i<p->spec_max;i++)
+         {
+         int i=0;
+         r=rnd(poc_spec)+1;
+         for(j=0;i<r;j++) if (pr[j].trade_flags & SHP_SPECIAL) i++;
+         j--;
+         const TPRODUCT *sel = pr+j;
+         int maxp = sel->max_pocet;
+         if (maxp) {
+             *get_product_count(pr+j)=rnd(maxp)+1;
+         } else {
+             *get_product_count(pr+j) = 0;
+         }
+         }
+      }
   }
 
 void reroll_all_shops()
