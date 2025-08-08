@@ -131,7 +131,7 @@ typedef struct ddlmap_info {
     char *path;
 } TDDLMAP_INFO;
 
-#define MAX_PATCHES 4
+#define MAX_PATCHES 8
 
 static TDDLMAP_INFO ddlmap[MAX_PATCHES];
 
@@ -178,8 +178,12 @@ static TNAMETABLE_REF load_file_table(const void *bmf_m)
   const uint32_t *src_table = (const uint32_t *)bmf_m;
   uint32_t grptabsiz = src_table[1];
   TNAMETABLE_REF out;
-  out.data = (const TNAMETABLE *)((const char *)bmf_m + grptabsiz);
-  out.count = (out.data[0].seek - grptabsiz)/sizeof(TNAMETABLE);
+  const TNAMETABLE *ptr = (const TNAMETABLE *)((const char *)bmf_m + grptabsiz);
+  size_t count = (ptr[0].seek - grptabsiz)/sizeof(TNAMETABLE);
+  TNAMETABLE *tbl = NewArr(TNAMETABLE, count);
+  memcpy(tbl,ptr, count * sizeof(TNAMETABLE) );
+  out.data = tbl;
+  out.count = count;
   return out;
   }
 
@@ -201,7 +205,8 @@ char get_file_entry(int group,const char *name, THANDLE_DATA *h) {
 
   ex=mman_patch && test_file_exist_DOS(group,name);
   if (!ex) {
-      for (int i = 0; i < MAX_PATCHES; ++i) {
+      for (int i = MAX_PATCHES; i >0 ; ) {
+          --i;
           const TDDLMAP_INFO *nfo = &ddlmap[i];
           if (nfo->ptr) {
               int sk =  get_file_entry_in_table(&nfo->nametable, name);
@@ -329,6 +334,7 @@ void reload_ddls(void) {
              }
              h->status = BK_NOT_LOADED;
              h->blockdata = NULL;
+             get_file_entry(h->path,h->src_file,h);
           }
        }
     }
@@ -343,8 +349,18 @@ void reload_ddls(void) {
             }
             dinfo->ptr = bmf;
             dinfo->size = bmf_s;
+            ablock_free(dinfo->nametable.data);
             dinfo->nametable = load_file_table(bmf);
         }
+    }
+    for(i=0;i<BK_MAJOR_HANDLES;i++) if (_handles[i]!=NULL) {
+       p=(THANDLE_DATA *)(_handles[i]);
+       for(j=0;j<BK_MINOR_HANDLES;j++) {
+          THANDLE_DATA *h = p+j;
+          if (h->src_file[0]) {
+             get_file_entry(h->path,h->src_file,h);
+          }
+       }
     }
 }
 
@@ -630,8 +646,9 @@ void close_manager()
      for(j=0;j<BK_MINOR_HANDLES;j ++) undef_handle(i*BK_MINOR_HANDLES+j);
      free(_handles[i]);
      }
-  for (int i = 0; i < MAX_PATCHES; ++i) {
+  for (int i = 0; i < MAX_PATCHES; ++i) if (ddlmap[i].ptr) {
       unmap_file((void *)ddlmap[i].ptr, ddlmap[i].size);
+      ablock_free(ddlmap[i].nametable.data);
       free(ddlmap[i].path);
   }
 

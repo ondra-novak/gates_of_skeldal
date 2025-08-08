@@ -12,7 +12,7 @@ SET(files basicobj.c
           mgifplaya.c
           pcx.c
           wav_mem.c
-          strlite.c
+          strlists.c
           cztable.c
           minimp3.c
           music.cpp

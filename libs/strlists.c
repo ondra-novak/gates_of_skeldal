@@ -275,16 +275,4 @@ void listbox(OBJREC *o)
   //o->done=string_list_done;
   }
 
-/*void main()
-  {
-  TSTR_LIST test;
-  int i,j;
 
-  test=read_directory("c:\\windows\\system\\*.*",DIR_BREIF,_A_NORMAL);
-  j=str_count(test);
-  for(i=0;i<j;i++)
-     if (test[i]!=NULL) printf("%s\n",test[i]);
-  printf("%d souboru.\n",j);
-  release_list(test);
-  }
-*/

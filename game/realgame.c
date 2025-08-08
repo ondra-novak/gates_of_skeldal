@@ -117,7 +117,7 @@ int32_t load_section(FILE *f,void **section, int *sct_type,int32_t *sect_size)
   }
 */
 
-uint32_t load_section_mem(TMPFILE_RD *f,const void **section, int *sct_type,uint32_t *sect_size) {
+int32_t load_section_mem(TMPFILE_RD *f,const void **section, int *sct_type,uint32_t *sect_size) {
     uint32_t s;
     char c[20];
 
@@ -284,8 +284,8 @@ int load_map(const char *filename)
   mapsize = 0;
   do
      {
-     uint32_t r=load_section_mem(f,&temp,&sect,&size);
-     if (r==size)
+     int32_t r=load_section_mem(f,&temp,&sect,&size);
+     if (r==(int32_t)size)
         switch (sect)
          {
          case A_SIDEMAP:

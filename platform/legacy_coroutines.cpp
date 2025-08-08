@@ -17,6 +17,7 @@ struct TaskInfo {
     bool exited = false;
 
     TaskInfo(int id):id(id) {}
+    ~TaskInfo();
 };
 
 using TaskList = std::unordered_map<int, std::unique_ptr<TaskInfo> >;
@@ -212,3 +213,11 @@ void task_sleep_for(unsigned int time_ms) {
     }
 }
 
+TaskInfo::~TaskInfo() {
+
+    //destructor is called only when task is already in cleanup state
+    if (!exited) {
+        thr.detach();
+    }
+
+}

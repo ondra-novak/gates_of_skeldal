@@ -163,6 +163,8 @@ public:
     bool is_joystick_used() const;
     bool is_joystick_enabled() const;
     void disable_crt_effect_temprary(bool disable);
+
+    void raise_window() const;
 protected:
 
     struct SDL_Deleter {

@@ -18,10 +18,11 @@
 #include <ctype.h>
 #include <libs/gui.h>
 #include <libs/basicobj.h>
+#include <libs/strlists.h>
 #include <time.h>
 #include <libs/mgfplay.h>
 #include <libs/wav.h>
-#include <fcntl.h>
+#include <platform/ugc.h>
 #include "globals.h"
 #include "engine1.h"
 #include <stdarg.h>
@@ -1627,81 +1628,90 @@ char ask_save_dialog(char *name_buffer, size_t name_size, char allow_remove) {
 
 }
 
-#if 0
-//----------------- JRC LOGO ----------------------------------
+static char *launcher_ddl_file = NULL;
+static void free_ddl_file_name(void) {
+  free(launcher_ddl_file);
+}
 
-#define SHOWDELAY 125
-#define SHOWDEND (SHOWDELAY-32)
+const char *run_launcher() {
+      const char *str_label = texty[198];  
+      TSTR_LIST lst = create_list(100);
+      TSTR_LIST ddl_lst = create_list(100);
+      CTL3D ctl = {0,0,4,0};
+      int selected = 0;
+      size_t item_count = 1;
 
-typedef struct _hicolpal
-  {
-  unsigned blue:5;
-  unsigned green:5;
-  unsigned red:5;
-  }HICOLPAL;
 
-void show_jrc_logo(char *filename)
-  {
-  char *pcx;word *pcxw;
-  char bnk=1;
-  int xp,yp,i;
-  word palette[256],*palw;
-  int cntr,cdiff,cpalf,ccc;
 
-  change_music(NULL);
-  curcolor=0;bar32(0,0,639,479);
-  showview(0,0,0,0);sleep_ms(1000);
-  const char *s = build_pathname(2, gpathtable[SR_VIDEO],filename);
-  if (open_pcx(s,A_8BIT,&pcx)) return;
-  pcxw=(word *)pcx;
-  xp=pcxw[0];
-  yp=pcxw[1];
-  palw=pcxw+3;
-  memcpy(palette,palw,256*sizeof(word));
-  memset(palw,0,256*sizeof(word));
-  xp/=2;yp/=2;xp=320-xp;yp=240-yp;
-  cntr=get_timer_value();ccc=0;
-  do
-    {
-    cdiff=(get_timer_value()-cntr)/2;
-    if (cdiff<SHOWDEND && ccc!=cdiff)
-      {
-      cpalf=cdiff;
-      if (cpalf<32)
-        for (i=0;i<256;i++)
-        {
-        int r=(cpalf<<11),g=(cpalf<<6),b=cpalf,k;
-        k=palette[i] & 0xF800;if (k>r) palw[i]=r;else palw[i]=k;
-        k=palette[i] & 0x7e0;if (k>g) palw[i]|=g;else palw[i]|=k;
-        k=palette[i] & 0x1f;if (k>b) palw[i]|=b;else palw[i]|=k;
+      UGCManager *ugc = UGC_create();
+      size_t ugccount = UGC_Fetch(ugc);;
+      for (size_t i = 0; i < ugccount; ++i) {
+        UGCItem item = UGC_GetItem(ugc, i);
+        char buff[60];      
+        const char *title = item.name;
+        size_t tlen = strlen(title);        
+        const char *author = item.author;
+        size_t alen = strlen(author);
+        size_t reserve = sizeof(buff)-4;
+        char d1 = 0;
+        char d2 = 0;
+        if (tlen + alen > reserve) { 
+          if (alen < reserve/2) {tlen = reserve - alen - 3;d1 = 1;}
+          else if (tlen < reserve/2) {alen = reserve - tlen - 3;d2=1;}
+          else {
+            tlen = reserve/2-3; d1 = 1;
+            alen = reserve/2-3; d2 = 1;    
+          }
         }
+        char *iter = buff;
+        for (size_t i = 0; i < tlen; ++i) *iter++ = title[i];
+        if (d1) for (size_t i = 0; i < 3; ++i) *iter++='.';
+        memcpy(iter, " - ",3); iter+=3;
+        for (size_t i = 0; i < alen; ++i) *iter++ = author[i];
+        if (d2) for (size_t i = 0; i < 3; ++i) *iter++='.';
+        *iter = 0;
+        str_add(&lst, buff);
+        str_add(&ddl_lst, item.ddl_path);
+        ++item_count;
       }
-    else if (ccc!=cdiff)
-      {
-      cpalf=SHOWDELAY-cdiff;
-      if (cpalf<32)
-        for (i=0;i<256;i++)
-        {
-        int r,g,b,k=32-cpalf;
 
-        b=palette[i];g=b>>5;b&=0x1f;r=g>>6;g&=0x1f;
-        b-=k;r-=k;g-=k;
-        if (b<0) b=0;
-        if (r<0) r=0;
-        if (g<0) g=0;
-        palw[i]=b | (r<<11) | (g<<6);
-        }
+      str_add(&lst, texty[199]);
+      str_add(&ddl_lst, "");
+
+
+      curcolor = RGB555(0,0,0);
+      set_font(H_FBIG,RGB555_ALPHA(31,31,31));
+      add_window(120,60,400,300,H_WINTXTR,3,20,20);
+      define(-1,20,10,1,1,0,label,str_label);
+      set_font(H_FKNIHA,RGB555_ALPHA(31,31,31));
+      define(9,15,38,335,212,0,&listbox,lst,RGB555(16,16,16),0);
+      property(&ctl,NULL,NULL,RGB555(0,0,0));c_default(0);
+      if (item_count>19) {
+        define(10,355,38,20,212,0,scroll_bar_v,0,item_count-19,19,RGB555(8,8,8));
+        property(&ctl,NULL,NULL,RGB555(10,10,10));
       }
-        put_picture(xp, yp, pcx);
-        if (bnk) {
-            showview(xp, yp, pcxw[0], pcxw[1]);
-        }
-    ccc=cdiff;
-    mix_back_sound(0);
-    }
-  while (cdiff<SHOWDELAY && !_bios_keybrd(_KEYBRD_READY));
-  curcolor=0;bar32(0,0,639,479);
-  showview(0,0,0,0);
-  free(pcx);
-  }
-#endif
+      define(20,20,20,60,20,2,button,texty[43]);property(def_border(5,BAR_COLOR),NULL,NULL,BAR_COLOR);on_control_change(terminate_gui);
+      define(30,90,20,60,20,2,button,texty[80]);property(def_border(5,BAR_COLOR),NULL,NULL,BAR_COLOR);on_control_change(terminate_gui);
+      redraw_window();
+      send_message(E_ADD,E_KEYBOARD,save_dialog_keyboards);
+      send_message(E_ADD,E_MOUSE,save_dialog_keyboards);
+      escape();
+      send_message(E_DONE,E_KEYBOARD,save_dialog_keyboards);
+      send_message(E_DONE,E_MOUSE,save_dialog_keyboards);
+      int butt = o_aktual->id;     
+      get_value(0,9,&selected);      
+      char *selddl = strdup(ddl_lst[selected]);      
+      release_list(lst);
+      release_list(ddl_lst);
+      close_current();
+      if (butt != 30 || selddl == NULL || selddl[0] == 0) {
+        free(selddl);
+        UGC_Destroy(ugc);
+        return butt != 30?NULL:"";
+      }
+      launcher_ddl_file = selddl;
+      UGC_StartPlay(ugc, selected);
+      UGC_Destroy(ugc);
+      atexit(&free_ddl_file_name);
+      return launcher_ddl_file;
+}

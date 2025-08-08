@@ -755,7 +755,7 @@ void a_touch(int sector,int dir);
 int do_action(int action_numb,int sector,int direct,int flags,int nosend);
 void delay_action(int action_numb,int sector,int direct,int flags,int nosend,int delay);
 //int32_t load_section(FILE *f,void **section, int *sct_type,int32_t *sect_size);
-uint32_t load_section_mem(TMPFILE_RD *f,const void **section, int *sct_type,uint32_t *sect_size);
+int32_t load_section_mem(TMPFILE_RD *f,const void **section, int *sct_type,uint32_t *sect_size);
 TMPFILE_RD *open_ddl_file(const char *name, int group);
 int prepare_graphics(int *ofs,const char *names,int32_t size,ABLOCK_DECODEPROC decomp,int cls);
 void show_automap(char full);
@@ -1228,7 +1228,7 @@ typedef struct tma_fireball
 
 typedef struct tma_loadlev
   {
-    uint8_t action,flags,eflags;            //3+padding
+    uint8_t action,flags,lflags;            //3+padding
   short start_pos;                          //6
   char dir;                                 //7
   char name[13];

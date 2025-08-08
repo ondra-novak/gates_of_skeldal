@@ -252,6 +252,7 @@ void stop_play_music() {
     if (music_source) {
        fade_music();
        stop_music();
+       current_music.reset();
     }
 }
 

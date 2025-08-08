@@ -10,6 +10,7 @@ extern "C" {
 #include <fcntl.h>
 #include <sys/stat.h>
 #include <stdexcept>
+#include <filesystem>
 
 // Funkce pro mapování souboru do paměti
 const void* map_file_to_memory_cpp(const char *name, size_t *sz) {
@@ -17,8 +18,10 @@ const void* map_file_to_memory_cpp(const char *name, size_t *sz) {
         return NULL;
     }
 
-    HANDLE h = CreateFileA(name, GENERIC_READ, FILE_SHARE_READ,NULL,OPEN_EXISTING,FILE_ATTRIBUTE_NORMAL,NULL);
-    if (h == INVALID_HANDLE_VALUE) throw std::runtime_error(std::string("Failed to open file for mapping: ").append(name));
+    std::filesystem::path p(reinterpret_cast<const char8_t *>(name));
+
+    HANDLE h = CreateFileW(p.c_str(), GENERIC_READ, FILE_SHARE_READ|FILE_SHARE_DELETE|FILE_SHARE_WRITE,NULL,OPEN_EXISTING,FILE_ATTRIBUTE_NORMAL,NULL);
+    if (h == INVALID_HANDLE_VALUE) throw std::runtime_error(std::string("Failed to open file for mapping: ")+p.string());
 
     LARGE_INTEGER fsize;
     if (!GetFileSizeEx(h, &fsize)) {

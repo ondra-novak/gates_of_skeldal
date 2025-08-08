@@ -281,3 +281,9 @@ void game_display_disable_crt_effect_temporary(char disable) {
     auto &sdl = get_sdl_global_context();
     sdl.disable_crt_effect_temprary(disable?true:false);
 }
+
+void game_display_focus()
+{
+    auto &sdl = get_sdl_global_context();
+    sdl.raise_window();
+}
