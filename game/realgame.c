@@ -74,6 +74,7 @@ char datapath;
 D_ACTION *d_action={NULL};
 int end_ptr;
 char pass_all_mobs = 0; //cheat make all mobs passable
+char force_levitate = 0; //cheat
 uint8_t cur_group=1;
 uint8_t group_select=1;
 char cancel_pass=0;
@@ -1143,7 +1144,7 @@ void check_players_place(char mode) {
             int sect;
             int u1;
 
-            levitat = (h->vlastnosti[VLS_KOUZLA] & SPL_LEVITATION) != 0;
+            levitat = force_levitate || ((h->vlastnosti[VLS_KOUZLA] & SPL_LEVITATION) != 0);
             sect = h->sektor;
             if (sect >= mapsize)
                 continue;

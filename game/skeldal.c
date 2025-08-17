@@ -891,7 +891,7 @@ const void *boldcz;
 void init_DDL_manager() {
 
     const char *ddlfile = build_pathname(2, gpathtable[SR_DATA],"SKELDAL.DDL");
-    ddlfile = local_strdup(ddlfile);    
+    ddlfile = local_strdup(ddlfile);
 
     init_manager();
     if (!add_patch_file(ddlfile)) {
@@ -1125,6 +1125,25 @@ void *map_keyboard(EVENT_MSG *msg,void **usr);
 
 char doNotLoadMapState=0;
 
+static void reload_restart_map() {
+    unwire_proc();
+    if (battle) konec_kola();
+    battle=0;
+    running_battle=0;
+    doNotLoadMapState=1;
+    hl_ptr=ikon_libs;
+    destroy_fly_map();
+    load_items();
+    zneplatnit_block(H_ENEMY);
+    zneplatnit_block(H_SHOP_PIC);
+    zneplatnit_block(H_DIALOGY_DAT);
+    load_shops();
+    autosave_on_enter = 0;
+    game_display_focus();
+    send_message(E_CLOSE_MAP);
+
+}
+
 static int reload_map_handler(EVENT_MSG *msg,void **usr)
 {
 extern char running_battle;
@@ -1136,7 +1155,15 @@ extern char running_battle;
     int side;
     int i;
 
-    if (sscanf(m, "RELOAD %12s %d %d", fname, &sector, &side) == 3) {
+    if (strcmp(m, "RELOAD") == 0) {
+        reload_ddls();
+        loadlevel.start_pos=viewsector;
+        loadlevel.dir=viewdir;
+        strcopy_n(loadlevel.name, level_fname, sizeof(loadlevel.name));
+        SEND_LOG("(WIZARD) Reload map");
+        reload_restart_map();
+
+    } else if (sscanf(m, "TELEPORT %12s %d %d", fname, &sector, &side) == 3) {
 
         reload_ddls();
         strcopy_n(loadlevel.name,fname,sizeof(loadlevel.name));
@@ -1148,23 +1175,30 @@ extern char running_battle;
             postavy[i].groupnum = 1;
         }
         SEND_LOG("(WIZARD) Load map '%s' %d %d",loadlevel.name,loadlevel.start_pos, loadlevel.dir);
-        unwire_proc();
-        if (battle) konec_kola();
-        battle=0;
-        running_battle=0;
-        doNotLoadMapState=1;
-        hl_ptr=ikon_libs;
-        destroy_fly_map();
-        load_items();
-        zneplatnit_block(H_ENEMY);
-        zneplatnit_block(H_SHOP_PIC);
-        zneplatnit_block(H_DIALOGY_DAT);
-        load_shops();
-        autosave_on_enter = 0;
+        reload_restart_map();
+    } else if (sscanf(m, "CONSOLE %d", &i) == 1) {
+        console_show(i);
         game_display_focus();
-        send_message(E_CLOSE_MAP);
+    } else if (strncmp(m, "CONSOLE_CMD ", 12) == 0) {
+        const char *cmd = m+12;
+        if (strchr(cmd, '~') == NULL) {
+            console_exec(cmd);
+        } else {
+            char *tmp = local_strdup(cmd);
+            char *x = strchr(tmp,'~');
+            while (x) {
+                *x = 0;
+                console_exec(tmp);
+                tmp = x+1;
+                x = strchr(tmp,'~');
+            }
+            if (*tmp) console_exec(tmp);
+        }
+
+        game_display_focus();
     } else if (strncmp(m, "MESSAGE ", 8) == 0) {
         bott_disp_text(m+8);
+        game_display_focus();
     }
 
   }
@@ -1191,7 +1225,7 @@ void enter_game(void)
 
   send_message(E_ADD,E_RELOADMAP,reload_map_handler);
   {
-      EVENT_MSG *msg = task_wait_event(E_CLOSE_MAP);      
+      EVENT_MSG *msg = task_wait_event(E_CLOSE_MAP);
       end = msg != NULL?va_arg(msg->data, int):0;
   }
   send_message(E_DONE,E_RELOADMAP,reload_map_handler);

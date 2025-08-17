@@ -162,6 +162,7 @@ extern char immortality;
 extern char nohassle;
 extern char dead_food;
 extern char pass_all_mobs;
+extern char force_levitate;
 
 
 static char console_input_line[console_max_characters+1]  = "";
@@ -314,6 +315,10 @@ static int process_on_off_command(const char *cmd, char on) {
     }
     if (istrcmp(cmd, "walking-in-air") == 0) {
         nofloors = on;
+        return 1;
+    }
+    if (istrcmp(cmd, "levitation") == 0) {
+        force_levitate = on;
         return 1;
     }
     if (istrcmp(cmd, "enemy-insight") == 0) {
@@ -724,16 +729,9 @@ static void console_keyboard(EVENT_MSG *msg, void **_) {
                 }
                 msg->msg = -1;
             } else if (c == '\r') {
-                console_command = console_input_line;
-                PARSED_COMMAND cmd = parse_command(console_input_line);
-                char ok = process_command(cmd);
-                if (ok) {
-                    flush_console_command();
-                    console_top_line = 0;
+                if (console_exec(console_input_line)) {
                     console_input_line[0] = 0;
                 }
-                console_command = NULL;
-                free(cmd.cmd_buffer);
                 msg->msg = -1;
             } else if (c == 3 && !get_shift_key_state()) {
                 console_copy_to_clipboard();
@@ -773,7 +771,18 @@ void console_show(char show) {
         if (show) wire_console();
         else unwire_console();
     }
-
+}
+char console_exec(const char *cmd_text) {
+    console_command = cmd_text;
+    PARSED_COMMAND cmd = parse_command(cmd_text);
+    char ok = process_command(cmd);
+    if (ok) {
+        flush_console_command();
+        console_top_line = 0;
+    }
+    console_command = NULL;
+    free(cmd.cmd_buffer);
+    return ok;
 }
 
 

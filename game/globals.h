@@ -1836,6 +1836,7 @@ static __inline int quit_request_as_escape(int c) {
 
 void draw_console_window(void);
 void console_show(char show);
+char console_exec(const char *cmd);
 char console_is_visible(void);
 
 char *map_hash_to_string_impl(char *c, uint32_t h, int sz);
