@@ -983,14 +983,12 @@ void show_loading_picture(char *filename)
   ablock_free(p);
   }
 
-typedef struct {
-    va_list _args;
-} Args ;
+typedef int (*GAME_THREAD_CB)(va_list);
 
 int init_skeldal_thread(va_list args) {
 
     const INI_CONFIG *cfg = va_arg(args, const INI_CONFIG *);
-    int (*game_thread)(va_list) = va_arg(args, int (*)(va_list));
+    GAME_THREAD_CB game_thread = va_arg(args,GAME_THREAD_CB);
     va_list *game_args = va_arg(args, va_list *);
 
     showview = game_display_update_rect;
@@ -1733,7 +1731,7 @@ int skeldal_gen_string_table_entry_point(const SKELDAL_CONFIG *start_cfg, const 
     return 0;
 }
 
-void skeldal_entry_point_thread() {
+void skeldal_entry_point_thread(va_list _) {
     int start_task = add_task(65536,start);
 
     escape();

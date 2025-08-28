@@ -100,8 +100,6 @@ public:
 
     int init_window(const VideoConfig &config, const char *title, std::function<int()> game_thread);
 
-    void init_video(const VideoConfig &config, const char *title);
-
     void set_window_icon(const void *icon_data, size_t icon_size);
 
     void configure_controller(const JoystickConfig &cfg);

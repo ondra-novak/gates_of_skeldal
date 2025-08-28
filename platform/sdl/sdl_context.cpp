@@ -413,11 +413,6 @@ int SDLContext::init_window(const VideoConfig &config, const char *title, std::f
     return exit_code;
 }
 
-void SDLContext::init_video(const VideoConfig &config, const char *title) {
-
-
-}
-
 
 int SDLContext::check_axis_dir(int &cooldown, int value) {
     int range = 0x8000-_jcontrol_map.walk_deadzone;
