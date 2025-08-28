@@ -526,7 +526,6 @@ static void seek_section(TMPFILE_RD *txt,int sect_number)
      c=0;
      }
   while (i!=EOF);
-  closemode();
 	{
     char buff[256];
 	sprintf(buff,"Nemohu najit odstavec s cislem %d.",sect_number);

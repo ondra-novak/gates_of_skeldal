@@ -339,7 +339,7 @@ static char *transfer_text(const char *source,char *target)
            if (source==NULL)
               {
 			  char buff[256];
-              closemode();
+
 			  sprintf(buff,"%s\r\nChybny rod nebo maly pocet tvaru od jednoho slova",orgn);
               error(buff);
               exit(-1);
@@ -353,7 +353,7 @@ static char *transfer_text(const char *source,char *target)
            if (source==NULL)
               {
 			  char buff[256];
-              closemode();
+
 			  sprintf(buff,"%s\r\nOcekava se ]",orgn);
               error(buff);
               exit(-1);

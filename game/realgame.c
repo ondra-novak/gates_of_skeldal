@@ -417,7 +417,6 @@ int load_map(const char *filename)
   for(r=0;r<mapsize*4;r++) flag_map[r]=(char)map_sides[r].flags;
   if (!doNotLoadMapState && load_map_state()==-2)
      {
-     closemode();
      display_error("Bug in temp file. Please purge some status blocks in last load savegame file.");
      exit(0);
      }

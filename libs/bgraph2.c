@@ -328,14 +328,6 @@ void switchvesabank(word bank)
   }
 
 */
-int initmode(const INI_CONFIG_SECTION *display_config, const char *app_name)
-  {
-    if (!game_display_init(display_config, app_name)) return -1;
-  showview=game_display_update_rect;
-  screenstate=1;
-  return 0;
-  }
-
 
   /*
 int initmode256(void *paletefile)
@@ -435,15 +427,6 @@ int initmode_lo(void *paletefile)
   }
 */
 
-void closemode()
-  {
-  if (screenstate)
-     {
-     game_display_close();
-     }
-  screenstate=0;
-
-  }
 
 /*
 static void showview64b(word x,word y,word xs,word ys)

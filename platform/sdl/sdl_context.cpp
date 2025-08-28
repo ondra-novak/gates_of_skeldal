@@ -268,13 +268,11 @@ static Uint32 find_best_rgba_like_format(SDL_Renderer* renderer) {
     return 0;
 }
 
-void SDLContext::init_video(const VideoConfig &config, const char *title) {
+int SDLContext::init_window(const VideoConfig &config, const char *title, std::function<int()> game_thread) {
     static Uint32 update_request_event = SDL_RegisterEvents(1);
     static Uint32 refresh_request_event = SDL_RegisterEvents(1);
     _update_request_event = update_request_event;
     _refresh_request = refresh_request_event;
-
-    assert(!_render_thread.joinable());
 
 
     int width = config.window_width;
@@ -294,142 +292,132 @@ void SDLContext::init_video(const VideoConfig &config, const char *title) {
     std::exception_ptr e;
     std::string_view stage;
     std::string rname;
-    _render_thread = std::jthread([&](std::stop_token stp){
-        bool err = false;
-        try {
-            stage = "window";
-            SDL_Window *window = SDL_CreateWindow(title,
-                        SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED,
-                        width, height, SDL_WINDOW_RESIZABLE|(_fullscreen_mode?SDL_WINDOW_FULLSCREEN_DESKTOP:0));
+    int exit_code = 0;
+    try {
+        stage = "window";
+        SDL_Window *window = SDL_CreateWindow(title,
+                    SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED,
+                    width, height, SDL_WINDOW_RESIZABLE|(_fullscreen_mode?SDL_WINDOW_FULLSCREEN_DESKTOP:0));
 
-            if (!window) {
-                handle_sdl_error("SDL Error create window");
-            }
-
-            _window.reset(window);
-
-            auto composer = config.composer;
-
-            stage = "renderer";
-
-            while (true) {
-
-                SDL_Renderer *renderer = SDL_CreateRenderer(_window.get(), -1, composer);
-                if (!renderer) {
-                    if (config.composer & SDL_RENDERER_SOFTWARE) {
-                        handle_sdl_error("Failed to create composer");
-                    } else {
-                        composer |= SDL_RENDERER_SOFTWARE;
-                        continue;
-                    }
-                }
-
-                _texture_render_format = find_best_rgba_like_format(renderer);
-                if (_texture_render_format == 0) {
-                    if (composer & SDL_RENDERER_SOFTWARE) {
-                        throw std::runtime_error("Failed to create composer, failed software fallback");
-                    } else {
-                        SDL_DestroyRenderer(renderer);
-                        composer |= SDL_RENDERER_SOFTWARE;
-                        continue;
-                    }
-                }
-                _renderer.reset(renderer);
-                break;
-            }
-
-
-            SDL_RendererInfo rinfo;
-            SDL_GetRendererInfo(_renderer.get(), &rinfo);
-
-            rname = rinfo.name;
-
-            stage = "pixel format";
-
-            _main_pixel_format.reset(SDL_AllocFormat(_texture_render_format));
-            if (!_main_pixel_format) {
-                handle_sdl_error("Failed to create texture format");
-            }
-
-            if (istrcmp(config.scale_quality, "auto") == 0) {
-                if (rinfo.flags & SDL_RENDERER_ACCELERATED) {
-                    SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, "best");
-                }
-            } else {
-                SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, config.scale_quality);
-            }
-
-
-
-            stage = "main render target";
-
-
-            SDL_Texture *texture = SDL_CreateTexture(_renderer.get(), _texture_render_format, SDL_TEXTUREACCESS_STREAMING, 640, 480);
-            if (!texture) {
-                handle_sdl_error("Failed to create render target");
-            }
-
-            SDL_SetTextureBlendMode(texture, SDL_BLENDMODE_BLEND);
-            _texture.reset(texture);
-
-            stage = "secondary render target";
-
-            texture = SDL_CreateTexture(_renderer.get(), _texture_render_format, SDL_TEXTUREACCESS_STREAMING, 640, 480);
-            if (!texture) {
-                handle_sdl_error("Failed to create second render target");
-            }
-            SDL_SetTextureBlendMode(texture, SDL_BLENDMODE_BLEND);
-            _texture2.reset(texture);
-
-            stage = "all done";
-
-            _visible_texture = _texture.get();
-            _hidden_texture = _texture2.get();
-        } catch (...) {
-            e = std::current_exception();
-            err = true;
+        if (!window) {
+            handle_sdl_error("SDL Error create window");
         }
-        done = true;
-        done.notify_all();
 
-        if (!err) {
+        _window.reset(window);
+
+        auto composer = config.composer;
+
+        stage = "renderer";
+
+        while (true) {
+
+            SDL_Renderer *renderer = SDL_CreateRenderer(_window.get(), -1, composer);
+            if (!renderer) {
+                if (config.composer & SDL_RENDERER_SOFTWARE) {
+                    handle_sdl_error("Failed to create composer");
+                } else {
+                    composer |= SDL_RENDERER_SOFTWARE;
+                    continue;
+                }
+            }
+
+            _texture_render_format = find_best_rgba_like_format(renderer);
+            if (_texture_render_format == 0) {
+                if (composer & SDL_RENDERER_SOFTWARE) {
+                    throw std::runtime_error("Failed to create composer, failed software fallback");
+                } else {
+                    SDL_DestroyRenderer(renderer);
+                    composer |= SDL_RENDERER_SOFTWARE;
+                    continue;
+                }
+            }
+            _renderer.reset(renderer);
+            break;
+        }
+
+
+        SDL_RendererInfo rinfo;
+        SDL_GetRendererInfo(_renderer.get(), &rinfo);
+
+        rname = rinfo.name;
+
+        stage = "pixel format";
+
+        _main_pixel_format.reset(SDL_AllocFormat(_texture_render_format));
+        if (!_main_pixel_format) {
+            handle_sdl_error("Failed to create texture format");
+        }
+
+        if (istrcmp(config.scale_quality, "auto") == 0) {
+            if (rinfo.flags & SDL_RENDERER_ACCELERATED) {
+                SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, "best");
+            }
+        } else {
+            SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, config.scale_quality);
+        }
+
+
+
+        stage = "main render target";
+
+
+        SDL_Texture *texture = SDL_CreateTexture(_renderer.get(), _texture_render_format, SDL_TEXTUREACCESS_STREAMING, 640, 480);
+        if (!texture) {
+            handle_sdl_error("Failed to create render target");
+        }
+
+        SDL_SetTextureBlendMode(texture, SDL_BLENDMODE_BLEND);
+        _texture.reset(texture);
+
+        stage = "secondary render target";
+
+        texture = SDL_CreateTexture(_renderer.get(), _texture_render_format, SDL_TEXTUREACCESS_STREAMING, 640, 480);
+        if (!texture) {
+            handle_sdl_error("Failed to create second render target");
+        }
+        SDL_SetTextureBlendMode(texture, SDL_BLENDMODE_BLEND);
+        _texture2.reset(texture);
+
+        stage = "all done";
+
+        _visible_texture = _texture.get();
+        _hidden_texture = _texture2.get();
+
+        std::stop_source stop_src;
+
+        std::thread main_thrd([&]{
             try {
-                SDL_ShowCursor(SDL_DISABLE);
-                event_loop(stp);
+                exit_code = game_thread();
             } catch (...) {
-                SDL_ShowCursor(SDL_ENABLE);
-                crash_sdl_exception();
+                e = std::current_exception();
             }
-        }
-        _texture.reset();
-        _texture2.reset();
-        _renderer.reset();
-        _window.reset();
-    });
+            stop_src.request_stop();
+        });
+        main_thrd.detach();
+        SDL_ShowCursor(SDL_DISABLE);
+        event_loop(stop_src.get_token());
+        SDL_ShowCursor(SDL_ENABLE);
 
-    done.wait(false);
-    if (e) {
-        _render_thread.join();
-        try {
-            std::rethrow_exception(e);
-        } catch (...) {
-            std::throw_with_nested(
-                    std::runtime_error(std::string("Oops! The application couldn't start properly (problem during SDL initialization). Stage: [")
-                                        .append(stage).append("]\n\n"
-                                       "Renderer: ").append(rname).append("\n\n"
-                                       "This may be caused by outdated or missing graphics or audio drivers."
-                                       "To fix this, please try the following:\n- Restart your computer and try again\n- "
-                                       "Make sure your graphics and sound drivers are up to date.")));
-        }
+    } catch (...) {
+        crash_sdl_exception();
+        return -1;
     }
+    _texture.reset();
+    _texture2.reset();
+    _renderer.reset();
+    _window.reset();
+
+    if (e) {
+        std::rethrow_exception(e);
+    }
+    return exit_code;
+}
+
+void SDLContext::init_video(const VideoConfig &config, const char *title) {
 
 
 }
 
-void SDLContext::close_video() {
-    _render_thread.request_stop();
-    _render_thread.join();
-}
 
 int SDLContext::check_axis_dir(int &cooldown, int value) {
     int range = 0x8000-_jcontrol_map.walk_deadzone;

@@ -407,7 +407,7 @@ char *get_next_title(signed char control,const char  *filename)
               if (titles==NULL)
                 {
 			    char popis[300];
-                closemode();
+
                 sprintf(popis,"Soubor nenalezen: %s nebo %s\n",path,path2);
 				display_error(popis);
                 exit(1);

@@ -243,7 +243,7 @@ static void register_mob_graphics(int num,char *name_part,const char *anims,cons
         if (*seq=='\r')
            {
 		   char buff[256];
-           closemode();
+
            sprintf(buff,"Soubor sekvence %s obsahuje chybne udaje nebo je sekvence je moc kratka\n", fulname);
 		   display_error(buff);
            exit(0);
@@ -387,7 +387,7 @@ void load_enemies(short *data,int size,int *grptr,const TMOB *template,int32_t t
         if (mobs[i].speed<1)
           {
   	      char buff[256];
-          closemode();
+
           sprintf(buff,"Nestvura cislo #%d (%s) je spatne definovana (rychlost)",i,mobs[i].name);
 		  display_error(buff);
           exit(1);
@@ -1464,7 +1464,7 @@ void mob_strelba(TMOB *p)
   for(i=0;i<item_count;i++) if (glob_items[i].umisteni==PL_SIP && glob_items[i].druh==TYP_VRHACI) break;
   if (i==item_count)
      {
-     closemode();
+
      display_error("Nestvura nemuze strilet. Neni nadefinovan obekt sipu");
      exit(1);
      }
@@ -1640,7 +1640,7 @@ void mobs_live(int num)
   if (p->sector>=mapsize)
      {
      char buff[256];
-     closemode();
+
      sprintf(buff,"Potvora v neexistujicim sektoru (%d, %d) ",num,p->sector);
      display_error(buff);
      exit(1);

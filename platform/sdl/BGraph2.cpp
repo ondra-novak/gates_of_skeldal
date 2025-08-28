@@ -10,7 +10,12 @@ static std::unique_ptr<uint16_t[]> buffer2nd;
 static uint16_t *render_target;
 static uint16_t screen_pitch = 640;
 
-char game_display_init(const INI_CONFIG_SECTION *display_section, const char *title) {
+int game_display_init(const INI_CONFIG_SECTION *display_section,
+            const char *title,
+            int (*game_thread)(va_list), ...) {
+
+    va_list args;
+    va_start(args,game_thread);
 
     SDLContext::VideoConfig cfg  = {};
     const char *aspect_str;
@@ -43,19 +48,19 @@ char game_display_init(const INI_CONFIG_SECTION *display_section, const char *ti
     cfg.cursor_size = ini_get_int(display_section, "cursor_size", 100)*0.01f;
 
     screen_pitch = 640;
-    get_sdl_global_context().init_video(cfg, title);
-    screen_buffer = std::make_unique<uint16_t[]>(screen_pitch*480);
-    buffer2nd = std::make_unique<uint16_t[]>(screen_pitch*480);
-    std::fill(screen_buffer.get(), screen_buffer.get()+screen_pitch*480,0);
-    render_target = screen_buffer.get();
 
-    return 1;
+
+
+    return get_sdl_global_context().init_window(cfg, title, [&]{
+        screen_buffer = std::make_unique<uint16_t[]>(screen_pitch*480);
+        buffer2nd = std::make_unique<uint16_t[]>(screen_pitch*480);
+        std::fill(screen_buffer.get(), screen_buffer.get()+screen_pitch*480,0);
+        render_target = screen_buffer.get();
+        return game_thread(args);
+    });
 
 }
 
-void game_display_close(void) {
-    get_sdl_global_context().close_video();
-}
 
 uint16_t *GetScreenAdr() {
     return render_target;

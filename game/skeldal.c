@@ -809,7 +809,7 @@ void cti_texty(void)
   if ((err=load_string_list_ex(&texty,path))!=0)
      {
 	 char buff[256];
-     closemode();
+
      switch (err)
         {
         case -1:sprintf(buff,"Can't load string table. File %s has not been found\n",path);break;
@@ -870,7 +870,7 @@ void error_exception(EVENT_MSG *msg,void **unused)
      SEND_LOG("(ERROR) Log: Sector %d Direction %d",viewsector,viewdir);
 
      SEND_LOG("(ERROR) Log: Battle: %d Select_player %d",battle,select_player);
-     closemode();
+
      display_error("error_exception called");
 
      }
@@ -983,11 +983,96 @@ void show_loading_picture(char *filename)
   ablock_free(p);
   }
 
+typedef struct {
+    va_list _args;
+} Args ;
 
-void init_skeldal(const INI_CONFIG *cfg)
+int init_skeldal_thread(va_list args) {
+
+    const INI_CONFIG *cfg = va_arg(args, const INI_CONFIG *);
+    int (*game_thread)(va_list) = va_arg(args, int (*)(va_list));
+    va_list *game_args = va_arg(args, va_list *);
+
+    showview = game_display_update_rect;
+    game_display_set_icon(getWindowIcon(), getWindowIconSize());
+    init_joystick(ini_section_open(cfg, "controller"));
+
+    general_engine_init();
+    atexit(done_skeldal);
+
+    init_DDL_manager();
+    show_loading_picture("LOADING.HI");
+
+    if (lang_get_folder()) {
+        texty_knihy = build_pathname(2, lang_get_folder(), "book.txt");
+        if (!check_file_exists(texty_knihy)) {
+            texty_knihy=strdup(build_pathname(2,gpathtable[SR_MAP],"kniha.txt"));
+        } else {
+            texty_knihy=strdup(texty_knihy);
+        }
+    } else {
+        texty_knihy=strdup(build_pathname(2,gpathtable[SR_MAP],"kniha.txt"));
+    }
+
+    install_gui();
+    if (is_joystick_enabled()) {
+      show_joystick_info();
+    }
+
+
+
+    send_message(E_DONE,E_WATCH,timer);
+    send_message(E_DONE,E_IDLE,redraw_desktop_call);
+    send_message(E_ADD,E_TIMER,timming);
+
+    send_message(E_ADD,E_WATCH,user_timer);
+
+    send_message(E_ADD,E_MOUSE,ms_clicker);
+
+    send_message(E_ADD,E_KEYBOARD,global_kbd);
+
+    send_message(E_ADD,E_PRGERROR,error_exception);
+
+    add_to_timer(TM_BACK_MUSIC,5,-1,back_music);
+
+    add_game_window();
+
+    game_sound_init_device(ini_section_open(cfg, "audio"));
+    start_mixing();
+
+    int verr;
+    if ((verr=init_mysky())!=0)
+       {
+
+       puts(texty[174-verr]);
+       SEND_LOG("(ERROR) %s (%d)",texty[174-verr],verr);
+
+       exit(0);
+       }
+
+  //  hranice_mysky(0,0,639,479);
+
+    mouse_set_default(H_MS_DEFAULT);
+    ukaz_mysku();
+    set_end_of_song_callback(end_of_song_callback, NULL);
+
+    kouzla_init();
+
+    load_items();
+
+    load_shops();
+    memset(&loadlevel,0,sizeof(loadlevel));
+    loadlevel.eflags = 0xFF;
+
+    int r = game_thread(*game_args);
+    va_end(args);
+    return r;
+
+}
+
+
+int init_skeldal(const INI_CONFIG *cfg, void (*game_thread)(va_list), ...)
   {
-
-
   boldcz=LoadDefaultFont();
 
   cti_texty();
@@ -995,84 +1080,19 @@ void init_skeldal(const INI_CONFIG *cfg)
   init_events();
 
   steam_init();
+  va_list args;
+  va_start(args,game_thread);
 
-  char verr = game_display_init(ini_section_open(cfg, "video"), "Skeldal");
-  if (!verr)
+  int verr = game_display_init(ini_section_open(cfg, "video"), "Skeldal",
+              init_skeldal_thread, cfg, game_thread, &args);
+  if (verr < 0)
      {
       display_error("Error game_display_init %d", verr);
-      exit(1);
+      return 1;
      }
-  showview = game_display_update_rect;
-  game_display_set_icon(getWindowIcon(), getWindowIconSize());
-  init_joystick(ini_section_open(cfg, "controller"));
-
-  general_engine_init();
-  atexit(done_skeldal);
-
-  init_DDL_manager();
-  show_loading_picture("LOADING.HI");
-
-  if (lang_get_folder()) {
-      texty_knihy = build_pathname(2, lang_get_folder(), "book.txt");
-      if (!check_file_exists(texty_knihy)) {
-          texty_knihy=strdup(build_pathname(2,gpathtable[SR_MAP],"kniha.txt"));
-      } else {
-          texty_knihy=strdup(texty_knihy);
-      }
-  } else {
-      texty_knihy=strdup(build_pathname(2,gpathtable[SR_MAP],"kniha.txt"));
+  return verr;
   }
 
-  install_gui();
-  if (is_joystick_enabled()) {
-    show_joystick_info();
-  }
-
-
-
-  send_message(E_DONE,E_WATCH,timer);
-  send_message(E_DONE,E_IDLE,redraw_desktop_call);
-  send_message(E_ADD,E_TIMER,timming);
-
-  send_message(E_ADD,E_WATCH,user_timer);
-
-  send_message(E_ADD,E_MOUSE,ms_clicker);
-
-  send_message(E_ADD,E_KEYBOARD,global_kbd);
-
-  send_message(E_ADD,E_PRGERROR,error_exception);
-
-  add_to_timer(TM_BACK_MUSIC,5,-1,back_music);
-
-  add_game_window();
-
-  game_sound_init_device(ini_section_open(cfg, "audio"));
-  start_mixing();
-
-  if ((verr=init_mysky())!=0)
-     {
-     closemode();
-     puts(texty[174-verr]);
-     SEND_LOG("(ERROR) %s (%d)",texty[174-verr],verr);
-
-     exit(0);
-     }
-
-//  hranice_mysky(0,0,639,479);
-
-  mouse_set_default(H_MS_DEFAULT);
-  ukaz_mysku();
-  set_end_of_song_callback(end_of_song_callback, NULL);
-
-  kouzla_init();
-
-  load_items();
-
-  load_shops();
-  memset(&loadlevel,0,sizeof(loadlevel));
-  loadlevel.eflags = 0xFF;
-
-  }
 
 void wire_main_functs();
 void unwire_main_functs(void)
@@ -1376,7 +1396,7 @@ static void game_big_circle(char enforced)
      if (err)
        {
 	   char buff[256];
-       closemode();
+
        switch (err)
           {
           case -1: sprintf(buff,"Error while loading map (%s) ....file not found\n",s);break;
@@ -1713,6 +1733,15 @@ int skeldal_gen_string_table_entry_point(const SKELDAL_CONFIG *start_cfg, const 
     return 0;
 }
 
+void skeldal_entry_point_thread() {
+    int start_task = add_task(65536,start);
+
+    escape();
+
+    term_task_wait(start_task);
+    return;
+}
+
 int skeldal_entry_point(const SKELDAL_CONFIG *start_cfg)
   {
   def_mman_group_table(gpathtable);
@@ -1758,20 +1787,11 @@ int skeldal_entry_point(const SKELDAL_CONFIG *start_cfg)
   purge_temps(1);
   clrscr();
 
-  init_skeldal(cfg);
-
-  int start_task = add_task(65536,start);
-
-  escape();
-
-  term_task_wait(start_task);
-
-  closemode();
-
-
+  int r =  init_skeldal(cfg, skeldal_entry_point_thread);
   ini_close(cfg);
+  return r;
 
-  return 0;
+
   }
 
 

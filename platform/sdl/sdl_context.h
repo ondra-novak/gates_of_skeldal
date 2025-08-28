@@ -98,13 +98,14 @@ public:
         int freq;
     };
 
+    int init_window(const VideoConfig &config, const char *title, std::function<int()> game_thread);
+
     void init_video(const VideoConfig &config, const char *title);
 
     void set_window_icon(const void *icon_data, size_t icon_size);
 
     void configure_controller(const JoystickConfig &cfg);
 
-    void close_video();
 
     AudioInfo init_audio(const AudioConfig &config, SDL_AudioCallback cb, void *cb_ctx);
     void pause_audio(bool pause);
@@ -272,7 +273,6 @@ protected:
     Uint32 _update_request_event;
     Uint32 _refresh_request;
 
-    std::jthread _render_thread;
 
 
     void event_loop(std::stop_token stp);
