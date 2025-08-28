@@ -1,4 +1,5 @@
 #include <stdint.h>
+#include <stdarg.h>
 #include "../config.h"
 
 #include <stddef.h>
@@ -19,8 +20,11 @@ void RedirectScreen(uint16_t *newaddr);
 void RestoreScreen(void);
 void RedirectScreenBufferSecond(void);
 
-char game_display_init(const INI_CONFIG_SECTION *display_section, const char *title);
-void game_display_close(void);
+
+///Initializes display - in current thread (main thread), starts game thread. Display is closed when thread finishes
+int game_display_init(const INI_CONFIG_SECTION *display_section,
+            const char *title,
+            int (*game_thread)(va_list), ...);
 void game_display_update_rect(unsigned short x,unsigned short y,unsigned short xs,unsigned short ys);
 char game_display_is_quit_requested();
 void game_display_cancel_quit_request();

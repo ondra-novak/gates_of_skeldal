@@ -811,7 +811,7 @@ void cti_texty(void)
   if ((err=load_string_list_ex(&texty,TEXTY, SR_DATA))!=0)
      {
 	 char buff[256];
-     closemode();
+
      switch (err)
         {
         case -1:sprintf(buff,"Can't load string table. File %s has not been found\n",TEXTY);break;
@@ -874,7 +874,7 @@ void error_exception(EVENT_MSG *msg,void **unused)
      SEND_LOG("(ERROR) Log: Sector %d Direction %d",viewsector,viewdir);
 
      SEND_LOG("(ERROR) Log: Battle: %d Select_player %d",battle,select_player);
-     closemode();
+
      display_error("error_exception called");
 
      }
@@ -971,7 +971,6 @@ void sse_listener_watch(EVENT_MSG *msg, void **userdata) {
         const char *s = sse_receiver_receive(sse_receiver);
         if (s) {
             if (strcmp(s,"STOP") == 0) {
-              closemode();
               exit(0);
             } else {
               send_message(E_EXTERNAL_MSG, s);
@@ -999,11 +998,83 @@ void sse_listener_init(const char *hostport) {
     send_message(E_ADD, E_WATCH, sse_listener_watch);
 
 }
+typedef int (*GAME_THREAD_CB)(va_list);
 
-void init_skeldal(const INI_CONFIG *cfg)
+int init_skeldal_thread(va_list args) {
+
+    const INI_CONFIG *cfg = va_arg(args, const INI_CONFIG *);
+    GAME_THREAD_CB game_thread = va_arg(args,GAME_THREAD_CB);
+    va_list *game_args = va_arg(args, va_list *);
+
+    showview = game_display_update_rect;
+    game_display_set_icon(getWindowIcon(), getWindowIconSize());
+    init_joystick(ini_section_open(cfg, "controller"));
+
+    general_engine_init();
+    atexit(done_skeldal);
+
+    init_DDL_manager();
+    show_loading_picture("LOADING.HI");
+
+    install_gui();
+    if (is_joystick_enabled()) {
+      show_joystick_info();
+    }
+
+
+
+    send_message(E_DONE,E_WATCH,timer);
+    send_message(E_DONE,E_IDLE,redraw_desktop_call);
+    send_message(E_ADD,E_TIMER,timming);
+
+    send_message(E_ADD,E_WATCH,user_timer);
+
+    send_message(E_ADD,E_MOUSE,ms_clicker);
+
+    send_message(E_ADD,E_KEYBOARD,global_kbd);
+
+    send_message(E_ADD,E_PRGERROR,error_exception);
+
+    add_to_timer(TM_BACK_MUSIC,5,-1,back_music);
+
+    add_game_window();
+
+    game_sound_init_device(ini_section_open(cfg, "audio"));
+    start_mixing();
+
+    int verr;
+    if ((verr=init_mysky())!=0)
+       {
+
+       puts(texty[174-verr]);
+       SEND_LOG("(ERROR) %s (%d)",texty[174-verr],verr);
+
+       exit(0);
+       }
+
+  //  hranice_mysky(0,0,639,479);
+
+    mouse_set_default(H_MS_DEFAULT);
+    ukaz_mysku();
+    set_end_of_song_callback(end_of_song_callback, NULL);
+
+    kouzla_init();
+
+    load_items();
+
+    load_shops();
+    memset(&loadlevel,0,sizeof(loadlevel));
+    
+
+    int r = game_thread(*game_args);
+    va_end(args);
+    return r;
+
+}
+
+
+int init_skeldal(const INI_CONFIG *cfg, void (*game_thread)(va_list), ...)
   {
-
-
   boldcz=LoadDefaultFont();
 
   cti_texty();
@@ -1011,73 +1082,19 @@ void init_skeldal(const INI_CONFIG *cfg)
   init_events();
 
   steam_init();
+  va_list args;
+  va_start(args,game_thread);
 
-
-  char verr = game_display_init(ini_section_open(cfg, "video"), "Skeldal");
-  if (!verr)
+  int verr = game_display_init(ini_section_open(cfg, "video"), "Skeldal",
+              init_skeldal_thread, cfg, game_thread, &args);
+  if (verr < 0)
      {
       display_error("Error game_display_init %d", verr);
-      exit(1);
+      return 1;
      }
-  showview = game_display_update_rect;
-//  game_display_set_icon(getWindowIcon(), getWindowIconSize());
-  init_joystick(ini_section_open(cfg, "controller"));
-
-  general_engine_init();
-  atexit(done_skeldal);
-
-  init_DDL_manager();
-  show_loading_picture("LOADING.HI");
-
-
-  install_gui();
-  if (is_joystick_enabled()) {
-    show_joystick_info();
+  return verr;
   }
 
-
-
-  send_message(E_DONE,E_WATCH,timer);
-  send_message(E_DONE,E_IDLE,redraw_desktop_call);
-  send_message(E_ADD,E_TIMER,timming);
-
-  send_message(E_ADD,E_WATCH,user_timer);
-
-  send_message(E_ADD,E_MOUSE,ms_clicker);
-
-  send_message(E_ADD,E_KEYBOARD,global_kbd);
-
-  send_message(E_ADD,E_PRGERROR,error_exception);
-
-  add_to_timer(TM_BACK_MUSIC,5,-1,back_music);
-
-  add_game_window();
-
-  game_sound_init_device(ini_section_open(cfg, "audio"));
-  start_mixing();
-
-  if ((verr=init_mysky())!=0)
-     {
-     closemode();
-     puts(texty[174-verr]);
-     SEND_LOG("(ERROR) %s (%d)",texty[174-verr],verr);
-
-     exit(0);
-     }
-
-//  hranice_mysky(0,0,639,479);
-
-  mouse_set_default(H_MS_DEFAULT);
-  ukaz_mysku();
-  set_end_of_song_callback(end_of_song_callback, NULL);
-
-  kouzla_init();
-
-  load_items();
-
-  load_shops();
-  memset(&loadlevel,0,sizeof(loadlevel));
-  }
 
 void wire_main_functs();
 void unwire_main_functs(void)
@@ -1304,7 +1321,7 @@ static void game_big_circle(char enforced)
      if (err)
        {
 	   char buff[256];
-       closemode();
+
        switch (err)
           {
           case -1: sprintf(buff,"Error while loading map (%s) ....file not found\n",s);break;
@@ -1639,6 +1656,26 @@ int skeldal_gen_string_table_entry_point(const SKELDAL_CONFIG *start_cfg, const 
 }
 
 const char *run_launcher();
+void skeldal_entry_point_thread(va_list args) {
+    const SKELDAL_CONFIG *start_cfg = va_arg(args, const SKELDAL_CONFIG *);
+   
+    if (start_cfg->launcher) {
+      const char *ddl = run_launcher();
+      if (ddl==NULL) return;
+      if (ddl[0]) {
+        add_patch_file(ddl);
+        reload_ddls();
+      }
+    }
+
+    int start_task = add_task(65536,start);
+
+    escape();
+
+    term_task_wait(start_task);
+    return;
+}
+
 int skeldal_entry_point(const SKELDAL_CONFIG *start_cfg)
   {
   def_mman_group_table(gpathtable);
@@ -1692,27 +1729,11 @@ int skeldal_entry_point(const SKELDAL_CONFIG *start_cfg)
   purge_temps(1);
   clrscr();
 
-  init_skeldal(cfg);
-
-  if (start_cfg->launcher) {
-    const char *ddl = run_launcher();
-    if (ddl==NULL) goto cleanup;
-    if (ddl[0]) {
-      add_patch_file(ddl);
-      reload_ddls();
-    }
-  }
-
-  int start_task = add_task(65536,start);
-
-  escape();
-
-  term_task_wait(start_task);
-
-cleanup:;
-  closemode();
+  int r =  init_skeldal(cfg, skeldal_entry_point_thread, start_cfg);
   ini_close(cfg);
-  return 0;
+  return r;
+
+
   }
 
 

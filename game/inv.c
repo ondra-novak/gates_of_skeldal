@@ -169,7 +169,7 @@ void load_items()
   f=open_ddl_file(ITEM_FILE,SR_MAP);
   if (f==NULL)
      {
-        closemode();
+
 	    display_error("Selhalo otevreni souboru ITEMS.DAT. Zkotroluj zda vubec existuje.");
         exit(1);
      }
@@ -964,7 +964,7 @@ void definuj_postavy()
         }
      if (r!=1)
         {
-        closemode();
+
 	    display_error("Error in file POSTAVY.DAT. May be missing a parameter in some definition.");
         exit(1);
         }

@@ -204,7 +204,6 @@ static const void *load_SEQ_file(const void *src, int *sc, int handle) {
               }
               if (*seq=='\r') {
                  char buff[256];
-                 closemode();
                  sprintf(buff,"Soubor sekvence %s obsahuje chybne udaje nebo je sekvence je moc kratka\n", fulname);
                  display_error(buff);
                  exit(0);
@@ -407,7 +406,7 @@ static void register_mob_graphics(int num,char *name_part,const char *anims,cons
         if (*seq=='\r')
            {
 		   char buff[256];
-           closemode();
+
            sprintf(buff,"Soubor sekvence %s obsahuje chybne udaje nebo je sekvence je moc kratka\n", fulname);
 		   display_error(buff);
            exit(0);
@@ -561,7 +560,7 @@ void load_enemies(const short *data,int size,int *grptr,const TMOB *template,int
         if (mobs[i].speed<1)
           {
   	      char buff[256];
-          closemode();
+
           sprintf(buff,"Nestvura cislo #%d (%s) je spatne definovana (rychlost)",i,mobs[i].name);
 		  display_error(buff);
           exit(1);
@@ -1824,7 +1823,7 @@ void mobs_live(int num)
   if (p->sector>=mapsize)
      {
      char buff[256];
-     closemode();
+
      sprintf(buff,"Potvora v neexistujicim sektoru (%d, %d) ",num,p->sector);
      display_error(buff);
      exit(1);

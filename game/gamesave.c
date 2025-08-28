@@ -93,7 +93,6 @@ static int unable_open_temp(char *c)
   char d[]="Unable to open the file : ",*e;
 
   concat(e,d,c);
-  closemode();
   display_error(e);
   SEND_LOG("(SAVELOAD) Open temp error detected (%s)",c);
   exit(1);
@@ -104,7 +103,6 @@ static void unable_write_temp(char *c)
   char d[]="Unable to write to the temp file : ",*e;
 
   concat(e,d,c);
-  closemode();
   display_error(e);
   SEND_LOG("(SAVELOAD) Open temp error detected (%s)",c);
   exit(1);

@@ -18,7 +18,6 @@ int cur_event_number;
 static void event_error(char *text,int number)
   {
   char buff[256];
-  closemode();
   sprintf(buff,"%s\n Specproc num: %d\n",text,number);
   display_error(buff);
   exit(1);
