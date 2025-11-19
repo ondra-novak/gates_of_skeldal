@@ -57,6 +57,7 @@ char autosave_enabled=1;
 int32_t game_time=0;
 int charmin=3;
 int charmax=3;
+char minimap_enabled=0;
 
 int autoopenaction=0;
 int autoopendata=0;
@@ -1081,6 +1082,9 @@ int init_skeldal(const INI_CONFIG *cfg, void (*game_thread)(va_list), ...)
   va_list args;
   va_start(args,game_thread);
 
+  const INI_CONFIG_SECTION *gameplay = ini_section_open(cfg, "gameplay");
+  minimap_enabled = ini_get_boolean(gameplay, "exploration_minimap", 0) != 0;
+  
   int verr = game_display_init(ini_section_open(cfg, "video"), "Skeldal",
               init_skeldal_thread, cfg, game_thread, &args);
   if (verr < 0)

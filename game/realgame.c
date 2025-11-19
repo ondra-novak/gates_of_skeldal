@@ -1689,11 +1689,11 @@ void step_zoom(char smer)
      sort_groups();
      bott_draw(0);
      other_draw();
-    if (!nopass) shift_zoom(smer);
-    if (battle || (game_extras & EX_ALWAYS_MINIMAP)) draw_medium_map();
-    sort_groups();
-    bott_draw(0);
-    other_draw();
+     if (!nopass) shift_zoom(smer);
+     if (battle || minimap_enabled || (game_extras & EX_ALWAYS_MINIMAP)) draw_medium_map();
+     sort_groups();
+     bott_draw(0);
+     other_draw();
      }
   update_mysky();
   ukaz_mysku();
@@ -1745,7 +1745,7 @@ void turn_zoom(int smer) {
         turn_right();
     }
     chod_s_postavama(0);
-    if (battle || (game_extras & EX_ALWAYS_MINIMAP))
+    if (battle || minimap_enabled || minimap_enabled || (game_extras & EX_ALWAYS_MINIMAP))
         draw_medium_map();
     update_mysky();
     ukaz_mysku();
@@ -2035,5 +2035,3 @@ int postavy_propadnout(int sector)
      }
   return z;
   }
-
-
