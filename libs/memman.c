@@ -190,7 +190,7 @@ static TNAMETABLE_REF load_file_table(const void *bmf_m)
 
 int get_file_entry_in_table(const TNAMETABLE_REF *where, const char *name) {
   for(uint32_t i = 0; i< where->count; ++i) {
-      if (strncmp(where->data[i].name, name, 12) == 0) {
+      if (istrncmp(where->data[i].name, name, 12) == 0) {
           return where->data[i].seek;
       }
   }
