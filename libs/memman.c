@@ -66,9 +66,9 @@ void (*swap_error)()=standard_swap_error;
 
 void *getmem(int32_t size)
   {
-  void *p;
 
 #ifndef NDEBUG
+  void *p;
   p = malloc(size+4);
   memset(p, 0xCD, size);
   memset((char *)p+size,0xEE,4);

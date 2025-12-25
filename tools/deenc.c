@@ -32,7 +32,7 @@ int main(int argc, char *argv[]) {
     int last=0;
     for (int i = 0; i < size; ++i) {
         last = (last + data[i]) & 0xFF;
-        data[i] = last;
+        data[i] = (unsigned char)(last);
     }
 
     // Výstup na stdout

@@ -279,7 +279,7 @@ static const void *mp3_load(const void *p, int32_t *s, int h) {
     size_t ofs = 0;
     mp3dec_t decoder;
     mp3d_sample_t pcm[MINIMP3_MAX_SAMPLES_PER_FRAME];
-    mp3dec_frame_info_t frame;
+    mp3dec_frame_info_t frame = {};
 
     mp3dec_init(&decoder);
     while (ofs<sz) {

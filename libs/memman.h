@@ -107,7 +107,10 @@ int32_t get_handle_size(int handle);
 void ablock_free(const void *ptr);
 
 #ifdef NDEBUG
-inline void CHECK_MEMORY(const void *x,size_t sz) {}
+inline void CHECK_MEMORY(const void * ptr,size_t sz) {
+  (void)ptr; 
+  (void)sz;
+}
 #else
 void CHECK_MEMORY(const void *ptr, size_t sz);
 #endif

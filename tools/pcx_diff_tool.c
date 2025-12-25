@@ -27,9 +27,9 @@ int pcx_decode_rle(FILE *f, uint8_t *out, int size) {
             int reps = byte & 0x3F;
             int val = fgetc(f);
             if (val == EOF) return -1;
-            for (int i = 0; i < reps && count < size; ++i) out[count++] = val;
+            for (int i = 0; i < reps && count < size; ++i) out[count++] = (uint8_t)(val);
         } else {
-            out[count++] = byte;
+            out[count++] = (uint8_t)(byte);
         }
     }
     return 0;
@@ -116,14 +116,14 @@ int pcx_save(const char *filename, PCXImage *img) {
     header[4] = 0; header[5] = 0; // xmin
     header[6] = 0; header[7] = 0; // ymin
     header[8] = (img->width - 1) & 0xFF;
-    header[9] = (img->width - 1) >> 8;
+    header[9] = (uint8_t)((img->width - 1) >> 8);
     header[10] = (img->height - 1) & 0xFF;
-    header[11] = (img->height - 1) >> 8;
+    header[11] = (uint8_t)((img->height - 1) >> 8);
     header[12] = 72; header[13] = 0; // hres (72 dpi)
     header[14] = 72; header[15] = 0; // vres (72 dpi)
     header[65] = 1; // planes
     header[66] = img->width & 0xFF;
-    header[67] = img->width >> 8; // bytes per line
+    header[67] = (uint8_t)(img->width >> 8); // bytes per line
     header[68] = 1; header[69] = 0; // palette type (1 = color)
 
     fwrite(header, 1, PCX_HEADER_SIZE, f);

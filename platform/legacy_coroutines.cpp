@@ -6,6 +6,7 @@
 #include <memory>
 #include <queue>
 #include <unordered_map>
+#include <chrono>
 
 struct TaskInfo {
     int id;
@@ -129,7 +130,7 @@ static void crash_task_exception() {
 }
 
 
-int add_task(int stack,TaskerFunctionName fcname,...) {
+int add_task(int ,TaskerFunctionName fcname,...) {
     int id = get_new_task_id();
     auto st = task_list.emplace(id, std::make_unique<TaskInfo>(id));
     TaskInfo *new_task = st.first->second.get();
