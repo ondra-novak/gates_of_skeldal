@@ -3,6 +3,7 @@
 #include <fstream>
 #include <iostream>
 #include <map>
+#include <sstream>
 #include <string>
 #include <string_view>
 #include <filesystem>
@@ -21,13 +22,14 @@ typedef struct ini_config_tag {
 } INI_CONFIG;
 
 
+static inline bool fastisspace(char c) {
+    return static_cast<unsigned char>(c) < 33;
+}
 
-// Trim whitespace z obou stran pro string_view
 static inline std::string_view trim(std::string_view str) {
-    const size_t first = str.find_first_not_of(" \t");
-    if (first == std::string_view::npos) return {};
-    const size_t last = str.find_last_not_of(" \t");
-    return str.substr(first, last - first + 1);
+    while (!str.empty() && fastisspace(str.front())) str = str.substr(1);
+    while (!str.empty() && fastisspace(str.back())) str = str.substr(0,str.size()-1);
+    return str;
 }
 
 // Parser INI souboru
@@ -57,22 +59,33 @@ void parseIniStream(std::istream& input, Callback &&callback) {
     }
 }
 
-
-INI_CONFIG* ini_open(const char *filename) {
-
-    std::filesystem::path fname(reinterpret_cast<const char8_t *>(filename));
-    std::fstream input(fname);
-    if (!input) return NULL;
+INI_CONFIG *ini_open_from_stream(std::istream &input) {
     INI_CONFIG *c = new INI_CONFIG;
     parseIniStream(input, [&](std::string_view section, std::string_view key, std::string_view value) {
         INI_CONFIG::Config::iterator iter = c->data.find(section);
-        if (iter == c->data.end()) {
+        if (iter == c->data.end()) {            
             iter = c->data.emplace(std::string(section), INI_CONFIG_SECTION()).first;
         }
         iter->second.data.emplace(std::string(key), std::string(value));
     });
     return c;
+
 }
+INI_CONFIG* ini_open(const char *filename) {
+
+    std::filesystem::path fname(reinterpret_cast<const char8_t *>(filename));
+    std::fstream input(fname);
+    if (!input) return NULL;
+    return ini_open_from_stream(input);
+}
+
+
+INI_CONFIG* ini_open_from_string(const char *string, size_t string_size) {
+
+    std::istringstream data({string, string_size});
+    return ini_open_from_stream(data);
+}
+
 
 void ini_close(INI_CONFIG *config) {
     delete config;

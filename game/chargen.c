@@ -443,12 +443,12 @@ static char select_xicht(int id,int xa,int ya,int xr,int yr)
   set_xicht(cur_edited,cur_xicht=k);
   postavy[cur_edited].female=women[i];
   b_disables=0x6;
-   if (was_enter) send_message(E_KEYBOARD,13);
-  else
-   {
-   strcpy(postavy[cur_edited].jmeno,texty[160+i]);
-   send_message(E_KEYBOARD,27);
-   was_enter=0;
+   if (was_enter) { 
+    send_message(E_KEYBOARD,13);
+   } else {
+    strcpy(postavy[cur_edited].jmeno,texty[160+i]);
+    send_message(E_KEYBOARD,27);
+    was_enter=0;
    }
   sprintf(s,XICHT_NAME,k);
   def_handle(H_XICHTY+cur_edited,s,pcx_8bit_decomp,SR_BGRAFIKA);

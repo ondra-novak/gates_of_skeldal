@@ -1,3 +1,4 @@
+#include <stddef.h>
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -8,6 +9,8 @@ typedef struct ini_config_section_tag INI_CONFIG_SECTION;
 
 ///Opens config, returns handle
 INI_CONFIG *ini_open(const char *filename);
+///Opens config from string (from memory);
+INI_CONFIG *ini_open_from_string(const char *string, size_t string_size);
 ///closes the config and frees memory
 void ini_close(INI_CONFIG *config);
 

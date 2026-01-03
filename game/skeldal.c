@@ -1064,7 +1064,7 @@ int init_skeldal_thread(va_list args) {
 
     load_shops();
     memset(&loadlevel,0,sizeof(loadlevel));
-    
+
 
     int r = game_thread(*game_args);
     va_end(args);
@@ -1656,9 +1656,28 @@ int skeldal_gen_string_table_entry_point(const SKELDAL_CONFIG *start_cfg, const 
 }
 
 const char *run_launcher();
+
+void initialize_from_adv_ini() {
+    if (test_file_exist(0,"ADV.INI")) {
+        int32_t sz;
+        const void *ptr = afile("ADV.INI",0,&sz);
+        INI_CONFIG *cfg = ini_open_from_string((const char *)ptr, (size_t)sz);
+        const INI_CONFIG_SECTION *section = ini_section_open(cfg, "ADV");
+
+        long chmin = ini_get_int(section, "characters_min", 3);
+        long chmax = ini_get_int(section, "characters_max", 3);
+        if (chmin <= chmax && chmax <= 6 && chmin > 0) {
+          charmax =(int)chmax;
+          charmin= (int)chmin;
+        }
+        ini_close(cfg);
+    }
+}
+
+
 void skeldal_entry_point_thread(va_list args) {
     const SKELDAL_CONFIG *start_cfg = va_arg(args, const SKELDAL_CONFIG *);
-   
+
     if (start_cfg->launcher) {
       const char *ddl = run_launcher();
       if (ddl==NULL) return;
@@ -1668,9 +1687,22 @@ void skeldal_entry_point_thread(va_list args) {
       }
     }
 
+   if (start_cfg->launcher) {
+     const char *ddl = run_launcher();
+     if (ddl==NULL) return;
+     if (ddl[0]) {
+       add_patch_file(ddl);
+       reload_ddls();
+     }
+   }
+
+   initialize_from_adv_ini();
+
     int start_task = add_task(65536,start);
 
     escape();
+
+
 
     term_task_wait(start_task);
     return;
