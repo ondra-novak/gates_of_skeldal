@@ -20,6 +20,17 @@ TSTR_LIST create_list(int count)
   return p;
   }
 
+TSTR_LIST create_list_copy(TSTR_LIST lst) {
+    if (lst == NULL) return NULL;
+    int cnt =str_count(lst);
+    TSTR_LIST out = create_list(cnt);
+    for (int i = 0; i < cnt; ++i) {
+        str_replace(&out, i, lst[i]);
+    }
+    return lst;
+
+}
+
 int find_ptr(TSTR_LIST source,void *_ptr,int _size)
   {
    for (int i = 0; i < _size; ++i)

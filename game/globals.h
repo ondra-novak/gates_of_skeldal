@@ -151,7 +151,7 @@ static __inline int rangrnd(int a, int b) {return rnd(b-a+1)+a;}
 #define H_IDESKA 12
 #define H_IMRIZ1 13
 #define H_RAMECEK 14
-#define H_ENEMY 15
+#define H_ENEMY_H 15
 #define H_FBOLD 16
 #define H_FSYMB 17
 #define H_FLITT 18
@@ -1449,7 +1449,7 @@ void show_textured_button(int x,int y,int xs,int ys,int texture,CTL3D *border3d)
 //sounder & music
 
 extern short sample_volume;           //hlastitost samplu
-extern char **sound_table;
+extern char **enemy_sound_table;
 
 
 
@@ -1468,8 +1468,8 @@ char test_playing(int track);
 void stop_track_free(int track);
 void mute_all_tracks(char all);
 void kill_all_sounds(void);
-void create_sound_table(const char *t,int32_t size);
-void create_sound_table_old(void);
+void create_enemy_sound_table(const char *t,int32_t size);
+//void create_enemy_sound_table_old(void);
 void start_play_flute(char );
 void stop_play_flute(void);
 void pc_speak_play_sample(char *sample,int size,char step,int freq);
@@ -1549,16 +1549,19 @@ typedef struct tmob
   signed char palette;           // pocet pouzitelnych palet / cislo palety
   char mode;              //akce potvory
   short dialog;           //cislo dialogu, -1 kdyz neni;
-  char dialog_flags;      //vlajky mapovane do dialogu;
+  unsigned short dialog_flags;      //vlajky mapovane do dialogu;
   unsigned short money;             //penize
   unsigned short specproc;          //specproc
   unsigned short dostal;             //pocet zivotu, ktere mu byly ubrany poslednim zasahem
-  char user_data;         //data uzivatelem definovane - treba pro spec.
+  unsigned short user_data;         //data uzivatelem definovane - treba pro spec.
   }TMOB;
 
 
 extern TMOB mobs[MAX_MOBS];
 extern char *mob_map;
+extern const TMOB *mob_templates;
+extern size_t mob_templates_count;
+extern TSTR_LIST mob_sounds;
 
 void draw_mob(int num,int curdir,int celx,int cely,char shiftup);
 void calc_mobs(void);

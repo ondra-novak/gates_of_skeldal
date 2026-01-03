@@ -61,7 +61,7 @@ SND_INFO playings[CHANNELS];
 static word locks[32];
 
 TSTR_LIST cur_playlist=NULL;
-TSTR_LIST sound_table=NULL;
+TSTR_LIST enemy_sound_table=NULL;
 int playlist_size;
 int playing_track=0;
 int remain_play=0;
@@ -640,33 +640,33 @@ void play_sample_at_channel(int sample,int channel,int vol)
   }
 
 
-void create_sound_table(const char *template,int32_t size)
+void create_enemy_sound_table(const char *template,int32_t size)
   {
   const char *c,*s;
   int i=0;
 
-  if (sound_table==NULL) sound_table=create_list(2);
+  if (enemy_sound_table==NULL) enemy_sound_table=create_list(2);
   s=c=template;
   while (c-s<size)
      {
-     if (c[0]!=0) str_replace(&sound_table,i,c);
+     if (c[0]!=0) str_replace(&enemy_sound_table,i,c);
      c=strchr(c,0)+1;
      i++;
      }
   }
 
-void create_sound_table_old()
+void create_enemy_sound_table_old()
   {
   const char *c,*s;
   int32_t pocet;
   int i=0;
 
-  if (sound_table==NULL) sound_table=create_list(2);
+  if (enemy_sound_table==NULL) enemy_sound_table=create_list(2);
   s=c=ablock(H_SOUND_DAT);
   memcpy(&pocet,s,sizeof(int32_t));c+=4;
   while (pocet--)
      {
-     if (c[0]!=0) str_replace(&sound_table,i,c);
+     if (c[0]!=0) str_replace(&enemy_sound_table,i,c);
      c=strchr(c,0)+1;
      i++;
      }

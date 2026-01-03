@@ -525,10 +525,10 @@ void load_enemies(const short *data,int size,int *grptr,const TMOB *template,int
   short cisla[256];
 
   monster_sound_block = *grptr;
-  int sndcount = str_count(sound_table);
+  int sndcount = str_count(enemy_sound_table);
   for (int i = 0 ;i < sndcount; ++i) {
-      if (sound_table[i]) {
-          def_handle(*grptr,sound_table[i],soundfx_load,SR_ZVUKY);
+      if (enemy_sound_table[i]) {
+          def_handle(*grptr,enemy_sound_table[i],soundfx_load,SR_ZVUKY);
       }
       (*grptr)++;
   }

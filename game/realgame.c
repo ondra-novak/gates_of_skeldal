@@ -351,17 +351,14 @@ int load_map(const char *filename)
                   load_item_map(temp,size);
                   break;
          case A_MAPMOBS:
-                  if (snd_load==0) create_sound_table_old();
+                  if (snd_load==0) {
+                     if (enemy_sound_table) release_list(enemy_sound_table);
+                     enemy_sound_table = create_list_copy(mob_sounds);
+                  }
                   SEND_LOG("(GAME) Loading enemies...");
                   if (mob_template==NULL)
                     {
-                    int32_t h;const char *p;
-
-                    alock(H_ENEMY);
-                    p=ablock(H_ENEMY);
-                    h=get_handle_size(H_ENEMY);
-                    load_enemies(temp,size,&ofsts,(TMOB *)p,h);
-                    aunlock(H_ENEMY);
+                    load_enemies(temp,size,&ofsts,mob_templates,mob_templates_count*sizeof(TMOB));
                     }
                   else
                     {
@@ -395,7 +392,7 @@ int load_map(const char *filename)
                   }
          case A_MOBSND:
                   snd_load=1;
-                  create_sound_table(temp,size);
+                  create_enemy_sound_table(temp,size);
                   break;
 		 case A_PASSW :
 				  map_with_password=1;

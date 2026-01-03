@@ -12,6 +12,7 @@ typedef struct ptrmap
 
 
 TSTR_LIST create_list(int count);
+TSTR_LIST create_list_copy(TSTR_LIST lst);
 int str_add(TSTR_LIST *list,const char *text);
 const char *str_insline(TSTR_LIST *list,int before,const char *text);
 const char *str_replace(TSTR_LIST *list,int line,const char *text);

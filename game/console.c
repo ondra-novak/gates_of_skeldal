@@ -495,9 +495,8 @@ static void wiz_find_item(const char *name) {
 
 static void wiz_find_monster(const char *name) {
 
-    alock(H_ENEMY);
-    const TMOB *mobs =(TMOB *)ablock(H_ENEMY);
-    size_t cnt = get_handle_size(H_ENEMY)/sizeof(TMOB);
+    const TMOB *mobs =mob_templates;
+    size_t cnt = mob_templates_count;
 
 
     for (size_t i = 0; i <cnt; ++i) {
@@ -532,8 +531,7 @@ static int process_with_params(const char *cmd, const char *args) {
             char *end;
             unsigned long  id = strtoul(args+1, &end, 10);
             if (*end == 0) {
-                ablock(H_ENEMY);
-                size_t cnt = get_handle_size(H_ENEMY)/sizeof(TMOB);
+                size_t cnt = mob_templates_count;
                 if (id < cnt) {
                     int choosen_id = -1;
                     for (int i = 0; i < MAX_MOBS; ++i) {
@@ -541,7 +539,7 @@ static int process_with_params(const char *cmd, const char *args) {
                         choosen_id = i;
                     }
                     if (choosen_id >= 0) {
-                        const TMOB *t =(TMOB *)ablock(H_ENEMY);
+                        const TMOB *t =mob_templates;
                         int sect = map_sectors[viewsector].step_next[viewdir];
                         if (sect) {
                             load_enemy_to_map(choosen_id, sect, (viewdir+2) & 3, t+id);

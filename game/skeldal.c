@@ -26,6 +26,7 @@
 #include "lang.h"
 
 #include <ctype.h>
+#include <time.h>
 #define CONFIG_NAME SKELDALINI
 
 #define INI_TEXT 1
@@ -87,6 +88,11 @@ char level_preload=1;
 char *level_fname=NULL;
 int game_extras=0;
 
+const TMOB *mob_templates = NULL;
+size_t mob_templates_count;
+TSTR_LIST mob_sounds = NULL;
+
+
 char default_map[20]="LESPRED.MAP";
 
 THUMAN postavy[POCET_POSTAV],postavy_save[POCET_POSTAV];
@@ -142,7 +148,7 @@ TDREGISTERS registred[]=
     {H_IDESKA,"ideska.pcx",pcx_8bit_decomp,SR_BGRAFIKA},
     {H_IMRIZ1,"imriz1.pcx",pcx_8bit_decomp,SR_BGRAFIKA},
     {H_RAMECEK,"ramecek.pcx",pcx_8bit_decomp,SR_BGRAFIKA},
-    {H_ENEMY,"enemy.dat",load_mob_legacy_format,SR_MAP},
+    {H_ENEMY_H,"enemy.dat",NULL,SR_MAP},
     {H_BATTLE_BAR,"souboje.pcx",pcx_8bit_decomp,SR_BGRAFIKA},
     {H_BATTLE_MASK,"m_souboj.pcx",pcx_8bit_decomp,SR_BGRAFIKA},
     {H_MZASAH1,"mzasah1.pcx",pcx_8bit_decomp,SR_BGRAFIKA},
@@ -727,9 +733,91 @@ void do_timer(void)
   user_timer(&msg,NULL);
   }
 
+static void clean_enemies() {
+    release_list(mob_sounds);
+    mob_sounds = NULL;
+    ablock_free(mob_templates);
+    mob_templates_count = 0;
+}
+
+static void load_enemy_sounds(const char *snddata, int32_t sndsize) {
+  TSTR_LIST lst = create_list(16);
+  const char *iter = snddata;
+  const char *end = iter+sndsize;
+  iter+=4;
+  int i = 0;
+  while (iter < end) {
+    str_replace(&lst, i, iter);
+    iter = strchr(iter, 0) + 1;
+    i++;
+  }
+  if (mob_sounds) release_list(mob_sounds);
+  mob_sounds = lst;
+
+}
+
+static void load_enemy_old_format(void) {
+  const void *data = ablock(H_ENEMY_H);
+  int32_t sz = get_handle_size(H_ENEMY_H);
+  TMOB *mobs = (TMOB *)load_mob_legacy_format(data, &sz, H_ENEMY_H);
+  TMOB *cp = getmem(sz);
+  memcpy(cp, mobs, sz);
+  ablock_free(mobs);
+  if (mob_templates) ablock_free(mob_templates);
+  mob_templates = cp;
+  mob_templates_count = sz / sizeof(TMOB);
+
+  const void *snddata = ablock(H_SOUND_DAT);
+  int sndsize = get_handle_size(H_SOUND_DAT);
+  load_enemy_sounds(snddata, sndsize);
+}
+
+static void load_enemy_new_format(void) {
+  const void *enemy_data = ablock(H_ENEMY_H);
+  int32_t enemy_size = get_handle_size(H_ENEMY_H);
+  TMPFILE_RD *stream = temp_storage_from_binary(enemy_data, enemy_size,NULL,NULL);
+
+  const void *section;
+  int sct_type;
+  uint32_t sct_size;
+
+  load_section_mem(stream, &section, &sct_type, &sct_size);
+  while (sct_type != 0x8000) {
+      switch (sct_type) {
+          case 1: {
+              TMOB *cpy = getmem(sct_size);
+              memcpy(cpy, section, sct_size);
+              if (mob_templates) ablock_free(mob_templates);
+              mob_templates = cpy;
+              mob_templates_count = sct_size/sizeof(TMOB);
+          }break;
+          case 2: {
+               load_enemy_sounds(section, sct_size);
+          }break;
+      }
+      load_section_mem(stream, &section, &sct_type, &sct_size);
+  }
+  temp_storage_close_rd(stream);
+}
+
+
+static void load_enemy_templates() {
+    const void *enemy_data = ablock(H_ENEMY_H);
+    const char *probe = (const char *)enemy_data;
+    if (strncmp(probe, "<BLOCK>", 7) == 0) {
+        //new_format
+        load_enemy_new_format();
+    } else {
+        load_enemy_old_format();
+    }
+}
+
+
+
 void done_skeldal(void)
   {
   steam_shutdown();
+  clean_enemies();
 
   close_manager();
   close_story_file();
@@ -1061,7 +1149,7 @@ int init_skeldal_thread(va_list args) {
     kouzla_init();
 
     load_items();
-
+    load_enemy_templates();
     load_shops();
     memset(&loadlevel,0,sizeof(loadlevel));
 
@@ -1151,9 +1239,11 @@ static void reload_restart_map() {
     hl_ptr=ikon_libs;
     destroy_fly_map();
     load_items();
-    zneplatnit_block(H_ENEMY);
+    zneplatnit_block(H_ENEMY_H);
     zneplatnit_block(H_SHOP_PIC);
     zneplatnit_block(H_DIALOGY_DAT);
+    clean_enemies();
+    load_enemy_templates();
     load_shops();
     autosave_on_enter = 0;
     game_display_focus();
