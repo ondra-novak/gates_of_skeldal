@@ -1777,16 +1777,7 @@ void skeldal_entry_point_thread(va_list args) {
       }
     }
 
-   if (start_cfg->launcher) {
-     const char *ddl = run_launcher();
-     if (ddl==NULL) return;
-     if (ddl[0]) {
-       add_patch_file(ddl);
-       reload_ddls();
-     }
-   }
-
-   initialize_from_adv_ini();
+    initialize_from_adv_ini();
 
     int start_task = add_task(65536,start);
 
