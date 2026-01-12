@@ -89,6 +89,7 @@ elseif(UNIX AND NOT APPLE)
 elseif(APPLE)   
     target_sources(skeldal_platform PRIVATE
         mac_os/save_folder.cpp
+        mac_os/map_file.cpp
     )
     add_executable(skeldal)
     target_sources(skeldal PRIVATE

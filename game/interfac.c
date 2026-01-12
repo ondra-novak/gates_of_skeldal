@@ -4,7 +4,6 @@
 #include <string.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <malloc.h>
 
 #include <libs/pcx.h>
 #include <libs/types.h>

@@ -2,7 +2,6 @@
 #include "types.h"
 #include <stdio.h>
 #include <stdlib.h>
-#include <malloc.h>
 #include "bgraph.h"
 #include "memman.h"
 

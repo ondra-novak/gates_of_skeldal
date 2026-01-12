@@ -4,7 +4,6 @@
 #include <ctype.h>
 
 #include <stdlib.h>
-#include <malloc.h>
 #include <string.h>
 
 

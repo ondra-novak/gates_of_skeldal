@@ -1,7 +1,6 @@
 #include <platform/platform.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <malloc.h>
 #include <math.h>
 
 
@@ -173,7 +172,7 @@ void load_items()
      {
 
 	    display_error("Selhalo otevreni souboru ITEMS.DAT. Zkotroluj zda vubec existuje.");
-        exit(0);
+        _Exit(1);
      }
   do
      {

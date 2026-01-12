@@ -1,7 +1,7 @@
 #include "types.h"
 #include <stdio.h>
 #include <i86.h>
-#include <malloc.h>
+#include <stdlib.h>
 #include "devices.h"
 #include "event.h"
 #include "bgraph.h"

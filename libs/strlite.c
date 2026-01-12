@@ -2,7 +2,6 @@
 #include "strlite.h"
 #include <stdlib.h>
 #include <stdio.h>
-#include <malloc.h>
 #include "types.h"
 #include "memman.h"
 

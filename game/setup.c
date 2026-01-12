@@ -1,7 +1,6 @@
 #include <platform/platform.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <malloc.h>
 
 
 #include <libs/types.h>

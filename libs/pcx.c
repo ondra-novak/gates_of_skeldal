@@ -1,5 +1,5 @@
 #include <platform/platform.h>
-#include <malloc.h>
+#include <stdlib.h>
 #include <stdio.h>
 #include "pcx.h"
 #include "memman.h"

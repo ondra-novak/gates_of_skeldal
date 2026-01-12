@@ -4,7 +4,7 @@
 #include <i86.h>
 
 #include <stdio.h>
-#include <malloc.h>
+#include <stdlib.h>
 #include <graph.h>
 #include "bgraph.h"
 
