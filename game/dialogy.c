@@ -62,7 +62,7 @@ typedef struct t_paragraph
 
 #define DESC_COLOR1 (RGB555(28,28,21))
 
-static short varibles[20];
+static short variables[32];
 
 static char sn_nums[SAVE_POSTS];
 static char sn_nams[SAVE_POSTS][32];
@@ -78,10 +78,10 @@ static char *string_buffer=NULL;
 static char iff;
 
 static char _flag_map[32];
+static char _monster_flag_map[2];
 
 static int local_pgf=0;
 
-static char story_on=0;
 
 static char pocet_voleb=0;
 static char vyb_volba=0;
@@ -433,7 +433,7 @@ static short Get_short()
      pc++;
      p = (uint8_t)pc[0] + 256*pc[1];
      pc+=2;
-     return varibles[p];
+     return variables[p];
      }
   error("O�ek�v� se ��slo");
   exit(0);
@@ -461,7 +461,6 @@ static void show_desc()
 static void add_desc(char *c)
   {
   int xs,ys;
-  if (story_on) write_story_text(c);
   if (descript!=NULL) free(descript);
   descript=(char *)getmem(strlen(c)+2);
   set_font(H_FBOLD,RGB555(31,31,31));
@@ -473,7 +472,6 @@ static void show_emote(char *c)
   int xs,ys;
   char *a;
 
-  if (story_on) write_story_text(c);
   a=alloca(strlen(c)+2);
   set_font(H_FBOLD,RGB555(31,31,31));
   zalamovani(c,a,TEXT_XS,&xs,&ys);
@@ -492,7 +490,6 @@ static void echo(char *c)
   int xs,ys;
   char *a;
 
-  if (story_on) write_story_text(c);
   a=alloca(strlen(c)+2);
   set_font(H_FBOLD,RGB555(0,30,0));
   zalamovani(c,a,TEXT_XS,&xs,&ys);
@@ -647,22 +644,39 @@ static void set_nvisited(int prgf)
   }
 
 
-void q_flag(int flag)
+static void q_flag(int flag)
   {
-  iff=_flag_map[flag>>3] & (1<<(flag & 0x7));
+  if (flag < 16) iff=_monster_flag_map[flag>>3] & (1<<(flag & 0x7));
+  else iff=_flag_map[flag>>3] & (1<<(flag & 0x7));
   }
 
 static void set_flag(int flag)
   {
-  q_flag(flag);
-  _flag_map[flag>>3]|=(1<<(flag & 0x7));
+  if (flag < 16) _monster_flag_map[flag>>3]|=(1<<(flag & 0x7));
+  else _flag_map[flag>>3]|=(1<<(flag & 0x7));
   }
 
 static void reset_flag(int flag)
   {
-  q_flag(flag);
+  if (flag < 16) _monster_flag_map[flag>>3]&=~(1<<(flag & 0x7));
+  else _flag_map[flag>>3]&=~(1<<(flag & 0x7));
+  }
+
+static void q_fact(int flag)
+  {
+  iff=_flag_map[flag>>3] & (1<<(flag & 0x7));
+  }
+
+static void set_fact(int flag)
+  {
+  _flag_map[flag>>3]|=(1<<(flag & 0x7));
+  }
+
+static void reset_fact(int flag)
+  {
   _flag_map[flag>>3]&=~(1<<(flag & 0x7));
   }
+
 
 void change_flag(int flag,char mode)
   {
@@ -924,12 +938,12 @@ void dialog_select_jump()
 
 static void exit_dialog()
   {
-  _flag_map[0]|=0x1;
+  //TODO why? _flag_map[0]|=0x1;
   stop_anim();
   if (dialog_mob>-1)
      {
-     mobs[dialog_mob].dialog_flags=_flag_map[0];
-     mobs[dialog_mob].stay_strategy=_flag_map[1];
+     mobs[dialog_mob].dialog_flags=_monster_flag_map[0];
+     mobs[dialog_mob].stay_strategy=_monster_flag_map[1];
      }
   unwire_proc();
   aunlock(H_DIALOGY_DAT);
@@ -1275,6 +1289,48 @@ static void free_dialog_stringtable(void) {
     stringtable_free(dialogy_strtable);
 }
 
+#define MAX_STACK_SIZE 512
+static short script_stack[MAX_STACK_SIZE];
+static int script_stack_pos = MAX_STACK_SIZE;
+
+static void stk_push(short value) {
+    if (script_stack_pos == 0) {
+        display_error("script stack overflow"); exit(1);
+    }
+    script_stack[--script_stack_pos] = value;
+}
+static short stk_pop() {
+    if (script_stack_pos >= MAX_STACK_SIZE) {
+        display_error("script stack underflow"); exit(1);
+    }
+    return script_stack[script_stack_pos++];
+}
+
+static short count_slots() {
+    short s = 0;
+    for (int i = 0; i < POCET_POSTAV; ++i) {
+        if (postavy[i].used) s++;
+    }
+    return s;
+}
+
+static short count_present(int sector) {
+    short s = 0;
+    for (int i = 0; i < POCET_POSTAV; ++i) {
+        if (postavy[i].used && postavy[i].sektor == sector) s++;
+    }
+    return s;
+}
+
+static void teleport_char(const char *level, int sector, int dir) {
+    int p = sn_nums[0];
+    uint32_t h = fnv1a_hash(level);
+    postavy[p].inmaphash = h;
+    postavy[p].sektor = h == current_map_hash?sector:-sector;
+    postavy[p].direction = dir;
+    bott_draw(0);
+}
+
 void do_dialog()
   {
   int i,p1,p2,p3;
@@ -1292,6 +1348,41 @@ void do_dialog()
   i=Get_short();p3=0;
   switch(i)
      {
+     case 1: stk_push(Get_short());break;
+     case 2: variables[Get_short()] = stk_pop();break;
+     case 3: stk_pop();break;
+     case 4: p1 = stk_pop(); stk_push(p1); stk_push(p1); break;
+     case 5: p1 = stk_pop(); p2=stk_pop(); stk_push(p1); stk_push(p2); break;
+     case 6: p1 = stk_pop(); p2=stk_pop(); stk_push(p1+p2);break;
+     case 7: p1 = stk_pop(); p2=stk_pop(); stk_push(p1-p2);break;
+     case 8: p1 = stk_pop(); p2=stk_pop(); stk_push(p1*p2);break;
+     case 9: p1 = stk_pop(); p2=stk_pop(); stk_push(p1/p2);break;
+     case 10: p1 = stk_pop(); p2=stk_pop(); stk_push(p1 &&p2);break;
+     case 11: p1 = stk_pop(); p2=stk_pop(); stk_push(p1 ||p2);break;
+     case 12: p1 = stk_pop(); p2=stk_pop(); stk_push(p1 == p2);break;
+     case 13: p1 = stk_pop(); p2=stk_pop(); stk_push(p1 != p2);break;
+     case 14: p1 = stk_pop(); p2=stk_pop(); stk_push(p1 < p2);break;
+     case 15: p1 = stk_pop(); p2=stk_pop(); stk_push(p1 > p2);break;
+     case 16: p1 = stk_pop(); p2=stk_pop(); stk_push(p1 <= p2);break;
+     case 17: p1 = stk_pop(); p2=stk_pop(); stk_push(p1 >= p2);break;
+     case 18: stk_push(-stk_pop());break;
+     case 19: stk_push(!stk_pop());break;
+     case 20: stk_push(iff?1:0);break;
+     case 21: iff = stk_pop() != 0;break;
+     case 22: p1 = stk_pop(); p2=stk_pop(); nahodne(p1,p2,0);break;
+     case 23: stk_push(postavy[(int)sn_nums[0]].vlastnosti[stk_pop()]);break;
+     case 24: stk_push(postavy[(int)sn_nums[0]].wearing[stk_pop()]);break;
+     case 25: stk_push(postavy[(int)sn_nums[0]].bonus_zbrani[stk_pop()]);break;
+     case 26: stk_push(sn_rods[0]);break;
+     case 27: stk_push(count_slots());break;
+     case 28: stk_push(count_present(viewsector));break;
+     case 29: p1 = Get_short(); pc_xicht(postavy[p1].xicht);break;
+     case 30: q_fact(Get_short());break;
+     case 31: set_fact(Get_short());break;
+     case 32: reset_fact(Get_short());break;
+     case 33: c = Get_string(); p1 = Get_short(); p2 = Get_short(); teleport_char(c, p1, p2); break;
+     case 34: stk_push(postavy[(int)sn_nums[0]].xicht);break;
+     case 35: stk_push(postavy[(int)sn_nums[0]].sektor);break;
      case 128:add_desc(Get_string());break;
      case 129:show_emote(Get_string());break;
      case 130:save_name(Get_short());break;
@@ -1365,14 +1456,14 @@ void do_dialog()
      case 188:p1=Get_short();cast_spell(p1);break;
      case 190:spell_sound(Get_string());break;
      case 191:p1=Get_short();p2=Get_short();iff=test_volby_select(p1,p2);break;
-     case 192:p1=Get_short();p2=Get_short();varibles[p1]=p2;break;
-     case 193:p1=Get_short();p2=Get_short();varibles[p1]+=p2;break;
-     case 194:p1=Get_short();p2=Get_short();p3=Get_short();iff=oper_balance(varibles[p1],p3,p2);break;
-     case 195:p2=find_pgnum(pc);p1=Get_short();varibles[p1]=p2;break;
-     case 196:p1=Get_short();varibles[p1]=iff;break;
-     case 197:p1=Get_short();add_case(varibles[p1],Get_string());break;
-     case 198:p1=Get_short();p2=Get_short();c=Get_string();if (iff==p1) add_case(varibles[p2],c);break;
-     case 199:goto_paragraph(varibles[Get_short()]);break;
+     case 192:p1=Get_short();p2=Get_short();variables[p1]=p2;break;
+     case 193:p1=Get_short();p2=Get_short();variables[p1]+=p2;break;
+     case 194:p1=Get_short();p2=Get_short();p3=Get_short();iff=oper_balance(variables[p1],p3,p2);break;
+     case 195:p2=find_pgnum(pc);p1=Get_short();variables[p1]=p2;break;
+     case 196:p1=Get_short();variables[p1]=iff;break;
+     case 197:p1=Get_short();add_case(variables[p1],Get_string());break;
+     case 198:p1=Get_short();p2=Get_short();c=Get_string();if (iff==p1) add_case(variables[p2],c);break;
+     case 199:goto_paragraph(variables[Get_short()]);break;
      case 200:iff=drop_character();break;
      case 201:pc_xicht(Get_short());break;
      case 518:set_flag(Get_short());break;
@@ -1428,8 +1519,8 @@ void call_dialog(int entr,int mob)
   dialog_mob=mob;
   if (mob>-1)
      {
-     _flag_map[0]=mobs[mob].dialog_flags;
-     _flag_map[1]=mobs[mob].stay_strategy;
+     _monster_flag_map[0]=mobs[mob].dialog_flags;
+     _monster_flag_map[1]=mobs[mob].stay_strategy;
      }
   local_pgf=0;
   poloz_vsechny_predmety();
