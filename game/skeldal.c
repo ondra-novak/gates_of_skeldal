@@ -300,7 +300,7 @@ void purge_temps(char _) {
 const void *pcx_fade_decomp(const void *p, int32_t *s, int h)
   {
   char *buff;
-  int r = load_pcx(p,*s,A_FADE_PAL,&buff,mglob.fade_r,mglob.fade_g,mglob.fade_b);
+  int r = load_pcx(p,*s,A_FADE_PAL,&buff,mglob.fade_r,mglob.fade_g,mglob.fade_b, mglob.fade_mult);
   assert(r > 0);
   *s=r;
   return buff;
@@ -738,6 +738,7 @@ static void clean_enemies() {
     mob_sounds = NULL;
     ablock_free(mob_templates);
     mob_templates_count = 0;
+    mob_templates = NULL;
 }
 
 static void load_enemy_sounds(const char *snddata, int32_t sndsize) {

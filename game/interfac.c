@@ -546,7 +546,7 @@ const void *col_load(const void *data, int32_t *size, int h)
   s=getmem(*size);
   c=data;c+=8;
   for(i=0;i<palcount;i++,c+=COL_SIZE) {
-     palette_shadow(c,(void *)(&s[i*PIC_FADE_PAL_SIZE]),mglob.fade_r,mglob.fade_g,mglob.fade_b);
+     palette_shadow(c,(void *)(&s[i*PIC_FADE_PAL_SIZE]),mglob.fade_r,mglob.fade_g,mglob.fade_b, mglob.fade_mult);
   }
     return s;
   }
@@ -1634,7 +1634,7 @@ static void free_ddl_file_name(void) {
 }
 
 const char *run_launcher() {
-      const char *str_label = texty[198];  
+      const char *str_label = texty[198];
       TSTR_LIST lst = create_list(100);
       TSTR_LIST ddl_lst = create_list(100);
       CTL3D ctl = {0,0,4,0};
@@ -1647,20 +1647,20 @@ const char *run_launcher() {
       size_t ugccount = UGC_Fetch(ugc);;
       for (size_t i = 0; i < ugccount; ++i) {
         UGCItem item = UGC_GetItem(ugc, i);
-        char buff[60];      
+        char buff[60];
         const char *title = item.name;
-        size_t tlen = strlen(title);        
+        size_t tlen = strlen(title);
         const char *author = item.author;
         size_t alen = strlen(author);
         size_t reserve = sizeof(buff)-4;
         char d1 = 0;
         char d2 = 0;
-        if (tlen + alen > reserve) { 
+        if (tlen + alen > reserve) {
           if (alen < reserve/2) {tlen = reserve - alen - 3;d1 = 1;}
           else if (tlen < reserve/2) {alen = reserve - tlen - 3;d2=1;}
           else {
             tlen = reserve/2-3; d1 = 1;
-            alen = reserve/2-3; d2 = 1;    
+            alen = reserve/2-3; d2 = 1;
           }
         }
         char *iter = buff;
@@ -1698,9 +1698,9 @@ const char *run_launcher() {
       escape();
       send_message(E_DONE,E_KEYBOARD,save_dialog_keyboards);
       send_message(E_DONE,E_MOUSE,save_dialog_keyboards);
-      int butt = o_aktual->id;     
-      get_value(0,9,&selected);      
-      char *selddl = strdup(ddl_lst[selected]);      
+      int butt = o_aktual->id;
+      get_value(0,9,&selected);
+      char *selddl = strdup(ddl_lst[selected]);
       release_list(lst);
       release_list(ddl_lst);
       close_current();

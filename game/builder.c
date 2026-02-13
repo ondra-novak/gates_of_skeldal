@@ -58,7 +58,6 @@ char reverse_draw=0;
 int viewsector=1,viewdir=1;
 char norefresh=0,map_state=0;
 int cur_sector; //sektor aktualni pozice
-int back_color;
 char global_anim_counter=0;
 char one_buffer=0;
 char set_halucination=0;
@@ -784,9 +783,11 @@ static const void *check_autofade(const void *image, char ceil, int dark)
 	if (mglob.map_autofadefc==1)
 	{
 	  word *imgdata=xy+3;
-	  int br=back_color>>10;
-	  int bg=(back_color>>5) & 0x1F;
-	  int bb=back_color & 0x1F;
+	  float br=mglob.fade_r>>3;
+	  float bg=mglob.fade_g>>3;
+	  float bb=mglob.fade_b>>3;
+	  float fmult = MIN(1.0f, mglob.fade_mult);
+	  float cmult = MAX(1.0f, mglob.fade_mult);
 	  int y;
 
       if (dark) br=bg=bb=0;
@@ -796,16 +797,19 @@ static const void *check_autofade(const void *image, char ceil, int dark)
 		float factor=(float)y/(xy[1]-1);
 		int x;
 		if (!ceil) factor=1.0f-factor;
-		factor=factor*factor*factor;
+		factor=(1-0-(1.0-factor*factor)*fmult);
 		for (x=0;x<xy[0];x++)
 		{
-		  int r=*imgdata>>10;
-		  int g=(*imgdata>>5) & 0x1F;
-		  int b=*imgdata & 0x1F;
-		  r=(int)(r+factor*(br-r));
-		  g=(int)(g+factor*(bg-g));
-		  b=(int)(b+factor*(bb-b));
-		  *imgdata=(r<<10)|(g<<5)|b;
+		  float r=(*imgdata>>10)*cmult;
+		  float g=((*imgdata>>5) & 0x1F)*cmult;
+		  float b=(*imgdata & 0x1F)*cmult;
+		  int rr=(int)(r+factor*(br-r));
+		  if (rr > 0x1F) rr = 0x1F;
+		  int rg=(int)(g+factor*(bg-g));
+          if (rg > 0x1F) rg = 0x1F;
+          int rb=(int)(b+factor*(bb-b));
+          if (rb > 0x1F) rb = 0x1F;
+		  *imgdata=(rr<<10)|(rg<<5)|rb;
 		  imgdata++;
 		}
 	  }
@@ -1252,6 +1256,7 @@ void render_scene(int sector, int smer)
 //  trace_for_bgr(smer);
   i=VIEW3D_Z-1;
   s=minimap[i][VIEW3D_X];
+  uint32_t back_color=RGB888(mglob.fade_r,mglob.fade_g,mglob.fade_b);
   if (s && !map_sectors[s].ceil) clear_buff(ablock_copy(H_BGR_BUFF),back_color,360);
   else clear_buff(ablock_copy(H_BGR_BUFF),back_color,80);
   for(i=-VIEW3D_X+1;i<VIEW3D_X;i++)
@@ -1451,3 +1456,25 @@ void display_ver(int x,int y,int ax,int ay)
 void hide_boat() {
     game_display_hide_sprite(H_LODKA);
 }
+
+
+void change_fade_color(int r, int g, int b) {
+    if (mglob.fade_b != b || mglob.fade_g != g || mglob.fade_r != r || mglob.map_autofadefc != 1) {
+        mglob.fade_b = b;
+        mglob.fade_g = g;
+        mglob.fade_r = r;
+        mglob.map_autofadefc = 1;
+        //costly operation
+        for(int i=H_FIRST_FREE;i<end_ptr;i++) zneplatnit_block(i);
+    }
+}
+
+void change_fade_brightness(float mult) {
+    if (mult != mglob.fade_mult || mglob.map_autofadefc != 1) {
+        mglob.fade_mult = mult;
+        mglob.map_autofadefc = 1;
+        //costly operation
+        for(int i=H_FIRST_FREE;i<end_ptr;i++) zneplatnit_block(i);
+    }
+}
+

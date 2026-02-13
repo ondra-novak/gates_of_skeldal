@@ -276,7 +276,7 @@ THANDLE_DATA *zneplatnit_block(int handle)
   THANDLE_DATA *h;
 
   h=kill_block(handle);
-  if (h->status==BK_SAME_AS)
+  if (h && h->status==BK_SAME_AS)
      return zneplatnit_block(h->offset);
   return h;
   }

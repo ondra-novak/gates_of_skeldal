@@ -592,7 +592,7 @@ static void nahodne(int vls,int omz,char check)
            l=i;iff=1;
            m=postavy[i].vlastnosti[vls];
            }
-        else chk[i]|=4;
+     else chk[i]|=4;
   m=0;
   for(i=0;i<POCET_POSTAV;i++) if (!chk[i])m++;
   if (m==0 && !check)
@@ -1208,7 +1208,7 @@ static char test_vls(int h,int vls,int oper,int num)
      vls-=100;
      val=postavy[h].bonus_zbrani[vls];
      }
-  else
+   else
      val=postavy[h].stare_vls[vls];
   return oper_balance(val,num,oper);
   }
@@ -1285,6 +1285,14 @@ static void cast_spell(int spell)
   add_spell(spell,cil,cil,1);
   }
 
+static void cast_spell_enemy(int spell)
+  {
+    if (dialog_mob > -1) {
+      int cil=-dialog_mob-1;
+      add_spell(spell,cil,cil,1);
+    }
+  }
+
 static void free_dialog_stringtable(void) {
     stringtable_free(dialogy_strtable);
 }
@@ -1329,6 +1337,50 @@ static void teleport_char(const char *level, int sector, int dir) {
     postavy[p].sektor = h == current_map_hash?sector:-sector;
     postavy[p].direction = dir;
     bott_draw(0);
+}
+
+static void do_replace_monster(size_t monster_index, size_t monster_id) {
+  if ( monster_index >= MAX_MOBS ||  monster_id >= mob_templates_count) return;
+    TMOB *m = &mobs[monster_index];
+    load_enemy_to_map(monster_index, m->sector, m->dir, &mob_templates[monster_id]);    
+}
+
+static void replace_monster(short n) {
+    if (dialog_mob>-1) do_replace_monster(dialog_mob, n);    
+}
+
+static void replace_monsters(short m, short n) {
+    for (size_t i = 0; i < MAX_MOBS; ++i) {
+      if (mobs[i].cislo_vzoru == m && (mobs[i].vlajky & MOB_LIVE)) {
+        do_replace_monster(i, n);
+      }
+    }
+}
+
+static inline float pow2(float s) {
+    return s*s;
+}
+static void replace_monsters_r(short m, short n, short s, short r) {
+    int x = map_coord[s].x;
+    int y = map_coord[s].y;
+    int l = map_coord[s].layer;
+    float rad = pow2(r);
+
+    for (size_t i = 0; i < MAX_MOBS; ++i) {
+      if (mobs[i].cislo_vzoru == m && (mobs[i].vlajky & MOB_LIVE)) {
+        size_t sect = mobs[i].sector;
+        int mx = map_coord[sect].x;
+        int my = map_coord[sect].y;
+        int ml = map_coord[sect].layer;
+        if (ml == l) {
+            float dist = sqrt(pow2(mx-x)+pow2(my-y));
+            if (dist <= rad) {
+              do_replace_monster(i, n);
+            }
+        }
+        do_replace_monster(i, n);
+      }
+    }
 }
 
 void do_dialog()
@@ -1383,6 +1435,11 @@ void do_dialog()
      case 33: c = Get_string(); p1 = Get_short(); p2 = Get_short(); teleport_char(c, p1, p2); break;
      case 34: stk_push(postavy[(int)sn_nums[0]].xicht);break;
      case 35: stk_push(postavy[(int)sn_nums[0]].sektor);break;
+     case 36: change_music(Get_string());break;
+     case 37: replace_monster(Get_short());break;
+     case 38: p1 = Get_short(); p2 = Get_short(); replace_monsters(p1,p2);break;
+     case 39: p1 = Get_short(); p2 = Get_short(); p3 = Get_short(); replace_monsters_r(p1,p2,p3,Get_short());break;
+     case 40: cast_spell_enemy(Get_short());break;
      case 128:add_desc(Get_string());break;
      case 129:show_emote(Get_string());break;
      case 130:save_name(Get_short());break;
@@ -1437,9 +1494,10 @@ void do_dialog()
      case 174:iff=join_character(Get_short());break;
      case 189:dead_players=1;break;
      case 175:echo(Get_string()); p1=Get_short();
-              if (dlg_ask_who()) if (p1) goto_paragraph(p1);
-                                   else iff=1;
-                               else iff=0;
+              if (dlg_ask_who()) {
+                    if (p1) goto_paragraph(p1);
+                    else iff=1;
+              } else iff=0;
               break;
      case 176:p1=Get_short();p2=Get_short();pract_to(sn_nums[0],p1,p2);break;
      case 177:p1=Get_short();p2=Get_short();p3=Get_short();iff=test_vls(sn_nums[0],p1,p2,p3);break;

@@ -27,7 +27,7 @@ TSTR_LIST create_list_copy(TSTR_LIST lst) {
     for (int i = 0; i < cnt; ++i) {
         str_replace(&out, i, lst[i]);
     }
-    return lst;
+    return out;
 
 }
 

@@ -56,7 +56,7 @@ char pass_zavora=0;
 char map_with_password=0;
 
 MAPGLOBAL mglob={
-        {"","","",""},0,0,0,1,0,"",0,0,0
+        {"","","",""},0,0,0,1,0,"",0,0,0,1.0f
 };
 TSTENA *map_sides;
 TSECTOR *map_sectors;
@@ -338,12 +338,14 @@ int load_map(const char *filename)
          case A_MAPGLOB:
                   num_ofsets[BACK_NUM]=ofsts;
                   num_ofsets_count[BACK_NUM]=1;
-				      memset(&mglob,0,sizeof(mglob));
+				  memset(&mglob,0,sizeof(mglob));
                   memcpy(&mglob,temp,MIN((int)size,(int)sizeof(mglob)));
+                  if (sizeof(mglob) != size) {
+                      mglob.fade_mult = 1.0;
+                  }
                   for(r=0;r<4;r++) {
                         def_handle(ofsts++,mglob.back_fnames[r],pcx_fade_decomp,SR_GRAFIKA);
                   }
-                  back_color=RGB888(mglob.fade_r,mglob.fade_g,mglob.fade_b);
                   translate_map_name(filename, &mglob);;
                   break;
          case A_MAPITEM:

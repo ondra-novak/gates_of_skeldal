@@ -536,6 +536,7 @@ typedef
    char map_effector;
    char local_monsters;
    char map_autofadefc;
+   float fade_mult;
    }MAPGLOBAL;
 
 typedef struct the_timer
@@ -589,7 +590,6 @@ extern char reverse_draw ;         //kresba odpredu dozadu
 extern uint8_t gamespeed;             //rychlost hry
 extern uint8_t gamespeedbattle;	   //akcelerace rychlosti pro bitvy
 extern int num_ofsets[];           //tabulka offsetu pro steny
-extern int back_color;             //cislo barvy pozadi
 extern uint8_t cur_group;             //cislo aktualni skupiny
 extern uint8_t group_select;               //1 = prave byla sestavena nova skupina
 extern unsigned int barvy_skupin[POCET_POSTAV+1]; //cisla barev skupin
@@ -689,6 +689,8 @@ void postavy_teleport_effect(int sector,int dir,int postava,char eff);
 void reg_grafiku_postav(void);
 void play_movie_seq(const char *s,int y);
 void check_postavy_teleport(void);  //je-li viewsector=teleport pak presune postavy
+void change_fade_color(int r, int g, int b);
+void change_fade_brightness(float mult);
 
 
 

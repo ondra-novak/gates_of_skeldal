@@ -52,43 +52,34 @@ void decomprimate_line_hi(const char *src,unsigned short *trg,unsigned short *pa
   *srcstep=src-srcsave;
   }
 
-void palette_shadow(const char *pal1,unsigned short pal2[][256],int tr,int tg,int tb)
+static inline int color_clamp(float f) {
+    if (f > 255.0) f = 255;
+    return (int)f;
+}
+
+void palette_shadow(const char *pal1,unsigned short pal2[][256],int tr,int tg,int tb, float bright)
   {
-  int i,j;
-  const char *bt;
-  int r,g,b;
-  short hi;
+    float fmult = MIN(1.0f, bright);
+    float cmult = MAX(1.0f, bright);
 
-  for (j=0;j<SHADE_STEPS;j++)
-     {
-     bt=pal1;
-     i=0;
-     do
-       {
-       r=(tr+(*(bt++)-tr)*(3*SHADE_STEPS-3*j-1)/(3*SHADE_STEPS-1))>>3;
-       g=(tg+(*(bt++)-tg)*(3*SHADE_STEPS-3*j-1)/(3*SHADE_STEPS-1))>>3;
-       b=(tb+(*(bt++)-tb)*(3*SHADE_STEPS-3*j-1)/(3*SHADE_STEPS-1))>>3;
-       hi=RGB555(r,g,b);
-       pal2[j][i]=hi;
-       }
-    while (++i & 0xff);
-    }
-  for (j=0;j<SHADE_STEPS;j++)
-     {
-     bt=pal1;
-     i=0;
-     do
-       {
-       r=((*(bt++))*(SHADE_STEPS-j)/SHADE_STEPS)>>3;
-       g=((*(bt++))*(SHADE_STEPS-j)/SHADE_STEPS)>>3;
-       b=((*(bt++))*(SHADE_STEPS-j)/SHADE_STEPS)>>3;
-       hi=RGB555(r,g,b);
-       pal2[j+SHADE_STEPS][i]=hi;
-       }
-    while (++i & 0xff);
-    }
+
+      for (int k = 0; k < 2; k++) {
+          for (int  j=0;j<SHADE_STEPS;j++) {
+             const unsigned char *bt=(const unsigned char *)pal1;
+             float f = fmult*(3*SHADE_STEPS-3*j-1)/(3*SHADE_STEPS-1);
+             for (int i = 0; i < 256; ++ i) {
+               int r=color_clamp((tr+(*(bt++)*cmult-tr)*f))>>3;
+               int g=color_clamp((tg+(*(bt++)*cmult-tg)*f))>>3;
+               int b=color_clamp((tb+(*(bt++)*cmult-tb)*f))>>3;
+               short hi=RGB555(r,g,b);
+               pal2[j+SHADE_STEPS*k][i]=hi;
+             }
+          }
+          tr = 0;
+          tg = 0;
+          tb = 0;
+      }
   }
-
 
 int load_pcx(const char *pcx,int32_t fsize,int conv_type,char **buffer, ... )
   //dale nasleduji int hodnoty poctu prechodu a R,G,B barvy
@@ -151,14 +142,16 @@ int load_pcx(const char *pcx,int32_t fsize,int conv_type,char **buffer, ... )
   if (conv_type==A_FADE_PAL)
      {
      int tr,tg,tb;
+     float factor_mlt;
 
      va_list lst;
      va_start(lst, buffer);
      tr=va_arg(lst,int);
      tg=va_arg(lst,int);
      tb=va_arg(lst,int);
+     factor_mlt=(float)va_arg(lst,double);
      va_end(lst);
-     palette_shadow(paleta1,(unsigned short (*)[256])ptr4,tr,tg,tb);
+     palette_shadow(paleta1,(unsigned short (*)[256])ptr4,tr,tg,tb,factor_mlt);
      ptr4+=SHADE_PAL;
      }
   ysize++;
