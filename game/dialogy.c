@@ -32,10 +32,11 @@ typedef struct t_paragraph
   }T_PARAGRAPH;
 
 #define STR_BUFF_SIZ 4096
-#define SAVE_POSTS 20
+#define SAVE_SPKRS 20
 #define P_STRING 1
 #define P_SHORT 2
 #define P_VAR 3
+#define P_POP 4
 
 #define MAX_VOLEB 10
 
@@ -64,9 +65,9 @@ typedef struct t_paragraph
 
 static short variables[32];
 
-static char sn_nums[SAVE_POSTS];
-static char sn_nams[SAVE_POSTS][32];
-static char sn_rods[SAVE_POSTS];
+static char sn_nums[SAVE_SPKRS];
+static char sn_nams[SAVE_SPKRS][32];
+static char sn_rods[SAVE_SPKRS];
 
 static word *back_pic;
 static char back_pic_enable=0;
@@ -86,7 +87,7 @@ static int local_pgf=0;
 static char pocet_voleb=0;
 static char vyb_volba=0;
 static short vol_n[MAX_VOLEB];
-//static char *vol_s[MAX_VOLEB];
+
 static short save_jump;
 
 static TSTR_LIST history=NULL;
@@ -209,6 +210,24 @@ static void dialog_anim(va_list args)
   while (!cntr && rep && !task_quitmsg());
   free(aptr);
   }
+
+#define MAX_STACK_SIZE 512
+static short script_stack[MAX_STACK_SIZE];
+static int script_stack_pos = MAX_STACK_SIZE;
+
+static void stk_push(short value) {
+    if (script_stack_pos == 0) {
+        display_error("script stack overflow"); exit(1);
+    }
+    script_stack[--script_stack_pos] = value;
+}
+static short stk_pop() {
+    if (script_stack_pos >= MAX_STACK_SIZE) {
+        display_error("script stack underflow"); exit(1);
+    }
+    return script_stack[script_stack_pos++];
+}
+
 
 static void stop_anim()
   {
@@ -435,6 +454,9 @@ static short Get_short()
      pc+=2;
      return variables[p];
      }
+  if (*pc == P_POP) {
+    return stk_pop();
+  }
   error("O�ek�v� se ��slo");
   exit(0);
   return 0;
@@ -577,7 +599,7 @@ static void nahodne(int vls,int omz,char check)
   int i,l,m;
 
   memset(chk,0,sizeof(chk));
-  if (!check) for(i=0;i<SAVE_POSTS;i++) if (sn_nums[i]<POCET_POSTAV) chk[(uint8_t)sn_nums[i]]|=1;
+  if (!check) for(i=0;i<SAVE_SPKRS;i++) if (sn_nums[i]<POCET_POSTAV) chk[(uint8_t)sn_nums[i]]|=1;
   for(i=0;i<POCET_POSTAV;i++) if (postavy[i].sektor!=viewsector || !postavy[i].lives || !postavy[i].used) chk[i]|=2;
   m=0;l=-1;
   for(i=0;i<POCET_POSTAV;i++)
@@ -1297,22 +1319,6 @@ static void free_dialog_stringtable(void) {
     stringtable_free(dialogy_strtable);
 }
 
-#define MAX_STACK_SIZE 512
-static short script_stack[MAX_STACK_SIZE];
-static int script_stack_pos = MAX_STACK_SIZE;
-
-static void stk_push(short value) {
-    if (script_stack_pos == 0) {
-        display_error("script stack overflow"); exit(1);
-    }
-    script_stack[--script_stack_pos] = value;
-}
-static short stk_pop() {
-    if (script_stack_pos >= MAX_STACK_SIZE) {
-        display_error("script stack underflow"); exit(1);
-    }
-    return script_stack[script_stack_pos++];
-}
 
 static short count_slots() {
     short s = 0;
@@ -1383,6 +1389,25 @@ static void replace_monsters_r(short m, short n, short s, short r) {
     }
 }
 
+static char get_lever(unsigned short sector, unsigned short dir) {
+    if (sector >= mapsize) return 0;
+    if (dir >= 4) return 0;
+    const TSECTOR *sect = &map_sectors[sector*4+dir];
+    if ((sect->flags & SD_SEC_ANIM) == 0 && (sect->flags & SD_SEC_VIS) != 0) {
+        return (sect->flags & SD_SEC_FORV) != 0;
+    }
+    return (sect->flags & SD_PRIM_FORV) != 0;
+}
+
+static void load_level(const char *levl, unsigned short sector, unsigned short dir) {
+    TMA_LOADLEV ld;
+    strcopy_n(ld.name, levl, sizeof(ld.name));
+    ld.start_pos = sector;
+    ld.dir = dir;
+    battle = 0;
+    macro_load_another_map(&ld);
+}
+
 void do_dialog()
   {
   int i,p1,p2,p3;
@@ -1395,6 +1420,7 @@ void do_dialog()
       }
   }
 
+  
   do
      {
   i=Get_short();p3=0;
@@ -1409,22 +1435,22 @@ void do_dialog()
      case 7: p1 = stk_pop(); p2=stk_pop(); stk_push(p1-p2);break;
      case 8: p1 = stk_pop(); p2=stk_pop(); stk_push(p1*p2);break;
      case 9: p1 = stk_pop(); p2=stk_pop(); stk_push(p1/p2);break;
-     case 10: p1 = stk_pop(); p2=stk_pop(); stk_push(p1 &&p2);break;
-     case 11: p1 = stk_pop(); p2=stk_pop(); stk_push(p1 ||p2);break;
-     case 12: p1 = stk_pop(); p2=stk_pop(); stk_push(p1 == p2);break;
-     case 13: p1 = stk_pop(); p2=stk_pop(); stk_push(p1 != p2);break;
-     case 14: p1 = stk_pop(); p2=stk_pop(); stk_push(p1 < p2);break;
-     case 15: p1 = stk_pop(); p2=stk_pop(); stk_push(p1 > p2);break;
-     case 16: p1 = stk_pop(); p2=stk_pop(); stk_push(p1 <= p2);break;
-     case 17: p1 = stk_pop(); p2=stk_pop(); stk_push(p1 >= p2);break;
+     case 10: p1 = stk_pop(); p2=stk_pop(); iff = (p1 &&p2);break;
+     case 11: p1 = stk_pop(); p2=stk_pop(); iff = (p1 ||p2);break;
+     case 12: p1 = stk_pop(); p2=stk_pop(); iff = (p1 == p2);break;
+     case 13: p1 = stk_pop(); p2=stk_pop(); iff = (p1 != p2);break;
+     case 14: p1 = stk_pop(); p2=stk_pop(); iff = (p1 < p2);break;
+     case 15: p1 = stk_pop(); p2=stk_pop(); iff = (p1 > p2);break;
+     case 16: p1 = stk_pop(); p2=stk_pop(); iff = (p1 <= p2);break;
+     case 17: p1 = stk_pop(); p2=stk_pop(); iff = (p1 >= p2);break;
      case 18: stk_push(-stk_pop());break;
      case 19: stk_push(!stk_pop());break;
      case 20: stk_push(iff?1:0);break;
      case 21: iff = stk_pop() != 0;break;
-     case 22: p1 = stk_pop(); p2=stk_pop(); nahodne(p1,p2,0);break;
-     case 23: stk_push(postavy[(int)sn_nums[0]].vlastnosti[stk_pop()]);break;
-     case 24: stk_push(postavy[(int)sn_nums[0]].wearing[stk_pop()]);break;
-     case 25: stk_push(postavy[(int)sn_nums[0]].bonus_zbrani[stk_pop()]);break;
+     case 22: p1 = Get_short(); p2=Get_short(); nahodne(p1,p2,0);break;
+     case 23: stk_push(postavy[(int)sn_nums[0]].vlastnosti[Get_short()]);break;
+     case 24: stk_push(postavy[(int)sn_nums[0]].wearing[Get_short()]-1);break;
+     case 25: stk_push(postavy[(int)sn_nums[0]].bonus_zbrani[Get_short()]);break;
      case 26: stk_push(sn_rods[0]);break;
      case 27: stk_push(count_slots());break;
      case 28: stk_push(count_present(viewsector));break;
@@ -1440,6 +1466,15 @@ void do_dialog()
      case 38: p1 = Get_short(); p2 = Get_short(); replace_monsters(p1,p2);break;
      case 39: p1 = Get_short(); p2 = Get_short(); p3 = Get_short(); replace_monsters_r(p1,p2,p3,Get_short());break;
      case 40: cast_spell_enemy(Get_short());break;
+     case 41: iff = postavy[(int)sn_nums[0]].sektor == viewsector;break;
+     case 42: stk_push(money);break;
+     case 43: iff = dialog_mob != -1;break;
+     case 44: variables[0] = stk_pop();break;
+     case 45: p1 = Get_short(); p2 = Get_short(); iff=get_lever(p1,p2);break;
+     case 46: c = Get_string(); p1 = Get_short(); p2 = Get_short(); load_level(c,p1,p2);break;
+     case 47: stk_push(viewsector);break;
+     case 48: stk_push(viewdir);break;
+     case 49: stk_push(rnd(10000));break;
      case 128:add_desc(Get_string());break;
      case 129:show_emote(Get_string());break;
      case 130:save_name(Get_short());break;
@@ -1474,7 +1509,7 @@ void do_dialog()
      case 153:create_item(Get_short());break;
      case 154:destroy_item(Get_short());break;
      case 155:money+=Get_short();break;
-     case 156:p1=Get_short();if (p1>money) iff=1;else money-=p1;break;
+     case 156:p1=Get_short();if (p1>=money) iff=1;else money-=p1;break;
      case 157:dlg_start_battle();break;
      case 158:p1=Get_short();p2=Get_short();delay_action(0,p1,p2,0,0,0);break;
      case 160:p1=Get_short();p2=Get_short();teleport_group(p1,p2);break;
@@ -1509,7 +1544,7 @@ void do_dialog()
      case 183:spat(Get_short());break;
      case 184:p1=Get_short();iff=najist_postavy(p1);break;
      case 185:iff=isall();break;
-		 case 186:enable_glmap=Get_short();break;
+	 case 186:enable_glmap=Get_short();break;
      case 187:p1=Get_short();p2=Get_short();iff=atsector(p1,p2);break;
      case 188:p1=Get_short();cast_spell(p1);break;
      case 190:spell_sound(Get_string());break;
@@ -1524,6 +1559,7 @@ void do_dialog()
      case 199:goto_paragraph(variables[Get_short()]);break;
      case 200:iff=drop_character();break;
      case 201:pc_xicht(Get_short());break;
+     case 202:p1=Get_short();runes[p1/10]&=~(1<<(p1%10));break;
      case 518:set_flag(Get_short());break;
      case 519:reset_flag(Get_short());break;
      case 255:exit_dialog();return;
