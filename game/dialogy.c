@@ -63,7 +63,8 @@ typedef struct t_paragraph
 
 #define DESC_COLOR1 (RGB555(28,28,21))
 
-static short variables[32];
+#define MAX_VARIABLES 100
+static short variables[100];
 
 static char sn_nums[SAVE_SPKRS];
 static char sn_nams[SAVE_SPKRS][32];
@@ -1638,6 +1639,9 @@ char save_dialog_info(TMPFILE_WR *f)
   T_PARAGRAPH *q;
 
   SEND_LOG("(DIALOGS)(SAVELOAD) Saving dialogs info...");
+  int32_t varcnt = -MAX_VARIABLES;
+  temp_storage_write(&varcnt, sizeof(varcnt), f);
+  temp_storage_write(variables, sizeof(variables), f);
   p=ablock_copy(H_DIALOGY_DAT);
   pgf_pocet=*p;
   temp_storage_write(&pgf_pocet,1*4,f);
@@ -1663,7 +1667,7 @@ char save_dialog_info(TMPFILE_WR *f)
 
 char load_dialog_info(TMPFILE_RD *f)
   {
-  int pgf_pocet;
+  int32_t pgf_pocet;
   int *p,i;
   size_t siz;
   char *c,res=0;
@@ -1672,6 +1676,15 @@ char load_dialog_info(TMPFILE_RD *f)
   SEND_LOG("(DIALOGS)(SAVELOAD) Loading dialogs info...");
   p=ablock_copy(H_DIALOGY_DAT);
   temp_storage_read(&pgf_pocet,1*4,f);
+  if (pgf_pocet < 0) {
+    SEND_LOG("(ERROR) Different variable count");
+    if (pgf_pocet != -MAX_VARIABLES) {
+        temp_storage_skip(f,-pgf_pocet * sizeof(short));   
+    } else {
+        temp_storage_read(variables, sizeof(variables), f);
+        temp_storage_read(&pgf_pocet,1*4,f);
+    }
+  }
   siz=(pgf_pocet+3)/4;
   if (pgf_pocet!=*p)
      {
