@@ -1255,6 +1255,10 @@ static void reload_restart_map() {
 static int reload_map_handler(EVENT_MSG *msg,void **usr)
 {
 extern char running_battle;
+extern char nohassle;
+extern char immortality;
+extern char pass_all_mobs;
+extern char force_levitate;
   if (msg->msg==E_EXTERNAL_MSG)
   {
     const char *m = va_arg(msg->data, const char *);
@@ -1262,6 +1266,7 @@ extern char running_battle;
     int sector;
     int side;
     int i;
+    int ghost = -1;
 
     if (strcmp(m, "RELOAD") == 0) {
         reload_ddls();
@@ -1271,7 +1276,7 @@ extern char running_battle;
         SEND_LOG("(WIZARD) Reload map");
         reload_restart_map();
 
-    } else if (sscanf(m, "TELEPORT %12s %d %d", fname, &sector, &side) == 3) {
+    } else if (sscanf(m, "TELEPORT %12s %d %d %d", fname, &sector, &side, &ghost) == 4) {
 
         reload_ddls();
         strcopy_n(loadlevel.name,fname,sizeof(loadlevel.name));
@@ -1283,7 +1288,16 @@ extern char running_battle;
             postavy[i].groupnum = 1;
         }
         SEND_LOG("(WIZARD) Load map '%s' %d %d",loadlevel.name,loadlevel.start_pos, loadlevel.dir);
+        if (ghost != -1) {
+            nohassle = ghost != 0;
+            immortality = ghost != 0;
+            pass_all_mobs = ghost != 0;
+            force_levitate = ghost != 0;
+        }
         reload_restart_map();
+    } else if (sscanf(m, "TEST_DIALOG %d", &i) == 1) {
+        game_display_focus();
+        start_dialog(i,-1);
     } else if (sscanf(m, "CONSOLE %d", &i) == 1) {
         console_show(i);
         game_display_focus();

@@ -1470,7 +1470,6 @@ void do_dialog()
      case 41: iff = postavy[(int)sn_nums[0]].sektor == viewsector;break;
      case 42: stk_push(money);break;
      case 43: iff = dialog_mob != -1;break;
-     case 44: variables[0] = stk_pop();break;
      case 45: p1 = Get_short(); p2 = Get_short(); iff=get_lever(p1,p2);break;
      case 46: c = Get_string(); p1 = Get_short(); p2 = Get_short(); load_level(c,p1,p2);break;
      case 47: stk_push(viewsector);break;
