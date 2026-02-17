@@ -881,6 +881,8 @@ void draw_placed_items_normal(int celx,int cely,int sect,int side);
 #define TYP_SVITXT 12
 #define TYP_PRACH 13
 #define TYP_OTHER 14
+#define TYP_DLGPICK 15
+#define TYP_DLGUSE 16
 
 #define ITF_DUPLIC 0x8000 //Predmet je duplikaci jineho predmetu
 #define ITF_FREE 0x4000 //Predmet byl duplikaci, ted je jeho pozice volna
@@ -1588,6 +1590,7 @@ int vyber_potvoru(int sect,int dir,int *chaos); //vybere potvoru ze sektoru a sm
 void load_enemies(const short *data,int size,int *grptr,const TMOB *template,int32_t tsize);
 char mob_test_na_bitvu(TMOB *p);  //nastavi p->vlajky|MOB_INBATTLE pokud potvora muze vstoupit do bitvy;
 void send_mob_to(int m,word *path);
+char send_mob_to_sector(int mob_id,int to);
 void save_enemy_paths(TMPFILE_WR *f);
 int load_enemy_paths(TMPFILE_RD *f);
 void regen_all_mobs(void);
