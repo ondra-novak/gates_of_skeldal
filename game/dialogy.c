@@ -97,6 +97,7 @@ static int end_text_line=0;
 static int last_his_line=0;
 
 static int starting_shop=-1;
+static int held_item=-1;
 
 static char halt_flag=0;
 
@@ -1344,6 +1345,7 @@ static void teleport_char(const char *level, int sector, int dir) {
     postavy[p].sektor = h == current_map_hash?sector:-sector;
     postavy[p].direction = dir;
     bott_draw(0);
+    build_player_map();
 }
 
 static void do_replace_monster(size_t monster_index, size_t monster_id) {
@@ -1354,6 +1356,7 @@ static void do_replace_monster(size_t monster_index, size_t monster_id) {
 
 static void replace_monster(short n) {
     if (dialog_mob>-1) do_replace_monster(dialog_mob, n);    
+    refresh_mob_map();
 }
 
 static void replace_monsters(short m, short n) {
@@ -1362,6 +1365,7 @@ static void replace_monsters(short m, short n) {
         do_replace_monster(i, n);
       }
     }
+    refresh_mob_map();
 }
 
 static inline float pow2(float s) {
@@ -1408,6 +1412,24 @@ static void load_level(const char *levl, unsigned short sector, unsigned short d
     battle = 0;
     macro_load_another_map(&ld);
 }
+
+void send_monsters(int from, int to) {
+    for (int i = 0; i < MAX_MOBS; ++i) {
+        if (mobs[i].sector == from) {
+            send_mob_to_sector(i, to);
+        }
+    }
+}
+void teleport_enemies(int from, int to, int dir) {
+    for (int i = 0; i < MAX_MOBS; ++i) {
+        if (mobs[i].sector == from) {
+            mobs[i].sector = to;
+            mobs[i].dir = dir;
+        }
+    }
+    refresh_mob_map();
+}
+
 
 void do_dialog()
   {
@@ -1470,11 +1492,13 @@ void do_dialog()
      case 41: iff = postavy[(int)sn_nums[0]].sektor == viewsector;break;
      case 42: stk_push(money);break;
      case 43: iff = dialog_mob != -1;break;
+     case 44: iff = battle;break;
      case 45: p1 = Get_short(); p2 = Get_short(); iff=get_lever(p1,p2);break;
      case 46: c = Get_string(); p1 = Get_short(); p2 = Get_short(); load_level(c,p1,p2);break;
      case 47: stk_push(viewsector);break;
      case 48: stk_push(viewdir);break;
      case 49: stk_push(rnd(10000));break;
+     case 50: stk_push(held_item);break;
      case 128:add_desc(Get_string());break;
      case 129:show_emote(Get_string());break;
      case 130:save_name(Get_short());break;
@@ -1560,6 +1584,14 @@ void do_dialog()
      case 200:iff=drop_character();break;
      case 201:pc_xicht(Get_short());break;
      case 202:p1=Get_short();runes[p1/10]&=~(1<<(p1%10));break;
+     case 203:p1=Get_short();p2=Get_short();send_monsters(p1,p2);break;
+     case 204:if (dialog_mob>=0) send_mob_to_sector(dialog_mob, Get_short());break;
+     case 205:p1=Get_short();p2=Get_short();p3=Get_short();teleport_enemies(p1,p2,p3);break;
+     case 206:p1=Get_short();p2=Get_short();if (dialog_mob>=0) {
+            mobs[dialog_mob].sector = p1;
+            mobs[dialog_mob].dir = p2;
+            refresh_mob_map();
+            };break;
      case 518:set_flag(Get_short());break;
      case 519:reset_flag(Get_short());break;
      case 255:exit_dialog();return;
@@ -1617,6 +1649,7 @@ void call_dialog(int entr,int mob)
      _monster_flag_map[1]=mobs[mob].stay_strategy;
      }
   local_pgf=0;
+  if (picked_item) held_item=*picked_item-1; else held_item=-1;
   poloz_vsechny_predmety();
   norefresh=1;
   history=create_list(256);

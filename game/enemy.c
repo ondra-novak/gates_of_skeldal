@@ -260,7 +260,18 @@ void send_mob_to(int m,word *path)
     }
   register_mob_path(m,path);
   mobs[m].stay_strategy |= MOB_WALK;
+}
+
+char send_mob_to_sector(int mob_id,int to)
+  {
+  word *path;
+
+  int from = mobs[mob_id].sector;
+  if (labyrinth_find_path(from,to,SD_MONST_IMPS,NULL,&path,NULL)==0) return 0;  
+  send_mob_to(mob_id,path);
+  return 1;
   }
+
 
 void smeruj_moba(TMOB *m,int smer)
   {

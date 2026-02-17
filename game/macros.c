@@ -656,13 +656,11 @@ static int  ma_play_anim(const char *filename,char cls)
 
 static void ma_control_mob(int from,int to)
   {
-  word *path;
   int m;
 
   if (mob_map[from]==0) return;
-  if (labyrinth_find_path(from,to,SD_MONST_IMPS,NULL,&path,NULL)==0) return;
-  m=mob_map[from]-1;
-  send_mob_to(m,path);
+  m = mob_map[from]-1;
+  send_mob_to_sector(m,to);
   }
 
 static void ma_drop_money(int sect,int side,const TMULTI_ACTION *q)

@@ -594,6 +594,10 @@ void do_items_specs(void)
                         destroy=1;
                         bott_disp_text(texty[134]);
                         break;
+           case TYP_DLGPICK:
+                        destroy=1;
+                        if (p->user_value>0) start_dialog(p->user_value, -1);
+                        break;
            case TYP_SVITXT:
                         destroy=1;
                         cur_page=count_pages();
@@ -2360,7 +2364,7 @@ char human_click(int id,int xa,int ya,int xr,int yr)
      else if (picked_item[1]!=0) return 0;
      else
        {
-       um=place=glob_items[picked_item[0]-1].umisteni;
+       um=place=glob_items[picked_item[0]-1].umisteni;       
        if (!place)
          {
          switch (glob_items[picked_item[0]-1].druh)
@@ -2369,6 +2373,7 @@ char human_click(int id,int xa,int ya,int xr,int yr)
            case TYP_JIDLO:inv_najist(*picked_item);destroy_items(picked_item);free(picked_item);picked_item=NULL;pick_set_cursor();break;
            case TYP_VODA:inv_napit(*picked_item);destroy_items(picked_item);free(picked_item);picked_item=NULL;pick_set_cursor();break;
            case TYP_SPECIALNI:inv_use_spec(&picked_item);break;
+           case TYP_DLGUSE:start_dialog(glob_items[picked_item[0]-1].user_value,-1);exit_inv(0, 0, 0, 0, 0);break;
            }
          inv_redraw();
          return 1;
