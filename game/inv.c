@@ -2364,7 +2364,7 @@ char human_click(int id,int xa,int ya,int xr,int yr)
      else if (picked_item[1]!=0) return 0;
      else
        {
-       um=place=glob_items[picked_item[0]-1].umisteni;       
+       um=place=glob_items[picked_item[0]-1].umisteni;
        if (!place)
          {
          switch (glob_items[picked_item[0]-1].druh)
@@ -3268,23 +3268,24 @@ void unwire_shop(void)
   norefresh=0;
   wire_proc=wire_shop;
   inv_view_mode=old_inv_view_mode;
+  if (shop_keeper_picture) {
+      ablock_free(shop_keeper_picture);
+      shop_keeper_picture = NULL;
+    }
+  cur_shop = NULL;
   }
+
 
 void wire_shop(void)
   {
   int32_t size;
-  static TSHOP *last_shop=NULL;
   mute_all_tracks(0);
   old_inv_view_mode=inv_view_mode;
   inv_view_mode=0;
   inv_redraw=redraw_shop;
   schovej_mysku();
-  if (last_shop!=cur_shop)
-     {
-     ablock_free(shop_keeper_picture);
-     shop_keeper_picture=afile(cur_shop->picture,SR_DIALOGS,&size);
-     last_shop=cur_shop;
-     }
+  ablock_free(shop_keeper_picture);
+  shop_keeper_picture=afile(cur_shop->picture,SR_DIALOGS,&size);
   send_message(E_ADD,E_MOUSE,shop_mouse_event);
   send_message(E_ADD,E_KEYBOARD, shop_keyboard_proc);
   unwire_proc=unwire_shop;

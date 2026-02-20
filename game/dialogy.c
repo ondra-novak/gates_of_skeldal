@@ -1143,6 +1143,7 @@ static int dlg_ask_who()
   *otevri_zavoru=1;
   change_click_map(clk_dlg_who,CLK_DLG_WHO);
   escape();
+  his_line=get_last_his_line();
   dead_players=0;
   schovej_mysku();
   mouse_set_default(H_MS_DEFAULT);
@@ -1351,11 +1352,11 @@ static void teleport_char(const char *level, int sector, int dir) {
 static void do_replace_monster(size_t monster_index, size_t monster_id) {
   if ( monster_index >= MAX_MOBS ||  monster_id >= mob_templates_count) return;
     TMOB *m = &mobs[monster_index];
-    load_enemy_to_map(monster_index, m->sector, m->dir, &mob_templates[monster_id]);    
+    load_enemy_to_map(monster_index, m->sector, m->dir, &mob_templates[monster_id]);
 }
 
 static void replace_monster(short n) {
-    if (dialog_mob>-1) do_replace_monster(dialog_mob, n);    
+    if (dialog_mob>-1) do_replace_monster(dialog_mob, n);
     refresh_mob_map();
 }
 
@@ -1443,7 +1444,7 @@ void do_dialog()
       }
   }
 
-  
+
   do
      {
   i=Get_short();p3=0;
@@ -1454,18 +1455,18 @@ void do_dialog()
      case 3: stk_pop();break;
      case 4: p1 = stk_pop(); stk_push(p1); stk_push(p1); break;
      case 5: p1 = stk_pop(); p2=stk_pop(); stk_push(p1); stk_push(p2); break;
-     case 6: p1 = stk_pop(); p2=stk_pop(); stk_push(p1+p2);break;
-     case 7: p1 = stk_pop(); p2=stk_pop(); stk_push(p1-p2);break;
-     case 8: p1 = stk_pop(); p2=stk_pop(); stk_push(p1*p2);break;
-     case 9: p1 = stk_pop(); p2=stk_pop(); stk_push(p1/p2);break;
-     case 10: p1 = stk_pop(); p2=stk_pop(); iff = (p1 &&p2);break;
-     case 11: p1 = stk_pop(); p2=stk_pop(); iff = (p1 ||p2);break;
-     case 12: p1 = stk_pop(); p2=stk_pop(); iff = (p1 == p2);break;
-     case 13: p1 = stk_pop(); p2=stk_pop(); iff = (p1 != p2);break;
-     case 14: p1 = stk_pop(); p2=stk_pop(); iff = (p1 < p2);break;
-     case 15: p1 = stk_pop(); p2=stk_pop(); iff = (p1 > p2);break;
-     case 16: p1 = stk_pop(); p2=stk_pop(); iff = (p1 <= p2);break;
-     case 17: p1 = stk_pop(); p2=stk_pop(); iff = (p1 >= p2);break;
+     case 6: p1 = stk_pop(); p2=stk_pop(); stk_push(p2+p1);break;
+     case 7: p1 = stk_pop(); p2=stk_pop(); stk_push(p2-p1);break;
+     case 8: p1 = stk_pop(); p2=stk_pop(); stk_push(p2*p1);break;
+     case 9: p1 = stk_pop(); p2=stk_pop(); stk_push(p2/p1);break;
+     case 10: p1 = stk_pop(); p2=stk_pop(); iff = (p2 &&p1);break;
+     case 11: p1 = stk_pop(); p2=stk_pop(); iff = (p2 ||p1);break;
+     case 12: p1 = stk_pop(); p2=stk_pop(); iff = (p2 == p1);break;
+     case 13: p1 = stk_pop(); p2=stk_pop(); iff = (p2 != p1);break;
+     case 14: p1 = stk_pop(); p2=stk_pop(); iff = (p2 < p1);break;
+     case 15: p1 = stk_pop(); p2=stk_pop(); iff = (p2 > p1);break;
+     case 16: p1 = stk_pop(); p2=stk_pop(); iff = (p2 <= p1);break;
+     case 17: p1 = stk_pop(); p2=stk_pop(); iff = (p2 >= p1);break;
      case 18: stk_push(-stk_pop());break;
      case 19: stk_push(!stk_pop());break;
      case 20: stk_push(iff?1:0);break;
@@ -1499,6 +1500,7 @@ void do_dialog()
      case 48: stk_push(viewdir);break;
      case 49: stk_push(rnd(10000));break;
      case 50: stk_push(held_item);break;
+     case 51: iff = pocet_voleb == 0;break;
      case 128:add_desc(Get_string());break;
      case 129:show_emote(Get_string());break;
      case 130:save_name(Get_short());break;
@@ -1711,7 +1713,7 @@ char load_dialog_info(TMPFILE_RD *f)
   if (pgf_pocet < 0) {
     SEND_LOG("(ERROR) Different variable count");
     if (pgf_pocet != -MAX_VARIABLES) {
-        temp_storage_skip(f,-pgf_pocet * sizeof(short));   
+        temp_storage_skip(f,-pgf_pocet * sizeof(short));
     } else {
         temp_storage_read(variables, sizeof(variables), f);
         temp_storage_read(&pgf_pocet,1*4,f);
