@@ -525,6 +525,9 @@ typedef struct tmap_edit_info
 
 typedef TMAP_EDIT_INFO TMAP_EDIT[];
 
+
+
+
 typedef
    struct mapglobal
    {
@@ -537,6 +540,7 @@ typedef
    char local_monsters;
    char map_autofadefc;
    float fade_mult;
+   float fade_end;
    }MAPGLOBAL;
 
 typedef struct the_timer
@@ -691,6 +695,7 @@ void play_movie_seq(const char *s,int y);
 void check_postavy_teleport(void);  //je-li viewsector=teleport pak presune postavy
 void change_fade_color(int r, int g, int b);
 void change_fade_brightness(float mult);
+void change_fade_end(float mult);
 
 
 
@@ -772,7 +777,7 @@ void recheck_button(int sector,char auto_action);
 void start_dialog(int entr,int mob);
 void show_money(void);
 void chveni(int i);
-void render_scene(int,int);
+void render_scene(int,int, char nobackdrop);
 void bott_draw_fletna(void);
 void bott_disp_rune(char rune, int item);
 

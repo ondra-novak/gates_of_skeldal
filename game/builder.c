@@ -788,13 +788,14 @@ static const void *check_autofade(const void *image, char ceil, int dark)
 	  float bb=mglob.fade_b>>3;
 	  float fmult = MIN(1.0f, mglob.fade_mult);
 	  float cmult = MAX(1.0f, mglob.fade_mult);
+	  float fend = mglob.fade_end;
 	  int y;
 
       if (dark) br=bg=bb=0;
 
 	  for(y=0;y<xy[1];y++)
 	  {
-		float factor=(float)y/(xy[1]-1);
+		float factor=(float)y/(xy[1]-1)*fend+1-fend;
 		int x;
 		if (!ceil) factor=1.0f-factor;
 		factor=(1-0-(1.0-factor*factor)*fmult);
@@ -1234,16 +1235,61 @@ static void trace_for_bgr(int dir)
 	}
 */
 
-void render_scene(int sector, int smer)
+static void clear_scene_color(uint16_t color) {
+    int beg = SCREEN_OFFLINE;
+    int end = SCREEN_OFFLINE+360;
+    for (int i = beg; i < end; ++i) {
+        uint16_t *pos = GetBuffer2nd()+i*GetBuffer2ndPitch();
+        for (int j = 0; j < DxGetResX();j++) pos[j] = color;
+    }
+}
+
+
+static void clear_scene(int dir) {
+    uint16_t back_color=RGB888(mglob.fade_r,mglob.fade_g,mglob.fade_b);
+    clear_scene_color(back_color);
+    int bgr_handle=num_ofsets[BACK_NUM]+dir;
+    const void *backdrop = ablock(bgr_handle);
+    if (backdrop) {
+        put_picture_ex(0, SCREEN_OFFLINE, backdrop, GetBuffer2nd(), GetBuffer2ndPitch(),DxGetResY());
+    }
+}
+
+static int background_dir = -1;
+static char background_shown = 0;
+
+char update_background(int dir) {
+    if (dir != background_dir) {
+        int bgr_handle=num_ofsets[BACK_NUM]+dir;
+        const void *backdrop = ablock(bgr_handle);
+        if (backdrop) {
+            game_display_load_sprite(H_BGR_BUFF, backdrop);
+            game_display_place_sprite(H_BGR_BUFF, 0, SCREEN_OFFLINE);
+            game_display_sprite_set_zindex(H_BGR_BUFF,-1);
+            background_shown = 1;
+            return 1;
+        } else {
+            game_display_hide_sprite(H_BGR_BUFF);
+            background_shown = 0;
+            return 0;
+        }
+    } else {
+         return background_shown;
+    }
+}
+
+void render_scene(int sector, int smer, char nobackdrop)
   {
   int i,j,s;
+
+  char bs = update_background(smer);
 
   see_monster=0;
   destroy_fly_map();
   build_fly_map();
   if (set_blind() && cur_mode!=MD_END_GAME && !folow_mode)
      {
-     clear_buff(NULL,0,360);
+      clear_scene_color(0);
      return;
      }
   if (set_halucination)
@@ -1256,9 +1302,7 @@ void render_scene(int sector, int smer)
 //  trace_for_bgr(smer);
   i=VIEW3D_Z-1;
   s=minimap[i][VIEW3D_X];
-  uint32_t back_color=RGB888(mglob.fade_r,mglob.fade_g,mglob.fade_b);
-  if (s && !map_sectors[s].ceil) clear_buff(ablock_copy(H_BGR_BUFF),back_color,360);
-  else clear_buff(ablock_copy(H_BGR_BUFF),back_color,80);
+  if (nobackdrop && bs) clear_scene_color(0x8000); else clear_scene(smer);
   for(i=-VIEW3D_X+1;i<VIEW3D_X;i++)
      if ((s=minimap[VIEW3D_Z-1][VIEW3D_X+i])!=0)
         if (map_coord[s].flags & MC_SHADING) back_clear(i,0);
@@ -1366,7 +1410,7 @@ void redraw_scene()
   {
   if (norefresh) return;
   if (one_buffer) RedirectScreenBufferSecond();
-  render_scene(viewsector,viewdir);
+  render_scene(viewsector,viewdir,0);
   if (running_anm) klicovani_anm(GetBuffer2nd()+SCREEN_OFFSET,anim_render_buffer,anim_mirror);
   update_mysky();
   schovej_mysku();
@@ -1478,3 +1522,12 @@ void change_fade_brightness(float mult) {
     }
 }
 
+
+ void change_fade_end(float mult) {
+    if (mult != mglob.fade_end || mglob.map_autofadefc != 1) {
+        mglob.fade_end = mult;
+        mglob.map_autofadefc = 1;
+        //costly operation
+        for(int i=H_FIRST_FREE;i<end_ptr;i++) zneplatnit_block(i);
+    }
+}

@@ -667,6 +667,12 @@ static int process_with_params(const char *cmd, const char *args) {
         change_fade_brightness(f);
         return 1;
     }
+    if (istrcmp(cmd, "fade-end") == 0) {
+        float f;
+        sscanf(args, "%f", &f);
+        change_fade_end(f);
+        return 1;
+    }
 
 
 

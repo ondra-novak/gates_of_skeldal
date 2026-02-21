@@ -2205,7 +2205,7 @@ static void souboje_turn(int smer)
                  viewdir=(viewdir+smer)&3;
                  if (get_shift_key_state()) fix_group_direction();
                  else postavy[select_player].direction=viewdir;
-                 render_scene(viewsector,viewdir);
+                 render_scene(viewsector,viewdir,0);
                  hide_ms_at(387);
                  if (smer==1) turn_left();
                  else turn_right();

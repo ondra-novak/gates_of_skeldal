@@ -57,7 +57,7 @@ static inline int color_clamp(float f) {
     return (int)f;
 }
 
-void palette_shadow(const char *pal1,unsigned short pal2[][256],int tr,int tg,int tb, float bright)
+void palette_shadow(const char *pal1,unsigned short pal2[][256],int tr,int tg,int tb, float bright, float fend)
   {
     float fmult = MIN(1.0f, bright);
     float cmult = MAX(1.0f, bright);
@@ -66,7 +66,7 @@ void palette_shadow(const char *pal1,unsigned short pal2[][256],int tr,int tg,in
       for (int k = 0; k < 2; k++) {
           for (int  j=0;j<SHADE_STEPS;j++) {
              const unsigned char *bt=(const unsigned char *)pal1;
-             float f = fmult*(3*SHADE_STEPS-3*j-1)/(3*SHADE_STEPS-1);
+             float f = fmult*(3*SHADE_STEPS-3*j-1)/(3*SHADE_STEPS-1)*fend+1-fend;
              for (int i = 0; i < 256; ++ i) {
                int r=color_clamp((tr+(*(bt++)*cmult-tr)*f))>>3;
                int g=color_clamp((tg+(*(bt++)*cmult-tg)*f))>>3;
@@ -143,6 +143,7 @@ int load_pcx(const char *pcx,int32_t fsize,int conv_type,char **buffer, ... )
      {
      int tr,tg,tb;
      float factor_mlt;
+     float factor_end;
 
      va_list lst;
      va_start(lst, buffer);
@@ -150,8 +151,9 @@ int load_pcx(const char *pcx,int32_t fsize,int conv_type,char **buffer, ... )
      tg=va_arg(lst,int);
      tb=va_arg(lst,int);
      factor_mlt=(float)va_arg(lst,double);
+     factor_end=(float)va_arg(lst,double);
      va_end(lst);
-     palette_shadow(paleta1,(unsigned short (*)[256])ptr4,tr,tg,tb,factor_mlt);
+     palette_shadow(paleta1,(unsigned short (*)[256])ptr4,tr,tg,tb,factor_mlt, factor_end);
      ptr4+=SHADE_PAL;
      }
   ysize++;

@@ -546,7 +546,7 @@ const void *col_load(const void *data, int32_t *size, int h)
   s=getmem(*size);
   c=data;c+=8;
   for(i=0;i<palcount;i++,c+=COL_SIZE) {
-     palette_shadow(c,(void *)(&s[i*PIC_FADE_PAL_SIZE]),mglob.fade_r,mglob.fade_g,mglob.fade_b, mglob.fade_mult);
+     palette_shadow(c,(void *)(&s[i*PIC_FADE_PAL_SIZE]),mglob.fade_r,mglob.fade_g,mglob.fade_b, mglob.fade_mult, mglob.fade_end);
   }
     return s;
   }

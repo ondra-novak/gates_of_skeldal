@@ -56,7 +56,7 @@ char pass_zavora=0;
 char map_with_password=0;
 
 MAPGLOBAL mglob={
-        {"","","",""},0,0,0,1,0,"",0,0,0,1.0f
+        {"","","",""},0,0,0,1,0,"",0,0,0,1.0f,1.0f
 };
 TSTENA *map_sides;
 TSECTOR *map_sectors;
@@ -257,6 +257,11 @@ void translate_map_name(const char *mapfile, MAPGLOBAL *mglob) {
    }
 }
 
+static const void *pcx_15bit_decomp_z(const void *p, int32_t *s, int h) {
+    if (p == NULL) return NULL;
+    return pcx_15bit_decomp(p,s,h);
+}
+
 int load_map(const char *filename)
   {
   TMPFILE_RD *f;
@@ -342,9 +347,10 @@ int load_map(const char *filename)
                   memcpy(&mglob,temp,MIN((int)size,(int)sizeof(mglob)));
                   if (sizeof(mglob) != size) {
                       mglob.fade_mult = 1.0;
+                      mglob.fade_end = 1.0;
                   }
                   for(r=0;r<4;r++) {
-                        def_handle(ofsts++,mglob.back_fnames[r],pcx_fade_decomp,SR_GRAFIKA);
+                        def_handle(ofsts++,mglob.back_fnames[r],pcx_15bit_decomp_z,SR_GRAFIKA);
                   }
                   translate_map_name(filename, &mglob);;
                   break;
@@ -1609,6 +1615,7 @@ void step_zoom(char smer)
   char nopass;
   uint8_t drs;
   int sid,nsect,sect;
+  int orgsect = viewsector;
   char can_go=1;
 
   if (running_anm) return;
@@ -1699,7 +1706,10 @@ void step_zoom(char smer)
      }
   if (!cancel_pass)
      {
-     render_scene(viewsector,viewdir);
+     render_scene(orgsect,viewdir,1);
+     OutBuffer2nd();
+     showview(0,SCREEN_OFFLINE,640,360);
+     render_scene(viewsector,viewdir,1);
      OutBuffer2nd();
      sort_groups();
      bott_draw(0);
@@ -1745,7 +1755,7 @@ void turn_zoom(int smer) {
     hold_timer(TM_BACK_MUSIC, 1);
     viewdir = (viewdir + smer) & 3;
     recalc_volumes(viewsector, viewdir);
-    render_scene(viewsector, viewdir);
+    render_scene(viewsector, viewdir,0);
     hide_ms_at(387);
     OutBuffer2nd();
     other_draw();

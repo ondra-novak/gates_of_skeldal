@@ -300,7 +300,7 @@ void purge_temps(char _) {
 const void *pcx_fade_decomp(const void *p, int32_t *s, int h)
   {
   char *buff;
-  int r = load_pcx(p,*s,A_FADE_PAL,&buff,mglob.fade_r,mglob.fade_g,mglob.fade_b, mglob.fade_mult);
+  int r = load_pcx(p,*s,A_FADE_PAL,&buff,mglob.fade_r,mglob.fade_g,mglob.fade_b, mglob.fade_mult, mglob.fade_end);
   assert(r > 0);
   *s=r;
   return buff;

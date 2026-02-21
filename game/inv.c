@@ -1320,7 +1320,7 @@ void *build_items_wearing_hi(THUMAN *h, int32_t *s) { //returns 256 color type w
     hdr[2] = A_FADE_PAL;
     unsigned short (*pal)[256] = (unsigned short (*)[256])(hdr+3);
     char *pixels = fin_image + PIC_FADE_PAL_SIZE;
-    palette_shadow(paleta, pal, mglob.fade_r, mglob.fade_g, mglob.fade_b,mglob.fade_mult);
+    palette_shadow(paleta, pal, mglob.fade_r, mglob.fade_g, mglob.fade_b,mglob.fade_mult,mglob.fade_end);
     for (size_t i = 0; i < imgsz; ++i) {
         if (workspace[i] & 0x8000) {
             pixels[i] = 0;
