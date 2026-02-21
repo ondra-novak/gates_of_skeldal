@@ -94,6 +94,7 @@
 #define SP_PHASEDOOR 26
 #define SP_TELEPORT_SECT 27
 #define SP_OPEN_TELEPORT 28
+#define SP_RADIATION 29
 
 #define SS_invis 1
 #define SS_oko 2
@@ -104,6 +105,7 @@
 #define FLG_HLUBINA2   0x40000 //zapnuta HLUBINA pro potvory
 #define FLG_SCORE      0x80000 //zapnute ukazovani score nad potvorama.
 #define FLG_HALUCINACE 0x100000 // zapne halucinaci
+#define FLG_RADIATION  0x200000 // zapne radiation effect
 
 static inline word _impl_get_word(unsigned char **c) {
     word r = (*c)[0] + 256* (*c)[1];
@@ -117,6 +119,8 @@ static inline word _impl_get_word(unsigned char **c) {
 char running_anm=0;
 
 char hlubina_level=0;
+char radiation_eff = 0;
+float radiation_eff_base = 1;
 char dead_food = 0; //cheat - likvidační kouzlu
 
 word *anim_render_buffer;
@@ -410,6 +414,10 @@ static void spell_vzplanuti3(int ss,int hit,int zivel)
 
   }
 
+static void update_radiation() {
+    change_fade_brightness(radiation_eff_base + radiation_eff*0.5f);
+}
+
 static void spell_vzplanuti2(THE_TIMER *tt)
   {
   int ss,ss1,ss2,i,dp,dl,du;
@@ -620,6 +628,7 @@ void spell_end_global()
   if (!(l & FLG_TRUESEEING)) true_seeing=0;
   if (!(l & FLG_SCORE)) show_lives=0;
   if (!(l & FLG_HALUCINACE)) set_halucination=0;
+  if (!(l & FLG_RADIATION)) {radiation_eff=0;update_radiation();}
   if (l & (FLG_HLUBINA1 | FLG_HLUBINA2))
      {
      hlubina_level=1;
@@ -1374,6 +1383,7 @@ void spell_special(int num,TKOUZLO *spl,int spc)
      case SP_VZPLANUTI3:spell_vzplanuti(spl->cil,5,rand_value,0,spl->pc);break;
      case SP_TELEPORT_SECT: if (hod_na_uspech(spl->cil,spl)) spell_teleport_sector(spl->cil,spl->owner);break;
      case SP_OPEN_TELEPORT: spell_open_teleport(spl->cil,spl->owner);break;
+     case SP_RADIATION: _flag_map[num]|=FLG_RADIATION; radiation_eff = 1; update_radiation(); break;
      }
   }
 
@@ -1750,6 +1760,14 @@ int add_spell(int num,int cil,int owner,char noanim)
   return i;
   }
 
+void kouzla_load_map(EVENT_MSG *msg,void **unused) {
+    unused;
+    if (msg->msg==E_LOAD_MAP) {
+        radiation_eff_base = mglob.fade_mult;
+        update_radiation();
+    }
+}
+
 void kouzla_kola(EVENT_MSG *msg,void **unused)
   {
   unused;
@@ -1765,6 +1783,7 @@ void kouzla_kola(EVENT_MSG *msg,void **unused)
               if (!(--spell_table[i]->delay)) call_spell(i);
               }
      }
+
   }
 
 void kouzla_anm(EVENT_MSG *msg,void **unused)
@@ -2047,6 +2066,7 @@ void kouzla_init()
   SEND_LOG("(SPELLS) Init...");
   send_message(E_ADD,E_KOUZLO_ANM,kouzla_anm);
   send_message(E_ADD,E_KOUZLO_KOLO,kouzla_kola);
+  send_message(E_ADD,E_LOAD_MAP,kouzla_load_map);
   memset(spell_table,0,sizeof(spell_table));
   memset(vls_table,0,sizeof(vls_table));
   memset(_flag_map,0,sizeof(_flag_map));
@@ -2140,7 +2160,9 @@ int load_spells(TMPFILE_RD *f)
  hlubina_level=2;
  show_lives=1;
  set_halucination=1;
+ radiation_eff=1;
  spell_end_global();
+ update_radiation();
  return res;
   }
 

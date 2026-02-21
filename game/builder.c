@@ -1514,7 +1514,7 @@ void change_fade_color(int r, int g, int b) {
 }
 
 void change_fade_brightness(float mult) {
-    if (mult != mglob.fade_mult || mglob.map_autofadefc != 1) {
+    if (mult != mglob.fade_mult) {
         mglob.fade_mult = mult;
         mglob.map_autofadefc = 1;
         //costly operation

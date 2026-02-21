@@ -1615,7 +1615,6 @@ void step_zoom(char smer)
   char nopass;
   uint8_t drs;
   int sid,nsect,sect;
-  int orgsect = viewsector;
   char can_go=1;
 
   if (running_anm) return;
@@ -1699,6 +1698,9 @@ void step_zoom(char smer)
   if (!nopass)
      {
      a_pass(viewsector,drs);
+     render_scene(viewsector,viewdir,1);
+     OutBuffer2nd();
+     showview(0,SCREEN_OFFLINE,640,360);
      viewsector=nsect;
      move_lodka(sect,nsect);
      chod_s_postavama(1);
@@ -1706,9 +1708,6 @@ void step_zoom(char smer)
      }
   if (!cancel_pass)
      {
-     render_scene(orgsect,viewdir,1);
-     OutBuffer2nd();
-     showview(0,SCREEN_OFFLINE,640,360);
      render_scene(viewsector,viewdir,1);
      OutBuffer2nd();
      sort_groups();

@@ -958,6 +958,10 @@ void definuj_postavy()
                       r=sscanf(c,"%d",&num1);
                       }
                    break;
+           case 139:r=sscanf(c,"%d",&num1);
+                    if (r != 1)break;
+                    p->npcflags = num1;
+                    break;
 
            default:if(num1 < VLS_MAX) {
                    r=sscanf(c,"%hd",&p->stare_vls[num1]);break;

@@ -134,6 +134,7 @@ static __inline int rangrnd(int a, int b) {return rnd(b-a+1)+a;}
 #define E_REFRESH  256 //udalost refresh scene
 #define E_KOUZLO_KOLO 257 //funkce kouzel kazde jedno kolo
 #define E_KOUZLO_ANM 258 //funkce kouzel kazdy frame
+#define E_LOAD_MAP 259
 
 //Registracni konstranty
 #define H_DESK 0

@@ -1231,9 +1231,11 @@ void *map_keyboard(EVENT_MSG *msg,void **usr);
 
 char doNotLoadMapState=0;
 
+extern void definuj_postavy(void);
 static void reload_restart_map() {
     unwire_proc();
     if (battle) konec_kola();
+    definuj_postavy();
     battle=0;
     running_battle=0;
     doNotLoadMapState=1;
@@ -1468,6 +1470,8 @@ static void game_big_circle(char enforced)
     for(r=0;r<mapsize*4;r++) call_macro(r,MC_STARTLEV);
     loadlevel.name[0]=0;
     reroll_all_shops();
+
+    send_message(E_LOAD_MAP);
 
     enter_game();
 
