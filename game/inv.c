@@ -2373,7 +2373,12 @@ char human_click(int id,int xa,int ya,int xr,int yr)
            case TYP_JIDLO:inv_najist(*picked_item);destroy_items(picked_item);free(picked_item);picked_item=NULL;pick_set_cursor();break;
            case TYP_VODA:inv_napit(*picked_item);destroy_items(picked_item);free(picked_item);picked_item=NULL;pick_set_cursor();break;
            case TYP_SPECIALNI:inv_use_spec(&picked_item);break;
-           case TYP_DLGUSE:start_dialog(glob_items[picked_item[0]-1].user_value,-1);exit_inv(0, 0, 0, 0, 0);break;
+           case TYP_DLGUSE:if (!battle) {
+                                   start_dialog(glob_items[picked_item[0]-1].user_value,-1);
+                                   unwire_proc();
+                                   wire_proc();
+                                   return 1;
+                               }break;
            }
          inv_redraw();
          return 1;

@@ -1137,7 +1137,7 @@ static void pouzij_svitek(THUMAN *p,int ruka)
      destroy_items(s);
      p->wearing[ruka]=0;
      }
-  else
+  else  if (glob_items[it].magie!=0)
      {
      it=(p->wearing[ruka]=duplic_item(it+1));
      it--;

@@ -874,6 +874,9 @@ void call_macro_ex(int side, int flags, int runatside) {
                     case MA_GLOBE:
                         macro_register_global_event(z);
                         break;
+                    case MA_CHLGH:
+                        change_fade_color(z->chglight.r, z->chglight.g, z->chglight.b);
+                        break;
                 }
             }
             if (jmp_to != -1) {

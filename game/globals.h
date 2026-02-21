@@ -1120,8 +1120,7 @@ char load_saved_shops(void);
 #define MA_SHRMA 35
 #define MA_MUSIC 36
 #define MA_GLOBE 37  //global events
-#define MA_IFSEC 38	 //if sector num
-#define MA_IFSTP 39  //if sector type
+#define MA_CHLGH 38
 
 #define MAGLOB_LEAVEMAP 0 // v urcitou nastavenou hodinu a minutu dene
 #define MAGLOB_STARTSLEEP 1 // postavy maji jit spat.
@@ -1292,6 +1291,13 @@ typedef struct tma_two_parms
   short parm1,parm2;
   }TMA_TWOP;
 
+typedef struct tma_change_light
+    {
+    uint8_t action,flags,eflags,align;
+    uint16_t r, g, b;
+   }TMA_CHANGE_LIGHT;
+
+
 typedef struct tma_create_unique
   {
     uint8_t action,flags,eflags;            //3+padding
@@ -1339,6 +1345,7 @@ typedef union tmulti_action
   struct tma_create_unique uniq;        //p
   struct tma_globe globe;
   struct tma_ifsec ifsec;
+  struct tma_change_light chglight;
   }TMULTI_ACTION;
 
 typedef struct tmulti_action_record_t {
