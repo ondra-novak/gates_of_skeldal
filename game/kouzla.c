@@ -141,7 +141,8 @@ static TTELEPLOCATION TelepLocation;
 typedef struct tkouzlo
   {
   word num,um,mge;
-  word pc;  //8
+  uint8_t zivel;  //8
+  uint8_t cast_time;
   short owner,accnum;     //accnum = akumulacni cislo, owner = kdo kouzlo seslal //4
   int start;  //4
   short cil;  //2  //kladna cisla jsou postavy zaporna potvory (0 je bez urceni postavy)
@@ -314,14 +315,22 @@ char get_spell_teleport(int num)
   return (p[num].traceon & 2);
   }
 
+int get_spell_cast_time(int num) {
+  TKOUZLO *p;
 
-int get_spell_color(THUMAN *p,int num)
+  p=(TKOUZLO *)ablock(H_KOUZLA);
+  return MAX(p[num & 511].cast_time,1);
+}
+
+
+int get_spell_color(THUMAN *p,int num, int actions)
   {
   TKOUZLO *z;
 
   z=(TKOUZLO *)ablock(H_KOUZLA);
   z+=num;
   if (!z->start) return 1;
+  if (MAX(z->cast_time,1) > actions) return 0;
   if (z->mge>p->mana) return 1;
   if (z->um<=p->vlastnosti[VLS_SMAGIE]) return 0;
   if (z->um<=(p->vlastnosti[VLS_SMAGIE]*2)) return 2;
@@ -339,10 +348,10 @@ int get_spell_color(THUMAN *p,int num)
   return 1;
   }
 
-char get_rune_enable(THUMAN *p,int strnum)
+char get_rune_enable(THUMAN *p,int strnum, int actions)
   {
   int i;
-  for(i=0;i<3;i++) if (get_spell_color(p,strnum+i)!=1) return 1;
+  for(i=0;i<3;i++) if (get_spell_color(p,strnum+i, actions)!=1) return 1;
   return 0;
   }
 
@@ -613,7 +622,7 @@ char hod_na_uspech(int cil,TKOUZLO *k)
         cil--;
         p=postavy[cil].vlastnosti+VLS_OHEN;
         }
-     zv=mgochrana(p[k->pc]);
+     zv=mgochrana(p[k->zivel]);
      z=rnd(100);
      return (z<=zv);
      }
@@ -1373,14 +1382,14 @@ void spell_special(int num,TKOUZLO *spl,int spc)
                       break;
      case SP_MANABAT:spell_manabat(spl->cil);
                       break;
-     case SP_VAHY:spell_vahy_osudu(spl->pc,spl->povaha);break;
+     case SP_VAHY:spell_vahy_osudu(spl->zivel,spl->povaha);break;
      case SP_RYCHLOST:spell_rychlost(num,spl->cil);break;
      case SP_DEMON1:spell_demon(num,spl,spl->cil,0);break;
      case SP_DEMON2:spell_demon(num,spl,spl->cil,1);break;
      case SP_DEMON3:spell_demon(num,spl,spl->cil,2);break;
-     case SP_VZPLANUTI1:spell_vzplanuti(spl->cil,1,rand_value,1,spl->pc);break;
-     case SP_VZPLANUTI2:spell_vzplanuti(spl->cil,5,rand_value,1,spl->pc);break;
-     case SP_VZPLANUTI3:spell_vzplanuti(spl->cil,5,rand_value,0,spl->pc);break;
+     case SP_VZPLANUTI1:spell_vzplanuti(spl->cil,1,rand_value,1,spl->zivel);break;
+     case SP_VZPLANUTI2:spell_vzplanuti(spl->cil,5,rand_value,1,spl->zivel);break;
+     case SP_VZPLANUTI3:spell_vzplanuti(spl->cil,5,rand_value,0,spl->zivel);break;
      case SP_TELEPORT_SECT: if (hod_na_uspech(spl->cil,spl)) spell_teleport_sector(spl->cil,spl->owner);break;
      case SP_OPEN_TELEPORT: spell_open_teleport(spl->cil,spl->owner);break;
      case SP_RADIATION: _flag_map[num]|=FLG_RADIATION; radiation_eff = 1; update_radiation(); break;
@@ -1411,7 +1420,7 @@ void spell_drain(TKOUZLO *p,int cil,int min,int max)
         potvora=vyber_potvoru(sect,dir,&chaos);
         if (potvora==-1) return;
         m=mobs+potvora;
-        ochrana=mgochrana(m->vlastnosti[VLS_OHEN+p->pc]);
+        ochrana=mgochrana(m->vlastnosti[VLS_OHEN+p->zivel]);
         drw=ochrana*drw/100;
         vybrana_zbran=-1;
         mob_hit(m,drw);
@@ -1502,10 +1511,10 @@ void call_spell(int i)
       twins = twins == 3 ? 0 : twins;
         switch (*c++) {
             case S_zivel:
-                p->pc = GET_WORD(c)
+                p->zivel = (uint8_t)GET_WORD(c)
                 ;
                 if (p->owner >= 0
-                        && !GlobEvent(MAGLOB_ONFIREMAGIC + p->pc,
+                        && !GlobEvent(MAGLOB_ONFIREMAGIC + p->zivel,
                                 postavy[p->owner].sektor,
                                 postavy[p->owner].direction)) {
                     spell_end(i, p->cil, p->owner);
@@ -1531,14 +1540,14 @@ void call_spell(int i)
                 ;
                 twins |= 1;
                 if (twins == 3)
-                    spell_hit_zivel(p->cil, parm1, parm2, p->owner, p->pc);
+                    spell_hit_zivel(p->cil, parm1, parm2, p->owner, p->zivel);
                 break;
             case S_hpzivl_max:
                 parm2 = GET_WORD(c)
                 ;
                 twins |= 2;
                 if (twins == 3)
-                    spell_hit_zivel(p->cil, parm1, parm2, p->owner, p->pc);
+                    spell_hit_zivel(p->cil, parm1, parm2, p->owner, p->zivel);
                 break;
             case S_vlastnost:
                 parm1 = GET_WORD(c)

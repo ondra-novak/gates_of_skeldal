@@ -1680,14 +1680,15 @@ void cast(int num,THUMAN *p,int owner,char backfire);
 int add_spell(int num,int cil,int owner,char noanim);
 void klicovani_anm(void *target,void *source,char mirror);
 //#pragma aux klicovani_anm parm [edi][esi][eax] modify [ecx edx ebx]
-int get_spell_color(THUMAN *p,int num);
+int get_spell_color(THUMAN *p,int num, int actions);
 int get_spell_info(int num, char *txt, size_t sz);
 int get_spell_mana(int num);
 int get_spell_um(int num);
+int get_spell_cast_time(int num);
 char ask_who(int num);
 void display_spell_in_icone(int handle,int xicht);
 void reinit_kouzla_full(void);
-char get_rune_enable(THUMAN *p,int strnum);
+char get_rune_enable(THUMAN *p,int strnum, int actions);
 void remove_all_mob_spells(void);
 int save_spells(TMPFILE_WR *f);
 int load_spells(TMPFILE_RD *f);

@@ -33,6 +33,7 @@ static char group_flee = 0;
 char plr_switcher[POCET_POSTAV];
 static int pohyblivost_counter[POCET_POSTAV];
 static int autostart_round=0;
+static int spell_remain_actions = 99;
 
 char autoattack=0;
 char immortality=0;
@@ -108,7 +109,7 @@ char power_info(int id,int xa,int ya,int xr,int yr);
 char cancel_power(int id,int xa,int ya,int xr,int yr);
 static char ask_who_proc(int id,int xa,int ya,int xr,int yr);
 void wire_programming();
-void souboje_vybrano(int d);
+void souboje_vybrano(int d, int ap);
 void program_draw();
 static void souboje_turn(int smer);
 static char clk_fly_cursor(int id,int xa,int ya,int xr,int yr);
@@ -706,6 +707,7 @@ void konec_kola()
 
   SEND_LOG("(BATTLE) End round");
   prekvapeni=0;
+  spell_remain_actions = 99;
   for(i=0,h=postavy;i<POCET_POSTAV;i++,h++)
      if (h->used)
         {
@@ -1510,7 +1512,7 @@ void display_rune_bar(THE_TIMER *_)
      c=runes[sel_zivel];
      for(i=0;i<7;i++,c>>=1)
        if (!(c & 1)) put_picture(520+coords[i][0],378+coords[i][1],ablock(H_RUNEHOLE));
-       else if (!get_rune_enable(&postavy[select_player],(sel_zivel*7+i)*3)) fill_rune((char *)ablock(H_RUNEMASK),i+6);
+       else if (!get_rune_enable(&postavy[select_player],(sel_zivel*7+i)*3, spell_remain_actions)) fill_rune((char *)ablock(H_RUNEMASK),i+6);
      if (sel_zivel) trans_bar(520,378,sel_zivel*24,22,0);
      if (sel_zivel!=4)trans_bar(544+sel_zivel*24,378,96-sel_zivel*24,22,0);
      runebar=getmem(120*102*2+6);
@@ -1607,7 +1609,7 @@ static char ask_who_proc(int id,int xa,int ya,int xr,int yr)
            }
            magic_data->data1+=(i+1)<<9;
            magic_data->action=AC_MAGIC;
-           if (battle) souboje_vybrano(AC_MAGIC);
+           if (battle) souboje_vybrano(AC_MAGIC, get_spell_cast_time(magic_data->data1));
            unwire_proc();
            after_spell_wire();
            mouse_set_default(H_MS_DEFAULT);
@@ -1665,7 +1667,7 @@ char power(int id,int xa,int ya,int xr,int yr)
          }
   if (id==1) magic_data->data1+=(select_player+1)<<9;
   schovej_mysku();
-  if (battle) souboje_vybrano(AC_MAGIC);
+  if (battle) souboje_vybrano(AC_MAGIC, magic_data->data1);
   unwire_proc();
   after_spell_wire();
   ukaz_mysku();
@@ -1796,7 +1798,7 @@ void wire_select_power(void)
   mute_all_tracks(0);
   unwire_proc();
   for(i=0;i<3;i++) {
-    powers[i]=get_spell_color(p,magic_data->data1+i);
+    powers[i]=get_spell_color(p,magic_data->data1+i, spell_remain_actions);
     get_spell_info(magic_data->data1+i, powers_info[i],sizeof(powers_info[i]));
   }
   change_click_map(clk_power,CLK_POWER);
@@ -1961,10 +1963,10 @@ static void souboje_dalsi_user() {
     recalc_volumes(viewsector,viewdir);
 }
 
-void souboje_vybrano(int d)
+void souboje_vybrano(int d, int actions)
   {
                        if (d==AC_STAND || d==AC_RUN) postavy[select_player].actions=0;
-                       else postavy[select_player].actions--;
+                       else postavy[select_player].actions = MAX(postavy[select_player].actions-actions,1);
                        postavy[select_player].programovano++;
                        if (!postavy[select_player].actions)
                           souboje_dalsi();
@@ -2011,7 +2013,7 @@ char souboje_clk_throw(int id,int xa,int ya,int xr,int yr)
   c++;
   c->action=0;
   pick_set_cursor();id;xr;yr;
-  souboje_vybrano(AC_THROW);
+  souboje_vybrano(AC_THROW,1);
   return 1;
   }
 
@@ -2147,10 +2149,13 @@ static char add_pc_action(int d) {
           case AC_MAGIC:if (postavy[select_player].actions && (d != AC_MOVE || !lodka))
                          {
                          HUM_ACTION *c;
+                         int aps = 0;
                          postavy[select_player].direction=viewdir;
-                         c=postavy[select_player].zvolene_akce;while (c->action) c++;
+                         c=postavy[select_player].zvolene_akce;while (c->action) {c++; aps++;}
                          if (d==AC_MAGIC)
                             {
+                              
+                            spell_remain_actions = aps?postavy[select_player].actions:99;
                             wire_select_rune();
                             return 1;
                             }
@@ -2158,7 +2163,7 @@ static char add_pc_action(int d) {
                          if (d==AC_ATTACK) c->data1=select_weapon(&postavy[select_player],1);
                          c++;
                          c->action=0;
-                         souboje_vybrano(d);
+                         souboje_vybrano(d,1);
                          }
                        break;
           case AC_CANCEL:zrusit_akce();group_flee = 0;break;
