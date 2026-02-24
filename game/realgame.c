@@ -1235,17 +1235,24 @@ static void move_lodka(int oldsect,int newsect)
      }
   }
 
+char check_dialog() {
+      if (force_start_dialog && !norefresh)
+     {
+     force_start_dialog=0;
+     call_dialog(start_dialog_number,start_dialog_mob);
+     return 1;
+     }
+      return 0;
+
+}
+
 void calc_game()
   {
   int d;
   calc_animations();
   if (d_action!=NULL) do_delay_actions();
   calc_mobs();
-  if (force_start_dialog && !norefresh)
-     {
-     force_start_dialog=0;
-     call_dialog(start_dialog_number,start_dialog_mob);
-     }
+  check_dialog();
   check_players_place(0);
   if ((d=check_end_game())!=0) {
      if (d==1) wire_end_game();else mrtva_skupina();
@@ -2026,17 +2033,9 @@ void game_keyboard(EVENT_MSG *msg,void **usr)
 
 void start_dialog(int dialog,int mob)
   {
-  if (battle)
-  {
-    call_dialog(dialog,mob);
-  }
-  else
-  {
     force_start_dialog=1;
     start_dialog_number=dialog;
     start_dialog_mob=mob;
-  }
-//  call_dialog(dialog,mob);
   }
 
 

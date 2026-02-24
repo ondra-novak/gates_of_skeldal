@@ -267,7 +267,7 @@ char send_mob_to_sector(int mob_id,int to)
   word *path;
 
   int from = mobs[mob_id].sector;
-  if (labyrinth_find_path(from,to,SD_MONST_IMPS,NULL,&path,NULL)==0) return 0;  
+  if (labyrinth_find_path(from,to,SD_MONST_IMPS,NULL,&path,NULL)==0) return 0;
   send_mob_to(mob_id,path);
   return 1;
   }
@@ -1542,6 +1542,7 @@ static int drop_inventory(TMOB *p)
   }
 
 
+
 void mob_check_death(int num,TMOB *p)
   {
   int sect;
@@ -1595,6 +1596,11 @@ void mob_hit(TMOB *mm, int dostal) {
         mob_dostal = ch + 1;
         bott_draw(0);
         if (mm->lives < 1) {
+            if (mm->kill_dialog>0) {
+                  mm->lives = 1;
+                  start_dialog(mm->kill_dialog, mm - mobs);
+                  return;
+            }
             int xpos = 0;
             switch (viewdir) {
                 case 0:

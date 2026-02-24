@@ -140,7 +140,8 @@ static TTELEPLOCATION TelepLocation;
 
 typedef struct tkouzlo
   {
-  word num,um,mge;
+  word num;
+  word um,mge;
   uint8_t zivel;  //8
   uint8_t cast_time;
   short owner,accnum;     //accnum = akumulacni cislo, owner = kdo kouzlo seslal //4

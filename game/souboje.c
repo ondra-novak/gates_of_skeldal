@@ -642,6 +642,8 @@ void zacatek_kola()
   THUMAN *p;
 
   SEND_LOG("(BATTLE) Start round");
+
+
   build_player_map();
   cislo_kola++;
   autostart_round=0;
@@ -1667,7 +1669,7 @@ char power(int id,int xa,int ya,int xr,int yr)
          }
   if (id==1) magic_data->data1+=(select_player+1)<<9;
   schovej_mysku();
-  if (battle) souboje_vybrano(AC_MAGIC, magic_data->data1);
+  if (battle) souboje_vybrano(AC_MAGIC, get_spell_cast_time(magic_data->data1));
   unwire_proc();
   after_spell_wire();
   ukaz_mysku();
@@ -1966,7 +1968,7 @@ static void souboje_dalsi_user() {
 void souboje_vybrano(int d, int actions)
   {
                        if (d==AC_STAND || d==AC_RUN) postavy[select_player].actions=0;
-                       else postavy[select_player].actions = MAX(postavy[select_player].actions-actions,1);
+                       else postavy[select_player].actions = MAX(postavy[select_player].actions-actions,0);
                        postavy[select_player].programovano++;
                        if (!postavy[select_player].actions)
                           souboje_dalsi();
@@ -2154,7 +2156,7 @@ static char add_pc_action(int d) {
                          c=postavy[select_player].zvolene_akce;while (c->action) {c++; aps++;}
                          if (d==AC_MAGIC)
                             {
-                              
+
                             spell_remain_actions = aps?postavy[select_player].actions:99;
                             wire_select_rune();
                             return 1;
@@ -2313,7 +2315,12 @@ void wire_programming(void)
   bott_draw(1);
   showview(0,0,0,0);
   recalc_volumes(viewsector,viewdir);
+  if (check_dialog()) {
+      wire_proc = zacatek_kola;
+      return;
+  }
   if (autostart_round) zahajit_kolo(1);
+
   }
 
 void wait_to_stop(EVENT_MSG *msg,void **unused)

@@ -781,6 +781,7 @@ void chveni(int i);
 void render_scene(int,int, char nobackdrop);
 void bott_draw_fletna(void);
 void bott_disp_rune(char rune, int item);
+char check_dialog();
 
 void display_ver(int x,int y,int ax,int ay);
 void check_players_place(char mode);
@@ -1495,7 +1496,7 @@ void wire_main_functs(void);
 void unwire_main_functs(void);
 
 //enemy
-#define MOBS_INV 16
+#define MOBS_INV 15
 #define MOB_POSIT 0
 #define MOB_ATTACK 3
 #define MOB_TOHIT 2
@@ -1541,6 +1542,7 @@ typedef struct tmob
   uint16_t anim_counter;        //citac animaci
   short vlastnosti[24];     //zakladni vlastnosti potvory
   short inv[MOBS_INV];      //batoh potvory
+  short kill_dialog;        //dialog played on defeat (0 is also disabled)
   short lives;              //pocet zivotu potvory
   short cislo_vzoru;         //informace urcujici ze ktereho vzoru byl mob vytvoren
   short speed;             //rychlost pohybu
