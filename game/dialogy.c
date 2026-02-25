@@ -1303,11 +1303,11 @@ static char test_volby_select(int balance,int value)
   return oper_balance(pocet_voleb,value,balance);
   }
 
-static void cast_spell(int spell)
+static void cast_spell_human(int spell)
   {
-  int cil=1+sn_nums[0];
+  int cil=sn_nums[0];
 
-  add_spell(spell,cil,cil,1);
+  thing_cast(spell, cil, viewsector, NULL, 0);
   }
 
 static void cast_spell_enemy(int spell)
@@ -1414,14 +1414,14 @@ static void load_level(const char *levl, unsigned short sector, unsigned short d
     macro_load_another_map(&ld);
 }
 
-void send_monsters(int from, int to) {
+static void send_monsters(int from, int to) {
     for (int i = 0; i < MAX_MOBS; ++i) {
         if (mobs[i].sector == from) {
             send_mob_to_sector(i, to);
         }
     }
 }
-void teleport_enemies(int from, int to, int dir) {
+static void teleport_enemies(int from, int to, int dir) {
     for (int i = 0; i < MAX_MOBS; ++i) {
         if (mobs[i].sector == from) {
             mobs[i].sector = to;
@@ -1430,7 +1430,13 @@ void teleport_enemies(int from, int to, int dir) {
     }
     refresh_mob_map();
 }
-
+static void kill_current_enemy() {
+    if (dialog_mob >= 0) {
+        mobs[dialog_mob].kill_dialog = 0;
+        mobs[dialog_mob].lives = 0;
+        mob_check_death(dialog_mob);
+    }
+}
 
 void do_dialog()
   {
@@ -1501,6 +1507,7 @@ void do_dialog()
      case 49: stk_push(rnd(10000));break;
      case 50: stk_push(held_item);break;
      case 51: iff = pocet_voleb == 0;break;
+     case 52: kill_current_enemy();break;
      case 128:add_desc(Get_string());break;
      case 129:show_emote(Get_string());break;
      case 130:save_name(Get_short());break;
@@ -1572,7 +1579,7 @@ void do_dialog()
      case 185:iff=isall();break;
 	 case 186:enable_glmap=Get_short();break;
      case 187:p1=Get_short();p2=Get_short();iff=atsector(p1,p2);break;
-     case 188:p1=Get_short();cast_spell(p1);break;
+     case 188:p1=Get_short();cast_spell_human(p1);break;
      case 190:spell_sound(Get_string());break;
      case 191:p1=Get_short();p2=Get_short();iff=test_volby_select(p1,p2);break;
      case 192:p1=Get_short();p2=Get_short();variables[p1]=p2;break;

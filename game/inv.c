@@ -2357,7 +2357,6 @@ char human_click(int id,int xa,int ya,int xr,int yr)
 
   xr;yr;id;
   if ((battle && ((battle_mode!=MD_PREZBROJIT) || (select_player!=human_selected-postavy)))) return 0;
-  if (!can_manage_gear(human_selected)) return 0;
   if (picked_item!=NULL)
    if (muze_nosit(*picked_item))
      if (glob_items[(*picked_item)-1].umisteni==PL_BATOH)
@@ -2369,7 +2368,7 @@ char human_click(int id,int xa,int ya,int xr,int yr)
      else
        {
        um=place=glob_items[picked_item[0]-1].umisteni;
-       if (!place)
+       if (!place ||!can_manage_gear(human_selected))
          {
          switch (glob_items[picked_item[0]-1].druh)
            {
@@ -2378,7 +2377,11 @@ char human_click(int id,int xa,int ya,int xr,int yr)
            case TYP_VODA:inv_napit(*picked_item);destroy_items(picked_item);free(picked_item);picked_item=NULL;pick_set_cursor();break;
            case TYP_SPECIALNI:inv_use_spec(&picked_item);break;
            case TYP_DLGUSE:if (!battle) {
-                                   start_dialog(glob_items[picked_item[0]-1].user_value,-1);
+                                   int dlg = glob_items[picked_item[0]-1].user_value;
+                                   destroy_items(picked_item);
+                                   free(picked_item);
+                                   picked_item = NULL;
+                                   start_dialog(dlg,-1);
                                    unwire_proc();
                                    wire_proc();
                                    return 1;
@@ -2397,6 +2400,7 @@ char human_click(int id,int xa,int ya,int xr,int yr)
    else return 0;
   else
      {
+      if (!can_manage_gear(human_selected)) return 0;
      int i=HUMAN_PLACES-1;
      while (i>=0)
         {

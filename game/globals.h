@@ -1609,6 +1609,7 @@ char send_mob_to_sector(int mob_id,int to);
 void save_enemy_paths(TMPFILE_WR *f);
 int load_enemy_paths(TMPFILE_RD *f);
 void regen_all_mobs(void);
+void mob_check_death(int num);
 
 
 //souboje
@@ -1678,7 +1679,8 @@ extern char spell_cast; //0=neni rezim vyberu kouzla;
 
 void kouzla_init(void);
 void test_play(int handle);
-void cast(int num,THUMAN *p,int owner,char backfire);
+void cast(int num,int owner,char backfire);
+void cast_spell(int num, int cil, int owner);
 int add_spell(int num,int cil,int owner,char noanim);
 void klicovani_anm(void *target,void *source,char mirror);
 //#pragma aux klicovani_anm parm [edi][esi][eax] modify [ecx edx ebx]

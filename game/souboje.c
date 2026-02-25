@@ -35,6 +35,7 @@ static int pohyblivost_counter[POCET_POSTAV];
 static int autostart_round=0;
 static int spell_remain_actions = 99;
 
+
 char autoattack=0;
 char immortality=0;
 int32_t level_map[]=
@@ -642,8 +643,6 @@ void zacatek_kola()
   THUMAN *p;
 
   SEND_LOG("(BATTLE) Start round");
-
-
   build_player_map();
   cislo_kola++;
   autostart_round=0;
@@ -1405,7 +1404,7 @@ void jadro_souboje(EVENT_MSG *msg,void **unused) //!!!! Jadro souboje
                              prejdi_na_pohled(p);
                              bott_draw(1);
                              teleport_target=p->provadena_akce->data2;
-                             cast(p->provadena_akce->data1,p,select_player,0);
+                             cast(p->provadena_akce->data1,select_player,0);
                              cislo_potvory=-2;
                              break;
                 }
@@ -1910,7 +1909,10 @@ void souboje_redrawing(THE_TIMER *_)
      ukaz_mysku();
      showview(0,0,0,0);
      }
+  check_dialog();
   }
+
+
 
 
 
@@ -2112,7 +2114,11 @@ static void zahajit_kolo(char prekvapeni)
                           } else if (p->used && !p->programovano && p->lives && p->inmaphash == current_map_hash) {
                              if (prekvapeni || !p->actions || !autoattack || !monster)
                              {
-                             p->programovano++;p->zvolene_akce->action=AC_STAND;
+                                 if (p->zvolene_akce == NULL) {
+                                     p->provadena_akce= p->zvolene_akce = NewArr(HUM_ACTION,1);
+                                 }
+                                 p->programovano++;
+                                 p->zvolene_akce->action=AC_STAND;
                              }
                           else
                              {
@@ -2315,12 +2321,7 @@ void wire_programming(void)
   bott_draw(1);
   showview(0,0,0,0);
   recalc_volumes(viewsector,viewdir);
-  if (check_dialog()) {
-      wire_proc = zacatek_kola;
-      return;
-  }
   if (autostart_round) zahajit_kolo(1);
-
   }
 
 void wait_to_stop(EVENT_MSG *msg,void **unused)
@@ -2570,7 +2571,7 @@ void wire_cast_spell()
      {
      teleport_target=spell_string.data2;
      select_player=caster;
-     cast(spell_string.data1,&postavy[caster],caster,0);
+     cast(spell_string.data1,caster,0);
      /*add_to_timer(TM_SCENE,gamespeed,-1,hrat_souboj);
      neco_v_pohybu=1;
      send_message(E_ADD,E_TIMER,cast_wait);*/

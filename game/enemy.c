@@ -1543,10 +1543,11 @@ static int drop_inventory(TMOB *p)
 
 
 
-void mob_check_death(int num,TMOB *p)
+void mob_check_death(int num)
   {
   int sect;
 
+  TMOB *p = &mobs[num];
   mob_dostal=0;
   bott_draw(0);
   if (p->lives>0) return;
@@ -1596,11 +1597,6 @@ void mob_hit(TMOB *mm, int dostal) {
         mob_dostal = ch + 1;
         bott_draw(0);
         if (mm->lives < 1) {
-            if (mm->kill_dialog>0) {
-                  mm->lives = 1;
-                  start_dialog(mm->kill_dialog, mm - mobs);
-                  return;
-            }
             int xpos = 0;
             switch (viewdir) {
                 case 0:
@@ -1616,10 +1612,14 @@ void mob_hit(TMOB *mm, int dostal) {
                     xpos = (mm->locy - 128);
                     break;
             }
-            add_spectxtr(mm->sector, H_KILL, 10, 1, xpos * 23 / 10);
-            mm->anim_phase = MOB_DEATH;
-        } else
-            mm->anim_phase = MOB_TO_HIT;
+            if (mm->kill_dialog>0) {
+                  mm->lives = 1;
+                  start_dialog(mm->kill_dialog, mm - mobs);
+            } else {
+                add_spectxtr(mm->sector, H_KILL, 10, 1, xpos * 23 / 10);
+            }
+        }
+        mm->anim_phase = MOB_TO_HIT;
         mm->anim_counter = 0;
         mm->mode = MBA_NONE;
         mob_sound_event(mm, MBS_HIT);
@@ -1794,7 +1794,7 @@ void mobs_hit(TMOB *p)
      vybrana_zbran=-1;
      mob_hit(p,h->dostal);
      if (log_combat) wzprintf("%s was hit (eye for an eye): %d\n", p->name, h->dostal);
-     mob_check_death(p-mobs,p);
+     mob_check_death(p-mobs);
      }
   if (h->dostal && p->vlastnosti[VLS_KOUZLA] & SPL_KNOCK) knock_player_back(h,p->dir);
   if (p->vlastnosti[VLS_KOUZLA] & SPL_DRAIN)  //energy drain pro potvoru
@@ -1939,13 +1939,13 @@ void mobs_live(int num)
         {
 		neco_v_pohybu=1;
         p->anim_phase=MOB_STANDING;
-        mob_check_death(num,p);
+        mob_check_death(num);
         }
      else
      if (p->anim_phase==MOB_DEATH)
         {
 		neco_v_pohybu=1;
-        if (p->anim_counter==2) mob_check_death(num,p);
+        if (p->anim_counter==2) mob_check_death(num);
         else if (p->anim_counter>12)
            {
             p->anim_phase=MOB_STANDING;
