@@ -19,6 +19,7 @@
 #include <libs/pcx.h>
 #include "globals.h"
 #include <stdarg.h>
+#include <string.h>
 #include "lang.h"
 #include "ach_events.h"
 
@@ -66,9 +67,7 @@ typedef struct t_paragraph
 #define MAX_VARIABLES 100
 static short variables[100];
 
-static char sn_nums[SAVE_SPKRS];
-static char sn_nams[SAVE_SPKRS][32];
-static char sn_rods[SAVE_SPKRS];
+static THUMAN *speakers[SAVE_SPKRS];
 
 static word *back_pic;
 static char back_pic_enable=0;
@@ -230,6 +229,10 @@ static short stk_pop() {
     return script_stack[script_stack_pos++];
 }
 
+static void stk_clear() {
+    script_stack_pos = MAX_STACK_SIZE;
+}
+
 
 static void stop_anim()
   {
@@ -244,10 +247,6 @@ static void run_anim(char *name,int speed,int rep)
   task_num=add_task(8196,dialog_anim,bl,speed,rep);
   }
 
-static void error(char *text)
-  {
-  wzprintf("%.125s paragraph %d\r\nLocal_pgf=%d / DIALOG : %d / SENTENCE : %d\r\n",text,last_pgf+local_pgf,local_pgf,local_pgf/128,last_pgf);
-  }
 
 static void show_dialog_picture()
   {
@@ -270,13 +269,7 @@ static T_PARAGRAPH *find_paragraph(int num)
   pocet=*pp;pp+=2;
   z=(T_PARAGRAPH *)pp;
   for(i=0;i<pocet;i++,z++) if (z->num==(unsigned)num) return z;
-  {
-  char s[80];
-
-  sprintf(s,"Paragraph %d doesn't exists! Called from",num);
-  error(s);
-  return (T_PARAGRAPH *)pp;
-  }
+  return NULL;
   }
 
 static int find_pgnum(char *pc)
@@ -295,6 +288,10 @@ static int find_pgnum(char *pc)
   return lastnum-local_pgf;
   }
 
+
+
+static void dlg_error(const char *pattern, ...);
+
 static void goto_paragraph(int prgf)
   {
 
@@ -305,6 +302,10 @@ static void goto_paragraph(int prgf)
   do
      {
      z=find_paragraph(prgf);
+     if (z == NULL) {
+        dlg_error("Can't find paragraph %d", prgf);
+        return;
+     }
      if (trace_dialogs) wzprintf("Dialog goto_paragraph %d (visited=%d)\n",prgf+local_pgf, z->visited);
      if (z->visited) z->first=1;
      if (z->alt==z->num || !z->visited)
@@ -319,6 +320,17 @@ static void goto_paragraph(int prgf)
      }
   while (1);
   }
+
+static THUMAN *getSafeSpeaker(int idx) {
+    static THUMAN err;
+    if (idx < SAVE_SPKRS && speakers[idx]) {
+        return speakers[idx];
+    } else {
+        err.sektor = 0;
+        strcpy(err.jmeno,"?Error?");
+        return &err;        
+    }
+}
 
 static char *transfer_text(const char *source,char *target)
   {
@@ -337,14 +349,15 @@ static char *transfer_text(const char *source,char *target)
            case 'a':*target++='\'';break;
            case 'p':
            case '%':*target++='%';break;
-           case 'n':strcpy(target,sn_nams[0]);target+=strlen(sn_nams[0]);break;
+           case 'n': strcpy(target, getSafeSpeaker(0)->jmeno);
+                     target += strlen(target);
+                     break;
            default: num=0;while (isdigit(*source)) num=10*num+*source++-'0';
-                    if (*source=='l')
-                       {
-                       sn_nums[0]=sn_nums[num];
-                       strcopy_n(sn_nams[0],sn_nams[num],sizeof(sn_nams[0]));
-                       sn_rods[0]=sn_rods[num];
+                    if (*source=='l') {
+                       if (num < SAVE_SPKRS) {
+                          speakers[0] = speakers[num];
                        }
+                    }
                     break;
            }
            source++;
@@ -352,18 +365,18 @@ static char *transfer_text(const char *source,char *target)
      else if (*source=='[')
         {
         source++;
-        num=sn_rods[0];
+        num=getSafeSpeaker(0)->female;
         while(num>0)
            {
            source=strchr(source,',');
            num--;
            if (source==NULL)
               {
-			  char buff[256];
 
-			  sprintf(buff,"%s\r\nChybny rod nebo maly pocet tvaru od jednoho slova",orgn);
-              error(buff);
-              exit(-1);
+                
+              dlg_error("Invalid gender number (%d) or invalid count of variants (%s): %s",num, orgn);
+              strcpy(target, source);
+              return target;
               }
            source++;
            }
@@ -371,16 +384,9 @@ static char *transfer_text(const char *source,char *target)
         if (*source!=']')
            {
            source=strchr(source,']');
-           if (source==NULL)
-              {
-			  char buff[256];
-
-			  sprintf(buff,"%s\r\nOcekava se ]",orgn);
-              error(buff);
-              exit(-1);
-              }
+           if (source==NULL) source = strchr(source,0); 
+           else source++;
            }
-        source++;
         }
      else *target++=*source++;
      }
@@ -425,18 +431,27 @@ static char *Get_string()
      while(i==P_STRING);
      return string_buffer;
      }
-  if (zjisti_typ()==P_SHORT)
-     {
-     short i;
+  short idx = 0;
+  short typ = zjisti_typ();
+  if (typ == P_SHORT||typ == P_VAR) {
      pc++;
-     i = (uint8_t)pc[0] + 256*pc[1];
+     idx = (uint8_t)pc[0] + 256*pc[1];
      pc+=2;
-     if (i<=0) c=conv_text(texty[abs(i)]);else c=conv_text(level_texts[i]);
-     return string_buffer;
+     if (typ == P_VAR) {
+        if (idx < 0 || idx >= MAX_VARIABLES) {
+          idx = -1;
+        } else {
+          idx = variables[idx];
+        }
      }
-  error("O�ek�v� se �et�zec nebo index do tabulky �et�zc�");
-  exit(0);
-  return NULL;
+     if (idx < 0 || str_count(texty)< idx || texty[idx] == NULL) {
+          strcpy(string_buffer, "<NULL>");
+          return string_buffer;
+     }
+     return conv_text(texty[idx]);
+  }
+  dlg_error("Expected string (%d), found (%d)", P_STRING, zjisti_typ());
+  return "";
   }
 
 static short Get_short()
@@ -459,8 +474,7 @@ static short Get_short()
   if (*pc == P_POP) {
     return stk_pop();
   }
-  error("O�ek�v� se ��slo");
-  exit(0);
+  dlg_error("Expected numeric argument, found type: %d", *pc);
   return 0;
   }
 
@@ -583,78 +597,100 @@ static void lecho(char *c)
 
 static void save_name(int pos)
   {
-  sn_nums[pos]=sn_nums[0];
-  strcopy_n(sn_nams[pos],sn_nams[0],sizeof(sn_nams[pos]));
-  sn_rods[pos]=sn_rods[0];
+    if (pos < SAVE_SPKRS) {
+      speakers[pos] = speakers[0];
+    }
   }
 
 static void load_name(int pos)
   {
-  sn_nums[0]=sn_nums[pos];
-  strcopy_n(sn_nams[0],sn_nams[pos],sizeof(sn_nams[0]));
-  sn_rods[0]=sn_rods[pos];
+    if (pos < SAVE_SPKRS) {
+      speakers[0] = speakers[pos];
+    }
   }
 
-static void nahodne(int vls,int omz,char check)
-  {
-  char chk[POCET_POSTAV];
-  int i,l,m;
 
-  memset(chk,0,sizeof(chk));
-  if (!check) for(i=0;i<SAVE_SPKRS;i++) if (sn_nums[i]<POCET_POSTAV) chk[(uint8_t)sn_nums[i]]|=1;
-  for(i=0;i<POCET_POSTAV;i++) if (postavy[i].sektor!=viewsector || !postavy[i].lives || !postavy[i].used) chk[i]|=2;
-  m=0;l=-1;
-  for(i=0;i<POCET_POSTAV;i++)
-     if (postavy[i].vlastnosti[vls]>=omz && chk[i]==0)
-        {
-        if (l>=0) chk[l]|=4;
-        l=-2;iff=0;
-        }
-     else if  (l!=-2 && chk[i]==0 && postavy[i].vlastnosti[vls]>=m)
-           {
-           if (l>=0) chk[l]|=4;
-           l=i;iff=1;
-           m=postavy[i].vlastnosti[vls];
-           }
-     else chk[i]|=4;
-  m=0;
-  for(i=0;i<POCET_POSTAV;i++) if (!chk[i])m++;
-  if (m==0 && !check)
-     {
-     for(i=0;i<POCET_POSTAV;i++) chk[i]&=~1;
-     for(i=0;i<POCET_POSTAV;i++) if (!chk[i])m++;
-     iff=1;
-     if (m==0) return;
-     }
-  l=rnd(m)+1;
-  for(i=0;l>0;i++) if (!chk[i]) l--;
-  i--;
-  sn_nums[0]=i;
-  strcpy(sn_nams[0],postavy[i].jmeno);
-  sn_rods[0]=postavy[i].female;
+static void select_speaker(int vls,int omz, int slot) {
+      if (slot >= SAVE_SPKRS) return;
+      int stats[POCET_POSTAV] = {0};
+      for (int i = 0; i < SAVE_SPKRS; ++i) {
+          if (i != slot) {        
+              const THUMAN *spk = speakers[i];
+              if (spk != NULL && spk->lives && spk->used) {
+                int id = spk - postavy;
+                if (id >=0 && id < POCET_POSTAV) {
+                    ++stats[id];
+                }
+              }
+          }
+      }
+      int m = SAVE_SPKRS;
+      for (int i = 0; i < POCET_POSTAV; ++i) m = MIN(stats[i], m);
+      THUMAN *candidates[POCET_POSTAV];
+      int ccount = 0;
+      for (int i = 0; i < POCET_POSTAV; ++i) {
+          if (stats[i] == m && postavy[i].used && postavy[i].lives) candidates[ccount++] = &postavy[i];
+      }
+      if (ccount == 0) {
+          speakers[slot] = NULL;
+          return;
+      }
+      THUMAN *selected[POCET_POSTAV];
+      int scount = 0;
+      for (int i = 0; i < ccount; ++i) {
+          if (candidates[i]->vlastnosti[vls] >= omz) {
+              selected[scount++] = candidates[i];
+          }
+      }
+      if (scount == 0) {
+          m = 0;
+          for (int i = 0; i < ccount; ++i) {
+             m = MAX(candidates[i]->vlastnosti[vls], m);
+          }
+          for (int i = 0; i < ccount; ++i) {
+              if (candidates[i]->vlastnosti[vls] == m) {
+                  selected[scount++] = candidates[i];
+              }
+          }
+      }
+
+      int roll = rnd(scount);
+      speakers[slot] = selected[roll];
   }
 
-static void pc_xicht(int xichtid)
+static void select_speaker_by_face(int face, int slot)
 {
   int i;
-  for (i=0;i<POCET_POSTAV;i++)
-    if (postavy[i].used && postavy[i].xicht==xichtid)
-    {
-      sn_nums[0]=i;
-      strcpy(sn_nams[0],postavy[i].jmeno);
-      sn_rods[0]=postavy[i].female;
-      iff=1;
-      return;
-    }
-iff=0;
-return;
+  if (slot >= SAVE_SPKRS) return;
+  for (i=0;i<POCET_POSTAV;i++) {
+      if (postavy[i].used && postavy[i].xicht==face)  {
+          speakers[slot] = &postavy[i];
+          iff=1;
+          return;
+      }
+  }
+  iff=0;
+  speakers[slot] = NULL;
 }
+
+static void select_speaker_by_slot(int char_slot, int speaker_slot)
+{
+  if (speaker_slot >= SAVE_SPKRS) return;
+  if (char_slot >= POCET_POSTAV) return;
+  if (postavy[char_slot].used) {
+      speakers[speaker_slot] = &postavy[char_slot];
+  } else {
+      speakers[speaker_slot] = NULL;
+  }
+}
+
 
 static char visited(int prgf)
   {
   T_PARAGRAPH *z;
 
   z=find_paragraph(prgf);
+  if (z == NULL) return 0;
   return z->visited;
   }
 
@@ -663,6 +699,7 @@ static void set_nvisited(int prgf)
   T_PARAGRAPH *z;
 
   z=find_paragraph(prgf);
+  if (z == NULL) return;
   z->visited=0;
   z->first=0;
   }
@@ -719,6 +756,7 @@ static void first_visited(int prgf)
   T_PARAGRAPH *z;
 
   z=find_paragraph(prgf);
+  if (z == NULL) return;
   iff=!z->first;
   }
 
@@ -869,8 +907,11 @@ static void add_case(int num,char *text)
   {
   char *a;
   int xs,ys;
+  if (pocet_voleb>=MAX_VOLEB) {
+      dlg_error("Too many choices. Limit is %d", MAX_VOLEB);
+      return;
+  }
   vol_n[(uint8_t)pocet_voleb]=num;
-  if (pocet_voleb>MAX_VOLEB) {error("POZOR! Je priliz mnoho voleb");pocet_voleb=MAX_VOLEB;}
   a=alloca(strlen(text)+2);
   set_font(H_FBOLD,RGB555(0,30,0));
   zalamovani(text,a,TEXT_XS,&xs,&ys);
@@ -1063,9 +1104,20 @@ static int selected_player;
 
 char drop_character()
 {
-  int selected_player=sn_nums[0];
+  THUMAN *h = speakers[0];
+  if (h == NULL) return 1;
+  int selected_player = h - postavy;
   if (selected_player<0 || selected_player>=POCET_POSTAV) return 1;
   memcpy(postavy+selected_player,postavy+selected_player+1,sizeof(*postavy)*(POCET_POSTAV-selected_player));
+  for (int i = 0; i < SAVE_SPKRS; ++i) {
+      THUMAN *h = speakers[i];
+      if (h) {
+          int idx = h - postavy;
+          if (idx >selected_player) {
+            speakers[i] = &postavy[idx-1];
+          }
+      }
+  }
   postavy[POCET_POSTAV-1].used=0;
   reg_grafiku_postav();
   bott_draw(1);
@@ -1148,64 +1200,64 @@ static int dlg_ask_who()
   schovej_mysku();
   mouse_set_default(H_MS_DEFAULT);
   if (selected_player==-1) return 1;
-  strcpy(sn_nams[0],postavy[selected_player].jmeno);
-  sn_rods[0]=postavy[selected_player].female;
-  sn_nums[0]=selected_player;
+  speakers[0] = &postavy[selected_player];
   change_click_map(NULL,0);
   return 0;
   }
 
 extern word weapon_skill[];
 
-static void pract(int h,int vls,int how,int max)
+static void pract(THUMAN *h,int vls,int how,int max)
   {
    iff=0;
+   if (!h) return;
    if (vls>=100)
      {
      vls-=100;
-     if (postavy[h].bonus_zbrani[vls]>=max) iff=1;
+     if (h->bonus_zbrani[vls]>=max) iff=1;
      else
         {
-        postavy[h].bonus_zbrani[vls]+=how;
-        if (postavy[h].bonus_zbrani[vls]>max) postavy[h].bonus_zbrani[vls]=max,iff=1;
-        postavy[h].weapon_expy[vls]=weapon_skill[postavy[h].bonus_zbrani[vls]];
+        h->bonus_zbrani[vls]+=how;
+        if (h->bonus_zbrani[vls]>max) h->bonus_zbrani[vls]=max,iff=1;
+        h->weapon_expy[vls]=weapon_skill[h->bonus_zbrani[vls]];
         }
      }
    else
      {
-     if (postavy[h].vlastnosti[vls]>=max) iff=1;
+     if (h->vlastnosti[vls]>=max) iff=1;
      else
         {
-        postavy[h].stare_vls[vls]+=how;
-        prepocitat_postavu(postavy+h);
-        if (postavy[h].vlastnosti[vls]>max)
+        h->stare_vls[vls]+=how;
+        prepocitat_postavu(h);
+        if (h->vlastnosti[vls]>max)
            {
-           postavy[h].stare_vls[vls]-=postavy[h].vlastnosti[vls]-max;
-           postavy[h].vlastnosti[vls]=max;
+           h->stare_vls[vls]-=h->vlastnosti[vls]-max;
+           h->vlastnosti[vls]=max;
            iff=1;
            }
         }
      }
   }
 
-static void pract_to(int h, int vls,int how)
-  {
+static void pract_to(THUMAN *h, int vls,int how)
+  {    
    iff=0;
+   if (!h) return;
    if (vls>=100)
      {
      vls-=100;
-     if (postavy[h].bonus_zbrani[vls]<how)
+     if (h->bonus_zbrani[vls]<how)
         {
-        postavy[h].bonus_zbrani[vls]=how;
-        postavy[h].weapon_expy[vls]=weapon_skill[how];
+        h->bonus_zbrani[vls]=how;
+        h->weapon_expy[vls]=weapon_skill[how];
         }
      else iff=1;
      }
    else
      {
-     if (postavy[h].vlastnosti[vls]<how)
-        postavy[h].stare_vls[vls]+=how-postavy[h].vlastnosti[vls];else iff=1;
-     prepocitat_postavu(postavy+h);
+     if (h->vlastnosti[vls]<how)
+        h->stare_vls[vls]+=how-h->vlastnosti[vls];else iff=1;
+     prepocitat_postavu(h);
      }
   }
 
@@ -1220,21 +1272,22 @@ static char oper_balance(int val1,int val2,int oper)
      case OPER_BIGEQ:return val1>=val2;
      case OPER_LOWEQ:return val1<=val2;
      case OPER_NOEQ:return val1!=val2;
-     default:error("Chybn� operator porovn�v�n�");
+     default:dlg_error("Invalid relation argument %d", oper);
      }
   return 0;
   }
 
-static char test_vls(int h,int vls,int oper,int num)
+static char test_vls(THUMAN *h,int vls,int oper,int num)
   {
   int val;
+  if (h == NULL) return 0;
    if (vls>=100)
      {
      vls-=100;
-     val=postavy[h].bonus_zbrani[vls];
+     val=h->bonus_zbrani[vls];
      }
    else
-     val=postavy[h].stare_vls[vls];
+     val=h->stare_vls[vls];
   return oper_balance(val,num,oper);
   }
 
@@ -1305,9 +1358,11 @@ static char test_volby_select(int balance,int value)
 
 static void cast_spell_human(int spell)
   {
-  int cil=sn_nums[0];
+    if (speakers[0] == NULL) return;
+    int cil = speakers[0] - postavy;
+    if (cil < 0 || cil >= POCET_POSTAV) return;
 
-  thing_cast(spell, cil, viewsector, NULL, 0);
+    thing_cast(spell, cil, viewsector, NULL, 0);
   }
 
 static void cast_spell_enemy(int spell)
@@ -1340,11 +1395,12 @@ static short count_present(int sector) {
 }
 
 static void teleport_char(const char *level, int sector, int dir) {
-    int p = sn_nums[0];
+    THUMAN *p = speakers[0];
+    if (!p) return;
     uint32_t h = fnv1a_hash(level);
-    postavy[p].inmaphash = h;
-    postavy[p].sektor = h == current_map_hash?sector:-sector;
-    postavy[p].direction = dir;
+    p->inmaphash = h;
+    p->sektor = h == current_map_hash?sector:-sector;
+    p->direction = dir;
     bott_draw(0);
     build_player_map();
 }
@@ -1438,6 +1494,8 @@ static void kill_current_enemy() {
     }
 }
 
+static void dlg_formated_print(const char *text, int args);
+
 void do_dialog()
   {
   int i,p1,p2,p3;
@@ -1449,6 +1507,7 @@ void do_dialog()
           atexit(free_dialog_stringtable);
       }
   }
+  stk_clear();
 
 
   do
@@ -1477,26 +1536,26 @@ void do_dialog()
      case 19: stk_push(!stk_pop());break;
      case 20: stk_push(iff?1:0);break;
      case 21: iff = stk_pop() != 0;break;
-     case 22: p1 = Get_short(); p2=Get_short(); nahodne(p1,p2,0);break;
-     case 23: stk_push(postavy[(int)sn_nums[0]].vlastnosti[Get_short()]);break;
-     case 24: stk_push(postavy[(int)sn_nums[0]].wearing[Get_short()]-1);break;
-     case 25: stk_push(postavy[(int)sn_nums[0]].bonus_zbrani[Get_short()]);break;
-     case 26: stk_push(sn_rods[0]);break;
+     case 22: p1 = Get_short(); p2=Get_short(); p3=Get_short(); select_speaker(p1, p2, p3);break;
+     case 23: stk_push(getSafeSpeaker(0)->vlastnosti[Get_short()]);break;     
+     case 24: stk_push(getSafeSpeaker(0)->wearing[Get_short()]-1);break;
+     case 25: stk_push(getSafeSpeaker(0)->bonus_zbrani[Get_short()]);break;
+     case 26: stk_push(getSafeSpeaker(0)->female);break;
      case 27: stk_push(count_slots());break;
      case 28: stk_push(count_present(viewsector));break;
-     case 29: p1 = Get_short(); pc_xicht(postavy[p1].xicht);break;
+     case 29: p1 = Get_short(); p2=Get_short(); select_speaker_by_face(p1, p2);break;
      case 30: q_fact(Get_short());break;
      case 31: set_fact(Get_short());break;
      case 32: reset_fact(Get_short());break;
      case 33: c = Get_string(); p1 = Get_short(); p2 = Get_short(); teleport_char(c, p1, p2); break;
-     case 34: stk_push(postavy[(int)sn_nums[0]].xicht);break;
-     case 35: stk_push(postavy[(int)sn_nums[0]].sektor);break;
+     case 34: stk_push(getSafeSpeaker(0)->xicht);break;
+     case 35: stk_push(getSafeSpeaker(0)->sektor);break;
      case 36: change_music(Get_string());break;
      case 37: replace_monster(Get_short());break;
      case 38: p1 = Get_short(); p2 = Get_short(); replace_monsters(p1,p2);break;
      case 39: p1 = Get_short(); p2 = Get_short(); p3 = Get_short(); replace_monsters_r(p1,p2,p3,Get_short());break;
      case 40: cast_spell_enemy(Get_short());break;
-     case 41: iff = postavy[(int)sn_nums[0]].sektor == viewsector;break;
+     case 41: iff = getSafeSpeaker(0)->sektor == viewsector;break;
      case 42: stk_push(money);break;
      case 43: iff = dialog_mob != -1;break;
      case 44: iff = battle;break;
@@ -1508,16 +1567,18 @@ void do_dialog()
      case 50: stk_push(held_item);break;
      case 51: iff = pocet_voleb == 0;break;
      case 52: kill_current_enemy();break;
+     case 53: p1 = Get_short(); p2 = Get_short(); select_speaker_by_slot(p1, p2);break;
+     case 54: c = Get_string();dlg_formated_print(c, Get_short()); break;     
      case 128:add_desc(Get_string());break;
      case 129:show_emote(Get_string());break;
      case 130:save_name(Get_short());break;
      case 131:iff=!iff;break;
      case 132:load_name(Get_short());break;
-     case 133:nahodne(0,0,Get_short());break;
-     case 134:p1=Get_short();p2=Get_short();nahodne(VLS_SMAGIE,p1,p2);break;
-     case 135:p1=Get_short();p2=Get_short();nahodne(VLS_SILA,p1,p2);break;
-     case 136:p1=Get_short();p2=Get_short();nahodne(VLS_OBRAT,p1,p2);break;
-     case 137:c=Get_string();p1=Get_short();strcopy_n(sn_nams[0],c,32);sn_rods[0]=p1;break;
+     case 133:Get_short() /*ignore check*/ ; select_speaker(0,0,0);break;
+     case 134:p1=Get_short();p2=Get_short();select_speaker(VLS_SMAGIE,p1,0);break;
+     case 135:p1=Get_short();p2=Get_short();select_speaker(VLS_SILA,p1,0);break;
+     case 136:p1=Get_short();p2=Get_short();select_speaker(VLS_OBRAT,p1,p2);break;
+//     case 137:c=Get_string();p1=Get_short();strcopy_n(sn_nams[0],c,32);sn_rods[0]=p1;break;
      case 138:iff=Get_short();break;
      case 139:goto_paragraph(Get_short());break;
      case 140:p1=Get_short();if (iff) goto_paragraph(p1);break;
@@ -1567,12 +1628,12 @@ void do_dialog()
                     else iff=1;
               } else iff=0;
               break;
-     case 176:p1=Get_short();p2=Get_short();pract_to(sn_nums[0],p1,p2);break;
-     case 177:p1=Get_short();p2=Get_short();p3=Get_short();iff=test_vls(sn_nums[0],p1,p2,p3);break;
+     case 176:p1=Get_short();p2=Get_short();pract_to(speakers[0],p1,p2);break;
+     case 177:p1=Get_short();p2=Get_short();p3=Get_short();iff=test_vls(speakers[0],p1,p2,p3);break;
      case 178:p1=Get_short();runes[p1/10]|=1<<(p1%10);break;
      case 179:p1=Get_short();iff=((runes[p1/10] & (1<<(p1%10)))!=0);break;
      case 180:p1=Get_short();iff=(money>=p1);break;
-     case 181:p1=Get_short();p2=Get_short();p3=Get_short();pract(sn_nums[0],p1,p2,p3);break;
+     case 181:p1=Get_short();p2=Get_short();p3=Get_short();pract(speakers[0],p1,p2,p3);break;
      case 182:p1=Get_short();p2=Get_short();dark_screen(p1,p2);break;
      case 183:spat(Get_short());break;
      case 184:p1=Get_short();iff=najist_postavy(p1);break;
@@ -1591,7 +1652,7 @@ void do_dialog()
      case 198:p1=Get_short();p2=Get_short();c=Get_string();if (iff==p1) add_case(variables[p2],c);break;
      case 199:goto_paragraph(variables[Get_short()]);break;
      case 200:iff=drop_character();break;
-     case 201:pc_xicht(Get_short());break;
+     case 201:select_speaker_by_face(Get_short(),0);break;
      case 202:p1=Get_short();runes[p1/10]&=~(1<<(p1%10));break;
      case 203:p1=Get_short();p2=Get_short();send_monsters(p1,p2);break;
      case 204:if (dialog_mob>=0) send_mob_to_sector(dialog_mob, Get_short());break;
@@ -1603,16 +1664,13 @@ void do_dialog()
             };break;
      case 518:set_flag(Get_short());break;
      case 519:reset_flag(Get_short());break;
+     case 0:
      case 255:exit_dialog();return;
-     default:
-        {
-        char s[80];
-        sprintf(s,"Nezn�m� instrukce: %d",i);
-        error(s);
-        }
-        break;
+     default:        
+          dlg_error("Unknown dialog instruction %d", i);
+        break;     
      }
-     }
+    }
   while(1);
   }
 
@@ -1663,7 +1721,7 @@ void call_dialog(int entr,int mob)
   norefresh=1;
   history=create_list(256);
   his_line=0;
-  memset(sn_nums,0xff,sizeof(sn_nums));
+  memset(speakers,0,sizeof(speakers));
   goto_paragraph(entr);
   schovej_mysku();
   alock(H_DIALOGY_DAT);
@@ -1767,4 +1825,57 @@ char load_dialog_info(TMPFILE_RD *f)
     set_nvisited(pgf);
     return 1;
   }
+
+  static void dlg_error(const char *pattern, ...) {
+    va_list args;
+    va_start(args,pattern);
+    char buff[1024];
+    vsnprintf(buff, sizeof(buff), pattern, args);
+    va_end(args);
+    
+    char *c, *d = buff;
+    echo("DIALOG ERROR:");
+    c = strchr(buff, '\n');
+    while (c) {
+        *c = 0;
+        echo(d);
+        d = c+1;
+        c = strchr(d, '\n');
+    }
+    echo(d);
+
+    
+
+    static char exit_buff[16] = {0};
+    pc = exit_buff;
+    dialog_select(0);
+}
+
+void dlg_formated_print(const char *text, int args) {
+
+    int need_buffer = strlen(text) + 4 * args + 1; // -32767 = 6, {} = 2 : 6-2=4
+    char *buff = (char *)alloca(need_buffer);
+    char *c = buff;
+    const char *s = text;
+    while (*s) {
+        if (s[0] == '{' && s[1] == '}' ) {
+           if (args) {
+               --args;
+               short v = stk_pop();
+               sprintf(c, "%d", v);
+               c = strchr(c, 0);
+           }
+           ++s;
+        } else {
+           *c++ = *s;
+        }
+        ++s;
+    }
+    *c = 0;
+    echo(buff);
+    while (args) {
+        stk_pop();
+        --args;
+    }
+}
 
