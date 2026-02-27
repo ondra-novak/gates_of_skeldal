@@ -231,7 +231,12 @@ static const TDIRECTORY_ENTRY *ddl_directory_find_entry(TDDL_DIRECTORY dir, cons
 
 static const TDIRECTORY_ENTRY *ddl_directory_find(TDDL_DIRECTORY dir, const char *name) {
     TDIRECTORY_ENTRY tofind;
-    strncpy(tofind.name, name, sizeof(tofind.name));
+    for (int i = 0; i < 12; ++i) {
+        char c = name[i];
+        if (c >= 'a' && c <='z') c = c + 'A' - 'a';
+        tofind.name[i] = c;
+        if (c == 0) break;
+    }
     return ddl_directory_find_entry(dir, &tofind);
 }
 
@@ -343,12 +348,36 @@ static void add_patch(const void *bmf, size_t sz, const char *filename) {
     abort();
 }
 
+static void remap_handles() {
+    for(int i=0;i<BK_MAJOR_HANDLES;i++) if (_handles[i]!=NULL) {
+       THANDLE_DATA *p=(THANDLE_DATA *)(_handles[i]);
+       for(int j=0;j<BK_MINOR_HANDLES;j++) {
+          THANDLE_DATA *h = p+j;
+          if (h->status == BK_PRESENT && h->blockdata) {
+             if (need_to_be_free(h->blockdata)) {
+                 if (!(h->flags & BK_LOCKED)) {
+                     free((void *)h->blockdata);
+                 } else {
+                     h->flags |= BK_KILL_ON_UNLOCK;
+                 }
+             } else if (h->flags & BK_LOCKED) {
+                h->flags |= BK_KILL_ON_UNLOCK;
+             }
+             h->status = BK_NOT_LOADED;
+             h->blockdata = NULL;
+          }
+          get_file_entry(h->path,h->src_file,h);
+       }
+    }
+}
+
 char add_patch_file(const char *filename) {
     size_t bmf_s;
     const void *bmf = map_file_to_memory(file_icase_find(filename), &bmf_s);
     if (bmf) {
         add_patch(bmf, bmf_s, filename);
         rebuild_ddl_directory();
+        remap_handles();
         return 1;
     }
     return 0;
@@ -360,6 +389,8 @@ void init_manager(void) {
   memset(_handles,0,sizeof(_handles));
   memset(ddlmap,0,sizeof(ddlmap));
 }
+
+
 
 void reload_ddls(void) {
     int i,j;
