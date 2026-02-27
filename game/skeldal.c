@@ -23,7 +23,7 @@
 #include "advconfig.h"
 #include "ach_events.h"
 #include "skeldal.h"
-#include "lang.h"
+
 
 #include <ctype.h>
 #include <time.h>
@@ -920,7 +920,6 @@ void cti_texty(void)
      str_replace(&texty, 144, "Zrychlit souboje");
      str_replace(&texty, 51, "Celkov\x88 Hudba Efekty  V\x98\xA8ky  Basy Rychlost");
      str_replace(&texty,0,"Byl nalezen p\xA9ipojen\x98 ovlada\x87\nPro aktivaci ovlada\x87""e stiskn\x88te kter\x82koliv tla\x87\xA1tko na ovlada\x87i");
-     lang_patch_stringtable(&texty, "ui.csv", "");
   }
 
 
@@ -994,12 +993,6 @@ void init_DDL_manager() {
                 abort();
             }
         }
-    }
-    const char *lang_fld = lang_get_folder();
-    if (lang_fld) {
-        const char *gfx = build_pathname(2, lang_fld, "gfx.ddl");
-        gfx = local_strdup(gfx);
-        add_patch_file(gfx);
     }
 
     SEND_LOG("(GAME) Memory manager initialized. Using DDL: '%s'",ddlfile);
@@ -1103,6 +1096,8 @@ int init_skeldal_thread(va_list args) {
     atexit(done_skeldal);
 
     init_DDL_manager();
+    release_list(texty);
+    cti_texty();
     show_loading_picture("LOADING.HI");
 
     install_gui();
@@ -1162,7 +1157,7 @@ int init_skeldal_thread(va_list args) {
 }
 
 
-int init_skeldal(const INI_CONFIG *cfg, void (*game_thread)(va_list), ...)
+int init_skeldal(const INI_CONFIG *cfg, int (*game_thread)(va_list), ...)
   {
   boldcz=LoadDefaultFont();
 
@@ -1389,9 +1384,6 @@ void play_anim(int anim_num)
      s = local_strdup(s);
      char *n = set_file_extension(texty[anim_num], ".TXT");
      if (load_string_list_ex(&titl,n, SR_VIDEO)) titl=NULL;
-     else {
-         lang_patch_stringtable(&titl, "intro", "");
-     }
      set_title_list(titl);set_font(H_FBIG,RGB(200,200,200));
      curcolor=0;bar32(0,0,639,459);
      showview(0,0,0,0);
@@ -1409,6 +1401,8 @@ void play_anim(int anim_num)
 
 #define H_ETOPBAR (H_MENUS_FREE+100)
 #define H_EDESK (H_MENUS_FREE+101)
+static char corrupted_state = 0;
+
 static void game_big_circle(char enforced)
   {
   int err;
@@ -1425,6 +1419,10 @@ static void game_big_circle(char enforced)
      }
   while (loadlevel.name[0])
      {
+     if (err == -100) {
+          corrupted_state = 1;
+          err = 0;
+     }
      if (err)
        {
 	   char buff[256];
@@ -1441,7 +1439,7 @@ static void game_big_circle(char enforced)
        }
     viewsector=loadlevel.start_pos;
     viewdir=loadlevel.dir;
-    if (viewsector==0)
+    if (viewsector==0 || viewsector >= mapsize)
      {
      viewsector=set_leaving_place();
      if (viewsector==0)
@@ -1784,12 +1782,12 @@ void initialize_from_adv_ini() {
 }
 
 
-void skeldal_entry_point_thread(va_list args) {
+int skeldal_entry_point_thread(va_list args) {
     const SKELDAL_CONFIG *start_cfg = va_arg(args, const SKELDAL_CONFIG *);
 
     if (start_cfg->launcher) {
       const char *ddl = run_launcher();
-      if (ddl==NULL) return;
+      if (ddl==NULL) return 0;
       if (ddl[0]) {
         add_patch_file(ddl);
         reload_ddls();
@@ -1805,7 +1803,7 @@ void skeldal_entry_point_thread(va_list args) {
 
 
     term_task_wait(start_task);
-    return;
+    return 0;
 }
 
 int skeldal_entry_point(const SKELDAL_CONFIG *start_cfg)
@@ -1845,8 +1843,6 @@ int skeldal_entry_point(const SKELDAL_CONFIG *start_cfg)
       for (char *c = sname; *c; ++c) if (!isalnum(*c)) *c = '_';
       const char *p = build_pathname(2, gpathtable[SR_SAVES], sname);
       gpathtable[SR_SAVES] = local_strdup(p);
-  } else if (start_cfg->lang_path) {
-      lang_set_folder(build_pathname(2, gpathtable[SR_LANG], start_cfg->lang_path));
   }
 
   if (!start_cfg->adventure_path) {

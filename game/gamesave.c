@@ -571,7 +571,9 @@ void restore_current_map() //pouze obnovuje ulozeny stav aktualni mapy
   free(map_sectors);      //uvolni informace o sektorech
   free(map_coord);       //uvolni minfo informace
   load_org_map(level_fname,&map_sides,&map_sectors,&map_coord,NULL); //nahrej originalni mapu
-  load_map_state(); //nahrej ulozenou mapu
+  if (load_map_state()) {
+      showCorruptedError();
+  }
   for(i=1;i<mapsize*4;i++) call_macro(i,MC_STARTLEV);
   }
 
@@ -950,15 +952,20 @@ int load_game(const char *fname)
 
   running_battle=0;
   norefresh=0;
-  if (!load_another) restore_current_map();
-        else
+  if (!load_another) {
+      restore_current_map();
+      if (viewsector >= mapsize) {
+          viewsector = mglob.start_sector;
+          viewdir = mglob.direction;
+      }
+  }
+   else
            {
            save_map=0;
            norefresh=1;
            }
   for(t=0;t<POCET_POSTAV;t++) postavy[t].zvolene_akce=NULL;
   SEND_LOG("(SAVELOAD) Game loaded.... Result %d",r);
-//  if (GetKeyState(VK_CONTROL) & 0x80) correct_level();
   return r;
   }
 

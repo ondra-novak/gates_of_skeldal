@@ -20,7 +20,6 @@
 #include "globals.h"
 #include <stdarg.h>
 #include <string.h>
-#include "lang.h"
 #include "ach_events.h"
 
 typedef struct t_paragraph
@@ -109,7 +108,6 @@ char trace_dialogs=0;
 static char case_click(int id,int xa,int ya,int xr,int yr);
 static char ask_who_proc(int id,int xa,int ya,int xr,int yr);
 
-static TSTRINGTABLE *dialogy_strtable = NULL;
 
 void wire_dialog_drw(void);
 
@@ -328,7 +326,7 @@ static THUMAN *getSafeSpeaker(int idx) {
     } else {
         err.sektor = 0;
         strcpy(err.jmeno,"?Error?");
-        return &err;        
+        return &err;
     }
 }
 
@@ -373,7 +371,7 @@ static char *transfer_text(const char *source,char *target)
            if (source==NULL)
               {
 
-                
+
               dlg_error("Invalid gender number (%d) or invalid count of variants (%s): %s",num, orgn);
               strcpy(target, source);
               return target;
@@ -384,7 +382,7 @@ static char *transfer_text(const char *source,char *target)
         if (*source!=']')
            {
            source=strchr(source,']');
-           if (source==NULL) source = strchr(source,0); 
+           if (source==NULL) source = strchr(source,0);
            else source++;
            }
         }
@@ -409,21 +407,18 @@ static char zjisti_typ()
 
 static char *Get_string()
   {
-    const char *start = (const char *)ablock(H_DIALOGY_DAT);
   char *c,i;
   if (*pc==P_STRING)
      {
-      int ofs = pc - start+1;
      pc++;
-     const char *txt = stringtable_find(dialogy_strtable,ofs, pc);
+     const char *txt = pc;
      c=conv_text(txt);
      do
         {
         pc+=strlen(pc)+1;
-        ofs = pc - start;
         if ((i=zjisti_typ())==P_STRING)
            {
-            const char *txt = stringtable_find(dialogy_strtable,ofs, pc);
+            const char *txt = pc;
            pc++;
            c=transfer_text(txt,c);
            }
@@ -614,7 +609,7 @@ static void select_speaker(int vls,int omz, int slot) {
       if (slot >= SAVE_SPKRS) return;
       int stats[POCET_POSTAV] = {0};
       for (int i = 0; i < SAVE_SPKRS; ++i) {
-          if (i != slot) {        
+          if (i != slot) {
               const THUMAN *spk = speakers[i];
               if (spk != NULL && spk->lives && spk->used) {
                 int id = spk - postavy;
@@ -1240,7 +1235,7 @@ static void pract(THUMAN *h,int vls,int how,int max)
   }
 
 static void pract_to(THUMAN *h, int vls,int how)
-  {    
+  {
    iff=0;
    if (!h) return;
    if (vls>=100)
@@ -1373,9 +1368,6 @@ static void cast_spell_enemy(int spell)
     }
   }
 
-static void free_dialog_stringtable(void) {
-    stringtable_free(dialogy_strtable);
-}
 
 
 static short count_slots() {
@@ -1501,12 +1493,6 @@ void do_dialog()
   int i,p1,p2,p3;
   char *c;
 
-  if (!dialogy_strtable) {
-      dialogy_strtable = lang_load("dialogs.csv");
-      if (dialogy_strtable) {
-          atexit(free_dialog_stringtable);
-      }
-  }
   stk_clear();
 
 
@@ -1537,7 +1523,7 @@ void do_dialog()
      case 20: stk_push(iff?1:0);break;
      case 21: iff = stk_pop() != 0;break;
      case 22: p1 = Get_short(); p2=Get_short(); p3=Get_short(); select_speaker(p1, p2, p3);break;
-     case 23: stk_push(getSafeSpeaker(0)->vlastnosti[Get_short()]);break;     
+     case 23: stk_push(getSafeSpeaker(0)->vlastnosti[Get_short()]);break;
      case 24: stk_push(getSafeSpeaker(0)->wearing[Get_short()]-1);break;
      case 25: stk_push(getSafeSpeaker(0)->bonus_zbrani[Get_short()]);break;
      case 26: stk_push(getSafeSpeaker(0)->female);break;
@@ -1568,7 +1554,7 @@ void do_dialog()
      case 51: iff = pocet_voleb == 0;break;
      case 52: kill_current_enemy();break;
      case 53: p1 = Get_short(); p2 = Get_short(); select_speaker_by_slot(p1, p2);break;
-     case 54: c = Get_string();dlg_formated_print(c, Get_short()); break;     
+     case 54: c = Get_string();dlg_formated_print(c, Get_short()); break;
      case 128:add_desc(Get_string());break;
      case 129:show_emote(Get_string());break;
      case 130:save_name(Get_short());break;
@@ -1664,11 +1650,10 @@ void do_dialog()
             };break;
      case 518:set_flag(Get_short());break;
      case 519:reset_flag(Get_short());break;
-     case 0:
      case 255:exit_dialog();return;
-     default:        
+     default:
           dlg_error("Unknown dialog instruction %d", i);
-        break;     
+        break;
      }
     }
   while(1);
@@ -1832,7 +1817,7 @@ char load_dialog_info(TMPFILE_RD *f)
     char buff[1024];
     vsnprintf(buff, sizeof(buff), pattern, args);
     va_end(args);
-    
+
     char *c, *d = buff;
     echo("DIALOG ERROR:");
     c = strchr(buff, '\n');
@@ -1844,9 +1829,9 @@ char load_dialog_info(TMPFILE_RD *f)
     }
     echo(d);
 
-    
 
-    static char exit_buff[16] = {0};
+
+    static char exit_buff[] = {P_SHORT,131,0,P_SHORT,131,0,P_SHORT,131,0,P_SHORT,131,0,P_SHORT,131,0,P_SHORT,164,0,P_SHORT,255,0};
     pc = exit_buff;
     dialog_select(0);
 }

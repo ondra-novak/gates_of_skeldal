@@ -395,6 +395,7 @@ SR_COUNT} SKELDAL_FOLDERS_TAG;
 #define TM_FLETNA 14
 #define TM_DELAIER 15
 #define TM_VZPLANUTI 16
+#define TM_CORRUPTED_SAVE 17
 
 //umisteni predmetu
 
@@ -697,7 +698,7 @@ void check_postavy_teleport(void);  //je-li viewsector=teleport pak presune post
 void change_fade_color(int r, int g, int b);
 void change_fade_brightness(float mult);
 void change_fade_end(float mult);
-
+void showCorruptedError(void);
 
 
 //builder

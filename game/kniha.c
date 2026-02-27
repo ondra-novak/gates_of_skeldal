@@ -50,7 +50,7 @@
 #include <libs/event.h>
 #include "globals.h"
 
-#include "lang.h"
+
 #define XMAX 254
 #define YMAX 390
 #define XLEFT 34
@@ -548,15 +548,6 @@ void add_text_to_book(const char *filename,int group, int odst)
   set_font(H_FKNIHA,NOSHADOW(0));
   if (all_text==NULL) all_text=create_list(256);
 
-  if (istrcmp(filename, "kniha.txt") == 0) {
-
-      if (lang_get_folder()) {
-          char *text = lang_load_string("book.txt");
-          if (text) {
-              fl = temp_storage_from_binary(text,strlen(text),free, text);
-          }
-      }
-  }
 
   if (!fl) {
       fl=enc_open(filename, group);

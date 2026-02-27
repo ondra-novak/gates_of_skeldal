@@ -12,7 +12,7 @@
 #include <stdarg.h>
 #include "engine1.h"
 #include "globals.h"
-#include "lang.h"
+
 
 #include <string.h>
 
@@ -200,7 +200,7 @@ static void animace_kouzla(MGIF_HEADER_T *_,int act,const void *data, int ssize)
 
 
 const void *load_spells_legacy_format(const void *p, int32_t *s, int h) {
-    TSTRINGTABLE *strtable = lang_load("spells.csv");
+
     void *np = getmem(*s);
     memcpy(np,p,*s);
     TKOUZLO *k = (np);
@@ -222,13 +222,8 @@ const void *load_spells_legacy_format(const void *p, int32_t *s, int h) {
         size_t eofs = offsetof(TKOUZLO, spellname)-1;
         memmove(b+bofs+1, b+bofs, eofs-bofs);\
         k->spell_flags = traceon;
-        const char *new_name = stringtable_find(strtable, i, NULL);
-        if (new_name) {
-            strcopy_n(k->spellname,new_name,sizeof(k->spellname)-1);
-        }
         ++k;
     }
-    stringtable_free(strtable);
     return np;
 }
 

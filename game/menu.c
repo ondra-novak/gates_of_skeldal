@@ -19,7 +19,7 @@
 #include "globals.h"
 
 #include "ach_events.h"
-#include "lang.h"
+
 #include <version.h>
 
 #define MUSIC "TRACK06.MUS"
@@ -377,13 +377,6 @@ int enter_menu(char open)
   }
 
 
-static TMPFILE_RD *end_titles_lang(const char *filename) {
-    if (istrcmp(filename,"TITULKY.TXT") == 0) filename = "end_titles.txt";
-    else if (istrcmp(filename,"ENDTEXT.TXT") == 0) filename = "epilog.txt";
-    char *c = lang_load_string(filename);
-    if (!c) return NULL;
-    return temp_storage_from_binary(c, strlen(c), free, c);
-}
 char *get_next_title(signed char control,const char  *filename)
   {
 
@@ -394,10 +387,6 @@ char *get_next_title(signed char control,const char  *filename)
   switch(control)
      {
      case 1:
-         titles = end_titles_lang(filename);
-         if (titles != NULL) {
-             return (char *)titles;
-         }
          titles = enc_open(filename, SR_DATA);
          return (char *)titles;
      case 0:if (titles!=NULL && temp_storage_gets(buffer,80,titles)) {

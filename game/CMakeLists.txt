@@ -44,7 +44,6 @@ console.c
 gen_stringtable.c
 advconfig.c
 temp_storage.cpp
-lang.c
 ach_events.c
 ${CMAKE_BINARY_DIR}/resources.cpp
 )

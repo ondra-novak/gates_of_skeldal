@@ -18,7 +18,7 @@
 #include "globals.h"
 #include <libs/inicfg.h>
 
-#include "lang.h"
+
 #include <ctype.h>
 #include <string.h>
 
@@ -248,12 +248,29 @@ void sanitize_map() {
 
 void translate_map_name(const char *mapfile, MAPGLOBAL *mglob) {
    uint32_t id = fnv1a_hash(mapfile);
-   const TSTRINGTABLE *stable = lang_load("mapnames.csv");
-   if (stable) {
-      const char *rplc = stringtable_find(stable, id, NULL);
-      if (rplc) {
-         strcopy_n(mglob->mapname,rplc,sizeof(mglob->mapname));
-      }
+   if (test_file_exist(SR_MAP, "mapnames.csv")) {
+       int32_t size;
+       char strid[50];
+       snprintf(strid, sizeof(strid), "%lu", (long)id);
+       const char *src = afile("mapnames.csv",SR_MAP, &size);
+       char *cpy = (char *)malloc(size+1);
+       memcpy(cpy, src, size);
+       cpy[size] = 0;
+       ablock_free(src);
+       char *found = strstr(cpy,strid);
+       if (found) {
+           char *foundend = found+strlen(strid);
+           if (*foundend == ',') {
+               char *comma2 = strchr(foundend+1,',');
+               if (comma2) {
+                   *comma2 = 0;
+                   strcopy_n(mglob->mapname, foundend+1, sizeof(mglob->mapname));
+                   free(cpy);
+                   return;
+               }
+           }
+       }
+       free(cpy);
    }
 }
 
@@ -261,6 +278,24 @@ static const void *pcx_15bit_decomp_z(const void *p, int32_t *s, int h) {
     if (p == NULL) return NULL;
     return pcx_15bit_decomp(p,s,h);
 }
+
+
+
+static void showCorruptedErrorDelayed(THE_TIMER *t) {
+    (void)t;
+    if (unwire_proc == unwire_main_functs && !norefresh) {
+        t->calls = 1;
+        unwire_proc();
+        message(1,0,0,"","ERROR: Corrupted state, the game state can be inconsistent",texty[80]);
+        wire_proc();
+    }
+
+}
+
+void showCorruptedError(void) {
+    add_to_timer(TM_CORRUPTED_SAVE, 1,-1,showCorruptedErrorDelayed);
+}
+
 
 int load_map(const char *filename)
   {
@@ -426,17 +461,14 @@ int load_map(const char *filename)
   const char *tpath=set_file_extension(filename,".txt");
   failed=load_level_texts(tpath);
   if (!failed && level_texts!=NULL) {
-      lang_patch_stringtable(&level_texts, filename, "map_");
       create_playlist(level_texts[0]);
   }
   init_tracks();
   change_music(get_next_music_from_playlist());
   for(int r=0;r<mapsize*4;r++) flag_map[r]=(char)map_sides[r].flags;
-  if (!doNotLoadMapState && load_map_state()==-2)
-     {
-     display_error("Bug in temp file. Please purge some status blocks in last load savegame file.");
-     exit(1);
-     }
+  if (!doNotLoadMapState && load_map_state()==-2) {
+      showCorruptedError();
+  }
   doNotLoadMapState=0;
   current_map_hash = fnv1a_hash(filename);
   const char * hash_str = map_hash_to_string(current_map_hash);
