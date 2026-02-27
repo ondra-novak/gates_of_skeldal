@@ -266,7 +266,9 @@ static T_PARAGRAPH *find_paragraph(int num)
   pp=(int *)ablock_copy(H_DIALOGY_DAT);
   pocet=*pp;pp+=2;
   z=(T_PARAGRAPH *)pp;
-  for(i=0;i<pocet;i++,z++) if (z->num==(unsigned)num) return z;
+  for(i=0;i<pocet;i++,z++) {
+      if (z->num==(unsigned)num) return z;
+  }
   return NULL;
   }
 
@@ -308,7 +310,8 @@ static void goto_paragraph(int prgf)
      if (z->visited) z->first=1;
      if (z->alt==z->num || !z->visited)
         {
-        pc=((char *)ablock_copy(H_DIALOGY_DAT))+*((const int *)ablock(H_DIALOGY_DAT))*sizeof(T_PARAGRAPH)+8+z->position;
+        void *dlg = ablock_copy(H_DIALOGY_DAT);
+        pc=(char *)dlg+*((const int32_t *)dlg)*sizeof(T_PARAGRAPH)+8+z->position;
         last_pgf=prgf;
         z->visited=1;
         return;
@@ -1013,7 +1016,7 @@ static void exit_dialog()
   remove_all_cases();
   release_list(history);
   history=0;
-  free(back_pic);
+  free(back_pic); back_pic = NULL;
   undef_handle(H_DIALOG_PIC);
   if (starting_shop!=-1 && !battle)
      {
@@ -1833,7 +1836,6 @@ char load_dialog_info(TMPFILE_RD *f)
 
     static char exit_buff[] = {P_SHORT,131,0,P_SHORT,131,0,P_SHORT,131,0,P_SHORT,131,0,P_SHORT,131,0,P_SHORT,164,0,P_SHORT,255,0};
     pc = exit_buff;
-    dialog_select(0);
 }
 
 void dlg_formated_print(const char *text, int args) {
