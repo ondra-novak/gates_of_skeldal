@@ -877,6 +877,9 @@ void call_macro_ex(int side, int flags, int runatside) {
                     case MA_CHLGH:
                         change_fade_color(z->chglight.r, z->chglight.g, z->chglight.b);
                         break;
+                    case MA_PLMUS:
+                        change_music(level_texts[z->text.textindex]);
+                        break;
                 }
             }
             if (jmp_to != -1) {

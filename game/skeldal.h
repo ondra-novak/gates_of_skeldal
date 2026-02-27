@@ -11,11 +11,10 @@ typedef struct {
 
     const char *adventure_path;
     const char *config_path;
-    const char *lang_path;
+    const char *langddl;
     const char *patch_file;
 
     const char *sse_hostport;
-    char launcher; //<run launcher
 
 } SKELDAL_CONFIG;
 

@@ -909,15 +909,6 @@ char page_change(int id,int xa,int ya,int xr,int yr)
   xa,ya,xr,yr;
 
   oldp=cur_page;
-  /*
-  if (*(char *)0x417 & 0x3)
-     {
-     selected_page=cur_page+id;
-     mouse_set_default(H_MS_LIST);
-     mouse_set_cursor(H_MS_LIST);
-     return 1;
-     }
-   */
   xa=count_pages();
   xa=((xa-1) & ~1)+1;
   cur_page+=id;

@@ -186,7 +186,7 @@ static __inline int rangrnd(int a, int b) {return rnd(b-a+1)+a;}
 #define H_MS_DEFAULT 51
 #define H_MS_SOUBOJ  52
 #define H_MS_WHO     53
-#define H_MS_LIST    54
+#define H_LOADING    54
 #define H_MS_ZARE    55
 #define H_POSTAVY    60
 #define H_BOTTBAR    66
@@ -1124,6 +1124,7 @@ char load_saved_shops(void);
 #define MA_MUSIC 36
 #define MA_GLOBE 37  //global events
 #define MA_CHLGH 38
+#define MA_PLMUS 39
 
 #define MAGLOB_LEAVEMAP 0 // v urcitou nastavenou hodinu a minutu dene
 #define MAGLOB_STARTSLEEP 1 // postavy maji jit spat.

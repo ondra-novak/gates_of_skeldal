@@ -23,6 +23,7 @@
 #include "advconfig.h"
 #include "ach_events.h"
 #include "skeldal.h"
+#include "launcher.h"
 
 
 #include <ctype.h>
@@ -124,7 +125,7 @@ TDREGISTERS registred[]=
     {H_MS_DEFAULT,"msc_sip.pcx", pcx_8bit_decomp,SR_BGRAFIKA},
     {H_MS_SOUBOJ,"msc_x.pcx", pcx_8bit_decomp,SR_BGRAFIKA},
     {H_MS_WHO,"msc_who.pcx", pcx_8bit_decomp,SR_BGRAFIKA},
-//    {H_MS_LIST,"msc_list.pcx", pcx_8bit_decomp,SR_BGRAFIKA},
+    {H_LOADING,"loading.hi", NULL,SR_BGRAFIKA},
     {H_MS_ZARE,"msc_zare.pcx", pcx_8bit_decomp,SR_BGRAFIKA},
     {H_KOMPAS,"kompas.pcx", pcx_15bit_decomp,SR_BGRAFIKA},
     {H_SIPKY_S,"sipky_s.pcx",pcx_8bit_decomp,SR_BGRAFIKA},
@@ -1096,8 +1097,6 @@ int init_skeldal_thread(va_list args) {
     atexit(done_skeldal);
 
     init_DDL_manager();
-    release_list(texty);
-    cti_texty();
     show_loading_picture("LOADING.HI");
 
     install_gui();
@@ -1136,7 +1135,6 @@ int init_skeldal_thread(va_list args) {
        exit(0);
        }
 
-  //  hranice_mysky(0,0,639,479);
 
     mouse_set_default(H_MS_DEFAULT);
     ukaz_mysku();
@@ -1161,7 +1159,7 @@ int init_skeldal(const INI_CONFIG *cfg, int (*game_thread)(va_list), ...)
   {
   boldcz=LoadDefaultFont();
 
-  cti_texty();
+  //cti_texty();
   timer_tree.next=NULL;
   init_events();
 
@@ -1762,7 +1760,7 @@ int skeldal_gen_string_table_entry_point(const SKELDAL_CONFIG *start_cfg, const 
     return 0;
 }
 
-const char *run_launcher();
+
 
 void initialize_from_adv_ini() {
     if (test_file_exist(0,"ADV.INI")) {
@@ -1785,16 +1783,28 @@ void initialize_from_adv_ini() {
 int skeldal_entry_point_thread(va_list args) {
     const SKELDAL_CONFIG *start_cfg = va_arg(args, const SKELDAL_CONFIG *);
 
-    if (start_cfg->launcher) {
-      const char *ddl = run_launcher();
-      if (ddl==NULL) return 0;
-      if (ddl[0]) {
-        add_patch_file(ddl);
-        reload_ddls();
-      }
+    if (start_cfg->patch_file == NULL && start_cfg->adventure_path == NULL) {
+        TLAUNCHER_SELECTION *launchinfo = run_launcher();
+        if (launchinfo==NULL) return 0;
+        if (launchinfo->lang) {
+            char *name = concat2(launchinfo->lang,".DDL");
+            add_patch_file(name);
+        }
+        if (launchinfo->ddl_file) {
+            add_patch_file(launchinfo->ddl_file);
+        }
+        free(launchinfo);
+    } else {
+        if (start_cfg->langddl) {
+            char *name = concat2(start_cfg->langddl,".DDL");
+            add_patch_file(name);
+        } else {
+            add_patch_file("CZ.DDL");
+        }
     }
 
     initialize_from_adv_ini();
+    cti_texty();
 
     int start_task = add_task(65536,start);
 
