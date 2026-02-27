@@ -307,14 +307,19 @@ const void *pcx_fade_decomp(const void *p, int32_t *s, int h)
   return buff;
   }
 
+
 const void *pcx_15bit_decomp(const void *p, int32_t *s, int h)
   {
   char *buff;
-  int r = load_pcx(p,*s,A_16BIT,&buff);
-  assert(r > 0);
-  *s=r;
-  return buff;
-  }
+  if (is_pcx(p,*s)) {
+    int r = load_pcx(p,*s,A_16BIT,&buff);
+    assert(r > 0);
+    *s=r;
+    return buff;
+  } 
+  return p;
+}
+    
 const void *pcx_15bit_decomp_transp0(const void *p, int32_t *s, int h)
   {
   char *buff;
@@ -1142,9 +1147,6 @@ int init_skeldal_thread(va_list args) {
 
     kouzla_init();
 
-    load_items();
-    load_enemy_templates();
-    load_shops();
     memset(&loadlevel,0,sizeof(loadlevel));
 
 
@@ -1383,7 +1385,7 @@ void play_anim(int anim_num)
      char *n = set_file_extension(texty[anim_num], ".TXT");
      if (load_string_list_ex(&titl,n, SR_VIDEO)) titl=NULL;
      set_title_list(titl);set_font(H_FBIG,RGB(200,200,200));
-     curcolor=0;bar32(0,0,639,459);
+     curcolor=0;bar32(0,0,639,479);
      showview(0,0,0,0);
      play_movie_seq(s,60);
      set_title_list(NULL);if (titl!=NULL) release_list(titl);
@@ -1708,8 +1710,6 @@ const char *configure_pathtable(const INI_CONFIG *cfg) {
     if (ini_get_boolean(paths, "patch_mode", 0)) {
         mman_patch = 1;
     }
-    const char *ugc_path = ini_get_string(paths, "local_ugc", "adv");
-    UGCSetLocalFoler(ugc_path);
 
     return groot;
 }
@@ -1805,6 +1805,10 @@ int skeldal_entry_point_thread(va_list args) {
 
     initialize_from_adv_ini();
     cti_texty();
+    load_items();
+    load_enemy_templates();
+    load_shops();
+
 
     int start_task = add_task(65536,start);
 

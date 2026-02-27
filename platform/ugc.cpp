@@ -2,8 +2,10 @@
 #include "config.h"
 
 #include <algorithm>
-#include <cstring>
+#include <ranges>
 #include <fstream>
+#include <unordered_map>
+#include <unordered_set>
 #include <vector>
 #include <filesystem>
 #include <string_view>
@@ -105,16 +107,6 @@ struct UGCItemEx : UGCItem {
     std::filesystem::path _stamp_file;
 };
 
-struct tag_UGCManager {
-    std::vector<UGCItemEx> _list;
-};
-
-UGCManager *UGC_create() {
-    return new UGCManager;
-}
-void UGC_Destroy(UGCManager *inst) {
-    delete inst;
-}
 
 static std::filesystem::path ugc_local_path;
 
@@ -122,72 +114,58 @@ void UGCSetLocalFoler(const char *path) {
     ugc_local_path = reinterpret_cast<const char8_t *>(path);
 }
 
-size_t UGC_Fetch(UGCManager *manager) {
 
-    manager->_list.clear();
-    std::error_code ec;
-    auto iter = std::filesystem::directory_iterator(ugc_local_path,ec);
-    if (ec == std::error_code()) {
-        auto fend = std::filesystem::directory_iterator();
-        while (iter != fend) {
-            const auto &entry = *iter;
+void UGC_GetList(void (*callback)(const UGCItem *items, unsigned int count, void *context), void *context) {
+    std::unordered_set<std::string> strings;
+    std::vector<UGCItem> items;
+    try {    
+        for(const auto &entry : std::ranges::subrange(std::filesystem::directory_iterator(ugc_local_path), std::filesystem::directory_iterator())) {
             if (entry.is_directory()) {
-                auto entry_path =std::filesystem::weakly_canonical(entry.path()) ;
-                auto info_path =  entry_path / "content.ini";
-                if (std::filesystem::is_regular_file(info_path)) {
-                    INI_CONFIG *cfg = ini_open(reinterpret_cast<const char *>(info_path.u8string().c_str()));
+                const auto ddl_path = entry.path()/"content.ddl";
+                const auto ini = entry.path()/"info.ini";
+                const auto stamp = entry.path()/"stamp";
+                if (std::filesystem::is_regular_file(ddl_path) && std::filesystem::is_regular_file(ini)) {
+                    const INI_CONFIG *cfg = ini_open(reinterpret_cast<const char *>(ini.u8string().c_str()));
                     if (cfg) {
                         const INI_CONFIG_SECTION *section = ini_section_open(cfg, "description");
-                        std::string title = toKEYBCS2(ini_get_string(section, "title", NULL));
-                        std::string author = toKEYBCS2(ini_get_string(section, "author", "unknown author"));
-                        const INI_CONFIG_SECTION *files = ini_section_open(cfg, "files");
-                        const char *ddl = ini_get_string(files, "ddlfile", NULL);
-                        if (ddl && !title.empty()) {
-                            UGCItemEx r;
-                            std::filesystem::path ddlpath = entry_path / ddl;
-                            auto pstr = ddlpath.u8string();
-                            ddl = reinterpret_cast<const char *>(pstr.c_str());
-
-                            auto tlen = title.size()+1;
-                            auto alen = author.size()+1;
-                            auto dlen = std::strlen(ddl)+1;
-
-                            r.text_data = std::make_unique<char[]>(tlen+alen+dlen);
-                            char *c = r.text_data.get();
-                            memcpy(c, title.c_str(), tlen);r.name = c;c+=tlen;
-                            memcpy(c, author.c_str(), alen);r.author = c;c+=alen;
-                            memcpy(c, ddl, dlen);r.ddl_path= c;c+=alen;
-
-                            auto stampfile = entry_path  / "stamp";
-                            std::filesystem::file_time_type tp = std::filesystem::last_write_time(stampfile, ec);
+                        std::string name = toKEYBCS2(ini_get_string(section, "name", "noname"));
+                        std::string author = toKEYBCS2(ini_get_string(section, "author", "noname"));
+                        std::string lang = ini_get_string(section, "lang", "CZ");
+                        auto ddl8 = ddl_path.u8string();
+                        auto niter = strings.insert(name);
+                        auto aiter = strings.insert(author);
+                        auto liter = strings.insert(lang);
+                        auto diter = strings.insert({reinterpret_cast<const char *>(ddl8.c_str()), ddl8.size()});
+                        time_t tplay = 0;
+                        if (std::filesystem::is_regular_file(stamp)) {
+                            auto tp = std::filesystem::last_write_time(stamp);
                             auto sctp = std::chrono::time_point_cast<std::chrono::system_clock::duration>(tp - std::filesystem::file_time_type::clock::now()
                                 + std::chrono::system_clock::now());
-                            r.last_played = std::chrono::system_clock::to_time_t(sctp);
-                            r._stamp_file = std::move(stampfile);
-                            manager->_list.push_back(std::move(r));
+                            tplay = std::chrono::system_clock::to_time_t(sctp);
                         }
-                        ini_close(cfg);
+
+                        items.push_back(UGCItem{
+                            niter.first->c_str(), 
+                            diter.first->c_str(),
+                            aiter.first->c_str(),
+                            liter.first->c_str(),
+                            tplay
+                        });                        
                     }
-                }
+                }                
             }
-            ++iter;
-        }
-
+        }        
+    } catch (...) {
     }
-    std::sort(manager->_list.begin(), manager->_list.end(), [](const UGCItem &a, const UGCItem &b){
-        return a.last_played > b.last_played;
+    std::sort(items.begin(), items.end(), [&](const UGCItem &a, const UGCItem &b) {
+        return b.last_played - a.last_played;
     });
-
-    return manager->_list.size();
-
-}
-UGCItem UGC_GetItem(UGCManager *manager, size_t pos) {
-    return manager->_list[pos];
+    callback(items.data(), items.size(), context);
+    
 }
 
-void UGC_StartPlay(UGCManager *manager, size_t pos) {
-    std::ofstream out(manager->_list[pos]._stamp_file, std::ios::out|std::ios::trunc);
+void UGC_StartPlay(const char *ddl_path) {
+    std::filesystem::path p = ddl_path;
+    auto stamp = p.parent_path()/"stamp";
+    std::ofstream(stamp, std::ios::out|std::ios::trunc);
 }
-
-
-

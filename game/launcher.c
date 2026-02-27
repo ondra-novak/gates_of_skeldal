@@ -4,6 +4,7 @@
 #include "libs/event.h"
 #include "libs/mouse.h"
 #include "globals.h"
+#include "platform/ugc.h"
 
 #include "launcher.h"
 
@@ -41,7 +42,7 @@ static void launcher_draw(TLAUNCHER_STATE *st) {
             } else if (i>st->selected) {
                 y += st->selected_anim_cntr;
             }
-            st->selected_anim_cntr*=1.02;
+            st->selected_anim_cntr*=1.15;
             if (st->selected_anim_cntr>500) exit_wait = 1;
         }
         char *txt = st->item_list[i];
@@ -122,8 +123,25 @@ static void launcher_mouse(EVENT_MSG *msg, void **userdata) {
 
 }
 
+static void get_list_callback(const UGCItem *items, unsigned int count, void *context) {
+    TLAUNCHER_STATE *st = (TLAUNCHER_STATE *)context;
+    for (unsigned int i = 0; i < count; ++i) {
+        const UGCItem *it = &items[i];
+        size_t needsz = strlen(it->name) + strlen(it->author)+ 10;
+        char *buff = malloc(needsz+1);
+        buff[needsz] = 0;
+        snprintf(buff, needsz, "%s (%s)", it->name, it->author);
+        str_replace(&st->item_list,st->count, buff);
+        str_replace(&st->ddl_list,st->count, it->ddl_path);
+        str_replace(&st->lang_list,st->count, it->lang);
+        free(buff);
+        ++st->count;
+    }
+}
 
 TLAUNCHER_SELECTION *run_launcher() {
+
+    UGCSetLocalFoler(build_pathname(2, gpathtable[SR_SAVES], "UGC"));
 
     TLAUNCHER_STATE state;
     state.ddl_list = create_list(10);
@@ -139,14 +157,7 @@ TLAUNCHER_SELECTION *run_launcher() {
     str_replace(&state.lang_list, 0,"CZ");
     str_replace(&state.lang_list, 1,"EN");
 
-    for (int i = 0; i < 15; ++i) {
-        char text[122];
-        snprintf(text, sizeof(text),"Example adventure %d - Ondrej Novak",i);
-        str_replace(&state.item_list,i+2, text);
-        str_replace(&state.ddl_list,i+2, "EXAMPLE.DDL");
-        str_replace(&state.lang_list,i+2, "CZ");
-        state.count++;
-    }
+    UGC_GetList(get_list_callback, &state);
 
     send_message(E_ADD, E_TIMER, redraw_launcher, &state);
     send_message(E_ADD, E_KEYBOARD, launcher_keyboard, &state);
@@ -181,9 +192,9 @@ TLAUNCHER_SELECTION *run_launcher() {
             retval->lang = NULL;
         }
 
-
-
-
+        if (retval->ddl_file) {
+            UGC_StartPlay(retval->ddl_file);
+        }
 
     }
 
@@ -192,92 +203,4 @@ TLAUNCHER_SELECTION *run_launcher() {
     release_list(state.lang_list);
 
     return retval;
-
-
-    /*const char *str_label = "START";
-      TSTR_LIST lst = create_list(100);
-      TSTR_LIST ddl_lst = create_list(100);
-      CTL3D ctl = {0,0,4,0};
-      int selected = 0;
-      size_t item_count = 1;
-
-
-
-      UGCManager *ugc = UGC_create();
-      size_t ugccount = UGC_Fetch(ugc);;
-      for (size_t i = 0; i < ugccount; ++i) {
-        UGCItem item = UGC_GetItem(ugc, i);
-        char buff[60];
-        const char *title = item.name;
-        size_t tlen = strlen(title);
-        const char *author = item.author;
-        size_t alen = strlen(author);
-        size_t reserve = sizeof(buff)-4;
-        char d1 = 0;
-        char d2 = 0;
-        if (tlen + alen > reserve) {
-          if (alen < reserve/2) {tlen = reserve - alen - 3;d1 = 1;}
-          else if (tlen < reserve/2) {alen = reserve - tlen - 3;d2=1;}
-          else {
-            tlen = reserve/2-3; d1 = 1;
-            alen = reserve/2-3; d2 = 1;
-          }
-        }
-        char *iter = buff;
-        for (size_t i = 0; i < tlen; ++i) *iter++ = title[i];
-        if (d1) for (size_t i = 0; i < 3; ++i) *iter++='.';
-        memcpy(iter, " - ",3); iter+=3;
-        for (size_t i = 0; i < alen; ++i) *iter++ = author[i];
-        if (d2) for (size_t i = 0; i < 3; ++i) *iter++='.';
-        *iter = 0;
-        str_add(&lst, buff);
-        str_add(&ddl_lst, item.ddl_path);
-        ++item_count;
-      }
-
-      str_add(&lst, "Czech");
-      str_add(&lst, "English");
-      str_add(&ddl_lst, "CZ.DDL");
-      str_add(&ddl_lst, "EN.DDL");
-      item_count+=2;
-
-
-
-      curcolor = RGB555(0,0,0);
-      set_font(H_FBIG,RGB555_ALPHA(31,31,31));
-      add_window(120,60,400,300,H_WINTXTR,3,20,20);
-      define(-1,20,10,1,1,0,label,str_label);
-      set_font(H_FKNIHA,RGB555_ALPHA(31,31,31));
-      define(9,15,38,335,212,0,&listbox,lst,RGB555(16,16,16),0);
-      property(&ctl,NULL,NULL,RGB555(0,0,0));c_default(0);
-      if (item_count>19) {
-        define(10,355,38,20,212,0,scroll_bar_v,0,item_count-19,19,RGB555(8,8,8));
-        property(&ctl,NULL,NULL,RGB555(10,10,10));
-      }
-      define(20,20,20,60,20,2,button,"Cancel");property(def_border(5,BAR_COLOR),NULL,NULL,BAR_COLOR);on_control_change(terminate_gui);
-      define(30,90,20,60,20,2,button,"Ok");property(def_border(5,BAR_COLOR),NULL,NULL,BAR_COLOR);on_control_change(terminate_gui);
-      redraw_window();
-      send_message(E_ADD,E_KEYBOARD,save_dialog_keyboards);
-      send_message(E_ADD,E_MOUSE,save_dialog_keyboards);
-      escape();
-      send_message(E_DONE,E_KEYBOARD,save_dialog_keyboards);
-      send_message(E_DONE,E_MOUSE,save_dialog_keyboards);
-      int butt = o_aktual->id;
-      get_value(0,9,&selected);
-      char *selddl = strdup(ddl_lst[selected]);
-      release_list(lst);
-      release_list(ddl_lst);
-      close_current();
-      if (butt != 30 || selddl == NULL || selddl[0] == 0) {
-        free(selddl);
-        UGC_Destroy(ugc);
-        return butt != 30?NULL:"";
-      }
-      launcher_ddl_file = selddl;
-      UGC_StartPlay(ugc, selected);
-      UGC_Destroy(ugc);
-      atexit(&free_ddl_file_name);
-      return launcher_ddl_file;
-      */
-    return NULL;
 }

@@ -8,18 +8,17 @@ typedef struct  {
     const char *name;
     const char *ddl_path;
     const char *author;
+    const char *lang;
     time_t last_played;    
 } UGCItem;
 
 typedef struct tag_UGCManager UGCManager;
 
-
 void UGCSetLocalFoler(const char *path);
-UGCManager *UGC_create();
-size_t UGC_Fetch(UGCManager *manager);
-UGCItem UGC_GetItem(UGCManager *manager, size_t pos);
-void UGC_StartPlay(UGCManager *manager, size_t pos);
-void UGC_Destroy(UGCManager *inst);
+
+void UGC_GetList(void (*callback)(const UGCItem *items, unsigned int count, void *context), void *context);
+
+void UGC_StartPlay(const char *ddl_path);
 
 
 
