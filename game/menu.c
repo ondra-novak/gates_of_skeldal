@@ -457,7 +457,7 @@ static int insert_next_line(int ztrata)
             put_picture_ex(0,0,g,title_background+6,640,480);
             put_picture(0,0,title_background);
             showview(0,0,0,0);
-        }        
+        }
         }
      else
         {
@@ -544,11 +544,11 @@ void titles(va_list args)
   RedirectScreenBufferSecond();bar32(0,0,639,479);RestoreScreen();
   memset(title_lines,0,sizeof(title_lines));
   def_handle(H_PICTURE,"titulky.pcx",pcx_15bit_decomp,SR_BGRAFIKA);
-  picture=ablock(H_PICTURE);  
+  picture=ablock(H_PICTURE);
   title_background = (word *)getmem(640*480*2+6);
   title_background[0] = 640;
   title_background[1] = 480;
-  title_background[2] = 15;  
+  title_background[2] = 15;
   put_picture_ex(0,0,picture,title_background+3,640,480);
   put_picture(0,0,title_background);
   picture = title_background;
@@ -612,7 +612,7 @@ void run_titles(void)
   term_task(task_id);
   }
 
-void konec_hry(void)
+void konec_hry(const char *epilog)
   {
   int task_id;
   int timer;
@@ -629,7 +629,7 @@ void konec_hry(void)
 
   ach_event_end_game();
 
-  task_id=add_task(8196,titles,1,"ENDTEXT.TXT");
+  task_id=add_task(8196,titles,1,epilog);
   task_wait_event(E_KEYBOARD);
   if (is_running(task_id)) term_task(task_id);
   task_wait_event(E_TIMER);

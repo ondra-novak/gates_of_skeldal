@@ -393,10 +393,10 @@ int SDLContext::init_window(const VideoConfig &config, const char *title, std::f
             }
             stop_src.request_stop();
         });
-        main_thrd.detach();
         SDL_ShowCursor(SDL_DISABLE);
         event_loop(stop_src.get_token());
         SDL_ShowCursor(SDL_ENABLE);
+        main_thrd.join();
 
     } catch (...) {
         crash_sdl_exception();
@@ -404,6 +404,10 @@ int SDLContext::init_window(const VideoConfig &config, const char *title, std::f
     }
     _texture.reset();
     _texture2.reset();
+    _crt_effect.reset();
+    _mouse.reset();
+    _sprites.clear();
+    _main_pixel_format.reset();
     _renderer.reset();
     _window.reset();
 
@@ -1218,6 +1222,7 @@ void SDLContext::set_window_icon(const void *icon_data, size_t icon_size) {
     SDL_Surface *surface = SDL_LoadBMP_RW(SDL_RWFromConstMem(icon_data, icon_size), 1);
     if (surface) {
         SDL_SetWindowIcon(_window.get(), surface);
+        SDL_FreeSurface(surface);
     }
 }
 

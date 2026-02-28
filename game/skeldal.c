@@ -102,6 +102,7 @@ void (*wire_proc)(void);
 char cur_mode,battle_mode;
 
 
+
 const void *pcx_fade_decomp(const void *p, int32_t *s, int h);
 const void *pcx_15bit_decomp(const void *p, int32_t *s, int h);
 const void *pcx_15bit_decomp_transp0(const void *p, int32_t *s, int h);
@@ -316,10 +317,10 @@ const void *pcx_15bit_decomp(const void *p, int32_t *s, int h)
     assert(r > 0);
     *s=r;
     return buff;
-  } 
+  }
   return p;
 }
-    
+
 const void *pcx_15bit_decomp_transp0(const void *p, int32_t *s, int h)
   {
   char *buff;
@@ -1356,7 +1357,10 @@ void enter_game(void)
   task_wait_event(E_TIMER);
   unwire_main_functs();
   mute_all_tracks(1);
-  if (end==255) konec_hry();
+  if (end==255) {
+      konec_hry(loadlevel.name);
+      loadlevel.name[0] = 0;
+  }
   }
 
 

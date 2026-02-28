@@ -118,14 +118,14 @@ void UGCSetLocalFoler(const char *path) {
 void UGC_GetList(void (*callback)(const UGCItem *items, unsigned int count, void *context), void *context) {
     std::unordered_set<std::string> strings;
     std::vector<UGCItem> items;
-    try {    
+    try {
         for(const auto &entry : std::ranges::subrange(std::filesystem::directory_iterator(ugc_local_path), std::filesystem::directory_iterator())) {
             if (entry.is_directory()) {
                 const auto ddl_path = entry.path()/"content.ddl";
                 const auto ini = entry.path()/"info.ini";
                 const auto stamp = entry.path()/"stamp";
                 if (std::filesystem::is_regular_file(ddl_path) && std::filesystem::is_regular_file(ini)) {
-                    const INI_CONFIG *cfg = ini_open(reinterpret_cast<const char *>(ini.u8string().c_str()));
+                    INI_CONFIG *cfg = ini_open(reinterpret_cast<const char *>(ini.u8string().c_str()));
                     if (cfg) {
                         const INI_CONFIG_SECTION *section = ini_section_open(cfg, "description");
                         std::string name = toKEYBCS2(ini_get_string(section, "name", "noname"));
@@ -145,23 +145,24 @@ void UGC_GetList(void (*callback)(const UGCItem *items, unsigned int count, void
                         }
 
                         items.push_back(UGCItem{
-                            niter.first->c_str(), 
+                            niter.first->c_str(),
                             diter.first->c_str(),
                             aiter.first->c_str(),
                             liter.first->c_str(),
                             tplay
-                        });                        
+                        });
+                        ini_close(cfg);
                     }
-                }                
+                }
             }
-        }        
+        }
     } catch (...) {
     }
     std::sort(items.begin(), items.end(), [&](const UGCItem &a, const UGCItem &b) {
         return b.last_played - a.last_played;
     });
     callback(items.data(), items.size(), context);
-    
+
 }
 
 void UGC_StartPlay(const char *ddl_path) {

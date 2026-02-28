@@ -1275,7 +1275,7 @@ void *build_items_wearing_hi(THUMAN *h, int32_t *s) { //returns 256 color type w
         histogram[best_index].r += histogram[i].r;
         histogram[best_index].c += histogram[i].c;
     }
-    char paleta[768];
+    char paleta[768] = {0};
     for (int i = 0; i < 254; ++i) {
         int c = histogram[i].c;
         if (c == 0) break;
@@ -1286,6 +1286,7 @@ void *build_items_wearing_hi(THUMAN *h, int32_t *s) { //returns 256 color type w
         paleta[(i+2)*3+1] = g;
         paleta[(i+2)*3+2] = b;
     }
+
 
     char *fin_image = NewArr(char, PIC_FADE_PAL_SIZE + imgsz);
     word *hdr = (word *)fin_image;

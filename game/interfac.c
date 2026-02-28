@@ -1363,14 +1363,16 @@ TMPFILE_RD *enc_open(const char *filename, int group)
   } else {
       const char *enc_name = set_file_extension(filename, ".ENC");
       int32_t sz;
-      void *data = afile_copy(enc_name,group,&sz);
+      const char *data = (const char *)afile(enc_name,group,&sz);
       if (data == NULL) return NULL;
-      char *encdata = (char *)data;
+      char *encdata = (char *)malloc(sz+1);;
+      encdata[sz] = 0;
       for (int i = 0; i < sz; ++i) {
-          last = (last + encdata[i]) & 0xFF;
+          last = (last + data[i]) & 0xFF;
           encdata[i] = last;
       }
-      f = temp_storage_from_binary(encdata, sz, &free, data);
+      f = temp_storage_from_binary(encdata, sz, &free, encdata);
+      ablock_free(data);
       return f;
   }
   }

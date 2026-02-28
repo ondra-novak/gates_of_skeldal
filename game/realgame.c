@@ -2091,4 +2091,69 @@ int postavy_propadnout(int sector)
   return z;
   }
 
+static void kbd_end_game(EVENT_MSG *msg,void *unused)
+  {
+  unused;
+  if (msg->msg==E_KEYBOARD && !pass_zavora)
+     {
+     msg->msg=-2;
+     delete_from_timer(TM_SCENE);
+     delete_from_timer(TM_FLY);
+     wire_save_load(2);
+     bott_draw(1);
+     }
+  }
+
+static char clk_goon(int id,int xa,int ya,int xr,int yr)
+  {
+  id,xa,ya,xr,yr;
+  send_message(E_KEYBOARD,13);
+  return 1;
+  }
+
+
+
+#define CLK_END_GAME 2
+T_CLK_MAP clk_end_game[]=
+  {
+  {-1,0,0,639,479,clk_goon,8+2,H_MS_DEFAULT},
+  {-1,0,0,639,479,empty_clk,0xff,H_MS_DEFAULT},
+  };
+
+
+void end_game_end_phase(EVENT_MSG *msg,void **_)
+{
+  static int wait=0;
+  if (msg->msg == E_TIMER) {
+   if (pass_zavora) return;
+     if (wait==2)
+     {
+     send_message(E_ADD,E_KEYBOARD,kbd_end_game);
+     send_message(E_DONE,E_TIMER,end_game_end_phase);
+     change_click_map(clk_end_game,CLK_END_GAME);
+     }
+     else wait++;
+   }
+  if (msg->msg == E_INIT) {
+     wait=0;
+  }
+}
+
+
+
+
+void show_death_screen(const char *txt) {
+    unwire_proc();
+    set_death_screen_text(txt);
+    add_to_timer(TM_SCENE,gamespeed,-1,refresh_scene);
+    add_to_timer(TM_FLY,gamespeed,-1,calc_fly);
+    disable_click_map();
+    send_message(E_ADD,E_TIMER,end_game_end_phase);
+    cur_mode=MD_END_GAME;
+    build_player_map();
+    GlobEvent(MAGLOB_ONDEADALL,viewsector,viewdir);
+    GlobEventList[MAGLOB_ONDEADALL].sector=0;
+    GlobEventList[MAGLOB_ONDEADALL].side=0;
+
+}
 

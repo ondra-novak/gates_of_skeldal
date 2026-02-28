@@ -249,6 +249,7 @@ static void rebuild_ddl_directory() {
             TDDL_DIRECTORY curdir = create_ddl_directory(ddlmap[i].ptr, i);
             TDDL_DIRECTORY merged = merge_directories(cur_ddl_directory, curdir);
             clear_ddl_directory(&cur_ddl_directory);
+            clear_ddl_directory(&curdir);
             cur_ddl_directory = merged;
         }
     }

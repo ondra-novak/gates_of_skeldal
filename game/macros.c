@@ -701,6 +701,10 @@ void macro_register_global_event(const TMULTI_ACTION *q)
   }
 }
 
+static void macro_fail_game(int text) {
+    show_death_screen(level_texts[text]);
+}
+
 void call_macro_ex(int side,int flags, int runatside);
 
 void call_macro(int side,int flags)
@@ -859,6 +863,7 @@ void call_macro_ex(int side, int flags, int runatside) {
                         break;
                     case MA_ENDGM:
                         unwire_proc();
+                        strcpy(loadlevel.name,"ENDTEXT.TXT");
                         send_message(E_CLOSE_MAP, (void*) 255);
                         break;
                     case MA_GOMOB:
@@ -879,6 +884,14 @@ void call_macro_ex(int side, int flags, int runatside) {
                         break;
                     case MA_PLMUS:
                         change_music(level_texts[z->text.textindex]);
+                        break;
+                    case MA_ENDG2:
+                        unwire_proc();
+                        strcpy(loadlevel.name,z->loadlev.name);
+                        send_message(E_CLOSE_MAP, (void*) 255);
+                        break;
+                    case MA_FAILG:
+                        macro_fail_game(z->text.textindex);
                         break;
                 }
             }

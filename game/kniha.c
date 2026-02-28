@@ -1,5 +1,6 @@
 #include <platform/platform.h>
 #include <libs/cztable.h>
+#include <ctype.h>
 /*
 
  Popis jazyka pro psani textu do knihy
@@ -83,6 +84,7 @@
 #define PICTURE 'p'
 #define HRUL  'h'
 #define END_LINE 'l'
+#define DOCREF 'r'
 
 #define BOOK_FILE "_BOOK.TMP"
 
@@ -120,9 +122,10 @@ static int read_num(char *text,int *pos)
   int num=0,shift=0;
   char c;
 
+  *pos = 0;
   do
      {
-     c=text[pos[0]++];
+     c=text[(*pos)++];
      num|=(c & 0x3f)<<shift;
      shift+=6;
      }
@@ -130,16 +133,25 @@ static int read_num(char *text,int *pos)
   return num;
   }
 
+static void begin_page(const char *ref) {
+    char pfx[3] = {27,DOCREF,0};
+    char *ln = concat2(pfx,ref);
+    str_add(&all_text, ln);
+}
+
+static const char *cur_reference = NULL;
+
 static void next_line(int step)
   {
   linepos+=step;
-   if (linepos>YMAX)
+   if (linepos>YMAX || step<0)
      {
      char s[3];
      s[0]=27;
      s[1]=END_PAGE;
      s[2]=0;
      str_add(&all_text,s);
+     if (cur_reference) begin_page(cur_reference);
      linepos=0;
      picture_len=-1;
      }
@@ -263,7 +275,7 @@ static void save_line_left()
 
 static void save_buffer()
   {
-  while (buff_end>buff_pos && read_buff[buff_end]==32) buff_end--;
+  while (buff_end>buff_pos && isspace(read_buff[buff_end])) buff_end--;
   if (center) save_line_center();
      else if (buff_pos==buff_end || !distend) save_line_left(); else save_line_oboustrane();
   }
@@ -374,18 +386,18 @@ static char read_tag(TMPFILE_RD *txt)
   while(c<33 && i!=EOF) c=i=temp_storage_getc(txt);
   if (c!='>') temp_storage_ungetc(txt);
   strupper(var);
-  if (!strcmp(var,PARAGRAPH))
+  if (!strcasecmp(var,PARAGRAPH))
      {
      break_line();
      break_line();
      return 1;
      }
-  if (!strcmp(var,BREAKLINE))
+  if (!strcasecmp(var,BREAKLINE))
      {
      break_line();
      return 1;
      }
-  if (!strcmp(var,IMAGE))
+  if (!strcasecmp(var,IMAGE))
      {
      char pic_name[50]=" ";
      char alig=0;
@@ -394,27 +406,27 @@ static char read_tag(TMPFILE_RD *txt)
      while (c!='>')
         {
         c=read_set(txt,var,set);
-        if (!strcmp(var,SRC)) strcopy_n(pic_name,set,49);
-        else if (!strcmp(var,ALIGN))
+        if (!strcasecmp(var,SRC)) strcopy_n(pic_name,set,49);
+        else if (!strcasecmp(var,ALIGN))
            {
-           if (!strcmp(set,ALEFT)) alig=1;
-           else if (!strcmp(set,ARIGHT)) alig=2;
-           else if (!strcmp(set,ACENTER)) alig=0;
+           if (!strcasecmp(set,ALEFT)) alig=1;
+           else if (!strcasecmp(set,ARIGHT)) alig=2;
+           else if (!strcasecmp(set,ACENTER)) alig=0;
            }
-        else if (!strcmp(var,PIC_LINE)) sscanf(set,"%d",&line);
-        else if (!strcmp(var,PIC_LSIZ)) sscanf(set,"%d",&lsize);
+        else if (!strcasecmp(var,PIC_LINE)) sscanf(set,"%d",&line);
+        else if (!strcasecmp(var,PIC_LSIZ)) sscanf(set,"%d",&lsize);
         }
      if (pic_name[0]!=0)
         insert_picture(pic_name,alig,line,lsize);
      return 0;
      }
-  if (!strcmp(var,CENTER1)) center++;
-  else if (!strcmp(var,CENTER2))
+  if (!strcasecmp(var,CENTER1)) center++;
+  else if (!strcasecmp(var,CENTER2))
      {
      if (center>0) center--;
      }
-  else if (!strcmp(var,DISTEND1)) distend++;
-  else if (!strcmp(var,DISTEND2))
+  else if (!strcasecmp(var,DISTEND1)) distend++;
+  else if (!strcasecmp(var,DISTEND2))
      {
      if (distend>0) distend--;
      }
@@ -442,12 +454,82 @@ void prekodovat(char *c)
     windows2kamenik(c, strlen(c), c);
   }
 
+char *read_reference(TMPFILE_RD *txt) {
+    char buff[100];
+    int pos = 0;
+    int c = temp_storage_getc(txt);
+    while (c != EOF && c != '\n' && (size_t)pos+1 < sizeof(buff)) {
+        buff[pos] = c;
+        ++pos;
+        c = temp_storage_getc(txt);
+    }
+    buff[pos] = 0;
+    return strdup(buff);
+}
+
+
+static void move_ref_content(const char *ref) {
+    int cnt = str_count(all_text);
+    TSTR_LIST lst = create_list(cnt);
+    int ct = 0;
+    int t = 0;
+    char mv = 0;
+    int len = 0;
+    char fnd = 0;
+
+
+    for (int i = 0; i< cnt; ++i) {
+        char *c = all_text[i];
+        if (c && c[0] == 27 && c[1] == DOCREF && strcmp(c+2, ref) == 0) {
+            mv = 1;
+            len = 0;
+            fnd = 1;
+        }
+        if (mv) {
+            lst[ct++] = c;
+            char *cc = c;
+            while (*cc) {
+                if (*cc++ == 27) {
+                    int ofs;
+                    char k = *cc++;
+                    switch (k) {
+                        case END_LINE: len+=read_num(cc, &ofs);
+                                       cc+=ofs;
+                                       break;
+                        case END_PAGE: mv = 0;
+                                       break;
+                        default: break;
+                    }
+                }
+            }
+        } else if (c != NULL ){
+            if (t != i) all_text[t] = all_text[i];
+            ++t;
+        }
+
+    }
+    for (int i = 0 ; i < ct; ++i) {
+        all_text[i+t] =lst[i];
+        lst[i] = NULL;
+    }
+    release_list(lst);
+    linepos = len;
+    if (fnd) {
+        str_remove(&all_text, t+ct-1);
+    } else {
+        begin_page(ref);
+    }
+}
+
 static void read_text(TMPFILE_RD *txt)
   {
   int i = 0;
   int xs;
   char ss[2]=" ";
   char wsp=1;
+  const char *refpfx = "&REF:";
+  const char *pfxptr =refpfx;
+  char *ref = NULL;
 
   buff_pos=0;
   buff_end=0;
@@ -477,7 +559,20 @@ static void read_text(TMPFILE_RD *txt)
         buff_pos=buff_end;
         wsp=1;
         }
-     else wsp=0;
+     else {
+         wsp=0;
+         if (i == *pfxptr) {
+             ++pfxptr;
+             if (!*pfxptr) {
+                 ref = read_reference(txt);
+                 move_ref_content(ref);
+                 cur_reference = ref;
+             }
+             continue;
+         } else {
+             pfxptr = strchr(pfxptr,0);
+         }
+     }
      if (i=='&') i=temp_storage_getc(txt);
      if (winconv) i=windows2kamenik_chr(i);
      ss[0]=i;
@@ -491,6 +586,11 @@ static void read_text(TMPFILE_RD *txt)
         }
      }
   while (1);
+  save_buffer();
+  if (ref) {
+      cur_reference = NULL;
+      free(ref);
+  }
   }
 
 static void seek_section(TMPFILE_RD *txt,int sect_number)
@@ -540,7 +640,6 @@ void add_to_book(int odst) {
 }
 
 
-
 void add_text_to_book(const char *filename,int group, int odst)
   {
   TMPFILE_RD *fl = NULL;
@@ -555,7 +654,7 @@ void add_text_to_book(const char *filename,int group, int odst)
   }
   seek_section(fl,odst);
   read_text(fl);
-  next_line(1000);
+  next_line(-1);
   temp_storage_close_rd(fl);
   }
 
@@ -571,10 +670,10 @@ static char *displ_picture(char *c)
   while (*c!=':') *d++=*c++;
   *d++=0;c++;
   hn=get_data_handle(write_buff,pcx_8bit_decomp);
-  x=read_num(c,(z=0,&z));c+=z;
-  y=read_num(c,(z=0,&z));c+=z;
-  ln=read_num(c,(z=0,&z));c+=z;
-  sl=read_num(c,(z=0,&z));c+=z;
+  x=read_num(c,&z);c+=z;
+  y=read_num(c,&z);c+=z;
+  ln=read_num(c,&z);c+=z;
+  sl=read_num(c,&z);c+=z;
   sh=ablock(hn);
   if (sh[1]+y>YMAX) return c;
   y+=YLEFT;
@@ -629,6 +728,8 @@ void write_book(int page)
                           break;
               case PICTURE:
                           c=displ_picture(c);
+                          break;
+              case DOCREF: c = strchr(c, 0);
                           break;
               }
            }

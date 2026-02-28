@@ -1125,6 +1125,9 @@ char load_saved_shops(void);
 #define MA_GLOBE 37  //global events
 #define MA_CHLGH 38
 #define MA_PLMUS 39
+#define MA_FAILG 40
+#define MA_ENDG2 41
+
 
 #define MAGLOB_LEAVEMAP 0 // v urcitou nastavenou hodinu a minutu dene
 #define MAGLOB_STARTSLEEP 1 // postavy maji jit spat.
@@ -1637,7 +1640,9 @@ void umirani_postavy(THUMAN *p);
 char zasah_veci(int sector,TFLY *fl);
 void vymaz_zasahy(THE_TIMER *q);
 char check_end_game(void);
-void wire_end_game(void);
+void wire_end_game();
+void show_death_screen(const char *txt);
+void set_death_screen_text(const char *txt);
 void auto_group(void);
 void wire_fly_casting(int i);
 void konec_kola(void);
@@ -1806,7 +1811,7 @@ int enter_menu(char open); //task!
 void titles(va_list args); //task!
 void run_titles(void );
 void effect_show(void); //effektni zobrazeni
-void konec_hry(void);
+void konec_hry(const char *epilog);
 
 
 //globmap
