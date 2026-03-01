@@ -39,7 +39,7 @@
 #define SAVE_SLOT_E (34+203)
 #define LOAD_SLOT_E (372+34+203)
 
-#define SSAVE_VERSION 0
+#define SSAVE_VERSION 1
 
 //static TMPFILE_WR *story=NULL;
 static char load_another;
@@ -84,6 +84,14 @@ typedef struct s_save
   int sleep_long;
 	int game_flags;
   }S_SAVE;
+
+typedef struct s_save_2 {
+    int32_t size;    //structure size
+    int32_t gamespeed;   //game speed 
+    int32_t battlespeed;  //batte speed 
+    int32_t origin_item_count; //original count of items (can be used to reset item database)
+    int32_t vls_max;      //VLS_MAX (for future expansion)
+} S_SAVE_2;
 
 
 static int get_list_count();
@@ -574,6 +582,7 @@ void restore_current_map() //pouze obnovuje ulozeny stav aktualni mapy
   if (load_map_state()) {
       showCorruptedError();
   }
+  memset(GlobEventList,0,sizeof(GlobEventList));
   for(i=1;i<mapsize*4;i++) call_macro(i,MC_STARTLEV);
   }
 
@@ -675,6 +684,7 @@ int save_basic_info()
   {
   TMPFILE_WR *f;
   S_SAVE s;
+  S_SAVE_2 s2;
   short *p;
   int i;
   char res=0;
@@ -706,13 +716,13 @@ int save_basic_info()
   s.swapchans=MIN(get_snd_effect(SND_SWAP),255);
   s.out_filter=MIN(get_snd_effect(SND_OUTFILTER),255);
   s.autosave=autosave_enabled;
-	s.game_flags=0;
+  s.game_flags=enable_glmap!=0?GM_MAPENABLE:0;
 
-  if (enable_glmap!=0) s.game_flags |= GM_MAPENABLE;
-  if (gamespeedbattle<gamespeed) s.game_flags |= GM_FASTBATTLES;
-  if (timerspeed_val <= GM_GAMESPEED_MASK) {
-      s.game_flags |= (timerspeed_val & GM_GAMESPEED_MASK) << GM_GAMESPEED_SHIFT;
-  }
+  s2.size = sizeof(s2);
+  s2.battlespeed = gamespeedbattle;
+  s2.gamespeed = gamespeed;
+  s2.origin_item_count = item_count;
+  s2.vls_max =VLS_MAX;
 
   strcopy_n(s.level_name,level_fname,sizeof(s.level_name));
   for(i=0;i<5;i++) s.runes[i]=runes[i];
@@ -721,10 +731,13 @@ int save_basic_info()
   s.picks=i;
   s.items_added=item_count-it_count_orgn;
   temp_storage_write(&s,1*sizeof(s),f);
+  temp_storage_write(&s2, sizeof(s2), f);
+
   if (i)
      temp_storage_write(picked_item,2*i,f);
   if (s.items_added)
      temp_storage_write(glob_items+it_count_orgn,sizeof(TITEM)*s.items_added,f);
+
   save_spells(f);
   temp_storage_write(postavy,1*sizeof(postavy),f);
   for(i=0,h=postavy;i<POCET_POSTAV;h++,i++) if (h->demon_save!=NULL)
@@ -750,10 +763,47 @@ static int load_destroyed_items(TMPFILE_RD *f) {
   return res;
 }
 
+static inline int  relocate_item(int ofs, int org, int item) {
+        return item >= org?item+ofs:item;
+}
+
+static inline void relocate_items_char(THUMAN *p, int ofs, int org) {
+        for (int j = 0; j < MAX_INV; ++j) {
+            p->inv[j] = relocate_item(ofs, org, p->inv[j]-1)+1;
+        }
+        for (int j = 0; j < HUMAN_PLACES; ++j) {
+            p->wearing[j] = relocate_item(ofs, org, p->wearing[j]-1)+1;
+        }
+        for (int j = 0; j < HUMAN_RINGS; ++j) {
+            p->prsteny[j] = relocate_item(ofs, org, p->prsteny[j]-1)+1;
+        }
+        if (p->demon_save) {
+            relocate_items_char(p->demon_save, ofs, org);
+        }
+}
+
+static void relocate_items(int saved_orgn) {
+    int ofs = it_count_orgn - saved_orgn;
+    for (int i = 0; i < POCET_POSTAV; ++i) {
+        THUMAN *p = &postavy[i];
+        relocate_items_char(p, ofs, saved_orgn);
+        if (picked_item) {
+            short *p = picked_item;
+            while (*p) {
+                int m = (*p<0)?-1:1;
+                int itm = *p * m - 1;
+                itm = relocate_item(ofs, saved_orgn, itm);
+                *p = (itm+1) * m;
+            }
+        }        
+    }
+}
+
 int load_basic_info()
   {
   TMPFILE_RD *f;
   S_SAVE s;
+  S_SAVE_2 s2;
   int i;
   char res=0;
   TITEM *itg;
@@ -763,10 +813,19 @@ int load_basic_info()
   f=temp_storage_open(_GAME_ST);
   if (f==NULL) return 1;
   res|=(temp_storage_read(&s,1*sizeof(s),f)!=sizeof(s));
-	if (s.game_flags & GM_MAPENABLE) enable_glmap=1;else enable_glmap=0;
-  gamespeedbattle =s.game_flags & GM_FASTBATTLES? GAMESPEED_FASTBATTLE:gamespeed;
-  int tmsp = (s.game_flags >> GM_GAMESPEED_SHIFT) & GM_GAMESPEED_MASK;
-  if (tmsp) timerspeed_val = tmsp;
+  if (s.game_flags & GM_MAPENABLE) enable_glmap=1;else enable_glmap=0;
+  if (s.version == 0) {
+        gamespeedbattle =s.game_flags & GM_FASTBATTLES? GAMESPEED_FASTBATTLE:gamespeed;
+        int tmsp = (s.game_flags >> GM_GAMESPEED_SHIFT) & GM_GAMESPEED_MASK;
+        if (tmsp) timerspeed_val = tmsp;
+        s2.origin_item_count = item_count;        
+  } else {
+        res |=(temp_storage_read(&s2, sizeof(s2), f)) != sizeof(s2);
+        if (s2.size != sizeof(s2)) res = 1;
+        gamespeedbattle = s2.battlespeed;
+        gamespeed = s2.gamespeed;     
+  }
+   
   i=s.picks;
   if (picked_item!=NULL) free(picked_item);
   if (i)
@@ -775,12 +834,15 @@ int load_basic_info()
      res|=(temp_storage_read(picked_item,2*i,f)!=(unsigned)i);
      }
   else picked_item=NULL;
+  
   itg=NewArr(TITEM,it_count_orgn+s.items_added);
   memcpy(itg,glob_items,it_count_orgn*sizeof(TITEM));
   free(glob_items);glob_items=itg;
   if (s.items_added)
      res|=(temp_storage_read(glob_items+it_count_orgn,sizeof(TITEM)*s.items_added,f)!=(unsigned)s.items_added*sizeof(TITEM));
   item_count=it_count_orgn+s.items_added;
+
+
   res|=load_spells(f);
   for(i=0,h=postavy;i<POCET_POSTAV;h++,i++) if (h->demon_save!=NULL) free(h->demon_save);
   if (!res) res|=(temp_storage_read(postavy,1*sizeof(postavy),f)!=sizeof(postavy));
@@ -800,6 +862,12 @@ int load_basic_info()
   res|=load_dialog_info(f);
   res|=load_destroyed_items(f);
   temp_storage_close_rd(f);
+
+  if (it_count_orgn != s2.origin_item_count) {
+      relocate_items(s2.origin_item_count);
+  }
+
+
   viewsector=s.viewsector;
   viewdir=s.viewdir;
   cur_group=s.cur_group;
@@ -837,27 +905,6 @@ int load_basic_info()
   }
 
 
-static int save_global_events()
-{
-  TMPFILE_WR *f;
-  f=temp_storage_create(_GLOBAL_ST);
-  if (f==NULL) return 1;
-  temp_storage_write(GlobEventList,1*sizeof(GlobEventList),f);
-  temp_storage_close_wr(f);
-  return 0;
-}
-
-static int load_global_events()
-{
-  TMPFILE_RD *f;
-  memset(GlobEventList,0,sizeof(GlobEventList));
-
-  f=temp_storage_open(_GLOBAL_ST);
-  if (f==NULL) return 1;
-  temp_storage_read(GlobEventList,1*sizeof(GlobEventList),f);
-  temp_storage_close_rd(f);
-  return 0;
-}
 
 int save_game(long game_time,char *gamename, char is_autosave)
   {
@@ -884,7 +931,7 @@ int save_game(long game_time,char *gamename, char is_autosave)
   if ((r=save_shops())!=0) return r;
   if ((r=save_basic_info())!=0) return r;
   save_book();
-  save_global_events();
+  
 
   long new_play_time = play_time + get_game_tick_count()/1000 - load_game_time;
   temp_storage_store("playtime",&new_play_time, sizeof(new_play_time));
@@ -937,8 +984,7 @@ int load_game(const char *fname)
      SEND_LOG("(ERROR) Error detected during unpacking game... Loading stopped (result:%d)",r);
      return r;
      }
-  load_book();
-  load_global_events();
+  load_book();  
   if ((t=load_saved_shops())!=0) return t;
   if ((t=load_basic_info())!=0) return t;
 

@@ -24,6 +24,7 @@
 #include <ctype.h>
 #include <stddef.h>
 #include <string.h>
+#include <time.h>
 
 #include "ach_events.h"
 
@@ -157,6 +158,12 @@ void load_items()
   f=NULL;i=0;
   ikon_libs=hl_ptr;
   free(glob_items);
+  glob_items = NULL;
+  item_count = 0;
+  it_count_orgn = 0;
+  water_breath = -1;
+  flute_item = -1;
+
     do {
         char name[200];
         sprintf(name, IT_LIB_NAME, i++);
@@ -3427,6 +3434,7 @@ char save_shops()
 char load_saved_shops()
   {
   SEND_LOG("(SHOP) Loading saved shops...");
+  load_shops();
   int32_t sz = temp_storage_find(_SHOP_ST);
   int32_t needsz = shop_all_state.count_states*(sizeof(*shop_all_state.first_state));
   if (sz != needsz) return 0;
