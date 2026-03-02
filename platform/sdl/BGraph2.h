@@ -45,6 +45,10 @@ void game_display_unload_sprite(int sprite);
 void game_display_disable_crt_effect_temporary(char disable);
 void game_display_focus();
 
+///Sets callback function to call Steam_RunCallbacks
+/** called inside of eventloop */
+void set_steam_callback(void (*cb)(void));
+
 void *DxPrepareWalk(int ypos);
 void DxZoomWalk(void *handle, int ypos, int *points,float phase, void *lodka);
 void DxDoneWalk(void *handle);

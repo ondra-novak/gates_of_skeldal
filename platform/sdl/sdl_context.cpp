@@ -1,4 +1,5 @@
 #include "sdl_context.h"
+#include "SDL_events.h"
 #include "keyboard_map.h"
 #include "format_mapping.h"
 
@@ -7,17 +8,15 @@
 #include "../platform.h"
 #include "../error.h"
 
+
 #include <cmath>
-#include <iostream>
-#include <fstream>
+#include <memory>
 #include <stdexcept>
 #include <sstream>
 #include <algorithm>
 #include <stdbool.h>
 #include <thread>
 #include <mutex>
-#include <condition_variable>
-#include <chrono>
 #include <string_view>
 #include <stop_token>
 
@@ -697,7 +696,14 @@ void SDLContext::event_loop(std::stop_token stp) {
 
 
     SDL_Event e;
-    while (SDL_WaitEvent(&e)) {
+    do {
+        if (_steam_callback) {
+            do {
+                _steam_callback();
+            } while (SDL_WaitEventTimeout(&e,20) == 0);
+        } else {
+            SDL_WaitEvent(&e);
+        }
         SDL_Scancode kbdevent = {};
         if (e.type == SDL_QUIT) {
             _quit_requested = true;
@@ -776,6 +782,7 @@ void SDLContext::event_loop(std::stop_token stp) {
         }
 
     }
+    while (true);
 }
 
 
@@ -1364,4 +1371,7 @@ void SDLContext::raise_window() const
     SDL_Delay(100); // malá pauza (volitelné)
     SDL_SetWindowAlwaysOnTop(_window.get(),SDL_FALSE);
 
+}
+void SDLContext::set_steam_callback(void (*cb)()) {
+    _steam_callback = cb;
 }

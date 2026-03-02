@@ -112,8 +112,11 @@ static inline void destroy_message(EVENT_MSG *msg) {
 }
 
 void init_events(void);
- // inicalizuje zakladni strom udalosto
 void send_message(int message,...);
+
+///send message from different thread (different than event thread
+/** function blocks until message is processed. Event thread must run, otherwise deadlock */
+void send_message_from_thread(int message,...);
 
 int send_message_to(int (*cb)(EVENT_MSG *, void *), void *ctx, int message, ...);
  // posila zpravu do stromu
@@ -135,6 +138,8 @@ static __inline void shift_message(EVENT_MSG *msg) {
 
 void do_events(void);
 void escape(void);
+
+
 
 #include <platform/legacy_coroutines.h>
 /*

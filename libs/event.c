@@ -5,6 +5,7 @@
 #include "event.h"
 #include "devices.h"
 #include <malloc.h>
+#include <threads.h>
 #include <time.h>
 #include "memman.h"
 #include <setjmp.h>
@@ -52,6 +53,7 @@ int32_t taskparam;
 int32_t err_last_stack;
 void *err_to_go;
 
+static void check_message_async();
 
 T_EVENT_ROOT *add_event_message(T_EVENT_ROOT **tree,int msg)
   {
@@ -409,44 +411,6 @@ void timer(EVENT_MSG *msg)
      }
   }
 
-void tasker(EVENT_MSG *msg,void **_)
-  {
-
-
-  switch (msg->msg)
-     {
-     case E_INIT:
-/*           tasklist_sp=New(void *);
-           tasklist_low=New(void *);
-           tasklist_top=New(void *);
-           task_info=New(char);
-           taskcount=1;
-           memset(task_info,0,taskcount);*/
-           break;
-     case E_WATCH:
-     case E_IDLE:
-     default:
-           if (q_any_task()>=1)
-              task_sleep();
-           break;
-     case E_DONE:
-           {
-/*           int i;
-           memset(task_info,1,taskcount);
-           do
-              {
-              for (i=1;i<taskcount;i++)
-                 if (tasklist_sp[i]!=NULL) break;
-              if (i!=taskcount) task_sleep();
-              }
-           while (i<taskcount);
-           free(tasklist_sp);
-           free(tasklist_low);
-           free(task_info);*/
-           }
-           break;
-     }
-  }
 
 
 /*void except_free_stack(void *ptr);
@@ -468,12 +432,34 @@ void except_GPF()
 
 */
 
+
+static mtx_t mutex;
+static mtx_t mutex2;
+static cnd_t cond;
+static EVENT_MSG *awaiting_msg = NULL;
+
+
+
 void init_events()
   {
   send_message(E_ADD,E_WATCH,keyboard);
   send_message(E_ADD,E_WATCH,timer);
-  send_message(E_ADD,E_WATCH,tasker);
+  mtx_init(&mutex,mtx_plain);
+  mtx_init(&mutex2,mtx_plain);
+  cnd_init(&cond);
   }
+
+
+static void check_message_async() {
+   mtx_lock(&mutex);
+   if (awaiting_msg) {
+      send_message_to_tree(awaiting_msg);
+      awaiting_msg = NULL;
+      cnd_signal(&cond);
+   }
+   mtx_unlock(&mutex);
+}
+
 
 static char do_events_called=0;
 
@@ -483,8 +469,11 @@ void do_events()
   if (!q_is_mastertask()) task_sleep();
   else
      {
+     check_message_async();
+     if (q_any_task()>=1) task_sleep();
      send_message(E_WATCH);
      send_message(E_IDLE);
+
      }
   }
 
@@ -521,3 +510,16 @@ T_EVENT_ROOT *gate_basics(EVENT_MSG *msg, void **user_data)
       tree_basics((T_EVENT_ROOT **)user_data,msg);
   return p;
   }
+
+  void send_message_from_thread(int message,...) {
+      EVENT_MSG m;
+      va_start(m.data,message);
+      m.msg = message;
+      mtx_lock(&mutex2);
+      mtx_lock(&mutex);
+      awaiting_msg = &m;
+      while (awaiting_msg != NULL) cnd_wait(&cond,&mutex);   
+      mtx_unlock(&mutex);
+      mtx_unlock(&mutex2);
+}
+

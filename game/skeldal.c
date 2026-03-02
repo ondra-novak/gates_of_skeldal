@@ -1,5 +1,5 @@
 #include <platform/platform.h>
-#include <platform/achievements.h>
+#include <platform/steam_c_api.h>
 #include <assert.h>
 #include <stdarg.h>
 #include <stdlib.h>
@@ -824,7 +824,7 @@ static void load_enemy_templates() {
 
 void done_skeldal(void)
   {
-  steam_shutdown();
+  
   clean_enemies();
 
   close_manager();
@@ -1166,7 +1166,8 @@ int init_skeldal(const INI_CONFIG *cfg, int (*game_thread)(va_list), ...)
   timer_tree.next=NULL;
   init_events();
 
-  steam_init();
+  initialize_steam_client();
+  
   va_list args;
   va_start(args,game_thread);
 

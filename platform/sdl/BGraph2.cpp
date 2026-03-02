@@ -292,3 +292,8 @@ void game_display_focus()
     auto &sdl = get_sdl_global_context();
     sdl.raise_window();
 }
+
+void set_steam_callback(void (*cb)(void)) {
+    auto &sdl = get_sdl_global_context();
+    sdl.set_steam_callback(cb);
+}
