@@ -46,6 +46,7 @@ advconfig.c
 temp_storage.cpp
 launcher.c
 ach_events.c
+workshop.c
 ${CMAKE_BINARY_DIR}/resources.cpp
 )
 

@@ -1,4 +1,3 @@
-#include <time.h>
 
 #ifdef __cplusplus 
 extern "C" {
@@ -9,16 +8,16 @@ typedef struct  {
     const char *ddl_path;
     const char *author;
     const char *lang;
-    time_t last_played;    
 } UGCItem;
 
 typedef struct tag_UGCManager UGCManager;
 
-void UGCSetLocalFoler(const char *path);
 
-void UGC_GetList(void (*callback)(const UGCItem *items, unsigned int count, void *context), void *context);
+void UGC_GetList(const char *ugc_user_path, 
+                 const char *ugc_dlc_path,
+                 void (*callback)(const UGCItem *items, unsigned int count, void *context), void *context);
 
-void UGC_StartPlay(const char *ddl_path);
+
 
 
 

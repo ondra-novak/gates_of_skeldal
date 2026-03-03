@@ -17,6 +17,7 @@
 #include <libs/inicfg.h>
 #include <platform/save_folder.h>
 #include <platform/ugc.h>
+#include "game/workshop.h"
 #include "globals.h"
 #include "resources.h"
 //
@@ -233,7 +234,11 @@ TDREGISTERS registred[]=
     {H_KREVMIN,"krevmin.pcx",pcx_8bit_decomp,SR_BGRAFIKA},
     {H_KREVMID,"krevmid.pcx",pcx_8bit_decomp,SR_BGRAFIKA},
     {H_KREVMAX,"krevmax.pcx",pcx_8bit_decomp,SR_BGRAFIKA},
-    {H_GLOBMAP,"globmap.dat",load_text_decomp, SR_MAP}
+    {H_GLOBMAP,"globmap.dat",load_text_decomp, SR_MAP},
+    {H_FEUROMODE,"euromode.fon",NULL,SR_FONT},
+    {H_FBROOKLIN,"brooklin.fon",NULL,SR_FONT},
+    {H_FARIAL,"big.fon",NULL,SR_FONT},
+
 	};
 
 INIS sinit[]=
@@ -824,7 +829,7 @@ static void load_enemy_templates() {
 
 void done_skeldal(void)
   {
-  
+
   clean_enemies();
 
   close_manager();
@@ -842,6 +847,7 @@ void done_skeldal(void)
     }
   kill_timer();
   if (sse_receiver) sse_receiver_destroy(sse_receiver);
+  destroy_events();
   }
 
 
@@ -1167,12 +1173,15 @@ int init_skeldal(const INI_CONFIG *cfg, int (*game_thread)(va_list), ...)
   init_events();
 
   initialize_steam_client();
-  
+
   va_list args;
   va_start(args,game_thread);
 
   int verr = game_display_init(ini_section_open(cfg, "video"), "Skeldal",
               init_skeldal_thread, cfg, game_thread, &args);
+
+  shutdown_steam_client();
+
   if (verr < 0)
      {
       display_error("Error game_display_init %d", verr);
@@ -1787,6 +1796,11 @@ void initialize_from_adv_ini() {
 
 int skeldal_entry_point_thread(va_list args) {
     const SKELDAL_CONFIG *start_cfg = va_arg(args, const SKELDAL_CONFIG *);
+
+    if (start_cfg->workshop_publish) {
+        workshop_publish_ui(start_cfg->workshop_publish);
+        return 0;
+    }
 
     if (start_cfg->patch_file == NULL && start_cfg->adventure_path == NULL) {
         TLAUNCHER_SELECTION *launchinfo = run_launcher();

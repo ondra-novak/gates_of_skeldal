@@ -458,7 +458,7 @@ static int process_actions(const char *command) {
         return 1;
     }
     if (istrcmp(command, "steam") == 0) {
-        if (is_steam_available()) {            
+        if (is_steam_available()) {
             wzputs("active");
         } else {
             wzputs("N/A");
@@ -572,7 +572,11 @@ static int process_with_params(const char *cmd, const char *args) {
     }
 
     if (istrcmp(cmd, "unachieve") == 0) {
-        return !clear_achievement(args);
+        char *c = strstr(console_command, args);
+        if (c != NULL)
+            return !clear_achievement(c);
+        else
+            return 0;
     }
     if (istrcmp(cmd, "talk") == 0) {
         if (args[0] == 0) return 0;

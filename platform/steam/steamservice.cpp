@@ -13,6 +13,7 @@
 #include <strings.h>
 #include <type_traits>
 #include <unordered_set>
+#include <atomic>
 #include "steamservice.hpp"
 
 
@@ -21,13 +22,13 @@ SteamService::SteamService() {
     if (_available) {
         _appid = SteamUtils()->GetAppID();
     }
-    
+
 
 }
 
 SteamService::~SteamService() {
     SteamAPI_Shutdown();
-    
+
 }
 
 void SteamService::post(std::function<void()> fn) {
@@ -42,7 +43,7 @@ void SteamService::run_callbacks() {
         auto fn = std::move(_main_thread_tasks.front());
         _main_thread_tasks.pop();
         lk.unlock();
-        fn();   
+        fn();
         lk.lock();
     }
 }
@@ -109,7 +110,7 @@ bool SteamService::delete_item(uint64_t id, DeleteItemCallback callback) {
         }, SteamUGC()->DeleteItem(id));
     });
     return true;
-}       
+}
 
 
 SteamService::ItemUpdate::ItemUpdate(UGCUpdateHandle_t handle, SteamService *service)
@@ -148,12 +149,12 @@ bool SteamService::ItemUpdate::set_preview(std::filesystem::path preview_path){
     return SteamUGC()->SetItemPreview(_handle, preview_path.string().c_str());
 }
 bool SteamService::ItemUpdate::submit(std::string change_note, SubmitItemCallback callback){
-    
+
     _service->post([this, callback=std::move(callback), change_note = std::move(change_note)]() mutable {
         _call.await([callback = std::move(callback)](SubmitItemUpdateResult_t *result, bool io_failure){
 
             if (io_failure) {
-                callback(false, false, -1);                
+                callback(false, false, -1);
             } else {
                 callback(result->m_eResult == k_EResultOK , result->m_bUserNeedsToAcceptWorkshopLegalAgreement, result->m_eResult);
             }
@@ -200,43 +201,46 @@ public:
         auto iugc = SteamUGC();
         uint32_t ugc_count = iugc->GetNumSubscribedItems();
         std::vector<PublishedFileId_t> subscribed(ugc_count);
-        std::vector<PublishedFileId_t> downloaded;
         //all subscribed items
         ugc_count = iugc->GetSubscribedItems(subscribed.data(), subscribed.size());
+        if (ugc_count == 0) {
+            _cb(_result);
+            return;
+        }
         subscribed.resize(ugc_count);
         //create list of downloaded items
-        downloaded.reserve(ugc_count);
+        _downloaded.reserve(ugc_count);
         for (const auto &x: subscribed) {
             auto st = iugc->GetItemState(x);
             if ((st & k_EItemStateInstalled) && !(st & k_EItemStateDisabledLocally)) {
-                downloaded.push_back(x);
+                _downloaded.push_back(x);
             }
-        }
+        }        
         //create query - ask for all downloaded items
-        auto h = iugc->CreateQueryUGCDetailsRequest(downloaded.data(),downloaded.size());
+        auto h = iugc->CreateQueryUGCDetailsRequest(_downloaded.data(),_downloaded.size());
         //submit query
         _details_awaiter.await({shared_from_this()},iugc->SendQueryUGCRequest(h));
         //coroutine contines by details_ready
 
     }
 
-    
-    void details_ready(const SteamUGCQueryCompleted_t *result, bool ok) {
-        //query complete        
+
+    void details_ready(const SteamUGCQueryCompleted_t *result, bool io_failure) {
+        //query complete
         auto iugc = SteamUGC();
         //if failed, return empty result
-        if (!ok) {
+        if (io_failure) {
             _cb(_result);
             return;
-        }    
+        }
         //prepare results
         _result.resize(result->m_unNumResultsReturned);
         SteamUGCDetails_t details;
         uint64 size_on_disk;
         uint32 timestamp;
-        
+
         char folder_buffer[PATH_MAX];
-        
+
 
         _owners.resize(result->m_unNumResultsReturned);
         //process all resultrs
@@ -244,11 +248,11 @@ public:
             iugc->GetQueryUGCResult(result->m_handle, i, &details);
             auto &item = _result[i];
             //title
-            item.title = *_string_list.insert(details.m_rgchTitle).first;
-            
+            item.title = details.m_rgchTitle;
+
             iugc->GetItemInstallInfo(details.m_nPublishedFileId,&size_on_disk,folder_buffer,sizeof(folder_buffer),&timestamp);
             //download location
-            item.download_location = *_string_list.insert(folder_buffer).first;
+            item.download_location = folder_buffer;
             //list of owners
             _owners[i] = details.m_ulSteamIDOwner;
         }
@@ -257,7 +261,7 @@ public:
         std::vector<uint64> ownset  = _owners;
         std::sort(ownset.begin(), ownset.end());
         ownset.erase(std::unique(ownset.begin(), ownset.end()), ownset.end());
-        
+
         for (auto &x: ownset ){
             SteamFriends()->RequestUserInformation(x, true);
         }
@@ -275,9 +279,9 @@ public:
             auto &r = _result[i];
             auto &u =  _owners[i];
             if (r.author.empty()) {
-                std::string n = SteamFriends()->GetFriendPersonaName(u);                
+                std::string n = SteamFriends()->GetFriendPersonaName(u);
                 if (!invalid_name(n))  {
-                    r.author = *_string_list.insert(n).first;                    
+                    r.author = n;
                 } else {
                     done = false;
                 }
@@ -294,15 +298,15 @@ public:
 protected:
     QueryUGCCallback _cb;
     SteamService *_svc;
-    std::unordered_set<std::string> _string_list;
     std::vector<UGCItem> _result;
     std::vector<uint64> _owners;
+    std::vector<PublishedFileId_t> _downloaded;
     std::chrono::steady_clock::time_point _timeout;
-    
-    
-    GenericSteamCall< SteamUGCQueryCompleted_t, 
+
+
+    GenericSteamCall< SteamUGCQueryCompleted_t,
             MemberCaller<std::shared_ptr<QUGCState>, &QUGCState::details_ready> >_details_awaiter;
-    
+
 };
 
 bool SteamService::query_ugc(QueryUGCCallback cb) {

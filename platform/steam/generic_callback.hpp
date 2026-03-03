@@ -14,6 +14,10 @@ public:
         if (_callback) {
             throw std::runtime_error("Already waiting for a call result");
         }
+        if (call == k_uAPICallInvalid) {
+            on_result(nullptr, true);
+            return;
+        }
         _callback.emplace(std::move(func));
         _call_result.Set(call, this, &GenericSteamCall::on_result);        
     }

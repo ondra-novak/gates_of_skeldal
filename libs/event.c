@@ -1,6 +1,7 @@
 #include <platform/platform.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include "libs/vector.h"
 #include "types.h"
 #include "event.h"
 #include "devices.h"
@@ -53,7 +54,7 @@ int32_t taskparam;
 int32_t err_last_stack;
 void *err_to_go;
 
-static void check_message_async();
+
 
 T_EVENT_ROOT *add_event_message(T_EVENT_ROOT **tree,int msg)
   {
@@ -312,9 +313,9 @@ void tree_basics(T_EVENT_ROOT **ev_tree,EVENT_MSG *msg)
         install_event(ev_tree,msg,proc,msg->msg==E_ADDEND);
      return;
      }
-     
+
   if (msg->msg==E_INIT)
-     {      
+     {
       q = va_arg(msg->data, initproc);
       q();
      return;
@@ -432,33 +433,17 @@ void except_GPF()
 
 */
 
-
-static mtx_t mutex;
-static mtx_t mutex2;
-static cnd_t cond;
-static EVENT_MSG *awaiting_msg = NULL;
-
-
+static void pump_messages();
+static void message_queue_init();
 
 void init_events()
   {
   send_message(E_ADD,E_WATCH,keyboard);
   send_message(E_ADD,E_WATCH,timer);
-  mtx_init(&mutex,mtx_plain);
-  mtx_init(&mutex2,mtx_plain);
-  cnd_init(&cond);
+  message_queue_init();
   }
 
 
-static void check_message_async() {
-   mtx_lock(&mutex);
-   if (awaiting_msg) {
-      send_message_to_tree(awaiting_msg);
-      awaiting_msg = NULL;
-      cnd_signal(&cond);
-   }
-   mtx_unlock(&mutex);
-}
 
 
 static char do_events_called=0;
@@ -469,7 +454,7 @@ void do_events()
   if (!q_is_mastertask()) task_sleep();
   else
      {
-     check_message_async();
+     pump_messages();
      if (q_any_task()>=1) task_sleep();
      send_message(E_WATCH);
      send_message(E_IDLE);
@@ -493,6 +478,8 @@ void escape()
      {
      send_message(E_WATCH);
      send_message(E_IDLE);
+     pump_messages();
+     if (q_any_task()>=1) task_sleep();
      if (do_events_called==0)  ShareCPU();
      else do_events_called=0;
      }
@@ -511,15 +498,48 @@ T_EVENT_ROOT *gate_basics(EVENT_MSG *msg, void **user_data)
   return p;
   }
 
-  void send_message_from_thread(int message,...) {
-      EVENT_MSG m;
-      va_start(m.data,message);
-      m.msg = message;
-      mtx_lock(&mutex2);
-      mtx_lock(&mutex);
-      awaiting_msg = &m;
-      while (awaiting_msg != NULL) cnd_wait(&cond,&mutex);   
-      mtx_unlock(&mutex);
-      mtx_unlock(&mutex2);
+
+
+
+typedef struct  {
+    void (*cb)(void *);
+    void *context;
+} PostedMessage;
+
+static mtx_t mutex;
+static Vector message_queue;
+
+static void message_queue_init() {
+  mtx_init(&mutex,mtx_plain);
+  vector_init(&message_queue, sizeof(PostedMessage),NULL);
 }
 
+static void push_message(PostedMessage *msg) {
+    mtx_lock(&mutex);
+    vector_push_back(&message_queue, msg);
+    mtx_unlock(&mutex);
+}
+
+static void pump_messages() {
+    mtx_lock(&mutex);
+    size_t idx = 0;
+    while (vector_size(&message_queue) > idx) {
+        PostedMessage msg = *(PostedMessage *)vector_get(&message_queue, idx);
+        mtx_unlock(&mutex);
+        msg.cb(msg.context);
+        ++idx;
+        mtx_lock(&mutex);
+    }
+    if (idx) vector_remove(&message_queue, 0, idx);
+    mtx_unlock(&mutex);    
+}
+
+void post_to_event_thread(void (*cb)(void *), void *context) {
+    PostedMessage m = {cb, context};
+    push_message(&m);
+}
+
+void destroy_events() {
+    mtx_destroy(&mutex);
+    vector_destroy(&message_queue);
+}

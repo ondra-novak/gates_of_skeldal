@@ -7,9 +7,9 @@
 #include <queue>
 #include <span>
 #include "generic_callback.hpp"
-#include "steam/isteamremotestorage.h"
 #include "steam/isteamugc.h"
-#include "steam/steamtypes.h"
+
+
 class SteamService {
 public:
 
@@ -24,9 +24,9 @@ public:
     using SubmitItemCall = GenericSteamCall<SubmitItemUpdateResult_t, std::function<void(SubmitItemUpdateResult_t *, bool)> >;
 
     struct UGCItem {
-        std::string_view title;
-        std::string_view author;
-        std::string_view download_location;        
+        std::string title;
+        std::string author;
+        std::string download_location;        
     };
 
     using QueryUGCCallback = std::function<void(std::span<const UGCItem> list)>;

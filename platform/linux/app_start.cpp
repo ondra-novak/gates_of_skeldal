@@ -31,35 +31,27 @@ void show_help_short() {
 
 
 int main(int argc, char **argv) {
-    std::string config_name = SKELDALINI;
-    std::string adv_config_file;
-    std::string patch;
-    std::string lang;
-    std::string sse_hostport;
-    for (int optchr = -1; (optchr = getopt(argc, argv, "hLf:a:s:l:p:c:")) != -1; ) {
+
+    SKELDAL_CONFIG cfg = {SKELDALINI,NULL,NULL,NULL,NULL,NULL,NULL,NULL};
+    for (int optchr = -1; (optchr = getopt(argc, argv, "hLf:a:s:l:p:c:P:")) != -1; ) {
         switch (optchr) {
-            case 'f': config_name = optarg;break;
-            case 'a': adv_config_file = optarg;break;
             case 'h': show_help(argv[0]);break;
-            case 'p': patch = optarg; break;
-            case 'l': lang = optarg;break;
-            case 'c': sse_hostport = optarg;break;
+            case 'f': cfg.config_path = optarg;break;
+            case 'a': cfg.adventure_path = optarg;break;
+            case 'p': cfg.patch_file = optarg; break;
+            case 'l': cfg.langddl = optarg;break;
+            case 'c': cfg.sse_hostport = optarg;break;
+            case 'P': cfg.workshop_publish = optarg;break;
             default: show_help_short();
                      return 1;
         }
     }
 
-    SKELDAL_CONFIG cfg;
     cfg.short_help = show_help_short;
     cfg.show_error = [](const char *txt) {
         std::cerr << "ERROR: " << txt << std::endl;
         abort();
     };
-    cfg.adventure_path = adv_config_file.empty()?NULL:adv_config_file.c_str();
-    cfg.config_path = config_name.c_str();
-    cfg.langddl = lang.empty()?NULL:lang.c_str();
-    cfg.patch_file = patch.empty()?NULL:patch.c_str();
-    cfg.sse_hostport = sse_hostport.empty()?NULL:sse_hostport.c_str();
     try {
         return skeldal_entry_point(&cfg);
     } catch (const std::exception &e) {

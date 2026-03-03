@@ -3,15 +3,23 @@
 
 #include <algorithm>
 #include <ranges>
-#include <fstream>
+#include <span>
+#include <system_error>
 #include <unordered_map>
 #include <unordered_set>
 #include <vector>
 #include <filesystem>
 #include <string_view>
-
-
 #include <memory>
+
+extern "C" {
+    #include <libs/event.h>
+}
+
+#ifdef STEAM_ENABLED
+#include "platform/steam/steamservice.hpp"
+#include "platform/steam_c_api.hpp"
+#endif
 
 std::wstring toWideChar(std::string_view text) {
     unsigned int codepoint = 0;
@@ -114,59 +122,105 @@ void UGCSetLocalFoler(const char *path) {
     ugc_local_path = reinterpret_cast<const char8_t *>(path);
 }
 
+struct IniContent {
+    std::string name;
+    std::string author;
+    std::string lang;
+    std::string content;
+};
 
-void UGC_GetList(void (*callback)(const UGCItem *items, unsigned int count, void *context), void *context) {
-    std::unordered_set<std::string> strings;
+static std::optional<IniContent> parse_ini(const std::filesystem::path &ini) {
+    std::optional<IniContent> res;
+    if (std::filesystem::is_regular_file(ini)) {
+        INI_CONFIG *cfg = ini_open(reinterpret_cast<const char *>(ini.u8string().c_str()));
+        if (cfg) {
+            const INI_CONFIG_SECTION *section = ini_section_open(cfg, "description");
+            res.emplace();
+            res->name = toKEYBCS2(ini_get_string(section, "name", ""));
+            res->author = toKEYBCS2(ini_get_string(section, "author", ""));
+            res->lang = ini_get_string(section, "lang", "CZ");
+            res->content = ini_get_string(section, "content", "content.ddl");
+            ini_close(cfg);
+        }
+    }
+    return res;
+
+
+}
+
+std::optional<UGCItem> parse_ugc(const std::filesystem::path &entry, std::unordered_set<std::string> &strings) {
+    std::optional<UGCItem> item;
+    const auto ini = entry/"info.ini";
+    auto ini_data = parse_ini(ini);
+    if (ini_data) {
+        item.emplace();
+        auto addstr = [&](auto &&s){return strings.insert(std::move(s)).first->c_str();};
+        item->ddl_path = addstr((entry/ini_data->content).string());
+        item->author = addstr(ini_data->author);
+        item->lang = addstr(ini_data->lang);
+        item->name = addstr(ini_data->name);
+    }
+    return item;
+     
+}
+
+struct UGCGetContext {
     std::vector<UGCItem> items;
-    try {
-        for(const auto &entry : std::ranges::subrange(std::filesystem::directory_iterator(ugc_local_path), std::filesystem::directory_iterator())) {
-            if (entry.is_directory()) {
-                const auto ddl_path = entry.path()/"content.ddl";
-                const auto ini = entry.path()/"info.ini";
-                const auto stamp = entry.path()/"stamp";
-                if (std::filesystem::is_regular_file(ddl_path) && std::filesystem::is_regular_file(ini)) {
-                    INI_CONFIG *cfg = ini_open(reinterpret_cast<const char *>(ini.u8string().c_str()));
-                    if (cfg) {
-                        const INI_CONFIG_SECTION *section = ini_section_open(cfg, "description");
-                        std::string name = toKEYBCS2(ini_get_string(section, "name", "noname"));
-                        std::string author = toKEYBCS2(ini_get_string(section, "author", "noname"));
-                        std::string lang = ini_get_string(section, "lang", "CZ");
-                        auto ddl8 = ddl_path.u8string();
-                        auto niter = strings.insert(name);
-                        auto aiter = strings.insert(author);
-                        auto liter = strings.insert(lang);
-                        auto diter = strings.insert({reinterpret_cast<const char *>(ddl8.c_str()), ddl8.size()});
-                        time_t tplay = 0;
-                        if (std::filesystem::is_regular_file(stamp)) {
-                            auto tp = std::filesystem::last_write_time(stamp);
-                            auto sctp = std::chrono::time_point_cast<std::chrono::system_clock::duration>(tp - std::filesystem::file_time_type::clock::now()
-                                + std::chrono::system_clock::now());
-                            tplay = std::chrono::system_clock::to_time_t(sctp);
-                        }
+    std::unordered_set<std::string> strings;
+    void (*callback)(const UGCItem *items, unsigned int count, void *context);
+    void *context;
+};
 
-                        items.push_back(UGCItem{
-                            niter.first->c_str(),
-                            diter.first->c_str(),
-                            aiter.first->c_str(),
-                            liter.first->c_str(),
-                            tplay
-                        });
-                        ini_close(cfg);
+void UGC_GetList(const char *ugc_user_path, 
+                 const char *ugc_dlc_path,
+                 void (*callback)(const UGCItem *items, unsigned int count, void *context), void *context) {
+    
+    std::array<std::filesystem::path, 2> paths = {ugc_user_path, ugc_dlc_path};
+    std::error_code ec;
+    UGCGetContext ctx;
+    ctx.callback = callback;
+    ctx.context = context;
+    for (const auto &p: paths) {
+        auto iter = std::filesystem::directory_iterator(p,ec);
+        if (ec == std::error_code{}) {
+            auto end = std::filesystem::directory_iterator();
+            for (const auto &entry: std::ranges::subrange(iter,end)) {
+                if (entry.is_directory(ec)) {    
+                    auto item = parse_ugc(entry.path(), ctx.strings);
+                    if (item) {
+                        ctx.items.push_back(*item);
                     }
                 }
             }
         }
-    } catch (...) {
     }
-    std::sort(items.begin(), items.end(), [&](const UGCItem &a, const UGCItem &b) {
-        return b.last_played - a.last_played;
-    });
-    callback(items.data(), items.size(), context);
 
+#ifdef STEAM_ENABLED
+    if (steam_service) {
+        UGCGetContext *st = new UGCGetContext(std::move(ctx));
+        
+        steam_service->query_ugc([st](std::span<const SteamService::UGCItem> list){
+            for (const auto &x: list) {
+                auto item = parse_ugc(x.download_location, st->strings);
+                if (item) {
+                    if (!x.author.empty()) {
+                        item->author = st->strings.insert(toKEYBCS2(x.author.c_str())).first->c_str();                        
+                    }
+                    if (!x.title.empty()) {
+                        item->name = st->strings.insert(toKEYBCS2(x.title.c_str())).first->c_str();                        
+                    }
+                    st->items.push_back(*item);
+                }
+            }
+            post_to_event_thread([](void *ctx){
+                UGCGetContext *st = (UGCGetContext *)ctx;
+                st->callback(st->items.data(), st->items.size(), st->context);
+                delete st;
+            }, st);
+        });
+        return;
+    }
+#endif
+    ctx.callback(ctx.items.data(), ctx.items.size(), ctx.context);
 }
 
-void UGC_StartPlay(const char *ddl_path) {
-    std::filesystem::path p = ddl_path;
-    auto stamp = p.parent_path()/"stamp";
-    std::ofstream(stamp, std::ios::out|std::ios::trunc);
-}
