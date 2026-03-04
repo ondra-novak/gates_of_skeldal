@@ -34,4 +34,13 @@ void pl_delete_all(PTRMAP **p);
 
 int load_string_list(TSTR_LIST *list,const char *filename);
 
+///Creates structure <reserved><string1><string2><string3>, 
+/**
+@param obj_size size of object reserved at the beginning
+@param list of strings
+@param count coun of strings
+@param out_table final locations of strings
+ */
+void *make_string_array(unsigned int obj_size, const char **strings, unsigned int count, char **out_table);
+
 #endif

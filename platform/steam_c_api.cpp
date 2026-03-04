@@ -169,7 +169,7 @@ void continue_publish(std::filesystem::path content_path, std::filesystem::path 
                 create_ini(inifile, title, author, blang);
                 std::filesystem::rename(content_path, content);
 
-                ptr->set_content(content);
+                ptr->set_content(target);
                 ptr->set_description(std::string(desc));
                 ptr->set_language(std::string{ulang});
                 ptr->set_preview(steam_preview);

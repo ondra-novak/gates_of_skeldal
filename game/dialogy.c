@@ -376,7 +376,7 @@ static char *transfer_text(const char *source,char *target)
 
 
               dlg_error("Invalid gender number (%d) or invalid count of variants (%s): %s",num, orgn);
-              strcpy(target, source);
+              strcpy(target, "");
               return target;
               }
            source++;
@@ -384,9 +384,10 @@ static char *transfer_text(const char *source,char *target)
         while (*source!=',' && *source!=']' && *source!=0) *target++=*source++;
         if (*source!=']')
            {
-           source=strchr(source,']');
-           if (source==NULL) source = strchr(source,0);
-           else source++;
+           char *x =strchr(source,']');
+           if (x==NULL) x = strchr(source,0);
+           else x++;
+           source = x;
            }
         }
      else *target++=*source++;

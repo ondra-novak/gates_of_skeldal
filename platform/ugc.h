@@ -1,4 +1,5 @@
 
+#include <stdint.h>
 #ifdef __cplusplus 
 extern "C" {
 #endif
@@ -8,6 +9,7 @@ typedef struct  {
     const char *ddl_path;
     const char *author;
     const char *lang;
+    uint64_t id;
 } UGCItem;
 
 typedef struct tag_UGCManager UGCManager;

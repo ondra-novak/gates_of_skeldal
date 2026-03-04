@@ -17,8 +17,9 @@
 #include <platform/sound.h>
 #include <stdarg.h>
 #include "globals.h"
+#include "libs/vector.h"
 #include "temp_storage.h"
-
+#include "gamesave.h"
 #include <assert.h>
 #include <sys/stat.h>
 #include <time.h>
@@ -43,10 +44,12 @@
 
 //static TMPFILE_WR *story=NULL;
 static char load_another;
+static char adv_dlc = 0;
 static unsigned long current_campaign = 0;
 static long prev_game_time_save = -999;
 static long play_time = 0;    //current play time
 static long load_game_time = 0;    //time when game has been loaded (to calculate play_time)
+
 
 #define AUTOSAVE_SUFFIX "-autosave"
 
@@ -906,6 +909,7 @@ int load_basic_info()
 
 
 
+
 int save_game(long game_time,char *gamename, char is_autosave)
   {
   char *gn;
@@ -922,10 +926,10 @@ int save_game(long game_time,char *gamename, char is_autosave)
   snprintf(str_buff,sizeof(str_buff),"sav.%08lx.%08lx%s", current_campaign, game_time, is_autosave?AUTOSAVE_SUFFIX:"");
   SEND_LOG("(SAVELOAD) Saving game slot %ld",game_time);
   save_map_state();
-
-  const char *sn = build_pathname(2,gpathtable[SR_SAVES],str_buff);
+  const char *sub = get_adventure_save_subfolder();
+  const char *sn = build_pathname(3,gpathtable[SR_SAVES],sub,str_buff);
   sn = local_strdup(sn);
-  create_directories(gpathtable[SR_SAVES]);
+  create_directories(build_pathname(2,gpathtable[SR_SAVES],sub));
   gn=alloca(SAVE_NAME_SIZE);
   strcopy_n(gn,gamename,SAVE_NAME_SIZE);
   if ((r=save_shops())!=0) return r;
@@ -954,12 +958,13 @@ int save_game(long game_time,char *gamename, char is_autosave)
   }
   SEND_LOG("(SAVELOAD) Game saved.... Result %d",r);
   play_fx_at(FX_SAVE);
+  save_last_contine_info(str_buff);
   return r;
   }
 
 extern char running_battle;
 
-int load_game(const char *fname)
+int load_game(const char *fname, char ignore_adv_fld)
   {
   FILE *svf;
   int r,t;
@@ -972,7 +977,8 @@ int load_game(const char *fname)
   battle=0;
   close_story_file();
   purge_temps(0);
-  const char *sn = build_pathname(2, gpathtable[SR_SAVES], fname);
+  const char *sub = ignore_adv_fld?NULL:get_adventure_save_subfolder();
+  const char *sn =build_pathname(3, gpathtable[SR_SAVES], sub, fname);
   svf=fopen_icase(sn,"rb");
   if (svf==NULL) return 1;
   fseek(svf,SAVE_NAME_SIZE,SEEK_CUR);
@@ -1090,22 +1096,44 @@ void read_slot_list()
   }
 
 #endif
+
+ const char *get_slot_full_path(const TGAME_SAVE_SLOT *slot) {
+    if (!slot || slot->is_new_slot) return NULL;
+    const char *sub = slot->origin_game?NULL:get_adventure_save_subfolder();
+    return build_pathname(3, gpathtable[SR_SAVES], sub,slot->fname);
+}
+
+static int compare_game_slot(const void *a, const void *b) {
+    const TGAME_SAVE_SLOT *sa = (const TGAME_SAVE_SLOT *)a;
+    const TGAME_SAVE_SLOT *sb = (const TGAME_SAVE_SLOT *)b;
+    if (sa->is_autosave) return sb->is_autosave?0:-1;
+    if (sb->is_autosave) return 1;
+    const char *ba = strrchr(sa->fname,'.');
+    const char *bb = strrchr(sb->fname,'.');
+    if (!ba) ba = sa->fname;else ba++;
+    if (!bb) bb = sb->fname;else bb++;
+    if (istrcmp(ba,"SAV") == 0) {
+    ba = concat2("0000",ba-3);
+    }
+    if (istrcmp(bb,"SAV") == 0) {
+    bb = concat2("0000",bb-3);
+    }
+    return -strcmp(ba,bb);      
+}
+
 typedef struct {
-    TSTR_LIST files;
-    TSTR_LIST names;
-    char *autosave_flags;
-    size_t count;
+    Vector items;
 } TSAVEGAME_LIST;
 
 static TSAVEGAME_LIST current_game_slot_list = {};
 static int current_slot_list_top_line = 0;
 
 typedef struct {
-    TSTR_LIST files;
-    const char *prefix;
+    Vector *items;
+    const char *prefix; //campan prefix
     size_t prefix_len;
-    size_t count;
     char skip_autosave;
+    char original;
 } TSAVEGAME_CB_STATE;
 
 /*
@@ -1126,7 +1154,14 @@ static int get_all_savegames_callback(const char *name, LIST_FILE_TYPE  type , s
     if (st->prefix_len == 0 || strncmp(name, st->prefix, st->prefix_len) == 0) {
         char is_autosave = !!strstr(name, AUTOSAVE_SUFFIX);
         if (is_autosave && st->skip_autosave) return 0;
-        size_t nlen = strlen(name);
+        TGAME_SAVE_SLOT slot;
+        strcopy_n(slot.fname, name, sizeof(slot.fname));
+        slot.is_autosave = is_autosave;
+        slot.origin_game = st->original;
+        slot.name_is_valid =0;
+        slot.is_new_slot = 0;
+        vector_push_back(st->items,&slot);
+/*        size_t nlen = strlen(name);
         if (st->count == (size_t)str_count(st->files)) {
           TSTR_LIST nw = create_list(st->count * 3/2);
           str_move_list(nw, st->files);;
@@ -1137,7 +1172,7 @@ static int get_all_savegames_callback(const char *name, LIST_FILE_TYPE  type , s
         strncpy(buff, name, nlen+1);
         buff[nlen+1] = is_autosave?'\x1f':0;
         st->files[st->count] = buff;
-        ++st->count;
+        ++st->count;*/
     }
     return 0;
 }
@@ -1146,6 +1181,7 @@ static int compare_strings (const void *a, const void *b) {
     return strcmp(*(const char **)a, *(const char **)b);
 }
 */
+/*
 static int compare_strings_third_back (const void *a, const void *b) {
   const char *sa = *(const char **)a;
   const char *sb = *(const char **)b;
@@ -1161,7 +1197,7 @@ static int compare_strings_third_back (const void *a, const void *b) {
   }
   return -strcmp(ba,bb);
 }
-
+*/
 /*
 static int dedup_strings_prefix(TSTR_LIST lst, int count) {
     int j = -1;
@@ -1211,12 +1247,12 @@ static void load_specific_file(int slot_num,char *filename,void **out,int32_t *s
   fclose(slot);
   }
 */
-static void load_specific_file(const char *filename,const char *name, void **out,int32_t *size) //call it in task!
+static void load_specific_file(const char *pathname,const char *name, void **out,int32_t *size) //call it in task!
   {
   FILE *slot;
 
 
-  slot=fopen_icase(build_pathname(2, gpathtable[SR_SAVES], filename),"rb");
+  slot=fopen_icase(pathname,"rb");
   if (slot==NULL)
      {
      *out=NULL;
@@ -1238,86 +1274,67 @@ static void load_specific_file(const char *filename,const char *name, void **out
 
 
 static const char * get_savegame_name(TSAVEGAME_LIST *lst, unsigned int index) {
-  if (!lst->names) {
-    lst->names = create_list(lst->count);
-  }
-  if (!lst->names[index]) {
+    TGAME_SAVE_SLOT *slots = (TGAME_SAVE_SLOT *)vector_data(&lst->items);
+    if (index >= vector_size(&lst->items)) return "error";
+    TGAME_SAVE_SLOT *item = &slots[index];
+    if (!item->name_is_valid) {
         FILE *f = NULL;
-        if (lst->files[index] != NULL) {
-            f=fopen_icase(build_pathname(2, gpathtable[SR_SAVES], lst->files[index]), "rb");
+        const char *pathname = get_slot_full_path(item);
+        if (pathname != NULL) {
+            f=fopen_icase(pathname, "rb");
         }
         if (f!=NULL) {
-            char slotname[SAVE_NAME_SIZE+1];
-            fread(slotname,1,SAVE_NAME_SIZE,f);
-            slotname[SAVE_NAME_SIZE] = 0;
+            fread(item->label,1,SAVE_NAME_SIZE,f);
+            item->label[SAVE_NAME_SIZE] = 0;
             fclose(f);
-            str_replace(&lst->names, index, slotname);
+            item->name_is_valid = 1;
         } else {
-            str_replace(&lst->names, index, texty[75]);
+            strcopy_n(item->label,texty[75],SAVE_NAME_SIZE);
+            item->name_is_valid = 1;
         }
     }
-    return lst->names[index];
+    return item->label;;
 }
 
-static TSAVEGAME_LIST get_all_savegames(unsigned long kampan, char skip_autosave) {
+static TSAVEGAME_LIST get_all_savegames(unsigned long kampan, char skip_autosave, char get_original_files) {
     //sav.creation_time.game_save_time
     char prefix[50];
     snprintf(prefix,50,"sav.%08lx.",kampan);
+    Vector items;
+    vector_init(&items, sizeof(TGAME_SAVE_SLOT), NULL);
     TSAVEGAME_CB_STATE st;
-    st.files = create_list(32);
+    st.items = &items;
     st.prefix = kampan?prefix:NULL;
     st.prefix_len = kampan?strlen(prefix):0;
-    st.count = 0;
     st.skip_autosave = skip_autosave;
-    list_files(gpathtable[SR_SAVES], file_type_just_name|file_type_need_timestamp|file_type_normal, get_all_savegames_callback, &st);
-//    qsort(st.files, st.count, sizeof(char *), compare_strings);
-//    if (kampan == 0) {
-//        st.count =dedup_strings_prefix(st.files, (int)st.count);
-//    }
-    qsort(st.files, st.count, sizeof(char *), compare_strings_third_back);
-
-    TSTR_LIST names = NULL;
-    char *autosave_list = NewArr(char, st.count);
-    for (size_t i = 0; i < st.count; ++i) {
-        size_t fns = strlen(st.files[i]);
-        autosave_list[i] = st.files[i][fns+1];
-/*        FILE *f=fopen_icase(build_pathname(2, gpathtable[SR_SAVES], st.files[i]), "rb");
-        if (f!=NULL) {
-            char slotname[SAVE_NAME_SIZE+1];
-            fread(slotname,1,SAVE_NAME_SIZE,f);
-            slotname[SAVE_NAME_SIZE] = 0;
-            fclose(f);
-            str_replace(&names, i, slotname);
-        } else {
-            str_replace(&names, i, texty[75]);
-        }*/
+    st.original = 0;
+    const char *sub = get_adventure_save_subfolder();
+    const char *path = build_pathname(2, gpathtable[SR_SAVES], sub);
+    list_files(path, file_type_just_name|file_type_need_timestamp|file_type_normal, get_all_savegames_callback, &st);
+    if (get_original_files && sub) {
+        st.skip_autosave = 1;
+        st.original = 1;
+        list_files(gpathtable[SR_SAVES], file_type_just_name|file_type_need_timestamp|file_type_normal, get_all_savegames_callback, &st);
     }
+
+    qsort(items.data, items.size, items.element_size, compare_game_slot);
+    
 
 
     TSAVEGAME_LIST out;
-    out.files = st.files;
-    out.names = names;
-    out.count = st.count;
-    out.autosave_flags = autosave_list;
+    out.items = items;
     return out;
 }
 
 static void free_savegame_list(TSAVEGAME_LIST *lst) {
-    release_list(lst->files);
-    release_list(lst->names);
-    lst->files = 0;
-    lst->names = 0;
-    if (lst->autosave_flags) {
-      free(lst->autosave_flags);
-      lst->autosave_flags = NULL;
-    }
+    vector_destroy(&lst->items);
 }
 
 static void place_name(int c,int i,char show, char sel)
   {
   int z,x;
   int p = i + current_slot_list_top_line;
-  if ((size_t)p >= current_game_slot_list.count) return;
+  if ((size_t)p >= vector_size(&current_game_slot_list.items)) return;
   if (c) x=SAVE_SLOT_S;else x=LOAD_SLOT_S;
   if (show) schovej_mysku();
   const char *name = get_savegame_name(&current_game_slot_list,p);
@@ -1331,7 +1348,8 @@ static void place_name(int c,int i,char show, char sel)
   }
   position(x,z=i*SLOT_SPACE+21+SCREEN_OFFLINE);
   outtext_ex(name,spc);
-  if (current_game_slot_list.autosave_flags[p]) {
+  const TGAME_SAVE_SLOT *slot = vector_get(&current_game_slot_list.items, p);
+  if (slot->is_autosave) {
       set_font(SLOT_AUTOSAVE_FONT,sel?SELECT_COLOR:NORMAL_COLOR);
       set_aligned_position(x+204+strlen(SLOT_AUTOSAVE_TEXT), z, 2, 1, SLOT_AUTOSAVE_TEXT);
       outtext_ex(SLOT_AUTOSAVE_TEXT,-1);
@@ -1454,12 +1472,13 @@ static void read_story(int slot)
   }
 */
 
-static void read_story(const char *filename) {
+static void read_story(TGAME_SAVE_SLOT *slot) {
     void *text_data;
     int32_t size = 0;
     TSTR_LIST ls;
     char *c,*d;
 
+    const char *filename = get_slot_full_path(slot);
     if (filename) {
         load_specific_file(filename,STORY_BOOK,&text_data,&size);
     } else {
@@ -1624,8 +1643,8 @@ static char clk_load_proc_menu(int id,int xa,int ya,int xr,int yr)
   {
   id=bright_slot(yr-18);
   xa;ya;xr;yr;
-  if (ms_last_event.event_type & 0x2 && id>=0 && (size_t)id < current_game_slot_list.count) {
-     send_message(E_CLOSE_MAP,current_game_slot_list.files[id]);
+  if (ms_last_event.event_type & 0x2 && id>=0 && (size_t)id < vector_size(&current_game_slot_list.items)) {
+     send_message(E_CLOSE_MAP,vector_get(&current_game_slot_list.items, id));
   }
   return 1;
   }
@@ -1641,7 +1660,10 @@ T_CLK_MAP clk_load_menu[]=
   };
 
 static void load_save_pos_ingame(int id) {
-  if (load_game(current_game_slot_list.files[id]))
+
+    const TGAME_SAVE_SLOT *slot = vector_get(&current_game_slot_list.items, id);
+
+  if (load_game(slot->fname, slot->origin_game))
   {
   message(1,0,0,"",texty[79],texty[80]);
   redraw_load();
@@ -1673,7 +1695,7 @@ static char clk_load_proc(int id,int xa,int ya,int xr,int yr)
   {
   id=bright_slot(yr-18);
   xa;ya;xr;yr;
-  if (ms_last_event.event_type & 0x2 && id>=0 && (size_t)id < current_game_slot_list.count)
+  if (ms_last_event.event_type & 0x2 && id>=0 && (size_t)id < vector_size(&current_game_slot_list.items))
      {
       load_save_pos_ingame(id);
      }
@@ -1834,8 +1856,8 @@ static void select_slot(int i) {
         if (last_select != -1) place_name(m,last_select-current_slot_list_top_line,1,0);
         place_name(m,i-current_slot_list_top_line,1,1);
         last_select = i;
-        if (last_select != -1 && last_select < (int)current_game_slot_list.count) {
-            read_story(current_game_slot_list.files[last_select]);
+        if (last_select != -1 && last_select < (int)vector_size(&current_game_slot_list.items)) {
+            read_story(vector_get(&current_game_slot_list.items, last_select));
         }
     }
   }
@@ -1851,7 +1873,7 @@ static void saveload_keyboard(EVENT_MSG *msg,void **_)
         case 17:
         case 'H':if (last_select>0) select_slot(last_select-1);break;
         case 31:
-        case 'P':if (last_select<(int)current_game_slot_list.count-1) select_slot(last_select+1);break;
+        case 'P':if (last_select<(int)vector_size(&current_game_slot_list.items)-1) select_slot(last_select+1);break;
         case 28:if (last_select>=0) {
             if (force_save) {
                 save_as_dialog(last_select);
@@ -1889,9 +1911,9 @@ static void saveload_keyboard_menu(EVENT_MSG *msg,void **_)
         case 17:
         case 'H':if (last_select>0) select_slot(last_select-1);break;
         case 31:
-        case 'P':if (last_select<(int)current_game_slot_list.count-1) select_slot(last_select+1);break;
-        case 28:if (last_select>= 0 && last_select < (int)current_game_slot_list.count) {
-                send_message(E_CLOSE_MAP, current_game_slot_list.files[last_select]);
+        case 'P':if (last_select<(int)vector_size(&current_game_slot_list.items)-1) select_slot(last_select+1);break;
+        case 28:if (last_select>= 0 && last_select < (int)vector_size(&current_game_slot_list.items)) {
+                send_message(E_CLOSE_MAP, vector_get(&current_game_slot_list.items, last_select));
                 break;
         }
 
@@ -1917,21 +1939,19 @@ void unwire_save_load(void)
 
 void wire_save_load(char save) {
     current_slot_list_top_line = 0;
-    last_select = -1;
+    last_select = -1;   
     schovej_mysku();
     mute_all_tracks(0);
     force_save=save & 1;
-    current_game_slot_list = get_all_savegames(current_campaign, save & 1);
+    current_game_slot_list = get_all_savegames(current_campaign, save & 1, (save &4) && adv_dlc);
     curcolor = RGB555(0,0,0);
     bar32(0, 17, 639, 17 + 360);
     if (save == 1) {
-        current_game_slot_list.count++;
-        str_insline(&current_game_slot_list.files, 0, NULL);
-        release_list(current_game_slot_list.names);
-        current_game_slot_list.names = NULL;
-        free(current_game_slot_list.autosave_flags);
-        current_game_slot_list.autosave_flags = NewArr(char, current_game_slot_list.count);
-        memset(current_game_slot_list.autosave_flags,0,current_game_slot_list.count);
+        TGAME_SAVE_SLOT new_save_slot;
+        memset(&new_save_slot,0,sizeof(new_save_slot));
+        new_save_slot.is_new_slot = 1;
+        strcpy(new_save_slot.label, texty[75]);
+        vector_insert(&current_game_slot_list.items, 0, &new_save_slot,1);
         change_click_map(clk_save,CLK_SAVELOAD);
         redraw_save();
         send_message(E_ADD, E_KEYBOARD, saveload_keyboard);
@@ -2061,19 +2081,23 @@ void do_autosave() {
     }
     if (!isdead) {
       TSAVEGAME_CB_STATE st;
-      st.files = create_list(32);
+      Vector items;
+      vector_init(&items, sizeof(TGAME_SAVE_SLOT), NULL);
+      st.items = &items;
       st.prefix = prefix;
       st.prefix_len = strlen(prefix);
-      st.count = 0;
       st.skip_autosave = 0;
-      list_files(gpathtable[SR_SAVES], file_type_just_name|file_type_need_timestamp|file_type_normal, get_all_savegames_callback, &st);
-      for (size_t i = 0; i < st.count; ++i) {
-          const char *n = st.files[i];
-          if (strstr(n, AUTOSAVE_SUFFIX)) {
-              remove(build_pathname(2, gpathtable[SR_SAVES],n));
+      st.original = 0;
+      const char * dir = build_pathname(2, gpathtable[SR_SAVES], get_adventure_save_subfolder());
+      list_files(dir, file_type_just_name|file_type_need_timestamp|file_type_normal, get_all_savegames_callback, &st);
+      for (size_t i = 0; i < vector_size(&items); ++i) {
+          const TGAME_SAVE_SLOT *slot = (const TGAME_SAVE_SLOT *)vector_get(&items, i);
+          if (slot->is_autosave) {
+            const char *filename = get_slot_full_path(slot);
+              remove(filename);
           }
       }
-      release_list(st.files);
+      vector_destroy(&items);
     }
     save_game(get_save_game_slot_id(), game_name,1);
 }
@@ -2112,11 +2136,11 @@ static const char *find_autosave(const char *name) {
 */
 static void save_as_dialog(int pos) {
     DEFAULT_GAME_NAME("");
-    const char *todel = current_game_slot_list.files[pos];
+    TGAME_SAVE_SLOT *selected_slot = vector_get(&current_game_slot_list.items, pos);
     const char *name = get_savegame_name(&current_game_slot_list,pos);
-    if (todel != NULL)  {
+    const char *todel = get_slot_full_path(selected_slot);
+    if (todel != NULL) {
         strcopy_n(game_name, name, sizeof(game_name));
-        todel = build_pathname(2,gpathtable[SR_SAVES],todel);
         todel = local_strdup(todel);
     }
     unwire_proc();
@@ -2133,4 +2157,99 @@ static void save_as_dialog(int pos) {
         remove(todel);
     }
     wire_save_load(1);
+}
+
+
+//---continue feature ----
+
+static TCONTINUE_GAME_INFO *current_load_continue_info = NULL;
+static char adv_save_subfolder[50] = "";
+
+static void clean_load_continue_info() {
+    free(current_load_continue_info);
+}
+
+const char *get_adventure_save_subfolder() {
+    if (adv_save_subfolder[0]) return adv_save_subfolder;
+    return NULL;
+}
+
+TCONTINUE_GAME_INFO *make_load_continue_info(const char *ddl, const char *lang, const char *save_name, const char *label, uint64_t id) {
+    char *map_str[4];
+    const char *in_str[4] = {ddl, lang, save_name, label};
+    TCONTINUE_GAME_INFO *res = (TCONTINUE_GAME_INFO *)make_string_array(
+            sizeof(TCONTINUE_GAME_INFO),in_str, 4,map_str);
+    res->ddl = map_str[0];
+    res->lang = map_str[1];
+    res->save = map_str[2];
+    res->label = map_str[3];
+    res->adv_id = id;
+    return res;
+}
+
+void initialize_load_continue(const TCONTINUE_GAME_INFO *info) {
+    if (current_load_continue_info) {
+        clean_load_continue_info();
+    } else {
+        atexit(clean_load_continue_info);
+    }
+    current_load_continue_info = make_load_continue_info(info->ddl, info->lang, NULL, NULL,info->adv_id);
+    if (info->ddl) {
+        sprintf(adv_save_subfolder, "%llu", (unsigned long long)info->adv_id);
+    } else {
+        adv_save_subfolder[0] = 0;
+    }
+}
+
+
+static void store_load_continue_info_to_file(const TCONTINUE_GAME_INFO *info) {
+    const char *path = build_pathname(2, gpathtable[SR_SAVES], "last_save.nfo");
+    const char *in_str[4] = {info->ddl, info->lang, info->save, info->label};    
+    FILE *f = fopen_icase(path, "w");
+    if (!f) return;
+    for (int i = 0; i < 4;++i) {
+        if (in_str[i]) fputs(in_str[i], f);
+        fputc('\n',f);
+
+    }
+    unsigned long long id = info->adv_id;
+    fprintf(f, "%llu\n", id);
+
+    fclose(f);
+}
+
+TCONTINUE_GAME_INFO *get_load_continue_info() {
+    const char *path = build_pathname(2, gpathtable[SR_SAVES], "last_save.nfo");
+    char *out_str[4];    
+    FILE *f = fopen_icase(path, "r");
+    if (!f) return NULL;
+    char buff[256];
+    for (int i = 0; i < 4;++i) {
+        fgets(buff, sizeof(buff)-1,f);
+        char *e = strchr(buff,'\n');
+        if (e) *e = 0;
+        if (buff[0]) out_str[i] = strdup(buff); else out_str[i] = NULL;
+    }
+    unsigned long long id = 0;
+    fscanf(f, "%llu", &id);    
+    TCONTINUE_GAME_INFO *res = make_load_continue_info(out_str[0], out_str[1], out_str[2], out_str[3],id);
+
+    for (int i = 0; i < 4;++i) free(out_str[i]);
+    return res;
+}
+
+void save_last_contine_info(const char *save_name) {
+    if (current_load_continue_info) {
+        TCONTINUE_GAME_INFO *snp = make_load_continue_info(
+            current_load_continue_info->ddl,
+            current_load_continue_info->lang,
+            save_name, texty[32], 
+            current_load_continue_info->adv_id);
+        store_load_continue_info_to_file(snp);
+        free(snp);
+    } 
+}
+
+void load_map_is_dlc() {
+    adv_dlc = 1;
 }

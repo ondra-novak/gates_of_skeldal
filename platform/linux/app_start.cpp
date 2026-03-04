@@ -2,6 +2,7 @@
 #include "../getopt.h"
 #include "../platform.h"
 #include "../error.h"
+#include <cstdint>
 #include <iostream>
 #include <string>
 

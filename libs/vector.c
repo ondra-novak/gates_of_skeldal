@@ -1,6 +1,7 @@
 #include "vector.h"
 #include <stdlib.h>
 #include <string.h>
+#include <stdint.h>
 
 #define VECTOR_INITIAL_CAPACITY 4
 
@@ -110,6 +111,16 @@ int vector_set(Vector *v, size_t index, const void *element)
     return 1;
 }
 
+int vector_exchange(Vector *v, size_t index, void *element) {
+    if (!v || index >= v->size)
+        return 0;
+
+    void *dest = (char*)v->data + index * v->element_size;
+    swap_memory(dest,element,v->element_size);  
+    return 1;
+
+}
+
 int vector_remove(Vector *v, size_t index, size_t count)
 {
     if (!v || index >= v->size || count == 0) {
@@ -134,6 +145,35 @@ int vector_remove(Vector *v, size_t index, size_t count)
     }
 
     v->size -= (end_index - index);
+    return 1;
+}
+
+int vector_insert(Vector *v, size_t index, const void *element, size_t count) {
+    if (!v || index > v->size || count == 0) {
+        return 0;
+    }
+
+    if (v->size + count > v->capacity) {
+        size_t new_capacity = v->capacity;
+        while (new_capacity < v->size + count) {
+            new_capacity *= 2;
+        }
+        if (!vector_resize(v, new_capacity))
+            return 0;
+    }
+
+    void *dest = (char*)v->data + index * v->element_size;
+    if (index < v->size) {
+        void *src = (char*)v->data + index * v->element_size;
+        memmove((char*)dest + count * v->element_size, src, (v->size - index) * v->element_size);
+    }
+
+    for (size_t i = 0; i < count; ++i) {
+        void *elem_dest = (char*)dest + i * v->element_size;
+        memcpy(elem_dest, element, v->element_size);
+    }
+
+    v->size += count;
     return 1;
 }
 
@@ -180,4 +220,23 @@ int linear_remove_if(void *data, size_t *count, size_t element_size, int (*predi
     size_t removed_count = *count - write_index;
     *count = write_index;
     return removed_count;
+}
+
+#define SWAP_TYPE(TYPE, a, b) do { TYPE x = *(TYPE *)(a); *(TYPE *)(a) = *(TYPE *)(b); *(TYPE *)(b) =x;} while(0)
+#define SWAP_AND_ADV(TYPE, a, b, c) do {SWAP_TYPE(TYPE, a, b); a+=sizeof(TYPE);b += sizeof(TYPE);c-=sizeof(TYPE);} while (0)
+    
+struct Block16 {   uint64_t _data[2]; };
+struct Block32 {uint64_t _data[4];  };
+struct Block64 { uint64_t _data[8]; };
+
+void swap_memory(void *a, void *b, size_t size) {
+    char *iter_a = (char *)a;
+    char *iter_b = (char *)b;
+    while (size >= sizeof(struct Block64)) SWAP_AND_ADV(struct Block64, iter_a, iter_b, size);
+    if (size >= sizeof(struct Block32)) SWAP_AND_ADV(struct Block32, iter_a, iter_b, size);
+    if (size >= sizeof(struct Block16)) SWAP_AND_ADV(struct Block16, iter_a, iter_b, size);
+    if (size >= sizeof(uint64_t)) SWAP_AND_ADV(uint64_t, iter_a, iter_b, size);
+    if (size >= sizeof(uint32_t)) SWAP_AND_ADV(uint32_t, iter_a, iter_b, size);
+    if (size >= sizeof(uint16_t)) SWAP_AND_ADV(uint16_t, iter_a, iter_b, size);
+    if (size >= sizeof(uint8_t)) SWAP_AND_ADV(uint8_t, iter_a, iter_b, size);
 }

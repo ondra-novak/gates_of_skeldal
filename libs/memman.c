@@ -261,6 +261,12 @@ static void rebuild_ddl_directory() {
 char get_file_entry(int group,const char *name, THANDLE_DATA *h) {
   char ex;
 
+  if (!name || *name == 0) {
+      h->src_index = 0;
+      h->offset = 0;
+      return 1;
+  }
+
   ex=mman_patch && test_file_exist_DOS(group,name);
   if (!ex) {
       const TDIRECTORY_ENTRY *entry = ddl_directory_find(cur_ddl_directory, name);
@@ -367,6 +373,7 @@ static void remap_handles() {
              h->status = BK_NOT_LOADED;
              h->blockdata = NULL;
           }
+          h->offset =0;
           get_file_entry(h->path,h->src_file,h);
        }
     }

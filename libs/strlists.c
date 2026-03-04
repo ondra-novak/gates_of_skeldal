@@ -1,3 +1,5 @@
+#error depricated code
+
 #include <platform/platform.h>
 #include "strlite.c"
 

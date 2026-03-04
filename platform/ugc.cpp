@@ -153,12 +153,14 @@ std::optional<UGCItem> parse_ugc(const std::filesystem::path &entry, std::unorde
     const auto ini = entry/"info.ini";
     auto ini_data = parse_ini(ini);
     if (ini_data) {
+        std::hash<std::string> hasher;
         item.emplace();
         auto addstr = [&](auto &&s){return strings.insert(std::move(s)).first->c_str();};
         item->ddl_path = addstr((entry/ini_data->content).string());
         item->author = addstr(ini_data->author);
         item->lang = addstr(ini_data->lang);
         item->name = addstr(ini_data->name);
+        item->id = hasher(entry.filename().string());
     }
     return item;
      
@@ -209,6 +211,7 @@ void UGC_GetList(const char *ugc_user_path,
                     if (!x.title.empty()) {
                         item->name = st->strings.insert(toKEYBCS2(x.title.c_str())).first->c_str();                        
                     }
+                    item->id = x.id;
                     st->items.push_back(*item);
                 }
             }

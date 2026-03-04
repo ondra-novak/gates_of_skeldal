@@ -250,6 +250,7 @@ public:
             auto &item = _result[i];
             //title
             item.title = details.m_rgchTitle;
+            item.id = details.m_nPublishedFileId;
 
             iugc->GetItemInstallInfo(details.m_nPublishedFileId,&size_on_disk,folder_buffer,sizeof(folder_buffer),&timestamp);
             //download location
@@ -257,6 +258,8 @@ public:
             //list of owners
             _owners[i] = details.m_ulSteamIDOwner;
         }
+
+        SteamUGC()->ReleaseQueryUGCRequest(result->m_handle);
 
         ///request owners info
         std::vector<uint64> ownset  = _owners;

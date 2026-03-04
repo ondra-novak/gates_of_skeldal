@@ -97,8 +97,10 @@ int  vector_set(Vector *v, size_t index, const void *element);
  */
 int  vector_remove(Vector *v, size_t index, size_t count);
 
+int vector_exchange(Vector *v, size_t index, void *element);
+
 ///inserts a new element at the specified index, shifting subsequent elements to the right, returns 1 on success, 0 on failure (e.g. index out of bounds, memory allocation failure)
-void vector_insert(Vector *v, size_t index, const void *element, size_t count);
+int vector_insert(Vector *v, size_t index, const void *element, size_t count);
 
 ///linear search for an element in the vector, returns index or -1 if not found
 /**
@@ -121,5 +123,11 @@ int linear_find(const void *data, size_t count, size_t element_size, int (*cmp)(
 */
 int linear_remove_if(void *data, size_t *count, size_t element_size, int (*predicate)(void *element));
 
+
+///Swap memory
+/**
+@note pointers must be aligned (depend on size)
+ */
+void swap_memory(void *a, void *b, size_t size);
 
 #endif

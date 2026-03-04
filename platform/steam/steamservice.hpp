@@ -25,7 +25,8 @@ public:
     struct UGCItem {
         std::string title;
         std::string author;
-        std::string download_location;        
+        std::string download_location;     
+        uint64_t id;   
     };
 
     using QueryUGCCallback = std::function<void(std::span<const UGCItem> list)>;

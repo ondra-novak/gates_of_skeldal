@@ -18,13 +18,11 @@
 #include <ctype.h>
 #include <libs/gui.h>
 #include <libs/basicobj.h>
-#include <libs/strlists.h>
 #include <time.h>
 #include <libs/mgfplay.h>
 #include <libs/wav.h>
 #include <platform/ugc.h>
 #include "globals.h"
-#include "engine1.h"
 #include <stdarg.h>
 
 

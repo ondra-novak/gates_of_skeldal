@@ -251,6 +251,7 @@ protected:
     bool _fullscreen_mode = false;
     bool _present = false;
     bool _convert_format = false;
+    bool _burst_mode = false;
     std::atomic<bool> _key_control = false;
     std::atomic<bool> _key_shift = false;
     std::atomic<bool> _key_capslock = false;

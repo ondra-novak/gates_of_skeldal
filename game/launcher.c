@@ -1,3 +1,4 @@
+#include "game/gamesave.h"
 #include "libs/bgraph.h"
 #include "libs/memman.h"
 #include "libs/event.h"
@@ -6,44 +7,28 @@
 #include "libs/vector.h"
 #include "platform/ugc.h"
 
+#include <stdio.h>
+
 #include "launcher.h"
 
+typedef TCONTINUE_GAME_INFO TLAUNCHER_ITEM;
 
-typedef struct {
-    char *label;
-    char *ddl_path;
-    char *lang;    
-} TLAUNCHER_ITEM;
 
-static void create_launcher_item(const UGCItem *ugc, TLAUNCHER_ITEM *item) {
-    size_t label_need = strlen(ugc->name) + (ugc->author?strlen(ugc->author):0) + 4; // 4 for " ()"
-    size_t needsz = label_need+ strlen(ugc->lang)+(ugc->ddl_path?strlen(ugc->ddl_path):0)+2;
-    char *buff = malloc(needsz);
-    buff[needsz] = 0;
-    if (ugc->author) snprintf(buff, needsz, "%s (%s)", ugc->name, ugc->author);
-    else strcpy(buff, ugc->name);
-    item->label = buff;
-
-    char *end = strchr(buff,0)+1;
-    item->lang = end;
-    strcpy(end, ugc->lang);
-
-    if (ugc->ddl_path) {
-        end = strchr(end, 0)+1;
-        item->ddl_path = end;
-        strcpy(end, ugc->ddl_path);
-    } else {
-        item->ddl_path = NULL;
+static TLAUNCHER_ITEM *create_launcher_item_from_ugc(const UGCItem *ugc) {
+    if (ugc->author) {
+        size_t label_need = strlen(ugc->name) + strlen(ugc->author) + 4; // 4 for " ()"
+        char *buff = (char *)alloca(label_need);
+        snprintf(buff, label_need, "%s (%s)", ugc->name, ugc->author);
+        return make_load_continue_info(ugc->ddl_path,ugc->lang, NULL, buff,ugc->id);
     }
+    return make_load_continue_info(ugc->ddl_path,ugc->lang, NULL, ugc->name,ugc->id);
 }
 
-static UGCItem initial_items[] = {
-    (UGCItem){"\x80""esky", NULL, NULL, "CS"},
-    (UGCItem){"English", NULL,NULL, "EN"}
-};
+
 
 static void destroy_launcher_item(void *item) {
-    free(((TLAUNCHER_ITEM*)item)->label);
+    TLAUNCHER_ITEM *litm = *(TLAUNCHER_ITEM **)item;
+    free(litm);
 }
 
 
@@ -51,32 +36,62 @@ typedef struct launcher_state {
 
     Vector items;
     int selected;
+    int top_line;
     float offset;
     float selected_anim_cntr;
-    void *picture;
+    const void *picture;
+    void *preview_image;
+    int preview_image_index;
 } TLAUNCHER_STATE;
 
 #define LAUNCHER_STEP 16
-#define LAUNCHER_START 240
-#define LAUNCHER_PADDING_X 25
-#define LAUNCHER_PADDING_Y 25
+#define LAUNCHER_PADDING_X 5
+#define LAUNCHER_PADDING_Y 10
 #define LAUNCHER_SEL_PADDING 3
+#define LAUNCHER_TITLE_SPACE 5
+#define LAUNCHER_X 20
+#define LAUNCHER_Y 100
+#define LAUNCHER_WIDTH 300
+#define LAUNCHER_HEIGHT 230
+#define LAUNCHER_START LAUNCHER_Y+5
+#define SECTION_OFFSET 10
 
+#define PREVIEW_IMAGE_X 480
+#define PREVIEW_IMAGE_Y 100
+
+#define SECTION_COLOR RGB555(20,20,30)
+#define TEXT_COLOR RGB555(25,25,20)
+#define SELECTED_COLOR RGB555(31,31,31)
+#define SECTION_RECT_COLOR RGB555(10,10,10)
+
+
+static const char *sections_names[] = {
+    "Br\xA0ny Skeldalu",
+    "Adventures"
+};
 
 static void launcher_draw(TLAUNCHER_STATE *st) {
-    int minx = LAUNCHER_PADDING_X;
-    int maxx = 640-LAUNCHER_PADDING_X;
-    int miny = LAUNCHER_PADDING_Y;
-    int maxy = 480-LAUNCHER_PADDING_Y;
+    int minx = LAUNCHER_X;
+    int maxx = LAUNCHER_X+LAUNCHER_WIDTH;
+    int miny = LAUNCHER_Y;
+    int maxy = LAUNCHER_Y+LAUNCHER_HEIGHT;
     int width = maxx - minx;
+    int sect_idx = 0;
+
 
     put_picture(0,0,st->picture);
-    
+
+    trans_bar(LAUNCHER_X-LAUNCHER_PADDING_X, LAUNCHER_Y-LAUNCHER_PADDING_Y, LAUNCHER_WIDTH+2*LAUNCHER_PADDING_X, LAUNCHER_HEIGHT+2*LAUNCHER_PADDING_X, 0);
 
     int count = (int)vector_size(&st->items);
 
+    if (st->selected_anim_cntr) {
+            st->selected_anim_cntr*=2;
+            if (st->selected_anim_cntr>500) exit_wait = 1;
+    }
+
+
     for (int i = 0; i < count; ++i) {
-        set_font(H_FONT6, (RGB555(31,31,(i == st->selected?0:31))|FONT_TSHADOW));
         int y = (int)(LAUNCHER_START + i * LAUNCHER_STEP - st->offset);
         if (st->selected_anim_cntr) {
             if (i < st->selected) {
@@ -84,13 +99,32 @@ static void launcher_draw(TLAUNCHER_STATE *st) {
             } else if (i>st->selected) {
                 y += st->selected_anim_cntr;
             }
-            st->selected_anim_cntr*=1.15;
-            if (st->selected_anim_cntr>500) exit_wait = 1;
         }
-        TLAUNCHER_ITEM *item = vector_get(&st->items, i);
-        char *txt = item->label ;
+        TLAUNCHER_ITEM *item = *(TLAUNCHER_ITEM **)vector_get(&st->items, i);
+        char *txt;
+        if (item) txt = (char *)item->label ;
+        else txt = (char *)sections_names[sect_idx++];
+        int x;
+
+        if (item) {
+            x = LAUNCHER_X;
+            set_font(H_FONT6, i== st->selected?NOSHADOW(SELECTED_COLOR):NOSHADOW(TEXT_COLOR));
+        } else {
+            x = LAUNCHER_X+SECTION_OFFSET;
+            set_font(H_FLITT5, NOSHADOW(SECTION_COLOR));
+
+        }
+
+
         int xs = text_width(txt);
         int ys = text_height(txt);
+        if (!item) {
+            int textb = LAUNCHER_X+SECTION_OFFSET;
+            int texte = LAUNCHER_X+SECTION_OFFSET+xs;
+            int right = LAUNCHER_X+LAUNCHER_WIDTH;
+            trans_line_x(LAUNCHER_X , y, textb - LAUNCHER_X-LAUNCHER_TITLE_SPACE , SECTION_COLOR);
+            trans_line_x(texte+LAUNCHER_TITLE_SPACE , y, right-texte-LAUNCHER_TITLE_SPACE, SECTION_COLOR);
+        }
 //        if (i == 0) trans_bar(minx, LAUNCHER_START - ys/2-LAUNCHER_SEL_PADDING, width, ys+LAUNCHER_SEL_PADDING*2,0);
         while (xs > width) {
             char *trg = malloc(strlen(txt)+10);
@@ -105,12 +139,50 @@ static void launcher_draw(TLAUNCHER_STATE *st) {
             xs = text_width(txt);
         }
         if (y >= miny && y < maxy-ys) {
-            int x = LAUNCHER_PADDING_X;
+            if (st->selected == i) {
+                curcolor = 0;
+                bar32(x-LAUNCHER_SEL_PADDING, y-ys/2-LAUNCHER_SEL_PADDING,x+LAUNCHER_WIDTH+LAUNCHER_SEL_PADDING,y+ys/2+LAUNCHER_SEL_PADDING);
+                rectangle(x-LAUNCHER_SEL_PADDING, y-ys/2-LAUNCHER_SEL_PADDING,x+LAUNCHER_WIDTH+LAUNCHER_SEL_PADDING,y+ys/2+LAUNCHER_SEL_PADDING,SECTION_RECT_COLOR);
+            }
             position(x,y-ys/2);
             outtext(txt);
         }
+        if (i == st->selected) {
+            if (y < miny && st->top_line>0) {
+                st->top_line--;
+            } else if (y > maxy-ys) {
+                st->top_line++;
+            }
+        }
+    }
+    if (st->preview_image) {
+        put_picture(PREVIEW_IMAGE_X-*(word *)st->preview_image/2, PREVIEW_IMAGE_Y, st->preview_image);
     }
     showview(0,0,0,0);
+}
+
+static void *attempt_load_preview(const char *ddl) {
+    if (!ddl) return NULL;
+    size_t len = strlen(ddl);
+    if (len < 11) return NULL;
+    char *cpy = malloc(strlen(ddl)+20);
+    strcpy(cpy, ddl);
+    strcpy(cpy+len-11, "preview.hi");
+
+    FILE *f = fopen_icase(cpy, "rb");
+    if (!f) {
+        free(cpy);
+        return NULL;
+    }
+    fseek(f,0,SEEK_END);
+    long size =ftell(f);
+    fseek(f, 0, SEEK_SET);
+    void *content = getmem(size);
+    fread(content,1,size,f);
+    fclose(f);
+    free(cpy);
+    return content;
+
 }
 
 static void redraw_launcher(EVENT_MSG *msg, void **userdata) {
@@ -118,12 +190,42 @@ static void redraw_launcher(EVENT_MSG *msg, void **userdata) {
     else if (msg->msg == E_DONE)  *userdata = NULL;
     else {
         TLAUNCHER_STATE *st = (TLAUNCHER_STATE *)*userdata;
-        float diff = st->selected * LAUNCHER_STEP - st->offset;
+        float diff = st->top_line * LAUNCHER_STEP - st->offset;
         st->offset += diff/8.0f;
         launcher_draw(st);
+        if (st->preview_image_index != st->selected) {
+            free(st->preview_image);
+            TLAUNCHER_ITEM *itm = *(TLAUNCHER_ITEM **)vector_get(&st->items, st->selected);
+            st->preview_image = attempt_load_preview(itm->ddl);
+            st->preview_image_index = st->selected;
+            showview(0,0,0,0);
+        }
     }
 }
 
+static void navigate_up(TLAUNCHER_STATE *st);
+static void navigate_down(TLAUNCHER_STATE *st) {
+    const TLAUNCHER_ITEM **items = (const TLAUNCHER_ITEM **)vector_data(&st->items);
+    do {
+        if (st->selected == (int)vector_size(&st->items)-1) {
+            if (items[st->selected] == NULL) navigate_up(st);
+            return;
+        }
+        ++st->selected;
+    } while (items[st->selected] == NULL);
+}
+
+
+static void navigate_up(TLAUNCHER_STATE *st) {
+    const TLAUNCHER_ITEM **items = (const TLAUNCHER_ITEM **)vector_data(&st->items);
+    do {
+        if (!st->selected) {
+            if (items[st->selected] == NULL) navigate_down(st);
+            return;
+        }
+        --st->selected;
+    } while (items[st->selected] == NULL);
+}
 
 static void launcher_keyboard(EVENT_MSG *msg, void **userdata) {
     if (msg->msg == E_INIT) *userdata = va_arg(msg->data, TLAUNCHER_STATE *);
@@ -135,9 +237,9 @@ static void launcher_keyboard(EVENT_MSG *msg, void **userdata) {
        switch(c>>8) {
            case 1: exit_wait = 1;break;
            case 17:
-           case 'H': if (st->selected>0) st->selected--;break;
+           case 'H': navigate_up(st);break;
            case 31:
-           case 'P': if (st->selected<(int)vector_size(&st->items)-1) st->selected++;break;
+           case 'P': navigate_down(st);break;
            case 28:
            case 57:
            case 'M':
@@ -170,13 +272,14 @@ static void launcher_mouse(EVENT_MSG *msg, void **userdata) {
 
 static void get_list_callback(const UGCItem *items, unsigned int count, void *context) {
     TLAUNCHER_STATE *st = (TLAUNCHER_STATE *)context;
+    TLAUNCHER_ITEM *item = NULL;
+    vector_push_back(&st->items, &item);
     for (unsigned int i = 0; i < count; ++i) {
-        TLAUNCHER_ITEM item;
-        create_launcher_item(&items[i], &item);
+        item = create_launcher_item_from_ugc(&items[i]);
         vector_push_back(&st->items, &item);
     }
 }
-
+/*
 static void *create_background() {
     word *w = (word *)ablock(H_LOADING);
     size_t pixels = 640*480;
@@ -195,27 +298,55 @@ static void *create_background() {
 
     }
     return buffer;
-    
+
+}
+*/
+
+static char check_valid_item(TLAUNCHER_ITEM *itm){
+    if (itm && itm->ddl) {
+        FILE *f = fopen(itm->ddl,"r");
+        if (f) {
+            fclose(f);
+            return 1;
+        }
+    }
+    return 0;
 }
 
-TLAUNCHER_SELECTION *run_launcher() {
+TCONTINUE_GAME_INFO *run_launcher() {
 
     const char *path =  build_pathname(2, gpathtable[SR_SAVES], "UGC");
     const char *user_ugc = local_strdup(path);
     const char *dlc_path = "./DLC";
 
     TLAUNCHER_STATE state = {0};
-    vector_init(&state.items, sizeof(TLAUNCHER_ITEM), destroy_launcher_item);
+    vector_init(&state.items, sizeof(TLAUNCHER_ITEM *), destroy_launcher_item);
     state.offset = 0;
+    state.top_line = 0;
     state.selected = 0;
     state.selected_anim_cntr = 0;
-    state.picture = create_background();
+    state.preview_image_index = -1;
+    state.picture = ablock(H_LOADING);
 
-    TLAUNCHER_ITEM item;
-    create_launcher_item(&initial_items[0], &item);
+    TLAUNCHER_ITEM *item;
+    item = get_load_continue_info();
+    if (check_valid_item(item)) {
+        vector_push_back(&state.items, &item);
+    }
+    item = NULL;
     vector_push_back(&state.items, &item);
-    create_launcher_item(&initial_items[1], &item);
+    item = make_load_continue_info(NULL, "CS", NULL, "\x80""esky",0);
     vector_push_back(&state.items, &item);
+    item = make_load_continue_info(NULL, "EN", NULL, "English",0);
+    vector_push_back(&state.items, &item);
+    navigate_up(&state);
+
+/*    for (int i = 0; i < 50; ++i) {
+        char buff[50];
+        sprintf(buff,"mockup line %d",i);
+        item = make_load_continue_info(NULL, NULL, NULL, buff);
+        vector_push_back(&state.items, &item);
+    }*/
 
     UGC_GetList(user_ugc, dlc_path, get_list_callback, &state);
 
@@ -227,35 +358,14 @@ TLAUNCHER_SELECTION *run_launcher() {
     send_message(E_DONE, E_KEYBOARD, launcher_keyboard);
     send_message(E_DONE, E_MOUSE, launcher_mouse);
 
-    TLAUNCHER_SELECTION *retval = NULL;
+    TLAUNCHER_ITEM *retval = NULL;
 
     if (state.selected_anim_cntr) {
-
-        TLAUNCHER_ITEM *selected_item = vector_get(&state.items, state.selected);
-        const char *ddl = selected_item->ddl_path;
-        const char *lang = selected_item->lang;
-        size_t ddlsz = ddl?strlen(ddl)+1:0;
-        size_t langsz = lang?strlen(lang)+1:0;
-        size_t need_sz = sizeof(TLAUNCHER_SELECTION) + ddlsz+langsz;
-        retval = (TLAUNCHER_SELECTION *)malloc(need_sz);
-        char *ddlstor = (char *)retval + sizeof(TLAUNCHER_SELECTION);
-        char *langstor = ddlstor + ddlsz;
-        if (ddl) {
-            memcpy(ddlstor, ddl, ddlsz);
-            retval->ddl_file = ddlstor;
-        } else {
-            retval->ddl_file = NULL;
-        }
-        if (langsz) {
-            retval->lang = langstor;
-            memcpy(langstor, lang, langsz);
-        } else {
-            retval->lang = NULL;
-        }
-
+        vector_exchange(&state.items, state.selected, &retval);
     }
 
     ablock_free(state.picture);
+    free(state.preview_image);
     vector_destroy(&state.items);
 
     return retval;

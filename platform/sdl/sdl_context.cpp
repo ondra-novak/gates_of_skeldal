@@ -2,6 +2,7 @@
 #include "SDL_events.h"
 #include "keyboard_map.h"
 #include "format_mapping.h"
+#include <iostream>
 
 #include <atomic>
 #include <cassert>
@@ -700,7 +701,11 @@ void SDLContext::event_loop(std::stop_token stp) {
         if (_steam_callback) {
             do {
                 _steam_callback();
+                if (_burst_mode) update_screen(false);
             } while (SDL_WaitEventTimeout(&e,20) == 0);
+        } else if (_burst_mode) {//if screen is too slow, there is no point to receive events, directly render
+             update_screen(false);
+             if (!SDL_PollEvent(&e)) continue;
         } else {
             SDL_WaitEvent(&e);
         }
@@ -823,7 +828,7 @@ void SDLContext::show_slide_transition(const SDL_Rect &visible_from,
 }
 
 void SDLContext::signal_push() {
-    if (_display_update_queue.empty()) {
+    if (_display_update_queue.empty() && !_burst_mode) {
         SDL_Event event;
         event.type = _update_request_event;
         SDL_PushEvent(&event);
@@ -1047,6 +1052,8 @@ void SDLContext::update_screen(bool force_refresh) {
     _display_update_queue.clear();
     lk.unlock();
     refresh_screen();
+    lk.lock();
+    _burst_mode = !_display_update_queue.empty();
 }
 
 

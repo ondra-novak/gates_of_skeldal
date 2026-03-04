@@ -8,14 +8,14 @@
 #ifndef GAME_LAUNCHER_H_
 #define GAME_LAUNCHER_H_
 
-typedef struct launcher_selection {
-    const char *ddl_file;   //ddl file = adventure ddl file, can be NULL (standard version)
-    const char *lang;       //ddl lang file = cz.ddl, or en.ddl, if NULL, game exits
-}TLAUNCHER_SELECTION;
+#include "game/gamesave.h"
 
 
-//return allocated struct. You must free pointer when no longer needed
-TLAUNCHER_SELECTION *run_launcher();
+///Return selected launcher item
+/**
+@note if save is NULL, no automatic save is selected. if ddl is NULL, original adventure is selected. If NULL returned, exit the game
+*/
+TCONTINUE_GAME_INFO *run_launcher();
 
 
 

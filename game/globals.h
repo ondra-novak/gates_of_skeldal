@@ -289,7 +289,7 @@ static __inline int rangrnd(int a, int b) {return rnd(b-a+1)+a;}
 #define AP_MULTIPLIER 15
 #define get_ap(vls) (((vls[VLS_POHYB])>0 && (vls[VLS_POHYB])<AP_MULTIPLIER)?1:(vls[VLS_POHYB])/AP_MULTIPLIER)
 
-#define SAVE_NAME_SIZE 32
+
 
 static inline int mgochrana(int x) {
     if (x > 100) return 100;
@@ -1445,7 +1445,7 @@ int save_map_state(void); //uklada stav mapy pro savegame (neuklada aktualni poz
 int load_map_state(void); //obnovuje stav mapy; nutno volat po zavolani load_map;
 void restore_current_map(void); //pouze obnovuje ulozeny stav aktualni mapy
 uint32_t fnv1a_hash(const char *str);
-int load_game(const char *fname);
+int load_game(const char *fname, char ignore_adv_fld);
 int save_game(long game_time,char *gamename, char is_autosave);
 void save_map_description(TMPFILE_WR *f);
 void load_map_description(TMPFILE_RD *f);

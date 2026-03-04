@@ -17,6 +17,7 @@
 #include <libs/inicfg.h>
 #include <platform/save_folder.h>
 #include <platform/ugc.h>
+#include "game/gamesave.h"
 #include "game/workshop.h"
 #include "globals.h"
 #include "resources.h"
@@ -928,8 +929,6 @@ void cti_texty(void)
      //patch stringtable
      if (!texty[98]) str_replace(&texty,98,"Ulo\x91it hru jako");
      if (!texty[99]) str_replace(&texty,99,"CRT Filter (>720p)");
-     if (!texty[198]) str_replace(&texty,198,"Zvol dobrodru\x91stv\xA1");
-     if (!texty[199]) str_replace(&texty,199,"Br\xA0ny Skeldalu (p\x96vodn\xA1 dobrodru\x91stv\xA1)");
      str_replace(&texty, 144, "Zrychlit souboje");
      str_replace(&texty, 51, "Celkov\x88 Hudba Efekty  V\x98\xA8ky  Basy Rychlost");
      str_replace(&texty,0,"Byl nalezen p\xA9ipojen\x98 ovlada\x87\nPro aktivaci ovlada\x87""e stiskn\x88te kter\x82koliv tla\x87\xA1tko na ovlada\x87i");
@@ -1555,50 +1554,61 @@ static void wire_load_saved(void)
   send_message(E_CLOSE_MAP,-1);
   }
 
-static void load_saved_game(void)
-  {
-  char *game;
-
-  err:
-  loadlevel.name[0]=0;
-  def_handle(H_ETOPBAR,"topbar_e.pcx",pcx_15bit_decomp,SR_BGRAFIKA);
-  schovej_mysku();wire_proc=wire_load_saved;
-  put_picture(0,0,ablock(H_ETOPBAR));
-  put_picture(0,378,ablock(H_DESK));
-  wire_save_load(4);
-  ukaz_mysku();
-  update_mysky();
-  {
-      EVENT_MSG *msg = task_wait_event(E_CLOSE_MAP);
-      const char *cgame = msg?va_arg(msg->data, const char *):NULL;
-      game = cgame?strdup(cgame):NULL;
-  }
-  unwire_proc();
-  disable_click_map();
-  task_wait_event(E_TIMER);
-  if (game!=NULL)
-      {
-      reinit_kouzla_full();
-      open_story_file();
-	  memset(GlobEventList,0,sizeof(GlobEventList));
-      if (load_game(game))
-        {
+static int load_saved_game_name(const char *game, char origin_game) {
+    reinit_kouzla_full();
+    open_story_file();
+	memset(GlobEventList,0,sizeof(GlobEventList));
+    if (load_game(game,origin_game))
+    {
         send_message(E_ADD,E_IDLE,load_error_report);
         task_wait_event(E_CLOSE_MAP);
         send_message(E_DONE,E_IDLE,load_error_report);
-        exit_wait=0;
-        free(game);
-        goto err;
+        return 0;
+    }
+    pick_set_cursor();
+    undef_menu();
+    init_game();
+    build_all_players();
+    game_big_circle(1);
+    return 1;
+}
+
+static void load_saved_game(void) {
+  TGAME_SAVE_SLOT *game = NULL;
+  TGAME_SAVE_SLOT slot;
+
+    while (1) {
+        game = NULL;
+        loadlevel.name[0]=0;
+        def_handle(H_ETOPBAR,"topbar_e.pcx",pcx_15bit_decomp,SR_BGRAFIKA);
+        schovej_mysku();wire_proc=wire_load_saved;
+        put_picture(0,0,ablock(H_ETOPBAR));
+        put_picture(0,378,ablock(H_DESK));
+        wire_save_load(4);
+        ukaz_mysku();
+        update_mysky();
+        {
+            EVENT_MSG *msg = task_wait_event(E_CLOSE_MAP);
+            if (msg) {
+                game = va_arg(msg->data, TGAME_SAVE_SLOT *);
+                if (game) {
+                    slot = *game;
+                    game = &slot;
+                }
+            }            
         }
-      pick_set_cursor();
-      undef_menu();
-      init_game();
-      build_all_players();
-      game_big_circle(1);
-      exit_wait=1;
-      }
-  free(game);
-  }
+        unwire_proc();
+        disable_click_map();
+        task_wait_event(E_TIMER);
+        if (game!=NULL) {
+            int r = load_saved_game_name(game->fname, game->origin_game);
+            exit_wait = r;
+            if (r) return;
+        } else {
+            return;
+        }
+    }
+}
 
 static int any_save_callback(const char *c, LIST_FILE_TYPE _, size_t __, void *___) {
     return 1;
@@ -1614,6 +1624,17 @@ static void start(va_list args)
   {
   int volba;
   char /*d,*/openning;
+
+    TCONTINUE_GAME_INFO *launch_info = va_arg(args, TCONTINUE_GAME_INFO *);
+    if (launch_info) {
+        initialize_load_continue(launch_info);
+        if (launch_info->save) {
+            if (load_saved_game_name(launch_info->save,0)) {
+                exit_wait = 1;
+                return;
+            }
+        }
+    }
 
    openning=0;
    update_mysky();
@@ -1789,6 +1810,13 @@ void initialize_from_adv_ini() {
           charmax =(int)chmax;
           charmin= (int)chmin;
         }
+        const char *start_map = ini_get_string(section,"start_map",NULL);
+        if (start_map) {
+            strncpy(default_map, start_map, sizeof(default_map));
+            default_map[sizeof(default_map)-1] = 0;
+        }
+        long dlc = ini_get_int(section, "dlc", 0);
+        if (dlc) load_map_is_dlc();
         ini_close(cfg);
     }
 }
@@ -1796,6 +1824,7 @@ void initialize_from_adv_ini() {
 
 int skeldal_entry_point_thread(va_list args) {
     const SKELDAL_CONFIG *start_cfg = va_arg(args, const SKELDAL_CONFIG *);
+    TCONTINUE_GAME_INFO *launchinfo = NULL;
 
     if (start_cfg->workshop_publish) {
         workshop_publish_ui(start_cfg->workshop_publish);
@@ -1803,23 +1832,27 @@ int skeldal_entry_point_thread(va_list args) {
     }
 
     if (start_cfg->patch_file == NULL && start_cfg->adventure_path == NULL) {
-        TLAUNCHER_SELECTION *launchinfo = run_launcher();
+        launchinfo = run_launcher();
         if (launchinfo==NULL) return 0;
         if (launchinfo->lang) {
             char *name = concat2(launchinfo->lang,".DDL");
             add_patch_file(name);
         }
-        if (launchinfo->ddl_file) {
-            add_patch_file(launchinfo->ddl_file);
-        }
-        free(launchinfo);
     } else {
-        if (start_cfg->langddl) {
-            char *name = concat2(start_cfg->langddl,".DDL");
-            add_patch_file(name);
-        } else {
-            add_patch_file("CZ.DDL");
+        const char *lang = start_cfg->langddl?start_cfg->langddl:"CS";
+        if (start_cfg->patch_file) {
+            launchinfo = get_load_continue_info();
+            if (!launchinfo ||  strcmp(launchinfo->ddl, start_cfg->patch_file)) {
+                free(launchinfo);
+                launchinfo = make_load_continue_info(start_cfg->patch_file,lang, NULL, NULL, fnv1a_hash(start_cfg->patch_file));
+            }
+            load_map_is_dlc();
         }
+        lang = concat2(lang,".DDL");
+        add_patch_file(lang);
+    }
+    if (launchinfo && launchinfo->ddl) {
+        add_patch_file(launchinfo->ddl);
     }
 
     initialize_from_adv_ini();
@@ -1829,7 +1862,9 @@ int skeldal_entry_point_thread(va_list args) {
     load_shops();
 
 
-    int start_task = add_task(65536,start);
+    int start_task = add_task(65536,start, launchinfo);
+
+    free(launchinfo);
 
     escape();
 
