@@ -4,7 +4,6 @@
 #include <filesystem>
 #include <functional>
 #include <mutex>
-#include <queue>
 #include <span>
 #include "generic_callback.hpp"
 #include "steam/isteamugc.h"
@@ -72,7 +71,7 @@ public:
 protected:
     bool _available = false;
     AppId_t _appid = {};
-    std::queue<std::function<void()>> _main_thread_tasks;
+    std::vector<std::function<void()>> _main_thread_tasks;
     std::recursive_mutex _main_thread_tasks_mutex;  
 
     QuerySubscribedCall _query_subscribed_call;

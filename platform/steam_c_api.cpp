@@ -1,4 +1,5 @@
 
+#include <chrono>
 #include <filesystem>
 #ifdef STEAM_ENABLED
 #include "platform/steam/steamservice.hpp"
@@ -94,15 +95,31 @@ static void create_ini(const std::filesystem::path &target, std::string_view tit
 
 }
 
-static void cycle_get_state(TWORKSHOP_UPLOAD_STATE *state, std::shared_ptr<SteamService::ItemUpdate> ptr) {
-    ptr->get_upload_progress([=](bool success, int stage, uint64_t bytes_uploaded, uint64_t bytes_total) {
-        state->stage = stage;
-        state->upload_bytes = bytes_uploaded;
-        state->total_bytes =bytes_total;
-        if (stage > 0) {
-            steam_service->post([=]{cycle_get_state(state,ptr);});
-        }
-    });
+static void cycle_get_state(workshop_update_cb callback, void *context, std::shared_ptr<SteamService::ItemUpdate> ptr, std::chrono::steady_clock::time_point next_call) {
+    auto now = std::chrono::steady_clock::now();    
+    if (now > next_call) {        
+        ptr->get_upload_progress([=](bool success, int stage, uint64_t bytes_uploaded, uint64_t bytes_total) {
+            auto next = now +std::chrono::milliseconds(500);
+            if (success) {
+                if (stage > 0) {
+                    const char *msg = NULL;
+                    switch (stage) {
+                        case k_EItemUpdateStatusPreparingConfig: msg = "Processing configuration data";break;
+                        case k_EItemUpdateStatusPreparingContent: msg = "Reading and processing content files";break;
+                        case k_EItemUpdateStatusUploadingContent: msg = "Uploading content changes to Steam";break;
+                        case k_EItemUpdateStatusUploadingPreviewFile: msg = "Iploading new preview file image";break;
+                        case k_EItemUpdateStatusCommittingChanges: msg = "Committing all changes";break;                
+                    }
+                    callback(0,msg,bytes_uploaded,bytes_total,context);
+                    steam_service->post([=]{cycle_get_state(callback,context,ptr,next);});
+                } 
+            } else {
+                steam_service->post([=]{cycle_get_state(callback,context,ptr,next);});
+            }
+        });
+    } else {
+        steam_service->post([=]{cycle_get_state(callback,context,ptr,next_call);});
+    }
 }
 
 
@@ -110,9 +127,9 @@ void continue_publish(std::filesystem::path content_path, std::filesystem::path 
     steam_service->start_item_update(id, [=](std::shared_ptr<SteamService::ItemUpdate> ptr){
         try {
             if (!ptr) {
-                cb(0,"ERROR: Failed to initiate item update (StartItemUpdate)",0,0,context);
+                cb(-1,"ERROR: Failed to initiate item update (StartItemUpdate)",0,0,context);
             } else {
-                cb(1,"Preparing request",0,0,context);
+                cb(0,"Preparing request",0,0,context);
                 std::filesystem::path target = state_path.parent_path()/"depot";
                 std::filesystem::create_directories(target);
                 auto inifile = target/"info.ini";
@@ -143,7 +160,7 @@ void continue_publish(std::filesystem::path content_path, std::filesystem::path 
                 if (imgctxr == "image/jpeg") steam_preview.replace_extension(".jpg");
                 else if (imgctxr == "image/png") steam_preview.replace_extension(".png");
                 else {
-                    cb(0,"Preview image: unsupported media type",0,0,context);
+                    cb(-1,"Preview image: unsupported media type",0,0,context);
                     return;
                 }
 
@@ -159,13 +176,13 @@ void continue_publish(std::filesystem::path content_path, std::filesystem::path 
                 ptr->set_tags(stags);
                 ptr->set_title(std::string{title});
                 ptr->set_visibility((ERemoteStoragePublishedFileVisibility)visibility[0]);
-                cb(1,"Submiting request",0,0,context);                
+                cb(0,"Submiting request",0,0,context);                
                 ptr->submit(std::string(changelog), [=,ptr=ptr](bool success, bool needLegalAgreement, int steamErrorCode) {                                    
                     std::filesystem::remove_all(target);
                     if (!success) {
-                        cb(0,"ERROR: Upload failed",0,0,context);
+                        cb(-1,"ERROR: Upload failed",0,0,context);
                     } else if (needLegalAgreement) {
-                          cb(0,"ERROR: You need to aggree to licence agreement. Visit the workshop page and check licence page",0,0,context);
+                          cb(-1,"ERROR: You need to aggree to licence agreement. Visit the workshop page and check licence page",0,0,context);
                     } else if (steamErrorCode  != 1) {
                         const char *message;
                         switch (steamErrorCode) {
@@ -177,14 +194,14 @@ void continue_publish(std::filesystem::path content_path, std::filesystem::path 
                             case k_EResultLockingFailed: message="Failed to aquire UGC Lock.";break;
                             case k_EResultLimitExceeded: message="The preview image is too large, it must be less than 1 Megabyte; or there is not enough space available on the user's Steam Cloud.";break;
                         }
-                        cb(0,message,0,0,context);
+                        cb(-1,message,0,0,context);
 
                     } else {
                         set_steam_id(state_path, id);
-                        cb(0,"SUCCESS: Upload complete",100,100,context);
+                        cb(1,"SUCCESS: Upload complete",100,100,context);
                     }
                 });
-//                cycle_get_state(state, std::move(ptr));
+                cycle_get_state(cb, context, std::move(ptr), std::chrono::steady_clock::now()+std::chrono::milliseconds(500));
                 
 
 
@@ -192,7 +209,7 @@ void continue_publish(std::filesystem::path content_path, std::filesystem::path 
             }
         } catch (std::exception &e) {
             auto er = std::string("ERROR: ").append(e.what());            
-            cb(0, er.c_str(),0,0,context);
+            cb(-1, er.c_str(),0,0,context);
         }
     });
 }
@@ -208,7 +225,7 @@ void steam_upload_to_workshop(const char *file, workshop_update_cb callback, voi
 
 
     if (!steam_service) {
-        callback(0,"ERROR: Steam Client is not running", 0,0,context);
+        callback(-1,"ERROR: Steam Client is not running", 0,0,context);
         return;
         
     }
@@ -221,20 +238,20 @@ void steam_upload_to_workshop(const char *file, workshop_update_cb callback, voi
     auto id = get_steam_id(state_path);
     
     if (id == 0) {
-        callback(1,"Creating workshop item", 0,0,context);;                    
+        callback(0,"Creating workshop item", 0,0,context);;                    
         steam_service->create_item([=](bool success, uint64_t id, bool needLegalAgreement){
             if (success) {
                 if (set_steam_id(state_path, id)) {
                     if (needLegalAgreement) {
-                        callback(0,"ERROR: You need to aggree to licence agreement. Visit the workshop page and check licence page", 0,0,context);;                    
+                        callback(-1,"ERROR: You need to aggree to licence agreement. Visit the workshop page and check licence page", 0,0,context);;                    
                     } else {
                         continue_publish(ddl_path, state_path, callback, id, context);
                     }
                 } else {
-                    callback(1,"ERROR: Failed to store workshop steam ID - check for write permissions", 0,0,context);;                    
+                    callback(-1,"ERROR: Failed to store workshop steam ID - check for write permissions", 0,0,context);;                    
                 }
             } else {
-                callback(1,"ERROR: Create workshop item rejected (Permission denied)", 0,0,context);;                    
+                callback(-1,"ERROR: Create workshop item rejected (Permission denied)", 0,0,context);;                    
             }
         });
     } else {

@@ -32,17 +32,9 @@ int8_t clear_achievement(const char* id);
  */
 char is_steam_available();
 
-typedef struct tag_workshop_upload_state {
-    char done;
-    char need_legal;
-    const char *message;
-    Uint32 upload_bytes;
-    Uint32 total_bytes;
-    int stage;
-    char *buffer;
-} TWORKSHOP_UPLOAD_STATE;
 
-typedef void (*workshop_update_cb)(char running, const char *message, uint64_t upload_bytes, uint64_t total_bytes, void *context);
+
+typedef void (*workshop_update_cb)(int result, const char *message, uint64_t upload_bytes, uint64_t total_bytes, void *context);
 
 void steam_upload_to_workshop(const char *file, workshop_update_cb callback, void *context);
 

@@ -12,8 +12,6 @@
 #include <mutex>
 #include <strings.h>
 #include <type_traits>
-#include <unordered_set>
-#include <atomic>
 #include "steamservice.hpp"
 
 
@@ -33,19 +31,22 @@ SteamService::~SteamService() {
 
 void SteamService::post(std::function<void()> fn) {
     std::lock_guard _(_main_thread_tasks_mutex);
-    _main_thread_tasks.push(std::move(fn));
+    _main_thread_tasks.push_back(std::move(fn));
 }
 
 void SteamService::run_callbacks() {
     SteamAPI_RunCallbacks();
     std::unique_lock lk(_main_thread_tasks_mutex);
-    while (!_main_thread_tasks.empty()) {
-        auto fn = std::move(_main_thread_tasks.front());
-        _main_thread_tasks.pop();
+    std::size_t idx = 0;
+    std::size_t count =_main_thread_tasks.size();
+    while (idx < count) {
+        auto fn = std::move(_main_thread_tasks[idx]);
+        ++idx;
         lk.unlock();
         fn();
         lk.lock();
     }
+    _main_thread_tasks.erase(_main_thread_tasks.begin(), _main_thread_tasks.begin()+count);
 }
 
 bool SteamService::set_achievement(const char* id) {
