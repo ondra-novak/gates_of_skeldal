@@ -1542,7 +1542,7 @@ static void wire_load_saved(void)
 static int load_saved_game_name(const char *game, char origin_game) {
     reinit_kouzla_full();
     open_story_file();
-	memset(GlobEventList,0,sizeof(GlobEventList));
+	  memset(GlobEventList,0,sizeof(GlobEventList));
     if (load_game(game,origin_game))
     {
         send_message(E_ADD,E_IDLE,load_error_report);
@@ -1827,7 +1827,7 @@ int skeldal_entry_point_thread(va_list args) {
         const char *lang = start_cfg->langddl?start_cfg->langddl:"CS";
         if (start_cfg->patch_file) {
             launchinfo = get_load_continue_info();
-            if (!launchinfo ||  strcmp(launchinfo->ddl, start_cfg->patch_file)) {
+            if (!launchinfo || !launchinfo->ddl || istrcmp(launchinfo->ddl, start_cfg->patch_file)) {
                 free(launchinfo);
                 launchinfo = make_load_continue_info(start_cfg->patch_file,lang, NULL, NULL, fnv1a_hash(start_cfg->patch_file));
             }

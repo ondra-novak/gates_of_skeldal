@@ -137,7 +137,7 @@ void continue_publish(std::filesystem::path content_path, std::filesystem::path 
                 auto inifile = target/"info.ini";
                 auto content  = target/"content.ddl";
                 auto in_game_preview = target/"preview.hi";
-                auto steam_preview = state_path;                
+                auto steam_preview = state_path.parent_path()/"preview.hi";       
 
                 std::vector<std::string> stags;
                 auto tags=ddl_load(".TAGS");
@@ -179,18 +179,17 @@ void continue_publish(std::filesystem::path content_path, std::filesystem::path 
                 ptr->set_title(std::string{title});
                 ptr->set_visibility((ERemoteStoragePublishedFileVisibility)visibility[0]);
                 cb(0,"Submiting request",0,0,context);                
-                ptr->submit(std::string(changelog), [=,ptr=ptr](bool success, bool needLegalAgreement, int steamErrorCode) {                                    
+                ptr->submit(std::string(changelog), [=](bool success, bool needLegalAgreement, int steamErrorCode) {                                    
                     std::filesystem::remove_all(target);
+                    std::filesystem::remove(steam_preview);
                     time_t t = std::chrono::system_clock::to_time_t(std::chrono::system_clock::now());
-                    if (!success) {
-                        cb(-1,"ERROR: Upload failed",0,0,context);
-                    } else if (steamErrorCode  != 1) {
+                    if (!success || steamErrorCode  != 1) {
                         const char *message;
                         switch (steamErrorCode) {
                             default:
                             case k_EResultFail: message="Generic failure.";break;
                             case k_EResultInvalidParam: message="Either the provided app ID is invalid or doesn't match the consumer app ID of the item or, you have not enabled ISteamUGC for the provided app ID on the Steam Workshop Configuration App Admin page. The preview file is smaller than 16 bytes.";break;
-                            case k_EResultAccessDenied: message="The user doesn't own a license for the provided app ID.";break;
+                            case k_EResultAccessDenied: message="You don't own a license for the provided app ID.";break;
                             case k_EResultFileNotFound: message="Failed to get the workshop info for the item or failed to read the preview file.";break;
                             case k_EResultLockingFailed: message="Failed to aquire UGC Lock.";break;
                             case k_EResultLimitExceeded: message="The preview image is too large, it must be less than 1 Megabyte; or there is not enough space available on the user's Steam Cloud.";break;
