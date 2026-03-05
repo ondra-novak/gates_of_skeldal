@@ -49,6 +49,7 @@ public:
         SubmitItemCall _call;        
     };
 
+    
 
     using StartItemUpdateCallback = std::function<void(std::unique_ptr<ItemUpdate> ptr)>;
 
@@ -69,6 +70,24 @@ public:
     bool query_ugc(QueryUGCCallback cb);
 
     void activate_game_overlay_to_web_page(std::string url);
+    bool is_overlay_enabled() const;
+    size_t get_install_callback_counter() ;
+
+
+    class UpdateInstallEvent {
+    public:
+        UpdateInstallEvent(SteamService *me):_me(me) {}
+    private:
+        SteamService *_me;
+        STEAM_CALLBACK( UpdateInstallEvent, OnItemInstalled, ItemInstalled_t );
+    };
+    class SubscribeChange {
+    public:
+        SubscribeChange(SteamService *me):_me(me) {}
+    private:
+        SteamService *_me;
+        STEAM_CALLBACK( SubscribeChange, OnUserSubscribedItemsListChanged, UserSubscribedItemsListChanged_t );
+    };
 
 
 protected:
@@ -79,6 +98,9 @@ protected:
 
     QuerySubscribedCall _query_subscribed_call;
     CreateItemCall _create_item_call;
-    DeleteItemCall _delete_item_call;
+    DeleteItemCall _delete_item_call;    
+    std::atomic<size_t> _install_counter = {};
+    UpdateInstallEvent _update_install_event;
+    SubscribeChange _subscribe_change_event;
     class QUGCState;
 };

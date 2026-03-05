@@ -228,3 +228,23 @@ void UGC_GetList(const char *ugc_user_path,
     ctx.callback(ctx.items.data(), static_cast<unsigned int>(ctx.items.size()), ctx.context);
 }
 
+size_t get_install_callback_counter() {
+#ifdef STEAM_ENABLED
+    if (steam_service) return steam_service->get_install_callback_counter();
+#endif
+    return 0;
+}
+
+char is_steam_workshop_browser_available() {
+#ifdef STEAM_ENABLED
+    if (steam_service) return steam_service->is_overlay_enabled();
+#endif
+    return false;
+}
+
+
+void open_steam_workshop() {
+#ifdef STEAM_ENABLED
+    if (steam_service) return steam_service->activate_game_overlay_to_web_page("https://steamcommunity.com/app/3533830/workshop/");
+#endif
+}

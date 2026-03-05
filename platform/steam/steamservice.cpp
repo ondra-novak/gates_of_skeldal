@@ -14,7 +14,10 @@
 #include "steamservice.hpp"
 
 
-SteamService::SteamService() {
+SteamService::SteamService() 
+    :_update_install_event(this)
+    ,_subscribe_change_event(this)
+{
     _available = SteamAPI_Init();
     if (_available) {
         _appid = SteamUtils()->GetAppID();
@@ -327,4 +330,21 @@ void SteamService::activate_game_overlay_to_web_page(std::string url) {
     post([=]{
         SteamFriends()->ActivateGameOverlayToWebPage(url.c_str());
     });
+}
+
+bool SteamService::is_overlay_enabled() const
+{
+    return SteamUtils()->IsOverlayEnabled();
+}
+
+size_t SteamService::get_install_callback_counter()  {
+    return _install_counter.load();
+}
+
+void SteamService::UpdateInstallEvent::OnItemInstalled(ItemInstalled_t *) {
+    ++_me->_install_counter;
+}
+
+void SteamService::SubscribeChange::OnUserSubscribedItemsListChanged(UserSubscribedItemsListChanged_t *) {
+    ++_me->_install_counter;
 }

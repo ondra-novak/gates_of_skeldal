@@ -246,7 +246,7 @@ void steam_upload_to_workshop(const char *file, workshop_update_cb callback, voi
     
     if (id == 0) {
         callback(0,"Creating workshop item", 0,0,context);;                    
-        steam_service->create_item([=](bool success, uint64_t id, bool needLegalAgreement){
+        steam_service->create_item([=](bool success, uint64_t id, bool ){
             if (success) {
                 if (set_steam_id(state_path, id, 0)) {
                     continue_publish(ddl_path, state_path, callback, id, context);
@@ -262,14 +262,19 @@ void steam_upload_to_workshop(const char *file, workshop_update_cb callback, voi
     }
 }
 
+size_t get_install_callback_counter() {
+    if (steam_service) return steam_service->get_install_callback_counter();
+    else return 0;
+}
+
 #else
 void initialize_steam_client() {}
 int8_t set_achievement(auto id) {return -1;}
 int8_t clear_achievement(auto id) {return -1;}
 char is_steam_available() {return 0;}
-void steam_upload_to_workshop(const char *file, TWORKSHOP_UPLOAD_STATE *state) {
-    state->done = 1;
-    state->message = "ERROR: Steam is not compiled";
+void steam_upload_to_workshop(const char *file, workshop_update_cb callback, void *context) {
+    callback(-1,"ERROR: Steam is not compiled", 0,0,context);;                    
 }
+size_t get_install_callback_counter() {return 0;}
 #endif
 
