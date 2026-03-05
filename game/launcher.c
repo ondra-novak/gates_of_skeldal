@@ -26,15 +26,14 @@ static TLAUNCHER_ITEM *create_launcher_item_from_ugc(const UGCItem *ugc) {
 }
 
 static char check_valid_item(TLAUNCHER_ITEM *itm){
-    if (itm && itm->ddl) {
-        FILE *f = fopen(itm->ddl,"r");
-        if (f) {
-            fclose(f);
-            return 1;
-        }
-        return 0;
+    if (!itm) return 0;
+    if (!itm->ddl) return 1;
+    FILE *f = fopen(itm->ddl,"r");
+    if (f) {
+        fclose(f);
+        return 1;
     }
-    return 1;
+    return 0;
 }
 
 
@@ -233,7 +232,7 @@ static void adjust_selected_position(TLAUNCHER_STATE *st) {
 static void populate_launcher_static(TLAUNCHER_STATE *st) {
     TLAUNCHER_ITEM *item;
     item = get_load_continue_info();
-    if (check_valid_item(item)) {
+    if (item && check_valid_item(item)) {
         vector_push_back(&st->items, &item);
     }
     item = NULL;
