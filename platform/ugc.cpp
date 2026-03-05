@@ -2,14 +2,24 @@
 #include "config.h"
 
 #include <algorithm>
-#include <cstring>
-#include <fstream>
+#include <ranges>
+#include <span>
+#include <system_error>
+#include <unordered_map>
+#include <unordered_set>
 #include <vector>
 #include <filesystem>
 #include <string_view>
-
-
 #include <memory>
+
+extern "C" {
+    #include <libs/event.h>
+}
+
+#ifdef STEAM_ENABLED
+#include "platform/steam/steamservice.hpp"
+#include "platform/steam_c_api.hpp"
+#endif
 
 std::wstring toWideChar(std::string_view text) {
     unsigned int codepoint = 0;
@@ -105,16 +115,6 @@ struct UGCItemEx : UGCItem {
     std::filesystem::path _stamp_file;
 };
 
-struct tag_UGCManager {
-    std::vector<UGCItemEx> _list;
-};
-
-UGCManager *UGC_create() {
-    return new UGCManager;
-}
-void UGC_Destroy(UGCManager *inst) {
-    delete inst;
-}
 
 static std::filesystem::path ugc_local_path;
 
@@ -122,72 +122,108 @@ void UGCSetLocalFoler(const char *path) {
     ugc_local_path = reinterpret_cast<const char8_t *>(path);
 }
 
-size_t UGC_Fetch(UGCManager *manager) {
+struct IniContent {
+    std::string name;
+    std::string author;
+    std::string lang;
+    std::string content;
+};
 
-    manager->_list.clear();
+static std::optional<IniContent> parse_ini(const std::filesystem::path &ini) {
+    std::optional<IniContent> res;
+    if (std::filesystem::is_regular_file(ini)) {
+        INI_CONFIG *cfg = ini_open(reinterpret_cast<const char *>(ini.u8string().c_str()));
+        if (cfg) {
+            const INI_CONFIG_SECTION *section = ini_section_open(cfg, "description");
+            res.emplace();
+            res->name = toKEYBCS2(ini_get_string(section, "name", ""));
+            res->author = toKEYBCS2(ini_get_string(section, "author", ""));
+            res->lang = ini_get_string(section, "lang", "CZ");
+            res->content = ini_get_string(section, "content", "content.ddl");
+            ini_close(cfg);
+        }
+    }
+    return res;
+
+
+}
+
+std::optional<UGCItem> parse_ugc(const std::filesystem::path &entry, std::unordered_set<std::string> &strings) {
+    std::optional<UGCItem> item;
+    const auto ini = entry/"info.ini";
+    auto ini_data = parse_ini(ini);
+    if (ini_data) {
+        std::hash<std::string> hasher;
+        item.emplace();
+        auto addstr = [&](auto &&s){return strings.insert(std::move(s)).first->c_str();};
+        item->ddl_path = addstr((entry/ini_data->content).string());
+        item->author = addstr(ini_data->author);
+        item->lang = addstr(ini_data->lang);
+        item->name = addstr(ini_data->name);
+        item->id = hasher(entry.filename().string());
+    }
+    return item;
+     
+}
+
+struct UGCGetContext {
+    std::vector<UGCItem> items;
+    std::unordered_set<std::string> strings;
+    void (*callback)(const UGCItem *items, unsigned int count, void *context);
+    void *context;
+};
+
+void UGC_GetList(const char *ugc_user_path, 
+                 const char *ugc_dlc_path,
+                 void (*callback)(const UGCItem *items, unsigned int count, void *context), void *context) {
+    
+    std::array<std::filesystem::path, 2> paths = {ugc_user_path, ugc_dlc_path};
     std::error_code ec;
-    auto iter = std::filesystem::directory_iterator(ugc_local_path,ec);
-    if (ec == std::error_code()) {
-        auto fend = std::filesystem::directory_iterator();
-        while (iter != fend) {
-            const auto &entry = *iter;
-            if (entry.is_directory()) {
-                auto entry_path =std::filesystem::weakly_canonical(entry.path()) ;
-                auto info_path =  entry_path / "content.ini";
-                if (std::filesystem::is_regular_file(info_path)) {
-                    INI_CONFIG *cfg = ini_open(reinterpret_cast<const char *>(info_path.u8string().c_str()));
-                    if (cfg) {
-                        const INI_CONFIG_SECTION *section = ini_section_open(cfg, "description");
-                        std::string title = toKEYBCS2(ini_get_string(section, "title", NULL));
-                        std::string author = toKEYBCS2(ini_get_string(section, "author", "unknown author"));
-                        const INI_CONFIG_SECTION *files = ini_section_open(cfg, "files");
-                        const char *ddl = ini_get_string(files, "ddlfile", NULL);
-                        if (ddl && !title.empty()) {
-                            UGCItemEx r;
-                            std::filesystem::path ddlpath = entry_path / ddl;
-                            auto pstr = ddlpath.u8string();
-                            ddl = reinterpret_cast<const char *>(pstr.c_str());
-
-                            auto tlen = title.size()+1;
-                            auto alen = author.size()+1;
-                            auto dlen = std::strlen(ddl)+1;
-
-                            r.text_data = std::make_unique<char[]>(tlen+alen+dlen);
-                            char *c = r.text_data.get();
-                            memcpy(c, title.c_str(), tlen);r.name = c;c+=tlen;
-                            memcpy(c, author.c_str(), alen);r.author = c;c+=alen;
-                            memcpy(c, ddl, dlen);r.ddl_path= c;c+=alen;
-
-                            auto stampfile = entry_path  / "stamp";
-                            std::filesystem::file_time_type tp = std::filesystem::last_write_time(stampfile, ec);
-                            auto sctp = std::chrono::time_point_cast<std::chrono::system_clock::duration>(tp - std::filesystem::file_time_type::clock::now()
-                                + std::chrono::system_clock::now());
-                            r.last_played = std::chrono::system_clock::to_time_t(sctp);
-                            r._stamp_file = std::move(stampfile);
-                            manager->_list.push_back(std::move(r));
-                        }
-                        ini_close(cfg);
+    UGCGetContext ctx;
+    ctx.callback = callback;
+    ctx.context = context;
+    for (const auto &p: paths) {
+        auto iter = std::filesystem::directory_iterator(p,ec);
+        if (ec == std::error_code{}) {
+            auto end = std::filesystem::directory_iterator();
+            for (const auto &entry: std::ranges::subrange(iter,end)) {
+                if (entry.is_directory(ec)) {    
+                    auto item = parse_ugc(entry.path(), ctx.strings);
+                    if (item) {
+                        ctx.items.push_back(*item);
                     }
                 }
             }
-            ++iter;
         }
-
     }
-    std::sort(manager->_list.begin(), manager->_list.end(), [](const UGCItem &a, const UGCItem &b){
-        return a.last_played > b.last_played;
-    });
 
-    return manager->_list.size();
-
+#ifdef STEAM_ENABLED
+    if (steam_service) {
+        UGCGetContext *st = new UGCGetContext(std::move(ctx));
+        
+        steam_service->query_ugc([st](std::span<const SteamService::UGCItem> list){
+            for (const auto &x: list) {
+                auto item = parse_ugc(x.download_location, st->strings);
+                if (item) {
+                    if (!x.author.empty()) {
+                        item->author = st->strings.insert(toKEYBCS2(x.author.c_str())).first->c_str();                        
+                    }
+                    if (!x.title.empty()) {
+                        item->name = st->strings.insert(toKEYBCS2(x.title.c_str())).first->c_str();                        
+                    }
+                    item->id = x.id;
+                    st->items.push_back(*item);
+                }
+            }
+            post_to_event_thread([](void *ctx){
+                UGCGetContext *st = (UGCGetContext *)ctx;
+                st->callback(st->items.data(), st->items.size(), st->context);
+                delete st;
+            }, st);
+        });
+        return;
+    }
+#endif
+    ctx.callback(ctx.items.data(), ctx.items.size(), ctx.context);
 }
-UGCItem UGC_GetItem(UGCManager *manager, size_t pos) {
-    return manager->_list[pos];
-}
-
-void UGC_StartPlay(UGCManager *manager, size_t pos) {
-    std::ofstream out(manager->_list[pos]._stamp_file, std::ios::out|std::ios::trunc);
-}
-
-
 

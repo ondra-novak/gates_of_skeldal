@@ -13,6 +13,27 @@
 void *get_palette_ptr=NULL;
 
 
+char is_pcx(const unsigned char *h, size_t size)
+{
+    if (size < 128) return 0;
+
+    if (h[0] != 0x0A) return 0;
+    if (h[2] != 0x01) return 0;
+
+    if (!(h[3] == 1 || h[3] == 2 || h[3] == 4 || h[3] == 8))
+        return 0;
+
+    uint16_t xmin = h[4]  | (h[5]  << 8);
+    uint16_t ymin = h[6]  | (h[7]  << 8);
+    uint16_t xmax = h[8]  | (h[9]  << 8);
+    uint16_t ymax = h[10] | (h[11] << 8);
+
+    if (xmax < xmin || ymax < ymin)
+        return 0;
+
+    return 1;
+}
+
 void decomprimate_line_256(const char *src,char *trg,int linelen,int *srcstep)
   {
   const char *srcsave;

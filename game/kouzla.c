@@ -12,7 +12,7 @@
 #include <stdarg.h>
 #include "engine1.h"
 #include "globals.h"
-#include "lang.h"
+
 
 #include <string.h>
 
@@ -107,6 +107,11 @@
 #define FLG_HALUCINACE 0x100000 // zapne halucinaci
 #define FLG_RADIATION  0x200000 // zapne radiation effect
 
+#define SPLF_TRACE 1
+#define SPLF_TELEPORT 2
+#define SPLF_HIDDEN 4
+#define SPLF_NOANIM 8
+
 static inline word _impl_get_word(unsigned char **c) {
     word r = (*c)[0] + 256* (*c)[1];
     (*c)+=2;
@@ -147,7 +152,7 @@ typedef struct tkouzlo
   int start;  //4
   short cil;  //2  //kladna cisla jsou postavy zaporna potvory (0 je bez urceni postavy)
   char povaha;
-  char traceon;    //jinak noanim - neprehravaji se animace a zvuky
+  char spell_flags;    //jinak noanim - neprehravaji se animace a zvuky
   union {
     word backfire; //backfire
     word demon;     // 1 = demon , 0 = bez demona
@@ -195,7 +200,7 @@ static void animace_kouzla(MGIF_HEADER_T *_,int act,const void *data, int ssize)
 
 
 const void *load_spells_legacy_format(const void *p, int32_t *s, int h) {
-    TSTRINGTABLE *strtable = lang_load("spells.csv");
+
     void *np = getmem(*s);
     memcpy(np,p,*s);
     TKOUZLO *k = (np);
@@ -213,17 +218,12 @@ const void *load_spells_legacy_format(const void *p, int32_t *s, int h) {
     for (int i = 0; i < count; ++i) {
         char *b = (char *)k;
         char traceon = b[offsetof(TKOUZLO, spellname)-1];    //traceon was there;
-        size_t bofs = offsetof(TKOUZLO, traceon);
+        size_t bofs = offsetof(TKOUZLO, spell_flags);
         size_t eofs = offsetof(TKOUZLO, spellname)-1;
         memmove(b+bofs+1, b+bofs, eofs-bofs);\
-        k->traceon = traceon;
-        const char *new_name = stringtable_find(strtable, i, NULL);
-        if (new_name) {
-            strcopy_n(k->spellname,new_name,sizeof(k->spellname)-1);
-        }
+        k->spell_flags = traceon;
         ++k;
     }
-    stringtable_free(strtable);
     return np;
 }
 
@@ -304,7 +304,7 @@ char get_spell_track(int num)
   TKOUZLO *p;
 
   p=(TKOUZLO *)ablock(H_KOUZLA);
-  return (p[num].traceon & 1);
+  return (p[num].spell_flags & SPLF_TRACE);
   }
 
 char get_spell_teleport(int num)
@@ -312,7 +312,7 @@ char get_spell_teleport(int num)
   TKOUZLO *p;
 
   p=(TKOUZLO *)ablock(H_KOUZLA);
-  return (p[num].traceon & 2);
+  return (p[num].spell_flags & SPLF_TELEPORT);
   }
 
 int get_spell_cast_time(int num) {
@@ -764,7 +764,11 @@ void spell_end(int num,int ccil,int owner)
      cil=-cil-1;
      mobs[cil].vlastnosti[VLS_KOUZLA]&=~_flag_map[num];
      }
-  for(i=0;i<MAX_SPELLS;i++) if ( spell_table[i]!=NULL && spell_table[i]->cil==ccil && ccil>0 &&  spell_table[i]->owner>=0)
+  for(i=0;i<MAX_SPELLS;i++) if ( spell_table[i]!=NULL
+          && spell_table[i]->cil==ccil
+          && ccil>0
+          &&  spell_table[i]->owner>=0
+          && !(spell_table[i]->spell_flags & SPLF_HIDDEN))
      {
      postavy[cil].spell=1;
      bott_draw(0);
@@ -1585,13 +1589,13 @@ void call_spell(int i)
                 spell_create_weapon(p->cil, z);
                 break;
             case S_animace:
-                if (p->owner >= 0 && !p->traceon)
+                if (p->owner >= 0 && !(p->spell_flags & SPLF_NOANIM))
                     spell_anim((char*) c);
                 c = (unsigned char*) strchr((char*) c, 0);
                 c++;
                 break;
             case S_zvuk:
-                if (p->owner >= 0 && !p->traceon)
+                if (p->owner >= 0 && !(p->spell_flags & SPLF_NOANIM))
                     spell_sound((char*) c);
                 c = (unsigned char*) strchr((char*) c, 0);
                 c++;
@@ -1759,12 +1763,12 @@ int add_spell(int num,int cil,int owner,char noanim)
   p->cil=cil;
   p->num=num;
   p->owner=owner;
-  p->traceon=noanim;
+  if (noanim) p->spell_flags |= SPLF_NOANIM;
   p->teleport_target=teleport_target;
   if (cil>0) p->bkdm.demon=(postavy[cil-1].stare_vls[VLS_KOUZLA] & SPL_DEMON)!=0;
   aunlock(H_KOUZLA);
   spell_table[i]=p;
-  if (cil>0 && owner>=0) postavy[cil-1].spell=1;
+  if (cil>0 && owner>=0 && !(p->spell_flags & SPLF_HIDDEN)) postavy[cil-1].spell=1;
   call_spell(i);
   return i;
   }
@@ -1833,7 +1837,7 @@ char add_group_spell(int num,int sector,int owner,int mode,char noanim)
         do
            {
            if (i>=POCET_POSTAV) i=0;
-           if (postavy[i].sektor==sector) j--;
+           if (postavy[i].sektor==sector && postavy[i].lives) j--;
            if (j) i++;
            }
         while (j);
@@ -1842,7 +1846,9 @@ char add_group_spell(int num,int sector,int owner,int mode,char noanim)
      else
         {
         for(i=0;i<POCET_POSTAV;i++)
-           if (postavy[i].used && postavy[i].sektor==sector && postavy[i].inmaphash == current_map_hash) add_spell(num,i+1,owner,noanim),c=0;
+           if (postavy[i].used && postavy[i].sektor==sector && postavy[i].inmaphash == current_map_hash && postavy[i].lives) {
+               add_spell(num,i+1,owner,noanim),c=0;
+           }
         }
      }
   return c;
@@ -1860,33 +1866,20 @@ char ask_who(int num)
   }
 
 
-static char get_valid_sector(word sector, void *ctx)
-  {
-    word *last_sector = (word *)ctx;
-    *last_sector=sector;
-    return 1;
-  }
 
-
-void cast(int num,THUMAN *p,int owner, char backfire)
+void cast(int num,int owner, char backfire)
   {
-  int um,cil,num2;
+  cast_spell(num & 511, num >> 9,owner);
+ }
+
+void cast_spell(int num, int cil, int owner) {
+
+  int um;
   TKOUZLO *k;
-
-  if (num>511)
-     {
-     cil=num>>9;
-     num2=num & 511;
-     }
-  else
-     {
-     cil=0;
-     num2=num;
-     }
-
+  THUMAN *p = &postavy[owner];
 
   SEND_LOG("(SPELLS) Cast num %d cil %d",num2,cil);
-  k=((TKOUZLO *)ablock(H_KOUZLA))+num2;
+  k=((TKOUZLO *)ablock(H_KOUZLA))+num;
 
 
   if (cil>0 && k->cil!=C_postava_jinde)
@@ -1902,63 +1895,53 @@ void cast(int num,THUMAN *p,int owner, char backfire)
            return;
            }
         }
-  if (battle && k->traceon & 1 && trace_path(p->sektor,p->direction)==-255) return;
-  if (!backfire && p->mana<k->mge) return;
+  if (battle && k->spell_flags & SPLF_TRACE && trace_path(p->sektor,p->direction)==-255) return;
+  if (p->mana<k->mge) return;
   if (p->vlastnosti[VLS_KOUZLA] & SPL_INVIS)
      {
      p->stare_vls[VLS_KOUZLA]&=~SPL_INVIS;
      prepocitat_postavu(p);
      build_all_players();
      }
-  if (!backfire && (um=p->vlastnosti[VLS_SMAGIE])<k->um)
-     {
-     int per1,per2;
-     if (um*2<k->um) return;
-     per1=(um-k->um/2)*128/k->um;
-     per2=rnd(64);
-     if ((per1/2+32)<per2 && (k->bkdm.backfire || (game_extras & EX_RANDOM_BACKFIRES)!=0))
-           {
-           p->mana-=k->mge;
-		   if ((game_extras & EX_RANDOM_BACKFIRES)!=0)
-			 {
-		       word last_sector = p->sektor;
-			 labyrinth_find_path(p->sektor,65535,SD_PLAY_IMPS,get_valid_sector,NULL,&last_sector);
-			 teleport_target=last_sector;
-			 cast(rand()*105/RAND_MAX+(cil*512),p,p-postavy,1);
-			 return;
-			 }
-           cast(k->bkdm.backfire+(cil<<9),p,owner,1);
-           return;
-           }
-     if(per1<per2)
-        {
-        p->mana-=k->mge/2;
-        return;
-        }
-     per1=(64-per1)/2;
-     per2=rnd(64);
-     if(per1>per2) p->stare_vls[VLS_SMAGIE]++;
+  if ((um=p->vlastnosti[VLS_SMAGIE])<k->um) {
+     int roll = rnd(k->um) + um;
+     int res = roll - k->um;
+     if (res < 0) {
+         if (k->bkdm.backfire) {
+             p->mana-=k->mge;
+             num = k->bkdm.backfire;
+             k=((TKOUZLO *)ablock(H_KOUZLA))+k->bkdm.backfire;
+         } else {
+             p->mana-=k->mge/2;
+             return;
+         }
+     } else {
+         p->mana-=k->mge;
      }
+  } else {
+      p->mana-=k->mge;
+  }
+
+
 
   if (!GlobEvent(MAGLOB_BEFOREMAGIC,p->sektor,p->direction)) return;
-  if (!GlobEvents(MAGLOB_ONSPELLID1,MAGLOB_ONSPELLID9,p->sektor,p->direction,num2)) return;
+  if (!GlobEvents(MAGLOB_ONSPELLID1,MAGLOB_ONSPELLID9,p->sektor,p->direction,num)) return;
 
   if (cil && (k->cil==C_postava || k->cil==C_mrtva_postava || k->cil==C_postava_jinde)) {
-      add_spell(num2,cil,owner,0);
+      add_spell(num,cil,owner,0);
   } else
      {
-     if (k->cil==C_policko) if (add_group_spell(num2,p->sektor,owner,C_policko,0)) goto end;
-     if (k->cil==C_kouzelnik) add_spell(num2,p-postavy+1,owner,0);
+     if (k->cil==C_policko) if (add_group_spell(num,p->sektor,owner,C_policko,0)) goto end;
+     if (k->cil==C_kouzelnik) add_spell(num,p-postavy+1,owner,0);
      if (k->cil==C_policko_pred || k->cil==C_nahodna_postava)
         {
         int s;
         s=p->sektor;
-        if (!(map_sides[(s<<2)+p->direction].flags & SD_PLAY_IMPS) && !backfire)
+        if (!(map_sides[(s<<2)+p->direction].flags & SD_PLAY_IMPS))
            s=map_sectors[s].step_next[p->direction];
-        if (add_group_spell(num2,s,owner,k->cil,0)) goto end;
+        if (add_group_spell(num,s,owner,k->cil,0)) goto end;
         }
      }
-  if (!backfire) p->mana-=k->mge;
   p->exp+=k->mge;
   check_player_new_level(p);
   if (p->mana>p->mana_battery) {

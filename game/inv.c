@@ -19,11 +19,12 @@
 #include <libs/pcx.h>
 #include "globals.h"
 
-#include "lang.h"
+
 #include <assert.h>
 #include <ctype.h>
 #include <stddef.h>
 #include <string.h>
+#include <time.h>
 
 #include "ach_events.h"
 
@@ -157,6 +158,12 @@ void load_items()
   f=NULL;i=0;
   ikon_libs=hl_ptr;
   free(glob_items);
+  glob_items = NULL;
+  item_count = 0;
+  it_count_orgn = 0;
+  water_breath = -1;
+  flute_item = -1;
+
     do {
         char name[200];
         sprintf(name, IT_LIB_NAME, i++);
@@ -222,36 +229,6 @@ void load_items()
         }
      }
 
-     if (lang_get_folder()) {
-         TSTRINGTABLE *str_table = lang_load("items.csv");
-         if (str_table) {
-             for (int i = 0; i < item_count; ++i) {
-                 const char *trn = stringtable_find(str_table, i, NULL);
-                 if (trn) {
-                     char *trnw = local_strdup(trn);
-                     char *sep = strchr(trnw, '\n');
-                     if (sep != NULL) {
-                         *sep = 0;
-                         char *nx = sep+1;
-                         --sep;
-                         while (sep > trnw && isspace(*sep)) {
-                             *sep = 0;
-                             --sep;
-                         }
-                         sep = strchr(nx,0);
-                         --sep;
-                         while (sep > nx && isspace(*sep)) {
-                             *sep = 0;
-                             --sep;
-                         }
-                         strcopy_n(glob_items[i].popis, nx, sizeof(glob_items[i].popis)-1);
-                     }
-                     strcopy_n(glob_items[i].jmeno, trnw, sizeof(glob_items[i].jmeno)-1);
-                 }
-             }
-             stringtable_free(str_table);
-         }
-     }
   }
 
 void init_items()
@@ -1305,7 +1282,7 @@ void *build_items_wearing_hi(THUMAN *h, int32_t *s) { //returns 256 color type w
         histogram[best_index].r += histogram[i].r;
         histogram[best_index].c += histogram[i].c;
     }
-    char paleta[768];
+    char paleta[768] = {0};
     for (int i = 0; i < 254; ++i) {
         int c = histogram[i].c;
         if (c == 0) break;
@@ -1316,6 +1293,7 @@ void *build_items_wearing_hi(THUMAN *h, int32_t *s) { //returns 256 color type w
         paleta[(i+2)*3+1] = g;
         paleta[(i+2)*3+2] = b;
     }
+
 
     char *fin_image = NewArr(char, PIC_FADE_PAL_SIZE + imgsz);
     word *hdr = (word *)fin_image;
@@ -2360,7 +2338,6 @@ char human_click(int id,int xa,int ya,int xr,int yr)
 
   xr;yr;id;
   if ((battle && ((battle_mode!=MD_PREZBROJIT) || (select_player!=human_selected-postavy)))) return 0;
-  if (!can_manage_gear(human_selected)) return 0;
   if (picked_item!=NULL)
    if (muze_nosit(*picked_item))
      if (glob_items[(*picked_item)-1].umisteni==PL_BATOH)
@@ -2383,11 +2360,12 @@ char human_click(int id,int xa,int ya,int xr,int yr)
            case TYP_VODA:inv_napit(*picked_item);destroy_picked_item();break;
            case TYP_SPECIALNI:inv_use_spec(&picked_item);break;
            case TYP_DLGUSE:if (!battle) {
-                                   destroy_picked_item();
-                                   start_dialog(pitem->user_value,-1);
-                                   unwire_proc();
-                                   wire_proc();
-                                   return 1;
+                                  int dlg = pitem->user_value;
+                                  destroy_picked_item();
+                                  start_dialog(dlg,-1);
+                                  unwire_proc();
+                                  wire_proc();
+                                  return 1;
                                }break;
            }
          inv_redraw();
@@ -2403,6 +2381,7 @@ char human_click(int id,int xa,int ya,int xr,int yr)
    else return 0;
   else
      {
+      if (!can_manage_gear(human_selected)) return 0;
      int i=HUMAN_PLACES-1;
      while (i>=0)
         {
@@ -2797,17 +2776,11 @@ static void rebuild_shops(const void *shop_ptr)
   shop_all_state.first_state = (TSHOP_PRODUCT_STATE *)(prod_iter+products);
   TSHOP_PRODUCT_STATE *state_iter = shop_all_state.first_state;
 
-  TSTRINGTABLE *stbl = lang_load("shops.dat");
+
 
   for(i=0;i<max_shops;i++) {
       shop_list[i] = shop_iter;
       c = load_TSHOP(c, shop_iter);
-      if (stbl) {
-        const char *n = stringtable_find(stbl,shop_iter->shop_id,NULL);
-        if (n) {
-          strcopy_n(shop_iter->keeper,n,sizeof(shop_iter->keeper));
-        }
-      }
       shop_iter->list = prod_iter;
       for (int j = 0; j < shop_iter->products; ++j) {
           c = load_TPRODUCT(c, prod_iter);
@@ -2819,7 +2792,6 @@ static void rebuild_shops(const void *shop_ptr)
       ++shop_iter;
       SEND_LOG("(SHOP) Shop found: '%s', id=%d, products %d",shop_list[i]->keeper,shop_list[i]->shop_id, shop_list[i]->products);
   }
-  stringtable_free(stbl);
   free(shop_hacek);
   shop_hacek = newhacek;
   }
@@ -3465,6 +3437,7 @@ char save_shops()
 char load_saved_shops()
   {
   SEND_LOG("(SHOP) Loading saved shops...");
+  load_shops();
   int32_t sz = temp_storage_find(_SHOP_ST);
   int32_t needsz = shop_all_state.count_states*(sizeof(*shop_all_state.first_state));
   if (sz != needsz) return 0;

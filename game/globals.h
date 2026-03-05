@@ -186,7 +186,7 @@ static __inline int rangrnd(int a, int b) {return rnd(b-a+1)+a;}
 #define H_MS_DEFAULT 51
 #define H_MS_SOUBOJ  52
 #define H_MS_WHO     53
-#define H_MS_LIST    54
+#define H_LOADING    54
 #define H_MS_ZARE    55
 #define H_POSTAVY    60
 #define H_BOTTBAR    66
@@ -267,8 +267,11 @@ static __inline int rangrnd(int a, int b) {return rnd(b-a+1)+a;}
 #define H_KREVMID 184
 #define H_KREVMAX 185
 #define H_ARMAGED 186
-#define H_GLOBMAP 200
 #define H_ARMA_CNT 13
+#define H_GLOBMAP 200
+#define H_FEUROMODE 201
+#define H_FBROOKLIN 202
+#define H_FARIAL 203
 #define H_FIRST_FREE 225
 #define H_MENUS_FREE 32768
 
@@ -286,7 +289,7 @@ static __inline int rangrnd(int a, int b) {return rnd(b-a+1)+a;}
 #define AP_MULTIPLIER 15
 #define get_ap(vls) (((vls[VLS_POHYB])>0 && (vls[VLS_POHYB])<AP_MULTIPLIER)?1:(vls[VLS_POHYB])/AP_MULTIPLIER)
 
-#define SAVE_NAME_SIZE 32
+
 
 static inline int mgochrana(int x) {
     if (x > 100) return 100;
@@ -395,6 +398,7 @@ SR_COUNT} SKELDAL_FOLDERS_TAG;
 #define TM_FLETNA 14
 #define TM_DELAIER 15
 #define TM_VZPLANUTI 16
+#define TM_CORRUPTED_SAVE 17
 
 //umisteni predmetu
 
@@ -697,7 +701,7 @@ void check_postavy_teleport(void);  //je-li viewsector=teleport pak presune post
 void change_fade_color(int r, int g, int b);
 void change_fade_brightness(float mult);
 void change_fade_end(float mult);
-
+void showCorruptedError(void);
 
 
 //builder
@@ -781,6 +785,7 @@ void chveni(int i);
 void render_scene(int,int, char nobackdrop);
 void bott_draw_fletna(void);
 void bott_disp_rune(char rune, int item);
+char check_dialog();
 
 void display_ver(int x,int y,int ax,int ay);
 void check_players_place(char mode);
@@ -1122,6 +1127,10 @@ char load_saved_shops(void);
 #define MA_MUSIC 36
 #define MA_GLOBE 37  //global events
 #define MA_CHLGH 38
+#define MA_PLMUS 39
+#define MA_FAILG 40
+#define MA_ENDG2 41
+
 
 #define MAGLOB_LEAVEMAP 0 // v urcitou nastavenou hodinu a minutu dene
 #define MAGLOB_STARTSLEEP 1 // postavy maji jit spat.
@@ -1436,7 +1445,7 @@ int save_map_state(void); //uklada stav mapy pro savegame (neuklada aktualni poz
 int load_map_state(void); //obnovuje stav mapy; nutno volat po zavolani load_map;
 void restore_current_map(void); //pouze obnovuje ulozeny stav aktualni mapy
 uint32_t fnv1a_hash(const char *str);
-int load_game(const char *fname);
+int load_game(const char *fname, char ignore_adv_fld);
 int save_game(long game_time,char *gamename, char is_autosave);
 void save_map_description(TMPFILE_WR *f);
 void load_map_description(TMPFILE_RD *f);
@@ -1495,7 +1504,7 @@ void wire_main_functs(void);
 void unwire_main_functs(void);
 
 //enemy
-#define MOBS_INV 16
+#define MOBS_INV 15
 #define MOB_POSIT 0
 #define MOB_ATTACK 3
 #define MOB_TOHIT 2
@@ -1541,6 +1550,7 @@ typedef struct tmob
   uint16_t anim_counter;        //citac animaci
   short vlastnosti[24];     //zakladni vlastnosti potvory
   short inv[MOBS_INV];      //batoh potvory
+  short kill_dialog;        //dialog played on defeat (0 is also disabled)
   short lives;              //pocet zivotu potvory
   short cislo_vzoru;         //informace urcujici ze ktereho vzoru byl mob vytvoren
   short speed;             //rychlost pohybu
@@ -1607,6 +1617,7 @@ char send_mob_to_sector(int mob_id,int to);
 void save_enemy_paths(TMPFILE_WR *f);
 int load_enemy_paths(TMPFILE_RD *f);
 void regen_all_mobs(void);
+void mob_check_death(int num);
 
 
 //souboje
@@ -1632,7 +1643,9 @@ void umirani_postavy(THUMAN *p);
 char zasah_veci(int sector,TFLY *fl);
 void vymaz_zasahy(THE_TIMER *q);
 char check_end_game(void);
-void wire_end_game(void);
+void wire_end_game();
+void show_death_screen(const char *txt);
+void set_death_screen_text(const char *txt);
 void auto_group(void);
 void wire_fly_casting(int i);
 void konec_kola(void);
@@ -1676,7 +1689,8 @@ extern char spell_cast; //0=neni rezim vyberu kouzla;
 
 void kouzla_init(void);
 void test_play(int handle);
-void cast(int num,THUMAN *p,int owner,char backfire);
+void cast(int num,int owner,char backfire);
+void cast_spell(int num, int cil, int owner);
 int add_spell(int num,int cil,int owner,char noanim);
 void klicovani_anm(void *target,void *source,char mirror);
 //#pragma aux klicovani_anm parm [edi][esi][eax] modify [ecx edx ebx]
@@ -1800,7 +1814,7 @@ int enter_menu(char open); //task!
 void titles(va_list args); //task!
 void run_titles(void );
 void effect_show(void); //effektni zobrazeni
-void konec_hry(void);
+void konec_hry(const char *epilog);
 
 
 //globmap

@@ -1,13 +1,16 @@
-#pragma once
+#ifndef _STEAM_C_API_SKELDAL
+#define _STEAM_C_API_SKELDAL
+
+#include "SDL_stdinc.h"
 #include <stdint.h>
+
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-// Initialize Steam (if available). Optional to call.
-// If not called manually, will auto-init on first achievement set.
-void steam_init();
-void steam_shutdown();
+
+void initialize_steam_client();
+void shutdown_steam_client();
 
 /// Set an achievement by its API name (if Steam available, otherwise ignored)
 /**
@@ -25,12 +28,18 @@ int8_t clear_achievement(const char* id);
 
 /// returns whether steam is available
 /**
- * @return 
+ * @return
  */
 char is_steam_available();
 
-char *get_steam_status();
+
+
+typedef void (*workshop_update_cb)(int result, const char *message, uint64_t upload_bytes, uint64_t total_bytes, void *context);
+
+void steam_upload_to_workshop(const char *file, workshop_update_cb callback, void *context);
+
 
 #ifdef __cplusplus
 }
+#endif
 #endif

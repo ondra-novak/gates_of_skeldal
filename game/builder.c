@@ -1384,13 +1384,19 @@ void render_scene(int sector, int smer, char nobackdrop)
   }
   }
 
+static const char *death_screen_text = NULL;
+
+void set_death_screen_text(const char *txt) {
+    death_screen_text = txt;
+}
+
 
 void death_screen() {
     trans_bar(0, 0, 640, 480, 0);
     int xs;
     int ys;
     int y = 160;
-    const char *t = texty[65];
+    const char *t = death_screen_text;
     DECL_VLA(char, buff, strlen(t)+4);
     set_font(H_FBOLD, RGB555_ALPHA(31,31,31));
     zalamovani(t,buff, 440, &xs, &ys);
@@ -1401,8 +1407,6 @@ void death_screen() {
         y+=2*text_height(t);
         t = t+strlen(t)+1;
     }
-
-
 }
 
 

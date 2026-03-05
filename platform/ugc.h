@@ -1,5 +1,5 @@
-#include <time.h>
 
+#include <stdint.h>
 #ifdef __cplusplus 
 extern "C" {
 #endif
@@ -8,18 +8,18 @@ typedef struct  {
     const char *name;
     const char *ddl_path;
     const char *author;
-    time_t last_played;    
+    const char *lang;
+    uint64_t id;
 } UGCItem;
 
 typedef struct tag_UGCManager UGCManager;
 
 
-void UGCSetLocalFoler(const char *path);
-UGCManager *UGC_create();
-size_t UGC_Fetch(UGCManager *manager);
-UGCItem UGC_GetItem(UGCManager *manager, size_t pos);
-void UGC_StartPlay(UGCManager *manager, size_t pos);
-void UGC_Destroy(UGCManager *inst);
+void UGC_GetList(const char *ugc_user_path, 
+                 const char *ugc_dlc_path,
+                 void (*callback)(const UGCItem *items, unsigned int count, void *context), void *context);
+
+
 
 
 

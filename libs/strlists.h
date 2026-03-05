@@ -7,3 +7,4 @@
 #define DIR_NAMES 6
 void listbox(OBJREC *o);
 
+#error depricated code

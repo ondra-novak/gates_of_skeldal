@@ -1,23 +1,23 @@
 #include "sdl_context.h"
+#include "SDL_events.h"
 #include "keyboard_map.h"
 #include "format_mapping.h"
+#include <iostream>
 
 #include <atomic>
 #include <cassert>
 #include "../platform.h"
 #include "../error.h"
 
+
 #include <cmath>
-#include <iostream>
-#include <fstream>
+#include <memory>
 #include <stdexcept>
 #include <sstream>
 #include <algorithm>
 #include <stdbool.h>
 #include <thread>
 #include <mutex>
-#include <condition_variable>
-#include <chrono>
 #include <string_view>
 #include <stop_token>
 
@@ -393,10 +393,10 @@ int SDLContext::init_window(const VideoConfig &config, const char *title, std::f
             }
             stop_src.request_stop();
         });
-        main_thrd.detach();
         SDL_ShowCursor(SDL_DISABLE);
         event_loop(stop_src.get_token());
         SDL_ShowCursor(SDL_ENABLE);
+        main_thrd.join();
 
     } catch (...) {
         crash_sdl_exception();
@@ -404,6 +404,10 @@ int SDLContext::init_window(const VideoConfig &config, const char *title, std::f
     }
     _texture.reset();
     _texture2.reset();
+    _crt_effect.reset();
+    _mouse.reset();
+    _sprites.clear();
+    _main_pixel_format.reset();
     _renderer.reset();
     _window.reset();
 
@@ -693,7 +697,18 @@ void SDLContext::event_loop(std::stop_token stp) {
 
 
     SDL_Event e;
-    while (SDL_WaitEvent(&e)) {
+    do {
+        if (_steam_callback) {
+            do {
+                _steam_callback();
+                if (_burst_mode) update_screen(false);
+            } while (SDL_WaitEventTimeout(&e,20) == 0);
+        } else if (_burst_mode) {//if screen is too slow, there is no point to receive events, directly render
+             update_screen(false);
+             if (!SDL_PollEvent(&e)) continue;
+        } else {
+            SDL_WaitEvent(&e);
+        }
         SDL_Scancode kbdevent = {};
         if (e.type == SDL_QUIT) {
             _quit_requested = true;
@@ -772,6 +787,7 @@ void SDLContext::event_loop(std::stop_token stp) {
         }
 
     }
+    while (true);
 }
 
 
@@ -812,7 +828,7 @@ void SDLContext::show_slide_transition(const SDL_Rect &visible_from,
 }
 
 void SDLContext::signal_push() {
-    if (_display_update_queue.empty()) {
+    if (_display_update_queue.empty() && !_burst_mode) {
         SDL_Event event;
         event.type = _update_request_event;
         SDL_PushEvent(&event);
@@ -1036,6 +1052,8 @@ void SDLContext::update_screen(bool force_refresh) {
     _display_update_queue.clear();
     lk.unlock();
     refresh_screen();
+    lk.lock();
+    _burst_mode = !_display_update_queue.empty();
 }
 
 
@@ -1218,6 +1236,7 @@ void SDLContext::set_window_icon(const void *icon_data, size_t icon_size) {
     SDL_Surface *surface = SDL_LoadBMP_RW(SDL_RWFromConstMem(icon_data, icon_size), 1);
     if (surface) {
         SDL_SetWindowIcon(_window.get(), surface);
+        SDL_FreeSurface(surface);
     }
 }
 
@@ -1359,4 +1378,7 @@ void SDLContext::raise_window() const
     SDL_Delay(100); // malá pauza (volitelné)
     SDL_SetWindowAlwaysOnTop(_window.get(),SDL_FALSE);
 
+}
+void SDLContext::set_steam_callback(void (*cb)()) {
+    _steam_callback = cb;
 }

@@ -1,3 +1,4 @@
+#include <stdint.h>
 #include <stdarg.h>
 #ifndef __EVENT_H
 #define __EVENT_H
@@ -112,8 +113,9 @@ static inline void destroy_message(EVENT_MSG *msg) {
 }
 
 void init_events(void);
- // inicalizuje zakladni strom udalosto
 void send_message(int message,...);
+
+void post_to_event_thread(void (*cb)(void *), void *context);
 
 int send_message_to(int (*cb)(EVENT_MSG *, void *), void *ctx, int message, ...);
  // posila zpravu do stromu
@@ -135,6 +137,11 @@ static __inline void shift_message(EVENT_MSG *msg) {
 
 void do_events(void);
 void escape(void);
+
+
+void destroy_events();
+
+
 
 #include <platform/legacy_coroutines.h>
 /*

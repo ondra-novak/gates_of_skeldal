@@ -18,7 +18,7 @@
 #include "globals.h"
 #include <libs/inicfg.h>
 
-#include "lang.h"
+
 #include <ctype.h>
 #include <string.h>
 
@@ -248,12 +248,29 @@ void sanitize_map() {
 
 void translate_map_name(const char *mapfile, MAPGLOBAL *mglob) {
    uint32_t id = fnv1a_hash(mapfile);
-   const TSTRINGTABLE *stable = lang_load("mapnames.csv");
-   if (stable) {
-      const char *rplc = stringtable_find(stable, id, NULL);
-      if (rplc) {
-         strcopy_n(mglob->mapname,rplc,sizeof(mglob->mapname));
-      }
+   if (test_file_exist(SR_MAP, "mapnames.csv")) {
+       int32_t size;
+       char strid[50];
+       snprintf(strid, sizeof(strid), "%lu", (long)id);
+       const char *src = afile("mapnames.csv",SR_MAP, &size);
+       char *cpy = (char *)malloc(size+1);
+       memcpy(cpy, src, size);
+       cpy[size] = 0;
+       ablock_free(src);
+       char *found = strstr(cpy,strid);
+       if (found) {
+           char *foundend = found+strlen(strid);
+           if (*foundend == ',') {
+               char *comma2 = strchr(foundend+1,',');
+               if (comma2) {
+                   *comma2 = 0;
+                   strcopy_n(mglob->mapname, foundend+1, sizeof(mglob->mapname));
+                   free(cpy);
+                   return;
+               }
+           }
+       }
+       free(cpy);
    }
 }
 
@@ -261,6 +278,24 @@ static const void *pcx_15bit_decomp_z(const void *p, int32_t *s, int h) {
     if (p == NULL) return NULL;
     return pcx_15bit_decomp(p,s,h);
 }
+
+
+
+static void showCorruptedErrorDelayed(THE_TIMER *t) {
+    (void)t;
+    if (unwire_proc == unwire_main_functs && !norefresh) {
+        t->calls = 1;
+        unwire_proc();
+        message(1,0,0,"","ERROR: Corrupted state, the game state can be inconsistent",texty[80]);
+        wire_proc();
+    }
+
+}
+
+void showCorruptedError(void) {
+    add_to_timer(TM_CORRUPTED_SAVE, 1,-1,showCorruptedErrorDelayed);
+}
+
 
 int load_map(const char *filename)
   {
@@ -426,17 +461,14 @@ int load_map(const char *filename)
   const char *tpath=set_file_extension(filename,".txt");
   failed=load_level_texts(tpath);
   if (!failed && level_texts!=NULL) {
-      lang_patch_stringtable(&level_texts, filename, "map_");
       create_playlist(level_texts[0]);
   }
   init_tracks();
   change_music(get_next_music_from_playlist());
   for(int r=0;r<mapsize*4;r++) flag_map[r]=(char)map_sides[r].flags;
-  if (!doNotLoadMapState && load_map_state()==-2)
-     {
-     display_error("Bug in temp file. Please purge some status blocks in last load savegame file.");
-     exit(1);
-     }
+  if (!doNotLoadMapState && load_map_state()==-2) {
+      showCorruptedError();
+  }
   doNotLoadMapState=0;
   current_map_hash = fnv1a_hash(filename);
   const char * hash_str = map_hash_to_string(current_map_hash);
@@ -1235,17 +1267,24 @@ static void move_lodka(int oldsect,int newsect)
      }
   }
 
+char check_dialog() {
+      if (force_start_dialog && !norefresh)
+     {
+     force_start_dialog=0;
+     call_dialog(start_dialog_number,start_dialog_mob);
+     return 1;
+     }
+      return 0;
+
+}
+
 void calc_game()
   {
   int d;
   calc_animations();
   if (d_action!=NULL) do_delay_actions();
   calc_mobs();
-  if (force_start_dialog && !norefresh)
-     {
-     force_start_dialog=0;
-     call_dialog(start_dialog_number,start_dialog_mob);
-     }
+  check_dialog();
   check_players_place(0);
   if ((d=check_end_game())!=0) {
      if (d==1) wire_end_game();else mrtva_skupina();
@@ -2026,17 +2065,9 @@ void game_keyboard(EVENT_MSG *msg,void **usr)
 
 void start_dialog(int dialog,int mob)
   {
-  if (battle)
-  {
-    call_dialog(dialog,mob);
-  }
-  else
-  {
     force_start_dialog=1;
     start_dialog_number=dialog;
     start_dialog_mob=mob;
-  }
-//  call_dialog(dialog,mob);
   }
 
 
@@ -2060,4 +2091,69 @@ int postavy_propadnout(int sector)
   return z;
   }
 
+static void kbd_end_game(EVENT_MSG *msg,void *unused)
+  {
+  unused;
+  if (msg->msg==E_KEYBOARD && !pass_zavora)
+     {
+     msg->msg=-2;
+     delete_from_timer(TM_SCENE);
+     delete_from_timer(TM_FLY);
+     wire_save_load(2);
+     bott_draw(1);
+     }
+  }
+
+static char clk_goon(int id,int xa,int ya,int xr,int yr)
+  {
+  id,xa,ya,xr,yr;
+  send_message(E_KEYBOARD,13);
+  return 1;
+  }
+
+
+
+#define CLK_END_GAME 2
+T_CLK_MAP clk_end_game[]=
+  {
+  {-1,0,0,639,479,clk_goon,8+2,H_MS_DEFAULT},
+  {-1,0,0,639,479,empty_clk,0xff,H_MS_DEFAULT},
+  };
+
+
+void end_game_end_phase(EVENT_MSG *msg,void **_)
+{
+  static int wait=0;
+  if (msg->msg == E_TIMER) {
+   if (pass_zavora) return;
+     if (wait==2)
+     {
+     send_message(E_ADD,E_KEYBOARD,kbd_end_game);
+     send_message(E_DONE,E_TIMER,end_game_end_phase);
+     change_click_map(clk_end_game,CLK_END_GAME);
+     }
+     else wait++;
+   }
+  if (msg->msg == E_INIT) {
+     wait=0;
+  }
+}
+
+
+
+
+void show_death_screen(const char *txt) {
+    unwire_proc();
+    set_death_screen_text(txt);
+    add_to_timer(TM_SCENE,gamespeed,-1,refresh_scene);
+    add_to_timer(TM_FLY,gamespeed,-1,calc_fly);
+    disable_click_map();
+    send_message(E_ADD,E_TIMER,end_game_end_phase);
+    cur_mode=MD_END_GAME;
+    build_player_map();
+    GlobEvent(MAGLOB_ONDEADALL,viewsector,viewdir);
+    GlobEventList[MAGLOB_ONDEADALL].sector=0;
+    GlobEventList[MAGLOB_ONDEADALL].side=0;
+
+}
 

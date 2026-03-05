@@ -113,7 +113,8 @@ const char * build_pathname(size_t nparts, const char *part1, ...) {
 
     std::filesystem::path p = part1;
     for (size_t i = 1; i < nparts; ++i) {
-        p = p / va_arg(lst, const char *);
+        const char *part = va_arg(lst, const char *);
+        if (part) p = p / part;
     }
     build_pathname_buffer = p.string();
     SEND_LOG("(BUILD_PATHNAME) %s", build_pathname_buffer.c_str());

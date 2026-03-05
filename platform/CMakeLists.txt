@@ -11,7 +11,7 @@ target_sources(skeldal_platform PRIVATE
     error.cpp
     timer.cpp
     getopt.c
-    achievements.cpp
+    steam_c_api.cpp
     sse_receiver.c
     ugc.cpp
 )
@@ -20,7 +20,7 @@ set(all_libs
     skeldal_main
     skeldal_libs
     skeldal_platform
-    skeldal_sdl
+    skeldal_sdl    
     skeldal_libs
      ${SDL2_LIBRARIES}
      ${STANDARD_LIBRARIES})
@@ -40,11 +40,11 @@ if(WIN32)
     if(STEAM_ENABLED)
         if(CMAKE_SIZEOF_VOID_P EQUAL 8)
             # 64-bit
-            set(STEAMLIB ${STEAMWORKS_SDK_DIR}/redistributable_bin/win64/steam_api64.lib)
+            set(STEAMLIB skeldal_steam  ${STEAMWORKS_SDK_DIR}/redistributable_bin/win64/steam_api64.lib)
             set(STEAMDLL ${STEAMWORKS_SDK_DIR}/redistributable_bin/win64/steam_api64.dll)
         else()
             # 32-bit
-            set(STEAMLIB ${STEAMWORKS_SDK_DIR}/redistributable_bin/win32/steam_api.lib)
+            set(STEAMLIB skeldal_steam ${STEAMWORKS_SDK_DIR}/redistributable_bin/win32/steam_api.lib)
             set(STEAMDLL ${STEAMWORKS_SDK_DIR}/redistributable_bin/win64/steam_api.dll)
         endif()
     else()
@@ -74,10 +74,10 @@ elseif(UNIX AND NOT APPLE)
     if(STEAM_ENABLED)
         if(CMAKE_SIZEOF_VOID_P EQUAL 8)
             # 64-bit
-            set(STEAMLIB ${STEAMWORKS_SDK_DIR}/redistributable_bin/linux64/libsteam_api.so)
+            set(STEAMLIB skeldal_steam ${STEAMWORKS_SDK_DIR}/redistributable_bin/linux64/libsteam_api.so)
         else()
             # 32-bit
-            set(STEAMLIB ${STEAMWORKS_SDK_DIR}/redistributable_bin/linux32/libsteam_api.so)
+            set(STEAMLIB skeldal_steam ${STEAMWORKS_SDK_DIR}/redistributable_bin/linux32/libsteam_api.so)
         endif()
     endif()
     add_custom_command(
@@ -97,7 +97,7 @@ elseif(APPLE)
         linux/app_start.cpp
     )
     if(STEAM_ENABLED)
-        set(STEAMLIB ${STEAMWORKS_SDK_DIR}/redistributable_bin/osx/libsteam_api.dylib)
+        set(STEAMLIB skeldal_steam ${STEAMWORKS_SDK_DIR}/redistributable_bin/osx/libsteam_api.dylib)
     endif()
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-deprecated-declarations")  
     message(STATUS "Building for macOS")
@@ -107,5 +107,9 @@ else()
 endif()
 set_property(TARGET skeldal_platform PROPERTY CXX_STANDARD 20)
 
- add_subdirectory(sdl)
+add_subdirectory(sdl)
+if(STEAM_ENABLED)
+    add_subdirectory(steam)
+endif()
+
 

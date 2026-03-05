@@ -35,6 +35,7 @@ static int pohyblivost_counter[POCET_POSTAV];
 static int autostart_round=0;
 static int spell_remain_actions = 99;
 
+
 char autoattack=0;
 char immortality=0;
 int32_t level_map[]=
@@ -743,51 +744,6 @@ void konec_kola()
   TimerEvents(viewsector,viewdir,game_time);
   }
 
-static void kbd_end_game(EVENT_MSG *msg,void *unused)
-  {
-  unused;
-  if (msg->msg==E_KEYBOARD && !pass_zavora)
-     {
-     msg->msg=-2;
-     delete_from_timer(TM_SCENE);
-     delete_from_timer(TM_FLY);
-     wire_save_load(2);
-     bott_draw(1);
-     }
-  }
-
-static char clk_goon(int id,int xa,int ya,int xr,int yr)
-  {
-  id,xa,ya,xr,yr;
-  send_message(E_KEYBOARD,13);
-  return 1;
-  }
-
-#define CLK_END_GAME 2
-T_CLK_MAP clk_end_game[]=
-  {
-  {-1,0,0,639,479,clk_goon,8+2,H_MS_DEFAULT},
-  {-1,0,0,639,479,empty_clk,0xff,H_MS_DEFAULT},
-  };
-
-
-void end_game_end_phase(EVENT_MSG *msg,void **_)
-{
-  static int wait=0;
-  if (msg->msg == E_TIMER) {
-   if (pass_zavora) return;
-     if (wait==2)
-     {
-     send_message(E_ADD,E_KEYBOARD,kbd_end_game);
-     send_message(E_DONE,E_TIMER,end_game_end_phase);
-     change_click_map(clk_end_game,CLK_END_GAME);
-     }
-     else wait++;
-   }
-  if (msg->msg == E_INIT) {
-     wait=0;
-  }
-}
 
 void wire_end_game()
   {
@@ -795,7 +751,6 @@ void wire_end_game()
   if (cur_mode==MD_END_GAME) return;
   konec_kola();
   battle=0;running_battle=0;
-  unwire_proc();
   for(i=0;i<MAX_MOBS;i++) if (mobs[i].vlajky & MOB_LIVE) mobs[i].vlajky&=~MOB_IN_BATTLE;
 
   for (int i = 0; i < POCET_POSTAV; ++i) {
@@ -812,18 +767,7 @@ void wire_end_game()
           }
       }
   }
-
-/*  bott_disp_text(texty[65]);
-  bott_text_forever();*/
-  add_to_timer(TM_SCENE,gamespeed,-1,refresh_scene);
-  add_to_timer(TM_FLY,gamespeed,-1,calc_fly);
-  disable_click_map();
-  send_message(E_ADD,E_TIMER,end_game_end_phase);
-  cur_mode=MD_END_GAME;
-  build_player_map();
-  GlobEvent(MAGLOB_ONDEADALL,viewsector,viewdir);
-  GlobEventList[MAGLOB_ONDEADALL].sector=0;
-  GlobEventList[MAGLOB_ONDEADALL].side=0;
+  show_death_screen(texty[65]);
   }
 
 
@@ -1403,7 +1347,7 @@ void jadro_souboje(EVENT_MSG *msg,void **unused) //!!!! Jadro souboje
                              prejdi_na_pohled(p);
                              bott_draw(1);
                              teleport_target=p->provadena_akce->data2;
-                             cast(p->provadena_akce->data1,p,select_player,0);
+                             cast(p->provadena_akce->data1,select_player,0);
                              cislo_potvory=-2;
                              break;
                 }
@@ -1667,7 +1611,7 @@ char power(int id,int xa,int ya,int xr,int yr)
          }
   if (id==1) magic_data->data1+=(select_player+1)<<9;
   schovej_mysku();
-  if (battle) souboje_vybrano(AC_MAGIC, magic_data->data1);
+  if (battle) souboje_vybrano(AC_MAGIC, get_spell_cast_time(magic_data->data1));
   unwire_proc();
   after_spell_wire();
   ukaz_mysku();
@@ -1908,7 +1852,10 @@ void souboje_redrawing(THE_TIMER *_)
      ukaz_mysku();
      showview(0,0,0,0);
      }
+  check_dialog();
   }
+
+
 
 
 
@@ -1966,7 +1913,7 @@ static void souboje_dalsi_user() {
 void souboje_vybrano(int d, int actions)
   {
                        if (d==AC_STAND || d==AC_RUN) postavy[select_player].actions=0;
-                       else postavy[select_player].actions = MAX(postavy[select_player].actions-actions,1);
+                       else postavy[select_player].actions = MAX(postavy[select_player].actions-actions,0);
                        postavy[select_player].programovano++;
                        if (!postavy[select_player].actions)
                           souboje_dalsi();
@@ -2110,7 +2057,11 @@ static void zahajit_kolo(char prekvapeni)
                           } else if (p->used && !p->programovano && p->lives && p->inmaphash == current_map_hash) {
                              if (prekvapeni || !p->actions || !autoattack || !monster)
                              {
-                             p->programovano++;p->zvolene_akce->action=AC_STAND;
+                                 if (p->zvolene_akce == NULL) {
+                                     p->provadena_akce= p->zvolene_akce = NewArr(HUM_ACTION,1);
+                                 }
+                                 p->programovano++;
+                                 p->zvolene_akce->action=AC_STAND;
                              }
                           else
                              {
@@ -2154,7 +2105,7 @@ static char add_pc_action(int d) {
                          c=postavy[select_player].zvolene_akce;while (c->action) {c++; aps++;}
                          if (d==AC_MAGIC)
                             {
-                              
+
                             spell_remain_actions = aps?postavy[select_player].actions:99;
                             wire_select_rune();
                             return 1;
@@ -2563,7 +2514,7 @@ void wire_cast_spell()
      {
      teleport_target=spell_string.data2;
      select_player=caster;
-     cast(spell_string.data1,&postavy[caster],caster,0);
+     cast(spell_string.data1,caster,0);
      /*add_to_timer(TM_SCENE,gamespeed,-1,hrat_souboj);
      neco_v_pohybu=1;
      send_message(E_ADD,E_TIMER,cast_wait);*/

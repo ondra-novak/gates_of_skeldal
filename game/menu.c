@@ -19,7 +19,7 @@
 #include "globals.h"
 
 #include "ach_events.h"
-#include "lang.h"
+
 #include <version.h>
 
 #define MUSIC "TRACK06.MUS"
@@ -377,13 +377,6 @@ int enter_menu(char open)
   }
 
 
-static TMPFILE_RD *end_titles_lang(const char *filename) {
-    if (istrcmp(filename,"TITULKY.TXT") == 0) filename = "end_titles.txt";
-    else if (istrcmp(filename,"ENDTEXT.TXT") == 0) filename = "epilog.txt";
-    char *c = lang_load_string(filename);
-    if (!c) return NULL;
-    return temp_storage_from_binary(c, strlen(c), free, c);
-}
 char *get_next_title(signed char control,const char  *filename)
   {
 
@@ -394,10 +387,6 @@ char *get_next_title(signed char control,const char  *filename)
   switch(control)
      {
      case 1:
-         titles = end_titles_lang(filename);
-         if (titles != NULL) {
-             return (char *)titles;
-         }
          titles = enc_open(filename, SR_DATA);
          return (char *)titles;
      case 0:if (titles!=NULL && temp_storage_gets(buffer,80,titles)) {
@@ -414,6 +403,9 @@ char *get_next_title(signed char control,const char  *filename)
   }
 
 static int title_lines[640][2];
+static word *title_background = NULL;
+
+
 
 static int insert_next_line(int ztrata)
   {
@@ -457,6 +449,15 @@ static int insert_next_line(int ztrata)
         else if (!strncmp(c+1,"SMALL",5)) titlefont=H_FBOLD;
         else if (!strncmp(c+1,"BIG",3)) titlefont=H_FBIG;
         else if (!strncmp(c+1,"SPEED",5)) sscanf(c+6,"%d",&speedscroll);
+        else if (!strncmp( c+1, "PICTURE ", 8)) {
+            const char *picname = c+9;
+            int32_t sz;
+            const void *f = afile(picname, 0, &sz);
+            const void *g = pcx_15bit_decomp(f, &sz, 0);
+            put_picture_ex(0,0,g,title_background+6,640,480);
+            put_picture(0,0,title_background);
+            showview(0,0,0,0);
+        }
         }
      else
         {
@@ -543,9 +544,14 @@ void titles(va_list args)
   RedirectScreenBufferSecond();bar32(0,0,639,479);RestoreScreen();
   memset(title_lines,0,sizeof(title_lines));
   def_handle(H_PICTURE,"titulky.pcx",pcx_15bit_decomp,SR_BGRAFIKA);
-  alock(H_PICTURE);
   picture=ablock(H_PICTURE);
-  put_picture(0,0,picture);
+  title_background = (word *)getmem(640*480*2+6);
+  title_background[0] = 640;
+  title_background[1] = 480;
+  title_background[2] = 15;
+  put_picture_ex(0,0,picture,title_background+3,640,480);
+  put_picture(0,0,title_background);
+  picture = title_background;
   effect_show();
   titlefont=H_FBIG;
   set_font(titlefont,RGB(158,210,25));charcolors[1]=0;
@@ -594,7 +600,7 @@ void titles(va_list args)
   while (!(task_quitmsg() || (end && lcounter<=0)));
   ukaz_mysku();
   get_next_title(-1,NULL);
-  aunlock(H_PICTURE);
+  free(title_background);title_background = NULL;
   if (send_back)send_message(E_KEYBOARD,27);
   }
 
@@ -606,7 +612,7 @@ void run_titles(void)
   term_task(task_id);
   }
 
-void konec_hry(void)
+void konec_hry(const char *epilog)
   {
   int task_id;
   int timer;
@@ -623,7 +629,7 @@ void konec_hry(void)
 
   ach_event_end_game();
 
-  task_id=add_task(8196,titles,1,"ENDTEXT.TXT");
+  task_id=add_task(8196,titles,1,epilog);
   task_wait_event(E_KEYBOARD);
   if (is_running(task_id)) term_task(task_id);
   task_wait_event(E_TIMER);

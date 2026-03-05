@@ -1,10 +1,12 @@
 #include <platform/platform.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include "libs/vector.h"
 #include "types.h"
 #include "event.h"
 #include "devices.h"
 #include <malloc.h>
+#include <threads.h>
 #include <time.h>
 #include "memman.h"
 #include <setjmp.h>
@@ -51,6 +53,7 @@ int32_t taskparam;
 
 int32_t err_last_stack;
 void *err_to_go;
+
 
 
 T_EVENT_ROOT *add_event_message(T_EVENT_ROOT **tree,int msg)
@@ -310,9 +313,9 @@ void tree_basics(T_EVENT_ROOT **ev_tree,EVENT_MSG *msg)
         install_event(ev_tree,msg,proc,msg->msg==E_ADDEND);
      return;
      }
-     
+
   if (msg->msg==E_INIT)
-     {      
+     {
       q = va_arg(msg->data, initproc);
       q();
      return;
@@ -409,44 +412,6 @@ void timer(EVENT_MSG *msg)
      }
   }
 
-void tasker(EVENT_MSG *msg,void **_)
-  {
-
-
-  switch (msg->msg)
-     {
-     case E_INIT:
-/*           tasklist_sp=New(void *);
-           tasklist_low=New(void *);
-           tasklist_top=New(void *);
-           task_info=New(char);
-           taskcount=1;
-           memset(task_info,0,taskcount);*/
-           break;
-     case E_WATCH:
-     case E_IDLE:
-     default:
-           if (q_any_task()>=1)
-              task_sleep();
-           break;
-     case E_DONE:
-           {
-/*           int i;
-           memset(task_info,1,taskcount);
-           do
-              {
-              for (i=1;i<taskcount;i++)
-                 if (tasklist_sp[i]!=NULL) break;
-              if (i!=taskcount) task_sleep();
-              }
-           while (i<taskcount);
-           free(tasklist_sp);
-           free(tasklist_low);
-           free(task_info);*/
-           }
-           break;
-     }
-  }
 
 
 /*void except_free_stack(void *ptr);
@@ -468,12 +433,18 @@ void except_GPF()
 
 */
 
+static void pump_messages();
+static void message_queue_init();
+
 void init_events()
   {
   send_message(E_ADD,E_WATCH,keyboard);
   send_message(E_ADD,E_WATCH,timer);
-  send_message(E_ADD,E_WATCH,tasker);
+  message_queue_init();
   }
+
+
+
 
 static char do_events_called=0;
 
@@ -483,8 +454,11 @@ void do_events()
   if (!q_is_mastertask()) task_sleep();
   else
      {
+     pump_messages();
+     if (q_any_task()>=1) task_sleep();
      send_message(E_WATCH);
      send_message(E_IDLE);
+
      }
   }
 
@@ -504,6 +478,8 @@ void escape()
      {
      send_message(E_WATCH);
      send_message(E_IDLE);
+     pump_messages();
+     if (q_any_task()>=1) task_sleep();
      if (do_events_called==0)  ShareCPU();
      else do_events_called=0;
      }
@@ -521,3 +497,49 @@ T_EVENT_ROOT *gate_basics(EVENT_MSG *msg, void **user_data)
       tree_basics((T_EVENT_ROOT **)user_data,msg);
   return p;
   }
+
+
+
+
+typedef struct  {
+    void (*cb)(void *);
+    void *context;
+} PostedMessage;
+
+static mtx_t mutex;
+static Vector message_queue;
+
+static void message_queue_init() {
+  mtx_init(&mutex,mtx_plain);
+  vector_init(&message_queue, sizeof(PostedMessage),NULL);
+}
+
+static void push_message(PostedMessage *msg) {
+    mtx_lock(&mutex);
+    vector_push_back(&message_queue, msg);
+    mtx_unlock(&mutex);
+}
+
+static void pump_messages() {
+    mtx_lock(&mutex);
+    size_t idx = 0;
+    while (vector_size(&message_queue) > idx) {
+        PostedMessage msg = *(PostedMessage *)vector_get(&message_queue, idx);
+        mtx_unlock(&mutex);
+        msg.cb(msg.context);
+        ++idx;
+        mtx_lock(&mutex);
+    }
+    if (idx) vector_remove(&message_queue, 0, idx);
+    mtx_unlock(&mutex);    
+}
+
+void post_to_event_thread(void (*cb)(void *), void *context) {
+    PostedMessage m = {cb, context};
+    push_message(&m);
+}
+
+void destroy_events() {
+    mtx_destroy(&mutex);
+    vector_destroy(&message_queue);
+}

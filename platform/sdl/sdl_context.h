@@ -1,10 +1,11 @@
 #pragma once
 
+#include <atomic>
 #include <memory>
 #include <optional>
 #include <SDL.h>
-#include <thread>
 #include <mutex>
+#include <stop_token>
 #include <vector>
 #include <libs/mouse.h>
 #include <functional>
@@ -118,6 +119,7 @@ public:
                                const SDL_Rect &hidden_from, const SDL_Rect &hidden_where);
 
     void set_quit_callback(std::function<void()> fn);
+    void set_steam_callback(void (*cb)());
     MS_EVENT getMsEvent()  {
         std::lock_guard _(_mx);
         MS_EVENT out = ms_event;
@@ -249,6 +251,7 @@ protected:
     bool _fullscreen_mode = false;
     bool _present = false;
     bool _convert_format = false;
+    bool _burst_mode = false;
     std::atomic<bool> _key_control = false;
     std::atomic<bool> _key_shift = false;
     std::atomic<bool> _key_capslock = false;
@@ -264,6 +267,7 @@ protected:
     SDL_Point _mouse_finger;
     float _mouse_size = 1;
     SpriteList _sprites;
+    void (*_steam_callback)() = nullptr;
 
 
     int axis1_cooldown = -1;

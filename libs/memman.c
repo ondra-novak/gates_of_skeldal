@@ -113,21 +113,29 @@ void *load_file(const char *filename, size_t *sz)
 
 //--------------- BLOCK MASTER OPERATION SYSTEM --------------------------
 //--------------- part: MEMORY MANAGER -----------------------------------
+
+typedef struct tdirectory_entry {
+    char name[12];
+    int source_id;
+    int32_t seek;
+} TDIRECTORY_ENTRY;
+
+typedef struct tddl_directory {
+    TDIRECTORY_ENTRY *item;
+    unsigned int count;
+} TDDL_DIRECTORY;;
+
+
 typedef struct tnametable
         {
         char name[12];
         int32_t seek;
         }TNAMETABLE;
 
-typedef struct tnametable_ref {
-    const TNAMETABLE *data;
-    uint32_t count;
-} TNAMETABLE_REF;
 
 typedef struct ddlmap_info {
     const void *ptr;
     size_t size;
-    TNAMETABLE_REF nametable;
     char *path;
 } TDDLMAP_INFO;
 
@@ -144,6 +152,7 @@ uint32_t bk_global_counter=0;
 char *swap_path;
 
 
+
 static int test_file_exist_DOS(int group,const char *filename)
   {
      const char *f = build_pathname(2, mman_pathlist[group], filename);
@@ -153,69 +162,120 @@ static int test_file_exist_DOS(int group,const char *filename)
 
 
 
-
-#if 0
-void load_grp_table()
-  {
-  int32_t i = 0;;
-
-  SEND_LOG("(LOAD) Loading Group Table");
-  const uint32_t *src_table = (const uint32_t *)bmf_m;
-                   //fseek(bmf,4,SEEK_SET);
-  i = src_table[1];//fread(&i,4,1,bmf);
-  grptable=(int32_t *)getmem(i+4);
-                  //fseek(bmf,0,SEEK_SET);
-  grptabsiz = src_table[0];
-                 //fread(grptable,i,1,bmf);
-  grptabsiz=i;
-  for(i=0;i<(grptabsiz>>3);i++) grptable[i*2+1]=(grptable[i*2+1]-grptabsiz)>>4;
-  SEND_LOG("(LOAD) Group Table Loaded");
-  }
-#endif
-
-static TNAMETABLE_REF load_file_table(const void *bmf_m)
-  {
-  const uint32_t *src_table = (const uint32_t *)bmf_m;
-  uint32_t grptabsiz = src_table[1];
-  TNAMETABLE_REF out;
-  const TNAMETABLE *ptr = (const TNAMETABLE *)((const char *)bmf_m + grptabsiz);
-  size_t count = (ptr[0].seek - grptabsiz)/sizeof(TNAMETABLE);
-  TNAMETABLE *tbl = NewArr(TNAMETABLE, count);
-  memcpy(tbl,ptr, count * sizeof(TNAMETABLE) );
-  out.data = tbl;
-  out.count = count;
-  return out;
-  }
-
-
-int get_file_entry_in_table(const TNAMETABLE_REF *where, const char *name) {
-  for(uint32_t i = 0; i< where->count; ++i) {
-      if (istrncmp(where->data[i].name, name, 12) == 0) {
-          return where->data[i].seek;
-      }
-  }
-  return -1;
-
+static int compare_dir_entry(const void *a, const void *b) {
+    return strncmp(((const TDIRECTORY_ENTRY *)a)->name,((const TDIRECTORY_ENTRY *)b)->name,12);
 }
+
+static TDDL_DIRECTORY create_ddl_directory(const void *bmf_m, int source_id) {
+    const uint32_t *src_table = (const uint32_t *)bmf_m;
+    uint32_t grptabsiz = src_table[1];
+    const TNAMETABLE *ptr = (const TNAMETABLE *)((const char *)bmf_m + grptabsiz);
+    size_t count = (ptr[0].seek - grptabsiz)/sizeof(TNAMETABLE);
+
+    TDDL_DIRECTORY out;
+    out.item = NewArr(TDIRECTORY_ENTRY, count);
+    out.count = 0;
+    for (size_t i = 0; i < count; ++i) {
+        TDIRECTORY_ENTRY *entry = &out.item[out.count++];
+        if (ptr[i].name[0]) {
+            for (int j = 0; j < 12; ++j) {
+                char c= ptr[i].name[j];
+                if (c >= 'a' && c <='z') c = c + 'A' - 'a';
+                entry->name[j] = c;
+            }
+            entry->source_id = source_id;
+            entry->seek = ptr[i].seek;
+        }
+    }
+    qsort(out.item,out.count,sizeof(TDIRECTORY_ENTRY), compare_dir_entry);
+    return out;
+}
+
+static void clear_ddl_directory(TDDL_DIRECTORY *dir) {
+    if (dir->item) free(dir->item);
+    dir->item = NULL;
+    dir->count = 0;
+}
+
+static TDDL_DIRECTORY merge_directories(TDDL_DIRECTORY a, TDDL_DIRECTORY b) {
+    int iter_a = 0;
+    int iter_b = 0;
+    int count_a = a.count;
+    int count_b = b.count;
+    TDDL_DIRECTORY out;
+    out.item = NewArr(TDIRECTORY_ENTRY, count_a+count_b);
+    out.count = 0;
+    while (iter_a != count_a && iter_b != count_b) {
+        int cmp = compare_dir_entry(&a.item[iter_a], &b.item[iter_b]);
+        if (cmp<0) {
+            out.item[out.count++] = a.item[iter_a++];
+        } else if (cmp >0) {
+            out.item[out.count++] = b.item[iter_b++];
+        } else {
+            out.item[out.count++] = b.item[iter_b++];
+            iter_a++;
+        }
+    }
+    while (iter_a != count_a) {
+        out.item[out.count++] = a.item[iter_a++];
+    }
+    while (iter_b != count_b) {
+        out.item[out.count++] = b.item[iter_b++];
+    }
+    return out;
+}
+
+static const TDIRECTORY_ENTRY *ddl_directory_find_entry(TDDL_DIRECTORY dir, const TDIRECTORY_ENTRY *entry) {
+    return (const TDIRECTORY_ENTRY *)bsearch(entry, dir.item, dir.count, sizeof(TDIRECTORY_ENTRY), compare_dir_entry);
+}
+
+static const TDIRECTORY_ENTRY *ddl_directory_find(TDDL_DIRECTORY dir, const char *name) {
+    TDIRECTORY_ENTRY tofind;
+    for (int i = 0; i < 12; ++i) {
+        char c = name[i];
+        if (c >= 'a' && c <='z') c = c + 'A' - 'a';
+        tofind.name[i] = c;
+        if (c == 0) break;
+    }
+    return ddl_directory_find_entry(dir, &tofind);
+}
+
+static TDDL_DIRECTORY cur_ddl_directory = {0,0};
+
+static void rebuild_ddl_directory() {
+    clear_ddl_directory(&cur_ddl_directory);
+    for (int i = 0; i < MAX_PATCHES; ++i) {
+        if (ddlmap[i].ptr) {
+            TDDL_DIRECTORY curdir = create_ddl_directory(ddlmap[i].ptr, i);
+            TDDL_DIRECTORY merged = merge_directories(cur_ddl_directory, curdir);
+            clear_ddl_directory(&cur_ddl_directory);
+            clear_ddl_directory(&curdir);
+            cur_ddl_directory = merged;
+        }
+    }
+}
+
 
 
 
 char get_file_entry(int group,const char *name, THANDLE_DATA *h) {
   char ex;
 
+  if (!name || *name == 0) {
+      h->src_index = 0;
+      h->offset = 0;
+      return 1;
+  }
+
   ex=mman_patch && test_file_exist_DOS(group,name);
   if (!ex) {
-      for (int i = MAX_PATCHES; i >0 ; ) {
-          --i;
-          const TDDLMAP_INFO *nfo = &ddlmap[i];
-          if (nfo->ptr) {
-              int sk =  get_file_entry_in_table(&nfo->nametable, name);
-              if (sk >= 0) {
-                  h->src_index = i;
-                  h->offset = sk;
-                  return 1;
-              }
-          }
+      const TDIRECTORY_ENTRY *entry = ddl_directory_find(cur_ddl_directory, name);
+      if (entry) {
+        h->src_index = entry->source_id;
+        h->offset=entry->seek;
+        return 1;
+      } else {
+        return 0;
       }
   }
   return 0;
@@ -287,7 +347,6 @@ static void add_patch(const void *bmf, size_t sz, const char *filename) {
         if (ddlmap[i].ptr == NULL) {
             ddlmap[i].ptr = bmf;
             ddlmap[i].size = sz;
-            ddlmap[i].nametable = load_file_table(bmf);
             ddlmap[i].path = strdup(filename);
             return;
         }
@@ -296,11 +355,37 @@ static void add_patch(const void *bmf, size_t sz, const char *filename) {
     abort();
 }
 
+static void remap_handles() {
+    for(int i=0;i<BK_MAJOR_HANDLES;i++) if (_handles[i]!=NULL) {
+       THANDLE_DATA *p=(THANDLE_DATA *)(_handles[i]);
+       for(int j=0;j<BK_MINOR_HANDLES;j++) {
+          THANDLE_DATA *h = p+j;
+          if (h->status == BK_PRESENT && h->blockdata) {
+             if (need_to_be_free(h->blockdata)) {
+                 if (!(h->flags & BK_LOCKED)) {
+                     free((void *)h->blockdata);
+                 } else {
+                     h->flags |= BK_KILL_ON_UNLOCK;
+                 }
+             } else if (h->flags & BK_LOCKED) {
+                h->flags |= BK_KILL_ON_UNLOCK;
+             }
+             h->status = BK_NOT_LOADED;
+             h->blockdata = NULL;
+          }
+          h->offset =0;
+          get_file_entry(h->path,h->src_file,h);
+       }
+    }
+}
+
 char add_patch_file(const char *filename) {
     size_t bmf_s;
     const void *bmf = map_file_to_memory(file_icase_find(filename), &bmf_s);
     if (bmf) {
         add_patch(bmf, bmf_s, filename);
+        rebuild_ddl_directory();
+        remap_handles();
         return 1;
     }
     return 0;
@@ -312,6 +397,8 @@ void init_manager(void) {
   memset(_handles,0,sizeof(_handles));
   memset(ddlmap,0,sizeof(ddlmap));
 }
+
+
 
 void reload_ddls(void) {
     int i,j;
@@ -349,10 +436,9 @@ void reload_ddls(void) {
             }
             dinfo->ptr = bmf;
             dinfo->size = bmf_s;
-            ablock_free(dinfo->nametable.data);
-            dinfo->nametable = load_file_table(bmf);
         }
     }
+    rebuild_ddl_directory();
     for(i=0;i<BK_MAJOR_HANDLES;i++) if (_handles[i]!=NULL) {
        p=(THANDLE_DATA *)(_handles[i]);
        for(j=0;j<BK_MINOR_HANDLES;j++) {
@@ -648,9 +734,9 @@ void close_manager()
      }
   for (int i = 0; i < MAX_PATCHES; ++i) if (ddlmap[i].ptr) {
       unmap_file((void *)ddlmap[i].ptr, ddlmap[i].size);
-      ablock_free(ddlmap[i].nametable.data);
       free(ddlmap[i].path);
   }
+  clear_ddl_directory(&cur_ddl_directory);
 
   max_handle=0;
   }

@@ -19,7 +19,6 @@ add_custom_command(
 SET(files automap.c
 clk_map.c
 dialogy.c
-dump.cpp
 enemy.c
 engine1.c
 engine2.c
@@ -44,8 +43,9 @@ console.c
 gen_stringtable.c
 advconfig.c
 temp_storage.cpp
-lang.c
+launcher.c
 ach_events.c
+workshop.c
 ${CMAKE_BINARY_DIR}/resources.cpp
 )
 

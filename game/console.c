@@ -1,6 +1,6 @@
 #include <libs/bgraph.h>
 #include <libs/event.h>
-#include <platform/achievements.h>
+#include <platform/steam_c_api.h>
 #include "globals.h"
 #include "../platform/error.h"
 #include "../platform/platform.h"
@@ -459,9 +459,7 @@ static int process_actions(const char *command) {
     }
     if (istrcmp(command, "steam") == 0) {
         if (is_steam_available()) {
-            char *c = get_steam_status();;
-            wzputs(c);
-            free(c);
+            wzputs("active");
         } else {
             wzputs("N/A");
         }
@@ -574,7 +572,11 @@ static int process_with_params(const char *cmd, const char *args) {
     }
 
     if (istrcmp(cmd, "unachieve") == 0) {
-        return !clear_achievement(args);
+        char *c = strstr(console_command, args);
+        if (c != NULL)
+            return !clear_achievement(c);
+        else
+            return 0;
     }
     if (istrcmp(cmd, "talk") == 0) {
         if (args[0] == 0) return 0;

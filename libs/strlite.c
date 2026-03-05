@@ -283,3 +283,28 @@ void strlist_cat(TSTR_LIST *org, TSTR_LIST add)
   int i;
   for (i=0;i<cnt;i++) str_add(org,add[i]);
   }
+
+
+void *make_string_array(unsigned int obj_size, const char **strings, unsigned int count, char **out_table) {
+    size_t *sizes = (size_t *)alloca(sizeof(size_t)*count);
+    size_t total = obj_size;
+    for (size_t i = 0; i < count; ++i) {
+        total += sizes[i] = (strings[i]?strlen(strings[i])+1:0);
+    }
+    char *buff = (char *)malloc(total);
+    char *iter = buff+obj_size;
+    for (size_t i = 0; i < count; ++i) {
+        if (strings[i]) {
+            out_table[i] = iter;
+            memcpy(iter, strings[i], sizes[i]);
+            iter+=sizes[i];
+        } else {
+            out_table[i] = NULL;
+        }
+    }
+    return buff;
+
+
+
+
+}
