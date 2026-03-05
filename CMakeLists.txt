@@ -4,6 +4,11 @@ project(skeldal)
 # Najít SDL2 knihovnu
 find_package(SDL2 REQUIRED)
 
+set(CMAKE_CXX_STANDARD 20)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_C_STANDARD 11)
+set(CMAKE_C_STANDARD_REQUIRED ON)
+
 set(STEAMWORKS_SDK_DIR "" CACHE PATH "Path to Steamworks SDK directory")
 
 if(NOT STEAMWORKS_SDK_DIR)
@@ -21,8 +26,9 @@ if(NOT STEAMWORKS_SDK_DIR)
     endif()
 endif()
 
+
 if (MSVC)
-    add_compile_options(/W4 /EHa /DNOMINMAX /D_CRT_SECURE_NO_WARNINGS /J)
+    add_compile_options(/W4 /EHa /DNOMINMAX /D_CRT_SECURE_NO_WARNINGS /J)    
     set(STANDARD_LIBRARIES "")
 else()
     add_compile_options(-Wall -Wextra -Werror -Wno-unused-result -Wno-unused-parameter -Wno-unused-value -Wno-extern-c-compat -funsigned-char)

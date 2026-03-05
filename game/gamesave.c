@@ -2165,7 +2165,7 @@ static void save_as_dialog(int pos) {
 static TCONTINUE_GAME_INFO *current_load_continue_info = NULL;
 static char adv_save_subfolder[50] = "";
 
-static void clean_load_continue_info() {
+static void clean_load_continue_info(void) {
     free(current_load_continue_info);
 }
 

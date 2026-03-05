@@ -3,14 +3,13 @@
 #include "steam/isteamugc.h"
 #include "steam/steam_api.h"
 #include "steam/steam_api_common.h"
+#include "platform/platform.h"
 #include "steam/steamtypes.h"
 #include <algorithm>
 #include <chrono>
 #include <cstdint>
-#include <linux/limits.h>
 #include <memory>
 #include <mutex>
-#include <strings.h>
 #include <type_traits>
 #include "steamservice.hpp"
 
@@ -61,7 +60,7 @@ bool SteamService::set_achievement(const char* id) {
 bool SteamService::clear_achievement(const char* id) {
     if (!_available) return false;
     post([=] {
-        if (strcasecmp(id, "all") == 0) {
+        if (istrcmp(id, "all") == 0) {
             unsigned int cnt = SteamUserStats()->GetNumAchievements();
             for (unsigned int i = 0; i < cnt; ++i) {
                 SteamUserStats()->ClearAchievement(SteamUserStats()->GetAchievementName(i));
@@ -240,7 +239,7 @@ public:
         uint64 size_on_disk;
         uint32 timestamp;
 
-        char folder_buffer[PATH_MAX];
+        char folder_buffer[4096];
 
 
         _owners.resize(result->m_unNumResultsReturned);

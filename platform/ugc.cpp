@@ -2,6 +2,7 @@
 #include "config.h"
 
 #include <algorithm>
+#include <array>
 #include <ranges>
 #include <span>
 #include <system_error>
@@ -217,13 +218,13 @@ void UGC_GetList(const char *ugc_user_path,
             }
             post_to_event_thread([](void *ctx){
                 UGCGetContext *st = (UGCGetContext *)ctx;
-                st->callback(st->items.data(), st->items.size(), st->context);
+                st->callback(st->items.data(), static_cast<unsigned int>(st->items.size()), st->context);
                 delete st;
             }, st);
         });
         return;
     }
 #endif
-    ctx.callback(ctx.items.data(), ctx.items.size(), ctx.context);
+    ctx.callback(ctx.items.data(), static_cast<unsigned int>(ctx.items.size()), ctx.context);
 }
 

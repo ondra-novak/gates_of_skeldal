@@ -39,11 +39,13 @@ const void *temp_storage_get_binary(TMPFILE_RD *f, uint32_t size, uint32_t *retr
 void temp_storage_skip(TMPFILE_RD *f, int bytes);
 
 #ifdef _MSC_VER
-#define __attribute__(__VA_ARG__)
+#define GCC_ATTRIBUTE(__VA_ARG__)
+#else
+#define GCC_ATTRIBUTE __attribute__(__VA_ARG__)
 #endif
 
 int *temp_storage_internal_skip_ptr(TMPFILE_RD *f);
-int temp_storage_internal_begin_scanf(TMPFILE_RD *f, const char *format, ... ) __attribute__((format(scanf, 2, 3)));
+int temp_storage_internal_begin_scanf(TMPFILE_RD *f, const char *format, ... ) GCC_ATTRIBUTE((format(scanf, 2, 3)));
 int temp_storage_internal_end_scanf(TMPFILE_RD *f, int r);
 
 

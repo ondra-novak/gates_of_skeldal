@@ -309,8 +309,9 @@ static char check_valid_item(TLAUNCHER_ITEM *itm){
             fclose(f);
             return 1;
         }
+        return 0;
     }
-    return 0;
+    return 1;
 }
 
 TCONTINUE_GAME_INFO *run_launcher() {

@@ -142,13 +142,13 @@ int add_task(int ,TaskerFunctionName fcname,...) {
        new_task->resume_flag = false;
        try {
         fcname(args);
-        va_end(args);
         clean_up_current_task();
        } catch (...) {
         crash_task_exception();
        }
     });
     switch_to_task(new_task);
+    va_end(args);
     return id;
 }
 
