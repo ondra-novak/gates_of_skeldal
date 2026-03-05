@@ -19,7 +19,6 @@ add_custom_command(
 SET(files automap.c
 clk_map.c
 dialogy.c
-dump.cpp
 enemy.c
 engine1.c
 engine2.c

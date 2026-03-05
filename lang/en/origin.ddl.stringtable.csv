@@ -1,0 +1,650 @@
+File,Node,Original,Translated
+item,0:n,Kutna,Cloth Armor 
+item,0:d,obrana 2-3,Defense 2-3
+item,1:n,Kožená vesta,Leather Vest 
+item,1:d,obrana 3-4,Defense 3-4
+item,2:n,Kroužková zbroj,Chainmail Armor 
+item,2:d,obrana 4-6,Defense 4-6
+item,3:n,Plátové brnění,Plate Armor 
+item,3:d,obrana 6-8,Defense 6-8
+item,4:n,Rytířská zbroj,Knight's Armor 
+item,4:d,obrana 10-12,Defense 10-12
+item,5:n,Brnění z oceli Avalonů,Avalon Steel Armor 
+item,5:d,"obrana 16-22, živly +30%","Defense 16-22, Elements +30%"
+item,6:n,Dýka,Dagger 
+item,6:d,útok 2-3,Attack 2-3
+item,7:n,Hůl,Staff 
+item,7:d,"útok 3-5, obrana 2-4","Attack 3-5, Defense 2-4"
+item,8:n,Velké válečné kladivo,Great War Hammer 
+item,8:d,"útok 12-15, obrana 1-2","Attack 12-15, Defense 1-2"
+item,9:n,Kopí,Spear 
+item,9:d,"útok 5-7, obrana 2-4","Attack 5-7, Defense 2-4"
+item,10:n,Kuše,Crossbow 
+item,10:d,útok 10-14,Attack 10-14
+item,11:n,Kyj,Mace 
+item,11:d,"útok 7-8, obrana +2","Attack 7-8, Defense +2"
+item,12:n,Luk,Bow 
+item,12:d,útok 8-12,Attack 8-12
+item,13:n,Meč,Sword 
+item,13:d,"útok 5-7, obrana 2-3","Attack 5-7, Defense 2-3"
+item,14:n,Meč Bastard,Bastard Sword 
+item,14:d,"útok 11-13, obrana 2-3","Attack 11-13, Defense 2-3"
+item,15:n,Obouruční meč,Two-Handed Sword 
+item,15:d,"útok 15-17, obrana +2","Attack 15-17, Defense +2"
+item,16:n,Řemdih,Flail 
+item,16:d,útok 7-9,Attack 7-9
+item,17:n,Šavle,Saber 
+item,17:d,"útok 6-7, obrana 2-3","Attack 6-7, Defense 2-3"
+item,18:n,Jednobřitá sekyra,Single-Edged Axe 
+item,18:d,"útok 6-8, obrana +1","Attack 6-8, Defense +1"
+item,19:n,Dvoubřitá sekyra,Double-Edged Axe 
+item,19:d,"útok 10-12, obrana +1","Attack 10-12, Defense +1"
+item,20:n,Šíp,Arrow
+item,20:d,,
+item,21:n,Nízké kožené boty,Low Leather Boots 
+item,21:d,obrana +1,Defense +1
+item,22:n,Vysoké kožené boty,High Leather Boots 
+item,22:d,obrana +2,Defense +2
+item,23:n,Zpevněné boty,Reinforced Boots 
+item,23:d,obrana +3,Defense +3
+item,24:n,Boty s pláty oceli ,Boots with Steel Plates 
+item,24:d,obrana 4-5,Defense 4-5
+item,25:n,Boty z oceli Avalonů,Avalon Steel Boots 
+item,25:d,"obrana 5-7, živly +10%","Defense 5-7, Elements +10%"
+item,26:n,Dřevěný štít,Wooden Shield 
+item,26:d,obrana +2,Defense +2
+item,27:n,Skřetí štít,Orc Shield 
+item,27:d,obrana 3-4,Defense 3-4
+item,28:n,Železný štít,Iron Shield 
+item,28:d,obrana 4-6,Defense 4-6
+item,29:n,Rytířský štít,Knight's Shield 
+item,29:d,obrana 6-8,Defense 6-8
+item,30:n,Štít z oceli Avalonů,Avalon Steel Shield 
+item,30:d,"obrana 12-16, živly +10%","Defense 12-16, Elements +10%"
+item,31:n,Kožená čapka,Leather Cap 
+item,31:d,obrana 1-2,Defense 1-2
+item,32:n,Meč z oceli Avalonů,Avalon Steel Sword 
+item,32:d,"útok 30-45, živly +10%, obr. +5","Attack 30-45, Elements +10%, Def. +5"
+item,33:n,Kovová helma,Metal Helmet 
+item,33:d,obrana 2-3,Defense 2-3
+item,34:n,Rytířská helma,Knight's Helmet 
+item,34:d,obrana 3-4,Defense 3-4
+item,35:n,Helma z oceli Avalonů,Avalon Steel Helmet 
+item,35:d,"obrana 6-7, živly +10%","Defense 6-7, Elements +10%"
+item,36:n,Balíček jídla,Food Pack
+item,36:d,,
+item,37:n,Stehno,Thigh
+item,37:d,,
+item,38:n,Chléb,Bread
+item,38:d,,
+item,39:n,Léčivý lektvar,Healing Potion
+item,39:d,,
+item,40:n,Mana lektvar,Mana Potion
+item,40:d,,
+item,41:n,Svitek,Scroll
+item,41:d,,
+item,42:n,Paklíče,Lock Picks
+item,42:d,,
+item,43:n,Kniha,Book
+item,43:d,,
+item,44:n,Voda,Water
+item,44:d,,
+item,45:n,Dračí slza,Dragon Tear 
+item,45:d,"síla +10, obr.+6, oheň+15%, reg","Strength +10, Def. +6, Fire +15%, Regen"
+item,46:n,Zlodějova hvězda,Thief's Star 
+item,46:d,"obratnost +10, obrana +4, reg.","Dexterity +10, Defense +4, Regen"
+item,47:n,Mágovo oko,Mage's Eye 
+item,47:d,"magie +10, mana +25, živly +10%","Magic +10, Mana +25, Elements +10%"
+item,48:n,Kříž,Cross Protection Talisman
+item,48:d,ochraný talisman,
+item,49:n,Roh jednorožce,Unicorn Horn
+item,49:d,,
+item,50:n,Danmierův meč,Danmier's Sword 
+item,50:d,"útok 11-13, obr. +5, oheň +25%","Attack 11-13, Def. +5, Fire +25%"
+item,51:n,Bandalír,Bandolier 
+item,51:d,obsah 6,Capacity 6
+item,52:n,Vak,Sack 
+item,52:d,obsah 12,Capacity 12
+item,53:n,Velký vak,Large Sack 
+item,53:d,obsah 18,Capacity 18
+item,54:n,Magická truhla,Magic Chest 
+item,54:d,obsah 24,Capacity 24
+item,55:n,Missile 1,Missile 1 
+item,55:d,o10-15,10-15
+item,56:n,Missile 2,Missile 2 
+item,56:d,15-20,15-20
+item,57:n,Missile 3,Missile 3 
+item,57:d,o20-25,20-25
+item,58:n,Fireball 1,Fireball 1 
+item,58:d,"3-5,o4-8","3-5, 4-8"
+item,59:n,Fireball 2,Fireball 2 
+item,59:d,"6-8,o8-12","6-8, 8-12"
+item,60:n,Fireball 3,Fireball 3 
+item,60:d,"9-11,o12-16","9-11, 12-16"
+item,61:n,Ohnivý meč,Fire Sword 
+item,61:d,"oheň 8-10, obr. 2-3","Fire 8-10, Def. 2-3"
+item,62:n,Ohnivý meč,Fire Sword 
+item,62:d,"oheň 10-14, obr. 2-3","Fire 10-14, Def. 2-3"
+item,63:n,Ohnivý meč,Fire Sword 
+item,63:d,"oheň 16-20, obr 2-3","Fire 16-20, Def. 2-3"
+item,64:n,Blesk 1,Lightning 1 
+item,64:d,"1-2,6-8","1-2, 6-8"
+item,65:n,Blesk 2,Lightning 2 
+item,65:d,"2-3,12-14","2-3, 12-14"
+item,66:n,Blesk 3,Lightning 3 
+item,66:d,"3-4,18-20","3-4, 18-20"
+item,67:n,Svitek - Fregharova zpráva,Scroll - Freghar's Message
+item,67:d,,
+item,68:n,Hořící louč,Burning Torch
+item,68:d,,
+item,69:n,Víno,Wine
+item,69:d,,
+item,70:n,Peníze,Money 
+item,70:d,5,5
+item,71:n,Peníze 2,Money 2 
+item,71:d,30,30
+item,72:n,Skřetí poklad,Orc Treasure
+item,72:d,,
+item,73:n,Magická hůl,Magic Staff 
+item,73:d,"útok 4-6, obrana 2-3, mana +20","Attack 4-6, Defense 2-3, Mana +20"
+item,74:n,Bojová magická hůl,Battle Magic Staff 
+item,74:d,"útok 8-12, obrana 4-6, mana +40","Attack 8-12, Defense 4-6, Mana +40"
+item,75:n,Kowernigova hůl,Kowemig's Staff 
+item,75:d,"Mysl 7-11, obrana +5, mana +60","Mind 7-11, Defense +5, Mana +60"
+item,76:n,Krumpáč,Pickaxe 
+item,76:d,"útok 4-7, obrana 1-2","Attack 4-7, Defense 1-2"
+item,77:n,Fireball,Fireball
+item,77:d,,
+item,78:n,Zrychlení,Haste
+item,78:d,,
+item,79:n,Magická střela,Magic Missile
+item,79:d,,
+item,80:n,Ohnivý meč,Fire Sword
+item,80:d,,
+item,81:n,Oslepení,Blind
+item,81:d,,
+item,82:n,Berserkr,Berserker
+item,82:d,,
+item,83:n,Vzplanutí,Ignite
+item,83:d,,
+item,84:n,Voda,Water
+item,84:d,,
+item,85:n,Ledový dech,Ice Breath
+item,85:d,,
+item,86:n,Obranyschopnost,Defense
+item,86:d,,
+item,87:n,Ledová krev,Ice Blood
+item,87:d,,
+item,88:n,Vykrvácení,Bleeding
+item,88:d,,
+item,89:n,Hlubina,Abyss
+item,89:d,,
+item,90:n,Vzetí energie,Energy Drain
+item,90:d,,
+item,91:n,Chléb,Bread
+item,91:d,,
+item,92:n,Léčivý dotyk,Healing Touch
+item,92:d,,
+item,93:n,Oko za oko,Eye for an Eye
+item,93:d,,
+item,94:n,Chvění,Quake
+item,94:d,,
+item,95:n,Reinkarnace,Reincarnation
+item,95:d,,
+item,96:n,Zdroj many,Mana Source
+item,96:d,,
+item,97:n,Nastav tvář,Deflecting Stance
+item,97:d,,
+item,98:n,Blesk,Lightning
+item,98:d,,
+item,99:n,Stav nepřítele,Enemy Status
+item,99:d,,
+item,100:n,Smrtící dech,Death Breath
+item,100:d,,
+item,101:n,Teleportace,Teleportation
+item,101:d,,
+item,102:n,Drcení,Crushing
+item,102:d,,
+item,103:n,Držení,Holding
+item,103:d,,
+item,104:n,Váhy osudu,Scales of Fate
+item,104:d,,
+item,105:n,Lektvar - bílý,Potion � White
+item,105:d,,
+item,106:n,Automaping,Automapping
+item,106:d,,
+item,107:n,Připojení,Connection
+item,107:d,,
+item,108:n,Mentální útok,Mental Attack
+item,108:d,,
+item,109:n,Neviditelnost,Invisibility
+item,109:d,,
+item,110:n,Skutečné vidění,True Sight
+item,110:d,,
+item,111:n,Odolnost proti magii,Magic Resistance
+item,111:d,,
+item,112:n,Démon,Demon
+item,112:d,,
+item,113:n,Elfí luk,Elven Bow 
+item,113:d,útok 10-16,Attack 10-16
+item,114:n,Topas,Topaz
+item,114:d,,
+item,115:n,Smaragd,Emerald
+item,115:d,,
+item,116:n,Granát,Garnet
+item,116:d,,
+item,117:n,Diamant,Diamond
+item,117:d,,
+item,118:n,Dlouhá sekyra,Long Axe 
+item,118:d,"útok 13-16, obrana +1","Attack 13-16, Defense +1"
+item,119:n,Vrhací nůž,Throwing Knife 
+item,119:d,útok 5-8,Attack 5-8
+item,120:n,Kamenné kladivo,Stone Hammer 
+item,120:d,"útok 4-6, obrana +1","Attack 4-6, Defense +1"
+item,121:n,Železné kladivo,Iron Hammer 
+item,121:d,"útok 7-10, obrana +1","Attack 7-10, Defense +1"
+item,122:n,Toulec s patnácti šípy,Quiver with Fifteen Arrows
+item,122:d,,
+item,123:n,Svitek s heslem,Scroll with Password
+item,123:d,Dar od mluvícího stromu,Gift from the Talking Tree
+item,124:n,Zlatý klíč,Golden Key
+item,124:d,,
+item,125:n,Kmen stromu,Tree Trunk
+item,125:d,,
+item,126:n,Lektvar,Potion Green
+item,126:d,zelený,
+item,127:n,Lektvar zrychlení,Haste Potion
+item,127:d,,
+item,128:n,Lektvar berserker,Berserker Potion
+item,128:d,,
+item,129:n,Lektvar chladu,Chill Potion
+item,129:d,,
+item,130:n,Stříbrný džbán,Silver Jug Empty
+item,130:d,prázdný,
+item,131:n,Zlatý džbán,Golden Jug Empty
+item,131:d,prázdný,
+item,132:n,Stříbrný džbán,Silver Jug
+item,132:d,Naplněný vodou z pramene smrti,Filled from Spring of Death
+item,133:n,Zlatý džbán,Golden Jug
+item,133:d,Naplněný vodou z pramene života,Filled from the Spring of Life
+item,134:n,Houba,Mushroom
+item,134:d,,
+item,135:n,Kožich z tworga,Tworg Fur Coat 
+item,135:d,"obrana 3-4, chrání před chladem","Defense 3-4, Cold resistance"
+item,136:n,Kůže z tworga,Tworg Hide 
+item,136:d,nezpracovaná kůže,Untreated
+item,137:n,Kamený nůž,Stone Knife
+item,137:d,,
+item,138:n,Kamený náhrdelník,Stone Necklace
+item,138:d,,
+item,139:n,Kamený prsten,Stone Ring
+item,139:d,,
+item,140:n,Kamený štít,Stone Shield
+item,140:d,,
+item,141:n,Flétna,Flute
+item,141:d,,
+item,142:n,Měchýř z Balsenské ryby,Balsen Fish Bladder
+item,142:d,,
+item,143:n,Posvátný strom,Sacred Tree
+item,143:d,,
+item,144:n,Grál,Graal
+item,144:d,ochraný artefakt,Protection Artifact
+item,145:n,Ohnivý kruh,Fire Ring
+item,145:d,protekce oheň +40%,Fire Protection +40%
+item,146:n,Peníze 3,Money 3
+item,146:d,60,60
+item,147:n,Koule,Orb
+item,147:d,,
+item,148:n,Věčný oheň,Eternal Fire
+item,148:d,,
+item,149:n,Větrné kladivo,Wind Hammer
+item,149:d,,
+item,150:n,Srdce země,Heart of the Earth
+item,150:d,,
+item,151:n,Voda z fontány královny Mithel,Queen Mithel's Water
+item,151:d,,
+item,152:n,Svitek myšlenky vítězství,Scroll of Thought of Victory
+item,152:d,,
+item,153:n,Meč Odplaty,Sword of Retribution
+item,153:d,zbraň s posláním,Quest item
+item,154:n,Svitek - bardova rada,Scroll - Bard's Advice
+item,154:d,,
+item,155:n,Svitek - stvoření Tiroka,Scroll - Creation of Tirok
+item,155:d,,
+item,156:n,Svitek - příprava mrtvého,Scroll - Preparation of the Dead
+item,156:d,,
+item,157:n,Grimoár k vyvolání démona,Grimoire to Summon a Demon
+item,157:d,,
+item,158:n,Drakobijec,Dragon Slayer 
+item,158:d,"útok 13-15, oheň 11-18, obr. +1","Attack 13-15, Fire 11-18, Def. +1"
+item,159:n,Meč na duchy,Sword for Ghosts 
+item,159:d,"útok 7-9, mysl 8-12, obrana +2","Attack 7-9, Mind 8-12, Defense +2"
+item,160:n,Thorovo kladivo,Thor's Hammer 
+item,160:d,"útok 9-11, vzduch 9-13, obr. +3","Attack 9-11, Air 9-13, Def. +3"
+item,161:n,Dlouhé válečné kopí,Long War Spear 
+item,161:d,"útok 5-7, obrana 3-5","Attack 5-7, Defense 3-5"
+item,162:n,Sekyra s požehnáním Enekra,Axe with Enekra's Blessing 
+item,162:d,"útok 10-12, země 9-14, ochr. +2","Attack 10-12, Earth 9-14, Prot. +2"
+item,163:n,Zničená sekyra,Destroyed Axe
+item,163:d,,
+item,164:n,Zničený štít,Destroyed Shield
+item,164:d,,
+item,165:n,Kosa,Scythe 
+item,165:d,útok 7-8,Attack 7-8
+item,166:n,Magická kutna,Magic Tunic 
+item,166:d,"obrana +5, živly +10%","Defense +5, Elements +10%"
+item,167:n,Kowernigova kutna,Kowemig's Tunic 
+item,167:d,"obrana +8, živly +20%","Defense +8, Elements +20%"
+item,168:n,Urtwasův luk,Urtwas' Bow 
+item,168:d,"útok 9-11, vzduch 8-10","Attack 9-11, Air 8-10"
+item,169:n,Shatrova kuše,Shater's Crossbow 
+item,169:d,"útok 9-13, vzduch 10-12","Attack 9-13, Air 10-12"
+item,170:n,Helmice neviditelnosti,Helmet of Invisibility
+item,170:d,neviditelnost,
+item,171:n,Lektvar síly,Potion of Strength
+item,171:d,,
+item,172:n,Durnikův štít,Durnik's Shield 
+item,172:d,znižuje zásah na polovinu,Reduces Damage by Half
+item,173:n,Povzbuzující lektvar,Invigorating Potion
+item,173:d,,
+item,174:n,Štít boží ruky,Shield of the Divine Hand 
+item,174:d,omezuje nemagický zásah na 18,Physical Damage Cap: 18
+item,175:n,Démonův poslední den,Demon's Last Day 
+item,175:d,"útok 12-16, mysl 18-24, obr. +1","Attack 12-16, Mind 18-24, Def. +1"
+item,176:n,Temný úsvit,Dark Dawn 
+item,176:d,"útok 14-18, země 20-26","Attack 14-18, Earth 20-26"
+item,177:n,Sopečný štít,Volcanic Shield 
+item,177:d,"obrana 4-7, voda +12%","Defense 4-7, Water +12%"
+item,178:n,Shaterova kožená vesta,Shater's Leather Vest 
+item,178:d,"obrana 5-7, vzduch +10%","Defense 5-7, Air +10%"
+item,179:n,Svěcená rytířská zbroj,Consecrated Knight's Armor 
+item,179:d,"obrana 12-14, živly +25%","Defense 12-14, Elements +25%"
+item,180:n,Tvrzené plátové brnění,Hardened Plate Armor 
+item,180:d,"obrana 5-8, oheň 20%","Defense 5-8, Fire +20%"
+item,181:n,Danmierova kroužková košile,Danmier's Chainmail Shirt 
+item,181:d,"obrana 5-7, země +15%","Defense 5-7, Earth +15%"
+item,182:n,Boty z kůže vodního hada,Boots from Water Snake Skin 
+item,182:d,"obrana +2, voda +10%","Defense +2, Water +10%"
+item,183:n,Štít z margesového dřeva,Shield from Marges Wood 
+item,183:d,"obrana +3, oheň +15%","Defense +3, Fire +15%"
+item,184:n,Helmice s paegasími brky,Helmet with Pegasus Feathers 
+item,184:d,"obrana +2, vzduch +10%","Defense +2, Air +10%"
+item,185:n,Urtwasův vrhací nůž,Urtwas' Throwing Knife 
+item,185:d,"útok 5-8, vzduch 6-10","Attack 5-8, Air 6-10"
+shop,3,Mistr zbrojíř,Swordsmith
+shop,4,Kožešník,Furrier
+shop,5,Alchymista,Alchemist
+shop,6,Hospodský,Innkeeper
+shop,8,Zlatník,Goldsmith
+shop,9,Učitel magie,Mage
+shop,10,Trhovec,Trader
+spell,0,Fireball,Fireball
+spell,3,Zrychlení,Acceleration
+spell,6,Magická střela,Magic Missile
+spell,9,Ohnivý meč,Fire Sword
+spell,12,Oslepení,Blinding
+spell,15,Berserkr,Berserker
+spell,18,Vzplanutí,Incineration
+spell,21,Voda,Water
+spell,24,Ledový dech,Icy Breath
+spell,27,Obranyschopnost,Defense
+spell,30,Ledová krev,Ice Blood
+spell,33,Vykrvácení,Bleeding
+spell,36,Hlubina,Abyss
+spell,39,Vysátí energie,Energy Drain
+spell,42,Chléb,Bread
+spell,45,Léčivý dotyk,Healing Touch
+spell,48,Oko za oko,Eye for an Eye
+spell,51,Chvění,Quake
+spell,54,Reinkarnace,Reincarnation
+spell,57,Zdroj many,Mana Source
+spell,60,Nastav tvář,Deflecting Stance
+spell,63,Blesk,Lightning
+spell,66,Stav nepřítele,Enemy Status
+spell,69,Smrtící dech,Deadly Breath
+spell,72,Teleportace,Teleportation
+spell,75,Drcení,Crushing
+spell,78,Držení,Holding
+spell,81,Váhy osudu,Scales of Fate
+spell,84,Automaping,Automapping
+spell,87,Připojení,Gathering
+spell,90,Mentální útok,Mental Attack
+spell,93,Neviditelnost,Invisibility
+spell,96,Skutečné vidění,True Seeing
+spell,99,Odolnost proti magii,Magic Resistance
+spell,102,Démon,Demon
+POPISY.TXT,0,"Nahrávám level ""%s"".","A connected controller has been found
+To activate the controller, press any button on the controller"
+POPISY.TXT,2,SÍLA: %d-%d,STRENGTH: %d-%d
+POPISY.TXT,3,U.MAG: %d-%d,MAGIC: %d-%d
+POPISY.TXT,4,POHYB: %d-%d,SPEED: %d-%d
+POPISY.TXT,5,OBRAT: %d-%d,DEXTERITY: %d-%d
+POPISY.TXT,7,INTRO.MGF,INTRO.MGF 
+POPISY.TXT,8,Vlož CD 'BRÁNY SKELDALU' do mechaniky,Insert CD 'GATES OF SKELDAL' into drive
+POPISY.TXT,9,"ENTER = Opakuj, ESC = Storno","ENTER = Repeat, ESC = Cancel"
+POPISY.TXT,10,Síla,Strength
+POPISY.TXT,11,Umění magie,Magic
+POPISY.TXT,12,Pohyblivost,Speed
+POPISY.TXT,13,Obratnost,Dexterity
+POPISY.TXT,14,Životy,Lives
+POPISY.TXT,15,Kondice,Condition
+POPISY.TXT,16,Mana,Mana
+POPISY.TXT,17,Obrana,Defense
+POPISY.TXT,18,Útok,Attack
+POPISY.TXT,19,Bonus,Bonus
+POPISY.TXT,20,Akce,Action
+POPISY.TXT,21,Ochrany:,Protections:
+POPISY.TXT,22,Oheň,Fire
+POPISY.TXT,23,Voda,Water
+POPISY.TXT,24,Země,Earth
+POPISY.TXT,25,Vzduch,Air
+POPISY.TXT,26,Mysl,Mind
+POPISY.TXT,30,Zk.,Exp.
+POPISY.TXT,31,Úroveň,Level
+POPISY.TXT,32,POSTUP,PROGRESS
+POPISY.TXT,33,Zbývá,Remaining
+POPISY.TXT,35,Toto se do dovnitř nevejde,This won't fit inside.
+POPISY.TXT,36,Není již více místa.,There is no more space.
+POPISY.TXT,37,%s je příliš daleko. %s na nej nemůže seslat kouzlo.,%s is too far. %s cannot cast a spell on him.
+POPISY.TXT,38,%s je příliš daleko. %s na ní nemůže seslat kouzlo.,%s is too far. %s cannot cast a spell on her.
+POPISY.TXT,40,%d,%d
+POPISY.TXT,41,Útok,Attack
+POPISY.TXT,42,Přesun,Move
+POPISY.TXT,43,Zrušení,Cancel
+POPISY.TXT,44,Útěk,Escape
+POPISY.TXT,45,Přezbrojení,Rearm
+POPISY.TXT,46,Stát,Wait
+POPISY.TXT,47,Magie,Magic
+POPISY.TXT,48,Start,Start
+POPISY.TXT,49,Házet,Throw
+POPISY.TXT,50,Probíhá souboj,Combat in Progress
+POPISY.TXT,51,Celkově Hudba  Zvuky  Výšky  Basy   XBasy,Overall  Music Sounds  Treble Bass   Speed
+POPISY.TXT,52,Nastavení sterea (Ultrasound),Stereo Settings (Ultrasound)
+POPISY.TXT,53,Prohoď strany,Swap Sides
+POPISY.TXT,54,Výstupni filtr (SBPro),Output Filter (SBPro)
+POPISY.TXT,55,Chození,Walking
+POPISY.TXT,56,Skoky,Jumping
+POPISY.TXT,57,Rychle,Fast
+POPISY.TXT,58,Pomalu,Slow
+POPISY.TXT,59,Otáčení,Turning
+POPISY.TXT,60,Můžeš udělat %d krok.,You can take %d step.
+POPISY.TXT,61,Můžeš udělat %d kroky.,You can take %d steps.
+POPISY.TXT,62,Můžeš udělat %d kroků.,You can take %d steps.
+POPISY.TXT,63,Stiskni ENTER až budeš hotov.,Press ENTER when ready.
+POPISY.TXT,65,Nikdo z tvé družiny již nemůže pokračovat ve hře. KONEC HRY.,None of your party can continue. GAME OVER.
+POPISY.TXT,66,Je potřeba počkat na ostatní.,You need to wait for others.
+POPISY.TXT,67,Někdo z tvé družiny má hlad.,Someone in your party is hungry.
+POPISY.TXT,68,Někdo z tvé družiny má žízeň,Someone in your party is thirsty.
+POPISY.TXT,69,Jídlo,Food
+POPISY.TXT,70,Voda,Water
+POPISY.TXT,71,Počet prospaných hodin: %d,Hours slept: %d
+POPISY.TXT,72,%s nemá žádné šípy.,%s has no arrows.
+POPISY.TXT,73,%s zahynul v magické bouři.,%s perished in a magic storm.
+POPISY.TXT,74,%s zahynula v magické bouři.,%s perished in a magic storm.
+POPISY.TXT,75,<prázdná pozice>,<empty slot>
+POPISY.TXT,76,Opravdu si přeješ ukončit hru BRÁNY SKELDALU?,Are you sure you want to quit GATES OF SKELDAL?
+POPISY.TXT,77,Ano,Yes
+POPISY.TXT,78,Ne,No
+POPISY.TXT,79,Tato pozice je bohužel poškozena. Vyber jinou.,This slot is corrupted. Choose another.
+POPISY.TXT,80,Ok,Ok
+POPISY.TXT,81,V souboji nelze ukládat hru. Nejprve dokonči souboj.,You cannot save during combat. Finish the combat first.
+POPISY.TXT,82,%s má v obou rukou použitelné zbraně. Jakou zbraň má použít?,%s has usable weapons in both hands. Which weapon to use?
+POPISY.TXT,83,V levé ruce,Left hand
+POPISY.TXT,84,V pravé ruce,Right hand
+POPISY.TXT,85,Kouzlo teleportace selhalo!,Teleportation spell failed!
+POPISY.TXT,86,"%s má plné ruce, a proto se kouzlo nezdařilo!","%s's hands are full, therefore the spell failed!"
+POPISY.TXT,87,"Místo, kde stojí %s je chráněno magickým štítem. Postavu nelze přivolat",The place where %s stands is protected by a magic shield. The character cannot be summoned.
+POPISY.TXT,88,Cílové místo je chráněno magickým štítem. Kouzlo teleportace se nezdařilo.,The target location is protected by a magic shield. The teleportation spell failed.
+POPISY.TXT,89,"Některé postavy  stojí na  místě, které  je chráněno magickým štítem. Tyto postavy nelze přivolat.",Some characters stand on a location protected by a magic shield. These characters cannot be summoned.
+POPISY.TXT,90,Bonusy zbraní:,Weapon bonuses:
+POPISY.TXT,91,Meč:,Sword:
+POPISY.TXT,92,Sekera:,Axe:
+POPISY.TXT,93,Kladivo:,Hammer:
+POPISY.TXT,94,Hůl:,Staff:
+POPISY.TXT,95,Dýka:,Dagger:
+POPISY.TXT,96,Střelné:,Ranged:
+POPISY.TXT,97,Specialní:,Special:
+POPISY.TXT,98,Uložit hru jako,Save game as
+POPISY.TXT,100,Nebudu kupovat zajíce v pytli!,I won't buy a pig in a poke!
+POPISY.TXT,101,Stojí %d zl. Souhlasíš?,It costs %d gold. Do you agree?
+POPISY.TXT,102,Za to ti dám %d zl. Souhlasíš?,I'll give you %d gold for it. Do you agree?
+POPISY.TXT,103,U tohle nemám zájem.,I'm not interested in this.
+POPISY.TXT,104,Tolik peněz u sebe nemáme.,We don't have that much money.
+POPISY.TXT,111,Tvá postava by se měla nějak jmenovat! Napiš její jméno na klávesnici.,Your character should have a name! Type it on the keyboard.
+POPISY.TXT,113,"Opravdu si přeješ vrátit se do úvodní nabídky? Volba ""ano"" navíc vymaže všechny nadefinované postavy!","Are you sure you want to return to the main menu? Choosing ""yes"" will also delete all defined characters!"
+POPISY.TXT,114,Ano,Yes
+POPISY.TXT,115,Ne,No
+POPISY.TXT,116,Opravdu si přeješ vymazat navolené postavy a začít znovu?,Are you sure you want to delete the selected characters and start again?
+POPISY.TXT,117,Opravdu si přeješ vymazat vybranou postavu?,Are you sure you want to delete the selected character?
+POPISY.TXT,118,AN,AN 
+POPISY.TXT,120,"Místní stráž nemá v lásce  žebráky spící na ulici. Bude lépe, najmout si pokoj v hostinci.",The local guard doesn't like beggars sleeping on the street. It would be better to rent a room at the inn.
+POPISY.TXT,121,Nemáte představu o tom jak opustit toto místo.,You have no idea how to leave this place.
+POPISY.TXT,130,Našli jste novou runu!,You found a new rune!
+POPISY.TXT,131,Na zemi ležela jedna zlatá mince!,There was a gold coin lying on the ground!
+POPISY.TXT,132,Na zemi ležely %d zlaté mince!,There were %d gold coins lying on the ground!
+POPISY.TXT,133,Na zemi leželo %d zlatých mincí!,There were %d gold coins lying on the ground!
+POPISY.TXT,134,Rozpadlo se to v prach!,It crumbled to dust!
+POPISY.TXT,135,%d strana,Page %d
+POPISY.TXT,136,strana %d,Page %d
+POPISY.TXT,140,Zobrazuj jména,Show Names
+POPISY.TXT,141,Přeskupuj portréty,Rearrange Portraits
+POPISY.TXT,142,Automatický útok,Auto Attack
+POPISY.TXT,143,Automatické ukládání,Auto Save
+POPISY.TXT,144,Nahrát vše do paměti,Speed up battles
+POPISY.TXT,145,Délka dobrodružství:,Adventure Length:
+POPISY.TXT,146,%d den a,%d day and
+POPISY.TXT,147,%d dny a,%d days and
+POPISY.TXT,148,%d dnu a,%d days and
+POPISY.TXT,149,%d mesic a,%d month and
+POPISY.TXT,150,%d měsíce a,%d months and
+POPISY.TXT,151,%d měsíců a,%d months and
+POPISY.TXT,152,%02d:%02d,%02d:%02d
+POPISY.TXT,153,%s,%s
+POPISY.TXT,154,%s uspěšně odemkl zámek.,%s successfully unlocked the lock.
+POPISY.TXT,155,%s uspěšně odemkla zámek.,%s successfully unlocked the lock.
+POPISY.TXT,156,%s neuspěl při pokusu odemknout zámek paklíčem.,%s failed to unlock the lock with lock picks.
+POPISY.TXT,157,%s neuspěla při pokusu odemknout zámek paklíčem.,%s failed to unlock the lock with lock picks.
+POPISY.TXT,158,%s zničil všechny paklíče při pokusu odemknout zámek.,%s destroyed all lock picks trying to unlock the lock.
+POPISY.TXT,159,%s zničila všechny paklíče při pokusu odemknout zámek.,%s destroyed all lock picks trying to unlock the lock.
+POPISY.TXT,160,Wag,Wag
+POPISY.TXT,161,Sir Rogen,Sir Rogen
+POPISY.TXT,162,Yardus,Yardus
+POPISY.TXT,163,Lackrim,Lackrim
+POPISY.TXT,164,Glester,Glester
+POPISY.TXT,165,Azaxe,Azaxe
+POPISY.TXT,166,Felinor,Felinor
+POPISY.TXT,167,Midaqle,Midagle
+POPISY.TXT,170,Přijmout,Accept
+POPISY.TXT,171,Start hry,Start Game
+POPISY.TXT,172,Vymazat,Delete
+POPISY.TXT,173,Vše znovu,All Again
+POPISY.TXT,174,Zpět,Back
+POPISY.TXT,175,Mys zrejme neni nainstalovana.,Mouse is probably not installed
+POPISY.TXT,176,Nepodarilo se inicializovat ovladac mysi.,Failed to initialize mouse driver
+POPISY.TXT,180,C,C
+POPISY.TXT,181,C#,C#
+POPISY.TXT,182,D,D
+POPISY.TXT,183,D#,D#
+POPISY.TXT,184,E,E
+POPISY.TXT,185,F,F
+POPISY.TXT,186,F#,F#
+POPISY.TXT,187,G,G
+POPISY.TXT,188,G#,G#
+POPISY.TXT,189,A,A
+POPISY.TXT,190,A#,A#
+POPISY.TXT,191,H,B
+POPISY.TXT,200,Síla: %2d,Strength: %2d
+POPISY.TXT,201,Magie: %2d,Magic: %2d
+POPISY.TXT,202,Pohyb: %2d,Speed: %2d
+POPISY.TXT,203,Obrat: %2d,Dexterity: %2d
+POPISY.TXT,210,Velká mapa,Large Map
+POPISY.TXT,211,Místní mapa,Local Map
+POPISY.TXT,212,Zobraz mapu,Show Map
+POPISY.TXT,213,Zpět,Back
+POPISY.TXT,220,Někdo ze skupiny je vyčerpaný a nemůže jít dál.,Someone in the party is exhausted and cannot continue.
+POPISY.TXT,230,Smlouvat,Haggle
+POPISY.TXT,231,Vaše nabídka je naprosto nepřijatelná.,Your offer is completely unacceptable.
+POPISY.TXT,232,"Nevím nevím, stále se nemohu rozhodnout.","I don't know, I still can't decide."
+POPISY.TXT,233,"Kdybych neživil rodinu, snad bych o vaší nabídce i uvažoval...","If I didn't have a family to feed, I might consider your offer..."
+POPISY.TXT,234,Tohle zkoušejte na někoho hloupějšího!,Try this on someone dumber!
+POPISY.TXT,235,Cože? Chcete mě ožebračit?,What? Do you want to rob me?
+POPISY.TXT,236,"Věc tohoto druhu mám jen jednu. Myslím, že zbytečně maříme čas.",I only have one of these items. I think we're wasting time.
+POPISY.TXT,237,Mě zajíma jen suma.,I'm only interested in the amount.
+POPISY.TXT,238,Vaše nabídka:,Your offer:
+POPISY.TXT,239,Zpět,Back
+POPISY.TXT,240,A vaše nabídka zní?,And what is your offer?
+POPISY.TXT,241,Původní cena:,Original price:
+POPISY.TXT,251,Za takovýchto podmínek nelze uzavírat obchody.,Business cannot be conducted under these conditions.
+POPISY.TXT,252,"Hmmm..., opravdu velkorysé. Zkuste to upřesnit.",Hmm... that's really generous. Try to be more specific.
+POPISY.TXT,253,Nejsem dobročiný spolek.,I'm not a charity.
+POPISY.TXT,254,Moje představa se od té vaší asi hodně liší!,My idea is probably very different from yours!
+POPISY.TXT,255,Kolik? Tak dobře jsem se už dlouho nepobavil!,How much? I haven't had this much fun in a long time!
+POPISY.TXT,256,Mám už poslední kus. Pokuste se mě pochopit.,I have the last piece. Try to understand me.
+mapname,BILA_VEZ.MAP,,White Tower
+mapname,CAREDBAR.MAP,,Caredbar
+mapname,JESKYNE.MAP,,Ice Caves
+mapname,LABYRINT.MAP,,Labyrinth of Singing Waters
+mapname,LESDRIAD.MAP,,Dryads
+mapname,LESPRED.MAP,,Foothill Forest
+mapname,LESZA.MAP,,Dark Forest
+mapname,LESZACAR.MAP,,Enchanted Forest
+mapname,NEVIDITE.MAP,,Invisible City
+mapname,PLANE.MAP,,White Tower
+mapname,PODVODOU.MAP,,Underwater
+mapname,PODZEMI.MAP,,Earth Mage Abode
+mapname,PRISTAV.MAP,,Orat
+mapname,P_CAR2DR.MAP,,Forest
+mapname,P_CAR2VE.MAP,,Forest
+mapname,P_LESY_1.MAP,,Troll Gorge
+mapname,P_LESY_2.MAP,,Zenox Pass
+mapname,SKELDAL.MAP,,Skeldal
+mapname,SKRETI.MAP,,Orc Cave
+mapname,SOPKA.MAP,,Volcano
+mapname,SOUTESKA.MAP,,Gorge of Wandering Souls
+mapname,VET_HORA.MAP,,Windy Mountain
+BILA_VEZ.MAP,2,,Magic...
+BILA_VEZ.MAP,3,,...is only...
+BILA_VEZ.MAP,4,,...in your...
+BILA_VEZ.MAP,5,,...mind.
+JESKYNE.MAP,1,,"The shore looks treacherous, it would be better not to step on it!"
+JESKYNE.MAP,2,,"In the ""Ice Caves"" you found Water from Queen Mithel's fountain. "
+LESDRIAD.MAP,2,,"The talking tree, suffering from drought, fell into a centuries-long sleep years ago."
+LESDRIAD.MAP,3,,"After you watered the talking tree with water from a silver and gold jugs filled with the springs of life and death, the tree awoke from its centuries-long sleep and gave you a parchment with the password to a magic chest for your service."
+LESDRIAD.MAP,4,,You filled the silver jug from the spring of death.
+LESDRIAD.MAP,5,,You filled the golden jug from the spring of life.
+LESZA.MAP,1,,You are not ready to pass the desert.
+LESZACAR.MAP,1,,You found a scroll.
+LESZACAR.MAP,2,,In the palace of the Invisible City you found the Scroll of the Thought of Victory.
+PODZEMI.MAP,1,,You entered a large room at the end of which you can see a precious sword and on the sides of which are bars behind which something is moving. Some members of your party think it's a trap.
+PODZEMI.MAP,2,,The feeling that something is wrong has intensified even more.
+PODZEMI.MAP,3,,In the lower level of the dungeon you found the Heart of the Earth.
+PRISTAV.MAP,1,,"Suddenly, you heard beautiful music from somewhere, being played on a lute. "
+SKELDAL.MAP,1,,You are not ready to enter yet!
+SKRETI.MAP,1,,You felt a faint draft.
+SKRETI.MAP,2,,"""Hall of the Orc Kings."""
+SKRETI.MAP,3,,This torch cannot be moved.
+SKRETI.MAP,4,,"At the order of the Orc King, passage to the other side is forbidden."
+SOPKA.MAP,1,,The pyramid cannot be moved from this side.
+SOPKA.MAP,2,,Inside the volcano you found the Eternal Fire.
+SOPKA.MAP,3,,From the magical lexicon of the fire element you have learned several new spells.
+VET_HORA.MAP,1,,"At the top of ""Windy Mountain"" you found the Wind Hammer. "

@@ -61,11 +61,13 @@ static uint64_t get_steam_id(const std::filesystem::path &p) {
     return id;
 }
 
-static bool set_steam_id(const std::filesystem::path &p, uint64_t id) {
+static bool set_steam_id(const std::filesystem::path &p, uint64_t id, time_t publish_time) {
     std::ofstream f(p, std::ios::out|std::ios::trunc);
-    f << id << "\n";    
+    f << id << "\n";
+    f << publish_time << "\n";
     return !!f;
 }
+
 
 
 static std::string_view ddl_load(auto fname) {
@@ -179,10 +181,9 @@ void continue_publish(std::filesystem::path content_path, std::filesystem::path 
                 cb(0,"Submiting request",0,0,context);                
                 ptr->submit(std::string(changelog), [=,ptr=ptr](bool success, bool needLegalAgreement, int steamErrorCode) {                                    
                     std::filesystem::remove_all(target);
+                    time_t t = std::chrono::system_clock::to_time_t(std::chrono::system_clock::now());
                     if (!success) {
                         cb(-1,"ERROR: Upload failed",0,0,context);
-                    } else if (needLegalAgreement) {
-                          cb(-1,"ERROR: You need to aggree to licence agreement. Visit the workshop page and check licence page",0,0,context);
                     } else if (steamErrorCode  != 1) {
                         const char *message;
                         switch (steamErrorCode) {
@@ -197,8 +198,14 @@ void continue_publish(std::filesystem::path content_path, std::filesystem::path 
                         cb(-1,message,0,0,context);
 
                     } else {
-                        set_steam_id(state_path, id);
-                        cb(1,"SUCCESS: Upload complete",100,100,context);
+                        const char *message = needLegalAgreement?"SUCCESS: Upload successful! To make your item public, please accept the agreement on the item's page.":"SUCCESS: Upload successful!";
+                        set_steam_id(state_path, id, t);   
+                        cb(1,message,100,100,context);
+                        if (needLegalAgreement) {
+                            char weburl[100];
+                            snprintf(weburl,sizeof(weburl),"https://steamcommunity.com/sharedfiles/filedetails/?id=%llu", (unsigned long long)id);
+                            steam_service->activate_game_overlay_to_web_page(weburl);
+                        }
                     }
                 });
                 cycle_get_state(cb, context, std::move(ptr), std::chrono::steady_clock::now()+std::chrono::milliseconds(500));
@@ -241,12 +248,8 @@ void steam_upload_to_workshop(const char *file, workshop_update_cb callback, voi
         callback(0,"Creating workshop item", 0,0,context);;                    
         steam_service->create_item([=](bool success, uint64_t id, bool needLegalAgreement){
             if (success) {
-                if (set_steam_id(state_path, id)) {
-                    if (needLegalAgreement) {
-                        callback(-1,"ERROR: You need to aggree to licence agreement. Visit the workshop page and check licence page", 0,0,context);;                    
-                    } else {
-                        continue_publish(ddl_path, state_path, callback, id, context);
-                    }
+                if (set_steam_id(state_path, id, 0)) {
+                    continue_publish(ddl_path, state_path, callback, id, context);
                 } else {
                     callback(-1,"ERROR: Failed to store workshop steam ID - check for write permissions", 0,0,context);;                    
                 }

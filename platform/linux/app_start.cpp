@@ -2,9 +2,7 @@
 #include "../getopt.h"
 #include "../platform.h"
 #include "../error.h"
-#include <cstdint>
 #include <iostream>
-#include <string>
 
 void show_help(const char *arg0) {
     printf(

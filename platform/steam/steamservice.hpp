@@ -68,6 +68,8 @@ public:
 
     bool query_ugc(QueryUGCCallback cb);
 
+    void activate_game_overlay_to_web_page(std::string url);
+
 
 protected:
     bool _available = false;

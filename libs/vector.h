@@ -35,7 +35,8 @@ void vector_destroy(Vector *v);
     * @param v pointer to the vector
     * @return number of elements currently stored in the vector, or 0 if the vector is NULL
  */
-size_t vector_size(const Vector *v);
+static inline size_t vector_size(const Vector *v) {return v->size;}
+
 ///reserves capacity for at least reserve_size elements, returns 1 on success, 0 on failure (e.g. memory allocation failure)
 /**
     * @param v pointer to the vector

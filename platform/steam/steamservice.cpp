@@ -323,3 +323,9 @@ bool SteamService::query_ugc(QueryUGCCallback cb) {
 bool SteamService::is_available() const {
     return _available;
 }
+
+void SteamService::activate_game_overlay_to_web_page(std::string url) {
+    post([=]{
+        SteamFriends()->ActivateGameOverlayToWebPage(url.c_str());
+    });
+}

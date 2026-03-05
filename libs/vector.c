@@ -7,6 +7,7 @@
 
 
 
+
 static int vector_resize(Vector *v, size_t new_capacity)
 {
     
@@ -111,6 +112,7 @@ int vector_set(Vector *v, size_t index, const void *element)
     return 1;
 }
 
+
 int vector_exchange(Vector *v, size_t index, void *element) {
     if (!v || index >= v->size)
         return 0;
@@ -177,11 +179,6 @@ int vector_insert(Vector *v, size_t index, const void *element, size_t count) {
     return 1;
 }
 
-size_t vector_size(const Vector *v)
-{
-    return v ? v->size : 0;
-}
-
 int linear_find(const void *data, size_t count, size_t element_size, int (*cmp)(const void *a, const void *b), const void *target) {
     if (!data || !cmp || !target) 
         return -1;  
@@ -222,21 +219,65 @@ int linear_remove_if(void *data, size_t *count, size_t element_size, int (*predi
     return removed_count;
 }
 
-#define SWAP_TYPE(TYPE, a, b) do { TYPE x = *(TYPE *)(a); *(TYPE *)(a) = *(TYPE *)(b); *(TYPE *)(b) =x;} while(0)
-#define SWAP_AND_ADV(TYPE, a, b, c) do {SWAP_TYPE(TYPE, a, b); a+=sizeof(TYPE);b += sizeof(TYPE);c-=sizeof(TYPE);} while (0)
-    
-struct Block16 {   uint64_t _data[2]; };
-struct Block32 {uint64_t _data[4];  };
-struct Block64 { uint64_t _data[8]; };
-
 void swap_memory(void *a, void *b, size_t size) {
-    char *iter_a = (char *)a;
-    char *iter_b = (char *)b;
-    while (size >= sizeof(struct Block64)) SWAP_AND_ADV(struct Block64, iter_a, iter_b, size);
-    if (size >= sizeof(struct Block32)) SWAP_AND_ADV(struct Block32, iter_a, iter_b, size);
-    if (size >= sizeof(struct Block16)) SWAP_AND_ADV(struct Block16, iter_a, iter_b, size);
-    if (size >= sizeof(uint64_t)) SWAP_AND_ADV(uint64_t, iter_a, iter_b, size);
-    if (size >= sizeof(uint32_t)) SWAP_AND_ADV(uint32_t, iter_a, iter_b, size);
-    if (size >= sizeof(uint16_t)) SWAP_AND_ADV(uint16_t, iter_a, iter_b, size);
-    if (size >= sizeof(uint8_t)) SWAP_AND_ADV(uint8_t, iter_a, iter_b, size);
+    size_t s = (size & -size);
+    size_t selector = s == size?(size | ((uintptr_t)a & (s-1)) | ((uintptr_t)b & (s-1))):0;
+    switch (selector) {
+        case 1: {
+            char *iter_a = (char *)a;
+            char *iter_b = (char *)b;
+            char x = *iter_a; *iter_a = *iter_b; *iter_b = x;
+            return;
+        }
+        case 2: {
+            uint16_t *iter_a = (uint16_t *)a;
+            uint16_t *iter_b = (uint16_t *)b;
+            uint16_t x = *iter_a; *iter_a = *iter_b; *iter_b = x;
+            return;
+        }
+        case 4:  {
+            uint32_t *iter_a = (uint32_t *)a;
+            uint32_t *iter_b = (uint32_t *)b;
+            uint32_t x = *iter_a; *iter_a = *iter_b; *iter_b = x;
+            return;
+        }
+        case 8:  {
+            uint64_t *iter_a = (uint64_t *)a;
+            uint64_t *iter_b = (uint64_t *)b;
+            uint64_t x = *iter_a; *iter_a = *iter_b; *iter_b = x;
+            return;
+        }
+        case 16:  {
+            uint64_t *iter_a = (uint64_t *)a;
+            uint64_t *iter_b = (uint64_t *)b;
+            uint64_t x = iter_a[0];
+            uint64_t y = iter_a[1];
+            iter_a[0] = iter_b[0];
+            iter_a[1] = iter_b[1];  
+            iter_b[0] = x;
+            iter_b[1] = y;
+            return;
+        } 
+        default: {    
+            char *iter_a = (char *)a;
+            char *iter_b = (char *)b;
+            if (size == 0 || iter_a == iter_b) return;
+            char buff[64];
+            while (size >= sizeof(buff)) {
+                memcpy(buff, iter_a, sizeof(buff));
+                memcpy(iter_a, iter_b, sizeof(buff));
+                memcpy(iter_b, buff, sizeof(buff));
+                iter_a += sizeof(buff);
+                iter_b += sizeof(buff);
+                size -= sizeof(buff); 
+            }
+            if (size) {
+                memcpy(buff, iter_a, size);
+                memcpy(iter_a, iter_b, size);
+                memcpy(iter_b, buff, size);
+            }
+            return;
+        }
+    }
+
 }

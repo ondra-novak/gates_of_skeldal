@@ -937,19 +937,6 @@ void cti_texty(void)
 
 
 
-void global_kbd(EVENT_MSG *msg,void **usr)
-  {
-  char c;
-
-  usr;
-  if (msg->msg==E_KEYBOARD)
-     {
-     c=va_arg(msg->data,int)>>8;
-     int32_t scr_linelen2 = GetScreenPitch();
-     if (c==';') save_dump(GetScreenAdr(), DxGetResX(), DxGetResY(), scr_linelen2);
-     }
-  return;
-  }
 
 void  add_game_window(void)
   {
@@ -1124,8 +1111,6 @@ int init_skeldal_thread(va_list args) {
     send_message(E_ADD,E_WATCH,user_timer);
 
     send_message(E_ADD,E_MOUSE,ms_clicker);
-
-    send_message(E_ADD,E_KEYBOARD,global_kbd);
 
     send_message(E_ADD,E_PRGERROR,error_exception);
 
