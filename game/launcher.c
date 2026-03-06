@@ -7,6 +7,7 @@
 #include "libs/vector.h"
 #include "platform/ugc.h"
 
+
 #include <stdio.h>
 
 #include "launcher.h"
@@ -24,13 +25,23 @@ static TLAUNCHER_ITEM *create_launcher_item_from_ugc(const UGCItem *ugc) {
     return make_load_continue_info(ugc->ddl_path,ugc->lang, NULL, ugc->name,ugc->id);
 }
 
+static char check_valid_item(TLAUNCHER_ITEM *itm){
+    if (!itm) return 0;
+    if (!itm->ddl) return 1;
+    FILE *f = fopen(itm->ddl,"r");
+    if (f) {
+        fclose(f);
+        return 1;
+    }
+    return 0;
+}
+
 
 
 static void destroy_launcher_item(void *item) {
     TLAUNCHER_ITEM *litm = *(TLAUNCHER_ITEM **)item;
     free(litm);
 }
-
 
 typedef struct launcher_state {
 
@@ -42,6 +53,9 @@ typedef struct launcher_state {
     const void *picture;
     void *preview_image;
     int preview_image_index;
+    size_t steam_update_counter;
+    char selection_done;
+    char update_lock;
 } TLAUNCHER_STATE;
 
 #define LAUNCHER_STEP 16
@@ -52,7 +66,7 @@ typedef struct launcher_state {
 #define LAUNCHER_X 20
 #define LAUNCHER_Y 100
 #define LAUNCHER_WIDTH 300
-#define LAUNCHER_HEIGHT 230
+#define LAUNCHER_HEIGHT 250
 #define LAUNCHER_START LAUNCHER_Y+5
 #define SECTION_OFFSET 10
 
@@ -69,6 +83,10 @@ static const char *sections_names[] = {
     "Br\xA0ny Skeldalu",
     "Adventures"
 };
+
+static void on_list_update(TLAUNCHER_STATE *st);
+static void navigate_up(TLAUNCHER_STATE *st);
+static void navigate_down(TLAUNCHER_STATE *st);
 
 static void launcher_draw(TLAUNCHER_STATE *st) {
     int minx = LAUNCHER_X;
@@ -185,6 +203,67 @@ static void *attempt_load_preview(const char *ddl) {
 
 }
 
+
+static void get_list_callback(const UGCItem *items, unsigned int count, void *context) {
+    TLAUNCHER_STATE *st = (TLAUNCHER_STATE *)context;
+    TLAUNCHER_ITEM *item = NULL;
+    vector_push_back(&st->items, &item);
+    for (unsigned int i = 0; i < count; ++i) {
+        item = create_launcher_item_from_ugc(&items[i]);
+        vector_push_back(&st->items, &item);
+    }
+    if (is_steam_workshop_browser_available()) {
+        item = make_load_continue_info(NULL,NULL,NULL,"... workshop ...",1);
+        vector_push_back(&st->items, &item);
+    }
+    st->update_lock = 0;
+}
+
+static void adjust_selected_position(TLAUNCHER_STATE *st) {
+    if ((size_t)st->selected >= vector_size(&st->items)) {
+        st->selected = 0;
+    }
+    if (*(TLAUNCHER_ITEM **)vector_get(&st->items,st->selected) == NULL) {
+        navigate_up(st);
+    }
+
+}
+
+static void populate_launcher_static(TLAUNCHER_STATE *st) {
+    TLAUNCHER_ITEM *item;
+    item = get_load_continue_info();
+    if (item && check_valid_item(item)) {
+        vector_push_back(&st->items, &item);
+    }
+    item = NULL;
+    vector_push_back(&st->items, &item);
+    item = make_load_continue_info(NULL, "CS", NULL, "\x80""esky",0);
+    vector_push_back(&st->items, &item);
+    item = make_load_continue_info(NULL, "EN", NULL, "English",0);
+    vector_push_back(&st->items, &item);
+
+}
+
+
+static void get_list_callback_update(const UGCItem *items, unsigned int count, void *context) {
+    TLAUNCHER_STATE *st = (TLAUNCHER_STATE *)context;
+    vector_remove(&st->items,0,vector_size(&st->items));
+    populate_launcher_static(st);
+    get_list_callback(items, count, context);
+    adjust_selected_position(st);
+}
+
+
+static void  request_for_ugc(void (*callback)(const UGCItem *items, unsigned int count, void *context), TLAUNCHER_STATE *st) {
+    const char *path =  build_pathname(2, gpathtable[SR_SAVES], "UGC");
+    const char *user_ugc = local_strdup(path);
+    const char *dlc_path = "./DLC";
+
+    st->update_lock =1;
+    UGC_GetList(user_ugc, dlc_path, callback, st);
+}
+
+
 static void redraw_launcher(EVENT_MSG *msg, void **userdata) {
     if (msg->msg == E_INIT) *userdata = va_arg(msg->data, TLAUNCHER_STATE *);
     else if (msg->msg == E_DONE)  *userdata = NULL;
@@ -200,10 +279,15 @@ static void redraw_launcher(EVENT_MSG *msg, void **userdata) {
             st->preview_image_index = st->selected;
             showview(0,0,0,0);
         }
+        size_t cnt = get_install_callback_counter();
+        if (cnt != st->steam_update_counter && !st->selection_done && !st->update_lock) {
+            st->steam_update_counter = cnt;
+            request_for_ugc(get_list_callback_update, st);
+        }
     }
 }
 
-static void navigate_up(TLAUNCHER_STATE *st);
+
 static void navigate_down(TLAUNCHER_STATE *st) {
     const TLAUNCHER_ITEM **items = (const TLAUNCHER_ITEM **)vector_data(&st->items);
     do {
@@ -227,6 +311,16 @@ static void navigate_up(TLAUNCHER_STATE *st) {
     } while (items[st->selected] == NULL);
 }
 
+static void activate_item(TLAUNCHER_STATE *st) {
+    TLAUNCHER_ITEM *item = *(TLAUNCHER_ITEM **)vector_get(&st->items, st->selected);
+    if (item->ddl == NULL && item->adv_id == 1) {
+        open_steam_workshop();
+    } else {
+        st->selection_done = 1;
+        st->selected_anim_cntr = 1;
+    }
+}
+
 static void launcher_keyboard(EVENT_MSG *msg, void **userdata) {
     if (msg->msg == E_INIT) *userdata = va_arg(msg->data, TLAUNCHER_STATE *);
     else if (msg->msg == E_DONE)  *userdata = NULL;
@@ -243,7 +337,7 @@ static void launcher_keyboard(EVENT_MSG *msg, void **userdata) {
            case 28:
            case 57:
            case 'M':
-           case 18: st->selected_anim_cntr = 1; break;
+           case 18: activate_item(st); break;
            default:break;
        }
     }
@@ -262,23 +356,13 @@ static void launcher_mouse(EVENT_MSG *msg, void **userdata) {
             int pos = (y+LAUNCHER_STEP/2) / LAUNCHER_STEP;
             if (*(TLAUNCHER_ITEM **)vector_get(&st->items, pos) == NULL) return;
             if (pos >=0 && pos < (int)vector_size(&st->items)) {
-                if (pos == st->selected) st->selected_anim_cntr = 1.0;
+                if (pos == st->selected) activate_item(st);
                 else st->selected = pos;
             }
         }
     }
 
 
-}
-
-static void get_list_callback(const UGCItem *items, unsigned int count, void *context) {
-    TLAUNCHER_STATE *st = (TLAUNCHER_STATE *)context;
-    TLAUNCHER_ITEM *item = NULL;
-    vector_push_back(&st->items, &item);
-    for (unsigned int i = 0; i < count; ++i) {
-        item = create_launcher_item_from_ugc(&items[i]);
-        vector_push_back(&st->items, &item);
-    }
 }
 /*
 static void *create_background() {
@@ -303,44 +387,17 @@ static void *create_background() {
 }
 */
 
-static char check_valid_item(TLAUNCHER_ITEM *itm){
-    if (itm && itm->ddl) {
-        FILE *f = fopen(itm->ddl,"r");
-        if (f) {
-            fclose(f);
-            return 1;
-        }
-    }
-    return 0;
-}
-
 TCONTINUE_GAME_INFO *run_launcher() {
 
-    const char *path =  build_pathname(2, gpathtable[SR_SAVES], "UGC");
-    const char *user_ugc = local_strdup(path);
-    const char *dlc_path = "./DLC";
 
     TLAUNCHER_STATE state = {0};
     vector_init(&state.items, sizeof(TLAUNCHER_ITEM *), destroy_launcher_item);
-    state.offset = 0;
-    state.top_line = 0;
-    state.selected = 0;
-    state.selected_anim_cntr = 0;
     state.preview_image_index = -1;
     state.picture = ablock(H_LOADING);
+    state.steam_update_counter = get_install_callback_counter();
 
-    TLAUNCHER_ITEM *item;
-    item = get_load_continue_info();
-    if (check_valid_item(item)) {
-        vector_push_back(&state.items, &item);
-    }
-    item = NULL;
-    vector_push_back(&state.items, &item);
-    item = make_load_continue_info(NULL, "CS", NULL, "\x80""esky",0);
-    vector_push_back(&state.items, &item);
-    item = make_load_continue_info(NULL, "EN", NULL, "English",0);
-    vector_push_back(&state.items, &item);
-    navigate_up(&state);
+    populate_launcher_static(&state);
+    adjust_selected_position(&state);
 
 /*    for (int i = 0; i < 50; ++i) {
         char buff[50];
@@ -348,8 +405,8 @@ TCONTINUE_GAME_INFO *run_launcher() {
         item = make_load_continue_info(NULL, NULL, NULL, buff);
         vector_push_back(&state.items, &item);
     }*/
-
-    UGC_GetList(user_ugc, dlc_path, get_list_callback, &state);
+    
+    request_for_ugc(get_list_callback, &state);
 
     send_message(E_ADD, E_TIMER, redraw_launcher, &state);
     send_message(E_ADD, E_KEYBOARD, launcher_keyboard, &state);
@@ -361,9 +418,10 @@ TCONTINUE_GAME_INFO *run_launcher() {
 
     TLAUNCHER_ITEM *retval = NULL;
 
-    if (state.selected_anim_cntr) {
+    if (state.selection_done) {
         vector_exchange(&state.items, state.selected, &retval);
     }
+    
 
     ablock_free(state.picture);
     free(state.preview_image);
@@ -371,3 +429,5 @@ TCONTINUE_GAME_INFO *run_launcher() {
 
     return retval;
 }
+
+

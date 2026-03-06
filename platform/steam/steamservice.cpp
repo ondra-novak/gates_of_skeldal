@@ -3,19 +3,21 @@
 #include "steam/isteamugc.h"
 #include "steam/steam_api.h"
 #include "steam/steam_api_common.h"
+#include "platform/platform.h"
 #include "steam/steamtypes.h"
 #include <algorithm>
 #include <chrono>
 #include <cstdint>
-#include <linux/limits.h>
 #include <memory>
 #include <mutex>
-#include <strings.h>
 #include <type_traits>
 #include "steamservice.hpp"
 
 
-SteamService::SteamService() {
+SteamService::SteamService() 
+    :_update_install_event(this)
+    ,_subscribe_change_event(this)
+{
     _available = SteamAPI_Init();
     if (_available) {
         _appid = SteamUtils()->GetAppID();
@@ -61,7 +63,7 @@ bool SteamService::set_achievement(const char* id) {
 bool SteamService::clear_achievement(const char* id) {
     if (!_available) return false;
     post([=] {
-        if (strcasecmp(id, "all") == 0) {
+        if (istrcmp(id, "all") == 0) {
             unsigned int cnt = SteamUserStats()->GetNumAchievements();
             for (unsigned int i = 0; i < cnt; ++i) {
                 SteamUserStats()->ClearAchievement(SteamUserStats()->GetAchievementName(i));
@@ -240,7 +242,7 @@ public:
         uint64 size_on_disk;
         uint32 timestamp;
 
-        char folder_buffer[PATH_MAX];
+        char folder_buffer[4096];
 
 
         _owners.resize(result->m_unNumResultsReturned);
@@ -328,4 +330,21 @@ void SteamService::activate_game_overlay_to_web_page(std::string url) {
     post([=]{
         SteamFriends()->ActivateGameOverlayToWebPage(url.c_str());
     });
+}
+
+bool SteamService::is_overlay_enabled() const
+{
+    return SteamUtils()->IsOverlayEnabled();
+}
+
+size_t SteamService::get_install_callback_counter()  {
+    return _install_counter.load();
+}
+
+void SteamService::UpdateInstallEvent::OnItemInstalled(ItemInstalled_t *) {
+    ++_me->_install_counter;
+}
+
+void SteamService::SubscribeChange::OnUserSubscribedItemsListChanged(UserSubscribedItemsListChanged_t *) {
+    ++_me->_install_counter;
 }

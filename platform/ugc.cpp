@@ -2,6 +2,7 @@
 #include "config.h"
 
 #include <algorithm>
+#include <array>
 #include <ranges>
 #include <span>
 #include <system_error>
@@ -217,13 +218,33 @@ void UGC_GetList(const char *ugc_user_path,
             }
             post_to_event_thread([](void *ctx){
                 UGCGetContext *st = (UGCGetContext *)ctx;
-                st->callback(st->items.data(), st->items.size(), st->context);
+                st->callback(st->items.data(), static_cast<unsigned int>(st->items.size()), st->context);
                 delete st;
             }, st);
         });
         return;
     }
 #endif
-    ctx.callback(ctx.items.data(), ctx.items.size(), ctx.context);
+    ctx.callback(ctx.items.data(), static_cast<unsigned int>(ctx.items.size()), ctx.context);
 }
 
+size_t get_install_callback_counter() {
+#ifdef STEAM_ENABLED
+    if (steam_service) return steam_service->get_install_callback_counter();
+#endif
+    return 0;
+}
+
+char is_steam_workshop_browser_available() {
+#ifdef STEAM_ENABLED
+    if (steam_service) return steam_service->is_overlay_enabled();
+#endif
+    return false;
+}
+
+
+void open_steam_workshop() {
+#ifdef STEAM_ENABLED
+    if (steam_service) return steam_service->activate_game_overlay_to_web_page("https://steamcommunity.com/app/3533830/workshop/");
+#endif
+}

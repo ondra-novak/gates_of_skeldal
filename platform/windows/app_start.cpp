@@ -35,48 +35,34 @@ void show_help_short(std::ostream &out) {
 
 
 int main(int argc, char **argv) {
-    std::string config_name = SKELDALINI;
-    std::string adv_config_file;
-    std::string gen_stringtable_path;
-    std::string lang;
-    std::string patch;
-    std::string sse_hostport;
-    bool launcher = false;
     std::ostringstream console;
-    for (int optchr = -1; (optchr = getopt(argc, argv, "hLf:a:s:l:c:p:")) != -1; ) {
+    SKELDAL_CONFIG cfg = {SKELDALINI,NULL,NULL,NULL,NULL,NULL,NULL,NULL};
+    for (int optchr = -1; (optchr = getopt(argc, argv, "hLf:a:s:l:p:c:P:")) != -1; ) {
         switch (optchr) {
-            case 'f': config_name = optarg;break;
-            case 'a': adv_config_file = optarg;break;
-            case 'h': show_help(console, argv[0]);break;
-            case 'p': patch = optarg; break;
-            case 'l': lang = optarg;break;
-            case 'L': launcher = true;break;
-
-            case 's': gen_stringtable_path = optarg;break;
-            case 'c': sse_hostport = optarg;break;
-            default:  show_help_short(console);break;
+            case 'h': show_help(console,argv[0]);break;
+            case 'f': cfg.config_path = optarg;break;
+            case 'a': cfg.adventure_path = optarg;break;
+            case 'p': cfg.patch_file = optarg; break;
+            case 'l': cfg.langddl = optarg;break;
+            case 'c': cfg.sse_hostport = optarg;break;
+            case 'P': cfg.workshop_publish = optarg;break;
+            default: show_help_short(console);
+                     return 1;
         }
     }
-
-    if (!check_file_exists(config_name.c_str())) {
-        console << "ERROR: A configuration file was not found:\n\n" << config_name << "\n\n";
-        show_help(console, argv[0]);
-    }
-
-    SKELDAL_CONFIG cfg = {};
-    cfg.short_help = []{};
     cfg.show_error = [](const char *txt) {
         char buff[MAX_PATH];
         GetModuleFileNameA(NULL,buff,MAX_PATH);
         MessageBoxA(NULL,txt,buff, MB_OK|MB_ICONEXCLAMATION|MB_SYSTEMMODAL|MB_APPLMODAL);
         ExitProcess(1);
     };
-    cfg.adventure_path = adv_config_file.empty()?NULL:adv_config_file.c_str();
-    cfg.config_path = config_name.c_str();
-    cfg.lang_path = lang.empty()?NULL:lang.c_str();
-    cfg.patch_file = patch.empty()?NULL:patch.c_str();
-    cfg.sse_hostport = sse_hostport.empty()?NULL:sse_hostport.c_str();
-    cfg.launcher = launcher?1:0;
+
+    cfg.short_help = []{};
+
+    if (!check_file_exists(cfg.config_path)) {
+        console << "ERROR: A configuration file was not found:\n\n" << cfg.config_path<< "\n\n";
+        show_help(console, argv[0]);
+    }
 
     {
         std::string msg = console.str();
@@ -87,19 +73,11 @@ int main(int argc, char **argv) {
     }
 
     try {
-
-        if (!gen_stringtable_path.empty()) {
-            skeldal_gen_string_table_entry_point(&cfg, gen_stringtable_path.c_str());
-            return 0;
-        } else {
-            return skeldal_entry_point(&cfg);
-        }
-
+        return skeldal_entry_point(&cfg);
     } catch (const std::exception &e) {
         cfg.show_error(exception_to_string(e).c_str());
         return 1;
-    }
-    catch (...) {
+    } catch (...) {
         cfg.show_error("Uknown error or crash");
         return 1;
     }

@@ -1106,8 +1106,6 @@ void read_slot_list()
 static int compare_game_slot(const void *a, const void *b) {
     const TGAME_SAVE_SLOT *sa = (const TGAME_SAVE_SLOT *)a;
     const TGAME_SAVE_SLOT *sb = (const TGAME_SAVE_SLOT *)b;
-    if (sa->is_autosave) return sb->is_autosave?0:-1;
-    if (sb->is_autosave) return 1;
     const char *ba = strrchr(sa->fname,'.');
     const char *bb = strrchr(sb->fname,'.');
     if (!ba) ba = sa->fname;else ba++;
@@ -2165,7 +2163,7 @@ static void save_as_dialog(int pos) {
 static TCONTINUE_GAME_INFO *current_load_continue_info = NULL;
 static char adv_save_subfolder[50] = "";
 
-static void clean_load_continue_info() {
+static void clean_load_continue_info(void) {
     free(current_load_continue_info);
 }
 

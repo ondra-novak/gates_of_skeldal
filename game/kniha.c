@@ -386,18 +386,18 @@ static char read_tag(TMPFILE_RD *txt)
   while(c<33 && i!=EOF) c=i=temp_storage_getc(txt);
   if (c!='>') temp_storage_ungetc(txt);
   strupper(var);
-  if (!strcasecmp(var,PARAGRAPH))
+  if (!istrcmp(var,PARAGRAPH))
      {
      break_line();
      break_line();
      return 1;
      }
-  if (!strcasecmp(var,BREAKLINE))
+  if (!istrcmp(var,BREAKLINE))
      {
      break_line();
      return 1;
      }
-  if (!strcasecmp(var,IMAGE))
+  if (!istrcmp(var,IMAGE))
      {
      char pic_name[50]=" ";
      char alig=0;
@@ -406,27 +406,27 @@ static char read_tag(TMPFILE_RD *txt)
      while (c!='>')
         {
         c=read_set(txt,var,set);
-        if (!strcasecmp(var,SRC)) strcopy_n(pic_name,set,49);
-        else if (!strcasecmp(var,ALIGN))
+        if (!istrcmp(var,SRC)) strcopy_n(pic_name,set,49);
+        else if (!istrcmp(var,ALIGN))
            {
-           if (!strcasecmp(set,ALEFT)) alig=1;
-           else if (!strcasecmp(set,ARIGHT)) alig=2;
-           else if (!strcasecmp(set,ACENTER)) alig=0;
+           if (!istrcmp(set,ALEFT)) alig=1;
+           else if (!istrcmp(set,ARIGHT)) alig=2;
+           else if (!istrcmp(set,ACENTER)) alig=0;
            }
-        else if (!strcasecmp(var,PIC_LINE)) sscanf(set,"%d",&line);
-        else if (!strcasecmp(var,PIC_LSIZ)) sscanf(set,"%d",&lsize);
+        else if (!istrcmp(var,PIC_LINE)) sscanf(set,"%d",&line);
+        else if (!istrcmp(var,PIC_LSIZ)) sscanf(set,"%d",&lsize);
         }
      if (pic_name[0]!=0)
         insert_picture(pic_name,alig,line,lsize);
      return 0;
      }
-  if (!strcasecmp(var,CENTER1)) center++;
-  else if (!strcasecmp(var,CENTER2))
+  if (!istrcmp(var,CENTER1)) center++;
+  else if (!istrcmp(var,CENTER2))
      {
      if (center>0) center--;
      }
-  else if (!strcasecmp(var,DISTEND1)) distend++;
-  else if (!strcasecmp(var,DISTEND2))
+  else if (!istrcmp(var,DISTEND1)) distend++;
+  else if (!istrcmp(var,DISTEND2))
      {
      if (distend>0) distend--;
      }

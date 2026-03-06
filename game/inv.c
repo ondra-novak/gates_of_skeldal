@@ -1967,9 +1967,10 @@ char uloz_sip(int id,int xa,int ya,int xr,int yr)
 static char uloz_sip_action(char fast_key) {
   if (!can_manage_arrows_and_rings(human_selected)) return 0;
   if (neprezbrojit()) return 0;
-  if (picked_item!=NULL && picked_item[1]==0 && glob_items[picked_item[0]-1].umisteni==PL_SIP) {
-     int pocet=glob_items[picked_item[0]-1].user_value;
-     int druh=glob_items[picked_item[0]-1].druh_sipu;
+  TITEM *pitem;
+  if (picked_item!=NULL && picked_item[1]==0 &&  (pitem=&glob_items[*picked_item-1])->umisteni==PL_SIP) {
+     int pocet=pitem->user_value;
+     int druh=pitem->druh_sipu;
      if (pocet==0) pocet=1;
      if (human_selected->sipy+pocet>99 && (human_selected->sip_druh == druh || human_selected->sipy == 0)) return 1;
      human_selected->sipy+=pocet;
@@ -2323,7 +2324,9 @@ void zkontroluj_postavu()
   prepocitat_postavu(human_selected);
   }
 
-
+static void destroy_picked_item() {  
+  destroy_items(picked_item);free(picked_item);picked_item=NULL;pick_set_cursor();
+}
 
 
 char human_click(int id,int xa,int ya,int xr,int yr)
@@ -2345,24 +2348,24 @@ char human_click(int id,int xa,int ya,int xr,int yr)
      else if (picked_item[1]!=0) return 0;
      else
        {
-       um=place=glob_items[picked_item[0]-1].umisteni;
-       if (!place ||!can_manage_gear(human_selected))
+        int item = picked_item[0]-1;
+        TITEM *pitem = &glob_items[item];
+        um=place=pitem->umisteni;
+       if (!place)
          {
-         switch (glob_items[picked_item[0]-1].druh)
+         switch (pitem->druh)
            {
-           case TYP_LEKTVAR:inv_quaf(*picked_item);destroy_items(picked_item);free(picked_item);picked_item=NULL;pick_set_cursor();break;
-           case TYP_JIDLO:inv_najist(*picked_item);destroy_items(picked_item);free(picked_item);picked_item=NULL;pick_set_cursor();break;
-           case TYP_VODA:inv_napit(*picked_item);destroy_items(picked_item);free(picked_item);picked_item=NULL;pick_set_cursor();break;
+           case TYP_LEKTVAR:inv_quaf(*picked_item);destroy_picked_item();break;
+           case TYP_JIDLO:inv_najist(*picked_item);destroy_picked_item();break;
+           case TYP_VODA:inv_napit(*picked_item);destroy_picked_item();break;
            case TYP_SPECIALNI:inv_use_spec(&picked_item);break;
            case TYP_DLGUSE:if (!battle) {
-                                   int dlg = glob_items[picked_item[0]-1].user_value;
-                                   destroy_items(picked_item);
-                                   free(picked_item);
-                                   picked_item = NULL;
-                                   start_dialog(dlg,-1);
-                                   unwire_proc();
-                                   wire_proc();
-                                   return 1;
+                                  int dlg = pitem->user_value;
+                                  destroy_picked_item();
+                                  start_dialog(dlg,-1);
+                                  unwire_proc();
+                                  wire_proc();
+                                  return 1;
                                }break;
            }
          inv_redraw();

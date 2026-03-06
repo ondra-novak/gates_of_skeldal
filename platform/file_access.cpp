@@ -10,7 +10,7 @@
 
 std::filesystem::path break_and_compose_path(std::string_view pathname, char sep) {
     auto utf8_to_path = [](std::string_view sv) -> std::filesystem::path {
-        return std::filesystem::path(std::u8string(reinterpret_cast<const char8_t*>(sv.data()), sv.size()));
+        return std::filesystem::path(std::u8string(sv.begin(), sv.end()));
     };
 
     auto p = pathname.rfind(sep);

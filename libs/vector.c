@@ -218,7 +218,7 @@ size_t linear_remove_if(void *data, size_t count, size_t element_size, int (*pre
 }
 
 void swap_memory(void *a, void *b, size_t size) {
-    size_t s = (size & -size);
+    size_t s = (size & ((~size)+1));
     size_t selector = s == size?(size | ((uintptr_t)a & (s-1)) | ((uintptr_t)b & (s-1))):0;
     switch (selector) {
         case 1: {

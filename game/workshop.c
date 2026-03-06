@@ -12,10 +12,10 @@
 
 const void *pcx_8bit_decomp(const void *p, int32_t *s, int h);
 
-#define MAX_PROGRESSBAR_WITH 500
+#define MAX_PROGRESSBAR_WITH 400
 #define TOP_TEXT_Y 50
-#define BOTTOM_TEXT_Y 350
-#define PROGRESS_BAR_Y 300
+#define BOTTOM_TEXT_Y 400
+#define PROGRESS_BAR_Y 350
 #define PROGRESS_BAR_HEIGH 20
 
 typedef struct {
@@ -96,7 +96,7 @@ static void bgr_anim(EVENT_MSG *msg, void **user) {
                         set_aligned_position(320, y, 1, 1, c);
                         outtext(c);
                         y += text_height(c)*3/2;
-                        c = strchr(c,0);
+                        c = strchr(c,0)+1;
                     }
                     free(buff);
                 }
