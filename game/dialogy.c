@@ -56,6 +56,11 @@ typedef struct {
     int32_t text_color;
     int32_t choice_color;
     int32_t sel_choice_color;
+    
+    int32_t pic_x;
+    int32_t pic_y;
+    int32_t icon_padding;
+    int32_t icon_height;
 
 } TDIALOGY_LAYOUT;
 
@@ -64,7 +69,7 @@ static TDIALOGY_LAYOUT dlg_layout = {
     94,11, 
     225, 382, 34,
     RGB555(28,28,21),NOSHADOW(0),42115,
-    49252};
+    49252,17,17,25, 25};
 
 #define TEXT_X dlg_layout.txt_window_x
 #define TEXT_Y dlg_layout.txt_window_y
@@ -80,8 +85,8 @@ static TDIALOGY_LAYOUT dlg_layout = {
 #define OPER_LOWEQ 34
 #define OPER_NOEQ 37
 
-#define PIC_X 17
-#define PIC_Y (17+SCREEN_OFFLINE)
+#define PIC_X dlg_layout.pic_x
+#define PIC_Y (dlg_layout.pic_y+SCREEN_OFFLINE)
 
 #define LAYOUT_FILE "DIALOGY.LAY"
 
@@ -1027,14 +1032,17 @@ static void add_case_speaker(int num,int speaker, char *text)
   vol_n[(uint8_t)pocet_voleb]=num;
   a=alloca(strlen(text)+2);
   set_font(H_FBOLD,RGB555(0,30,0));
-  THUMAN *h = speakers[speaker];
+  THUMAN *h = speaker?speakers[speaker]:NULL;;
   int xxs = TEXT_XS;
   int xofs = 0;
-  void *xcht = 0;
+  void *xcht = NULL;;
+  xofs += dlg_layout.icon_padding;
+  xxs -= xofs;  
   if (h) {
-    xofs += DLG_LINE_IMAGE_SPACE;
-    xxs -= xofs;
-    xcht = small_xicht(H_XICHTY+(speakers[0] - postavy));
+    unsigned long idx = h - postavy;
+    if (idx < POCET_POSTAV && h->used) {
+        xcht = small_xicht(H_XICHTY+idx);
+    }
   }
   zalamovani(text,a,xxs,&xs,&ys);
   TDLG_TEXT_LINE lines[10] = {0};
@@ -1051,8 +1059,8 @@ static void add_case_speaker(int num,int speaker, char *text)
         a=strchr(a,0)+1;        
      }
   TDLG_TEXT_LINE *tmp = NULL;
-  if (xcht) {
-    int xh = PICTURE_HEIGHT(xcht)+1;
+  {
+    int xh = dlg_layout.icon_height+1;
     if (lnidx * TEXT_STEP >= xh) {
         lines[0].face = xcht;
     } else {
@@ -1846,7 +1854,7 @@ void line_destructor(void *x) {
 }
 
 static void load_custom_layout() {
-    if (check_file_exists(LAYOUT_FILE)) {
+    if (test_file_exist(0,LAYOUT_FILE)) {
         int32_t sz;
         const void *ptr = afile(LAYOUT_FILE, 0, &sz);
         memcpy(&dlg_layout,ptr, sizeof(dlg_layout));
