@@ -1,6 +1,7 @@
 #pragma once
 
 
+#include <atomic>
 #include <filesystem>
 #include <functional>
 #include <mutex>

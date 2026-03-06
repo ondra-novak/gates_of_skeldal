@@ -84,7 +84,7 @@ static const char *sections_names[] = {
     "Adventures"
 };
 
-static void on_list_update(TLAUNCHER_STATE *st);
+
 static void navigate_up(TLAUNCHER_STATE *st);
 static void navigate_down(TLAUNCHER_STATE *st);
 
