@@ -1130,6 +1130,7 @@ char load_saved_shops(void);
 #define MA_PLMUS 39
 #define MA_FAILG 40
 #define MA_ENDG2 41
+#define MA_OVRLY 42
 
 
 #define MAGLOB_LEAVEMAP 0 // v urcitou nastavenou hodinu a minutu dene
@@ -1333,6 +1334,19 @@ typedef struct tma_ifsec
   char invert;				  //invert condition
 }TMA_IFSEC;
 
+typedef struct tma_text_OVERLAY {
+    char action,flags,eflags,blocking;
+    short text_index;
+    short x;
+    short y;
+    short max_width;
+    int8_t align_x;
+    int8_t align_y;
+    int8_t face;
+    int8_t picture;
+    short display_time;
+    word color15;
+} TMA_TEXT_OVERLAY;
 
 
 extern TMA_LOADLEV loadlevel;
@@ -1356,6 +1370,7 @@ typedef union tmulti_action
   struct tma_globe globe;
   struct tma_ifsec ifsec;
   struct tma_change_light chglight;
+  struct tma_text_OVERLAY overlay;
   }TMULTI_ACTION;
 
 typedef struct tmulti_action_record_t {
@@ -1886,7 +1901,9 @@ char *change_extension_support(char *buffer, const char *filename,char *new_exte
 #define set_file_extension(filename, extension) change_extension_support((char *)alloca(strlen(filename)+strlen(extension)+1), (filename), (extension))
 void load_enemy_to_map(int i, int sector, int dir, const TMOB *t);
 
-void hide_boat();
+void add_text_to_overlay(const char *text,const TMA_TEXT_OVERLAY *ovrdef);
+void hide_overlays();
+void clear_all_overlay_texts();
 
 //extras
 #include "extras.h"

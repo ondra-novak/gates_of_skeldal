@@ -893,6 +893,10 @@ void call_macro_ex(int side, int flags, int runatside) {
                     case MA_FAILG:
                         macro_fail_game(z->text.textindex);
                         break;
+                    case MA_OVRLY:
+                        add_text_to_overlay(level_texts[z->overlay.text_index], &(z->overlay) );
+                        break;
+                        
                 }
             }
             if (jmp_to != -1) {

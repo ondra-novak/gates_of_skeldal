@@ -8,7 +8,7 @@
 
 
 
-static int vector_resize(Vector *v, size_t new_capacity)
+static int vector_resize_capacity(Vector *v, size_t new_capacity)
 {
     
     void *new_data = realloc(v->data, new_capacity * v->element_size);
@@ -22,7 +22,7 @@ static int vector_resize(Vector *v, size_t new_capacity)
 
 int vector_reserve(Vector *v, size_t reserve_size) {
     if (v->capacity < reserve_size) 
-        return vector_resize(v, reserve_size);
+        return vector_resize_capacity(v, reserve_size);
     return 1;
 }
 
@@ -68,7 +68,7 @@ void vector_destroy(Vector *v)
 int vector_push_back(Vector *v, const void *element)
 {
     if (v->size == v->capacity) {
-        if (!vector_resize(v, v->capacity * 2))
+        if (!vector_resize_capacity(v, v->capacity * 2))
             return 0;
     }
 
@@ -160,7 +160,7 @@ int vector_insert(Vector *v, size_t index, const void *element, size_t count) {
         while (new_capacity < v->size + count) {
             new_capacity *= 2;
         }
-        if (!vector_resize(v, new_capacity))
+        if (!vector_resize_capacity(v, new_capacity))
             return 0;
     }
 
@@ -179,44 +179,42 @@ int vector_insert(Vector *v, size_t index, const void *element, size_t count) {
     return 1;
 }
 
-int linear_find(const void *data, size_t count, size_t element_size, int (*cmp)(const void *a, const void *b), const void *target) {
+const void *linear_find(const void *data, size_t count, size_t element_size, int (*cmp)(const void *a, const void *b), const void *target) {
     if (!data || !cmp || !target) 
-        return -1;  
+        return NULL;  
     if (cmp == NULL) {
         for(size_t i = 0; i < count; ++i) {
             const void *elem = (const char*)data + i * element_size;
             if (memcmp(elem, target, element_size) == 0) {
-                return (int)i;
+                return elem;
             }
         }
-        return -1;
+        return NULL;
     }
     for(size_t i = 0; i < count; ++i) {
         const void *elem = (const char*)data + i * element_size;
         if (cmp(elem, target) == 0) {
-            return (int)i;
+            return elem;
         }
     }
-    return -1;
+    return NULL;
 }
 
-int linear_remove_if(void *data, size_t *count, size_t element_size, int (*predicate)(void *element)) {
+size_t linear_remove_if(void *data, size_t count, size_t element_size, int (*predicate)(const void *element, void *context), void *context) {
     if (!data || !count || !predicate) 
         return 0;  
     size_t write_index = 0;
-    for(size_t read_index = 0; read_index < *count; ++read_index) {
+    for(size_t read_index = 0; read_index < count; ++read_index) {
         void *elem = (char*)data + read_index * element_size;
-        if (!predicate(elem)) {
+        if (!predicate(elem,context)) {
             if (write_index != read_index) {
                 void *dest = (char*)data + write_index * element_size;
-                memmove(dest, elem, element_size);
+                swap_memory(dest, elem, element_size);
             }
             write_index++;
         }
     }
-    size_t removed_count = *count - write_index;
-    *count = write_index;
-    return removed_count;
+    return write_index;
 }
 
 void swap_memory(void *a, void *b, size_t size) {

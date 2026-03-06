@@ -1252,7 +1252,7 @@ void check_players_place(char mode) {
             if (map_sectors[sect].sector_type != S_LODKA && lodka) {
                 set_backgrnd_mode(0);
                 lodka = 0;
-                hide_boat();
+                hide_overlays();
             }
         }
 }

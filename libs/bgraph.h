@@ -1,3 +1,4 @@
+
 #include <platform/platform.h>
 #include "types.h"
 
@@ -141,3 +142,7 @@ void greyscale_rectangle_ex(int x, int y, int xs, int ys, uint16_t *screen_addre
 void greyscale_rectangle(int x, int y, int xs, int ys);
 
 #define swap_int(a,b) do  {int c=a;a=b;b=c;} while (0);
+
+#define PICTURE_WIDTH(x) (*(uint16_t *)x)
+#define PICTURE_HEIGHT(x) (*((uint16_t *)x+1))
+void  *picture_create(int width, int height, uint16_t **buffer);

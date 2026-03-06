@@ -798,3 +798,15 @@ void greyscale_rectangle_ex(int x, int y, int xs, int ys, uint16_t *screen_addre
 void greyscale_rectangle(int x, int y, int xs, int ys) {
   greyscale_rectangle_ex(x,y,xs,ys,GetScreenAdr(),GetScreenPitch());
 }
+
+ void *picture_create(int width, int height, uint16_t **buffer) {
+    int size = 6+width*height*2;
+    void *data = getmem(size);
+    uint16_t *hdr = (uint16_t *)data;
+    hdr[0] = (uint16_t)width;
+    hdr[1] = (uint16_t)height;
+    hdr[2] = 15;
+    *buffer = hdr+3;
+    return data;
+
+}

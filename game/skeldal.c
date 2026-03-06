@@ -1187,7 +1187,7 @@ void unwire_main_functs(void)
   console_show(0);
   disable_click_map();
   wire_proc=wire_main_functs;
-  hide_boat();
+  hide_overlays();
   }
 
 

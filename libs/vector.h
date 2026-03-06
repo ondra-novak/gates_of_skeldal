@@ -98,10 +98,21 @@ int  vector_set(Vector *v, size_t index, const void *element);
  */
 int  vector_remove(Vector *v, size_t index, size_t count);
 
-int vector_exchange(Vector *v, size_t index, void *element);
-
 ///inserts a new element at the specified index, shifting subsequent elements to the right, returns 1 on success, 0 on failure (e.g. index out of bounds, memory allocation failure)
 int vector_insert(Vector *v, size_t index, const void *element, size_t count);
+
+
+///Resize vector
+static inline int vector_resize(Vector *v, size_t new_size, const void *data) {
+    if (new_size < v->size) {
+        return vector_remove(v, new_size, v->size - new_size);
+    } else {
+        return vector_insert(v, v->size, data, new_size - v->size);
+    }
+}
+
+int vector_exchange(Vector *v, size_t index, void *element);
+
 
 ///linear search for an element in the vector, returns index or -1 if not found
 /**
@@ -110,19 +121,19 @@ int vector_insert(Vector *v, size_t index, const void *element, size_t count);
     * @param element_size size of each element in the vector
     * @param cmp comparison function that returns 0 if elements are equal. If NULL, memcmp is used.
     * @param target pointer to the element to find   
-    * @return index of the found element or -1 if not found
+    * @return found item or NULL
  */
-int linear_find(const void *data, size_t count, size_t element_size, int (*cmp)(const void *a, const void *b), const void *target);
+const void *linear_find(const void *data, size_t count, size_t element_size, int (*cmp)(const void *a, const void *b), const void *target);
 
 ///linear search for an element in the vector, removes it if found and returns 1, otherwise returns 0
 /**
     * @param data pointer to the vector data
-    * @param count pointer to the number of elements in the vector, will be decremented if an element is removed
+    * @param count pointer to the number of elements in the vector
     * @param element_size size of each element in the vector
     * @param predicate function that returns 1 if the element should be removed, 0 otherwise, the function is also responsible to destroy removing element if needed
     * @return final count of elements in the vector after removals
 */
-int linear_remove_if(void *data, size_t *count, size_t element_size, int (*predicate)(void *element));
+size_t linear_remove_if(void *data, size_t count, size_t element_size, int (*predicate)(const void *element, void *context), void *context);
 
 
 ///Swap memory

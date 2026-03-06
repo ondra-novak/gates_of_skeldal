@@ -1,3 +1,4 @@
+
 #include <platform/platform.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -16,6 +17,8 @@
 #include "engine1.h"
 #include <libs/pcx.h>
 #include "globals.h"
+#include "libs/vector.h"
+#include "platform/timer.h"
 #include "version.h"
 
 #include <string.h>
@@ -38,6 +41,7 @@
 #define ZASAHT_X 30
 #define ZASAHT_Y 38
 
+#define TEXT_OVERLAY_SPRITE 2
 
 #define SHOW {swap_buffs();showview(0,0,0,0);swap_buffs();getche();`}
 
@@ -89,8 +93,195 @@ uint8_t dirs[10];
 word minimap[VIEW3D_Z+1][VIEW3D_X*2+1];
 
 
+typedef struct {
+    char *text;               //pointer to displayed text, NULL - just rectangle
+    uint32_t show_time_point;  //when text is visible
+    uint32_t hide_time_point;  //when text is hidden    
+    int x;                          //x coord
+    int y;                          //y coord
+    int xs;                      
+    int ys;
+    int8_t align_x;                 //0-left, 1-center, 2-right
+    int8_t align_y;                 //0-top, 1-center, 2-bottom
+    int8_t blocking;                //no more text can be shown while this is visible, they are put into queue
+    int8_t pic;
+    int  font_handle;               //font size in steps (4,5, book, boldcz, sheet font,big)
+    word color15;
+}TTEXT_DISPLAY_SCRIPT_ITEM;
+
+static Vector text_display_script = {0};
+static uint32_t text_overlay_hash = 0;
+
+
+static void text_display_item_destructor(void *item) {
+    void *ptr = *(void **)item;
+    free(ptr);
+}
+
+
+
+static void draw_text_overlay() {
+    uint32_t tm = get_timer_value();
+    TTEXT_DISPLAY_SCRIPT_ITEM **cur_list = (TTEXT_DISPLAY_SCRIPT_ITEM **)vector_data(&text_display_script);
+    size_t cur_list_size = vector_size(&text_display_script);
+    if (cur_list_size ==0) {    
+        return;
+    } 
+
+    size_t buffsz = 640*480;
+    word *img = NewArr(word, buffsz+3);
+    img[0] = 640;
+    img[1] = 360;
+    img[2] = 15;
+    word *buff = &img[3];
+    for (size_t i = 0; i< buffsz; ++i ) buff[i] = 0x8000;
+    RedirectScreen(buff);
+
+    for (size_t i = 0;  i< cur_list_size; ++i) {
+        const TTEXT_DISPLAY_SCRIPT_ITEM *itm = cur_list[i];
+        if (tm >= itm->show_time_point) {
+            if (itm->pic) {
+                int32_t sz;
+                const void *pic = afile(itm->text, 0,&sz);
+                const void *pcx = pcx_8bit_decomp(pic, &sz, 0);
+                ablock_free(pic);
+                int x = itm->x;
+                int y = itm->y;
+                switch (itm->align_x) {
+                    case 1: x-=itm->xs/2;break;
+                    case 2: x-=itm->xs;break;
+                    default:break;
+                }
+                switch (itm->align_y) {
+                    case 1: y-=itm->ys/2;break;
+                    case 2: y-=itm->ys;break;
+                    default:break;
+                }
+                if (x >= 0 && y >= 0)  put_picture_ex(x,y,pcx,buff,640,360);
+                ablock_free(pcx);
+                
+            } else {
+                const char *c = itm->text;
+                set_font(itm->font_handle, NOSHADOW(itm->color15));
+                int yiter = itm->y;
+                switch (itm->align_y) {
+                    default:break;
+                    case 1:yiter -= itm->ys/2;break;
+                    case 2:yiter -= itm->ys;break;
+                }
+                while (*c) {                
+                    set_aligned_position(itm->x, yiter, itm->align_x, 0, c);
+                    int h  = text_height(c);
+                    if (yiter > 0 && yiter < 359-h) {
+                        outtext(c);
+                        yiter+=h;
+                    }
+                    c = strchr(c,0)+1;
+                }        
+            }
+        }
+    }
+    RestoreScreen();
+
+    game_display_hide_sprite(TEXT_OVERLAY_SPRITE);
+    game_display_load_sprite(TEXT_OVERLAY_SPRITE, img);
+    game_display_sprite_set_zindex(TEXT_OVERLAY_SPRITE,2);
+    free(img);
+
+}
+
+
+void add_text_to_overlay(const char *text,const TMA_TEXT_OVERLAY *ovrdef) {
+    if (text_display_script.element_size == 0) {
+        vector_init(&text_display_script, sizeof(TTEXT_DISPLAY_SCRIPT_ITEM *), text_display_item_destructor);
+    }
+    TTEXT_DISPLAY_SCRIPT_ITEM *item = (TTEXT_DISPLAY_SCRIPT_ITEM *)getmem(sizeof(TTEXT_DISPLAY_SCRIPT_ITEM)+strlen(text)+10);    
+    item->text = (char *)item + sizeof(TTEXT_DISPLAY_SCRIPT_ITEM);    
+    item->x = ovrdef->x;
+    item->y = ovrdef->y;
+    item->align_x = ovrdef->align_x;
+    item->align_y = ovrdef->align_y;
+    item->color15 = ovrdef->color15;
+    switch (ovrdef->face) {
+        case 0: item->font_handle = H_FTINY;break;
+        case 1: item->font_handle = H_FLITT;break;
+        case 2: item->font_handle = H_FLITT5;break;
+        case 3: item->font_handle = H_FONT6;break;
+        case 4: item->font_handle = H_FONT7;break;
+        case 5: item->font_handle = H_FBOLD;break;
+        case 6: item->font_handle = H_FBIG;break;
+    }
+    TTEXT_DISPLAY_SCRIPT_ITEM **cur_list = (TTEXT_DISPLAY_SCRIPT_ITEM **)vector_data(&text_display_script);
+    size_t cur_list_size = vector_size(&text_display_script);
+    uint32_t now = get_timer_value();
+    uint32_t disp_time = now;
+    for (size_t i = 0; i < cur_list_size; ++i) {
+        if (cur_list[i]->blocking) disp_time = MAX(disp_time, cur_list[i]->hide_time_point+5);
+    }
+    uint32_t hide_time = disp_time+ovrdef->display_time;
+    item->blocking = ovrdef->blocking;
+    item->show_time_point = disp_time;
+    item->hide_time_point = hide_time;    
+
+    if (ovrdef->picture) {
+        strcpy(item->text, text);
+        int32_t sz;
+        const void *pic = afile(item->text, 0, &sz);
+        word *convpcx = (word *)pcx_8bit_decomp(pic, &sz, 0);
+        ablock_free(pic);
+        item->xs = convpcx[0];
+        item->ys = convpcx[1];
+        ablock_free(convpcx);
+    } else {
+        set_font(item->font_handle, NOSHADOW(item->color15));
+        zalamovani(text, item->text, ovrdef->max_width, &item->xs, &item->ys);    
+    }
+    vector_push_back(&text_display_script, &item);
+    if (disp_time == now) draw_text_overlay();
+}
+
+struct expre_ovr_context {
+    uint32_t hash;
+    uint32_t tm;
+};
+
+static int expired_text_overlay( const void *a, void *b) {
+    TTEXT_DISPLAY_SCRIPT_ITEM *itm = *(TTEXT_DISPLAY_SCRIPT_ITEM **)a;
+    struct expre_ovr_context *ctx = (struct expre_ovr_context *)b;    
+    if (itm->hide_time_point < ctx->tm) {    
+        return 1;
+    }
+    if (itm->show_time_point < ctx->tm) {
+        ctx->hash ^= fnv1a_hash(itm->text);
+    }
+    return 0;
+}
+
+int update_text_overlay_list() {
+    struct expre_ovr_context ctx;
+    ctx.tm = get_timer_value();
+    ctx.hash = 0;
+    size_t finsz =  linear_remove_if(vector_data(&text_display_script),
+                                     vector_size(&text_display_script),
+                                     text_display_script.element_size, 
+                                     expired_text_overlay, &ctx);
+    if (finsz < vector_size(&text_display_script)) {
+        vector_resize(&text_display_script, finsz, NULL);
+        draw_text_overlay();        
+    }
+    if (ctx.hash != text_overlay_hash) {
+        text_overlay_hash = ctx.hash;
+        if (ctx.hash) draw_text_overlay();
+    }
+    return !!ctx.hash;
+}
+
+
+
+
 
 char log_combat=0;
+
 
 
 
@@ -1382,7 +1573,17 @@ void render_scene(int sector, int smer, char nobackdrop)
           lodka_battle_draw = 0;
       }
   }
+  if (update_text_overlay_list()) {
+       game_display_place_sprite(TEXT_OVERLAY_SPRITE, 0, SCREEN_OFFLINE);    
+  } else {
+       game_display_hide_sprite(TEXT_OVERLAY_SPRITE);
   }
+}
+
+void clear_all_overlay_texts() {
+    vector_resize(&text_display_script, 0,0);
+    game_display_hide_sprite(TEXT_OVERLAY_SPRITE);
+}
 
 static const char *death_screen_text = NULL;
 
@@ -1501,8 +1702,9 @@ void display_ver(int x,int y,int ax,int ay)
   outtext(ver);showview(0,0,0,0);
   }
 
-void hide_boat() {
+void hide_overlays() {
     game_display_hide_sprite(H_LODKA);
+    game_display_hide_sprite(TEXT_OVERLAY_SPRITE);
 }
 
 

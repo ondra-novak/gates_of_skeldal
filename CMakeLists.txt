@@ -25,7 +25,7 @@ if (MSVC)
     add_compile_options(/W4 /EHa /DNOMINMAX /D_CRT_SECURE_NO_WARNINGS /J)
     set(STANDARD_LIBRARIES "")
 else()
-    add_compile_options(-Wall -Wextra -Werror -Wno-unused-result -Wno-unused-parameter -Wno-unused-value -Wno-extern-c-compat -funsigned-char)
+    add_compile_options(-Wall -Wextra -Werror -Wno-unused-result -Wno-unused-parameter -Wno-unused-value -funsigned-char)
     set(STANDARD_LIBRARIES "pthread")
 endif()
 

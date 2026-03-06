@@ -675,6 +675,36 @@ static int process_with_params(const char *cmd, const char *args) {
         change_fade_end(f);
         return 1;
     }
+    if (istrcmp(cmd, "overlay-test") == 0) {
+        TMA_TEXT_OVERLAY ovr;
+        ovr.align_x =2;
+        ovr.align_y = 2;
+        ovr.blocking = 1;
+        ovr.color15 = 0x7FFF;
+        ovr.display_time = 1000;
+        ovr.face = 6;
+        ovr.max_width = 240;
+        ovr.x = 630;
+        ovr.y = 350;
+        ovr.picture = 0;
+        add_text_to_overlay(args, &ovr);
+        return 1;
+    }
+    if (istrcmp(cmd, "overlay-image") == 0) {
+        TMA_TEXT_OVERLAY ovr;
+        ovr.align_x =2;
+        ovr.align_y = 2;
+        ovr.blocking = 1;
+        ovr.color15 = 0x7FFF;
+        ovr.display_time = 1000;
+        ovr.face = 6;
+        ovr.max_width = 240;
+        ovr.x = 630;
+        ovr.y = 350;
+        ovr.picture = 1;
+        add_text_to_overlay(args, &ovr);
+        return 1;
+    }
 
 
 

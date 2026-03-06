@@ -21,6 +21,7 @@
 #include <stdarg.h>
 #include <string.h>
 #include "ach_events.h"
+#include "libs/vector.h"
 
 typedef struct t_paragraph
   {
@@ -40,16 +41,37 @@ typedef struct t_paragraph
 
 #define MAX_VOLEB 10
 
-#define VOLBY_X 85
-#define VOLBY_Y 398
-#define VOLBY_XS 450
-#define VOLBY_YS 10
+typedef struct {
+    int32_t txt_window_x;
+    int32_t txt_window_y;
+    int32_t txt_window_xs;
+    int32_t txt_window_ys;
+    int32_t txt_window_line_height;
 
-#define TEXT_X 17
-#define TEXT_Y 270
-#define TEXT_XS 606
-#define TEXT_YS 94
-#define TEXT_STEP 11
+    int32_t txt_desc_width;
+    int32_t txt_desc_x;
+    int32_t txt_desc_y;
+
+    int32_t desc_color;
+    int32_t text_color;
+    int32_t choice_color;
+    int32_t sel_choice_color;
+
+} TDIALOGY_LAYOUT;
+
+static TDIALOGY_LAYOUT dlg_layout = {
+    17,270,606,
+    94,11, 
+    225, 382, 34,
+    RGB555(28,28,21),NOSHADOW(0),42115,
+    49252};
+
+#define TEXT_X dlg_layout.txt_window_x
+#define TEXT_Y dlg_layout.txt_window_y
+#define TEXT_XS dlg_layout.txt_window_xs
+#define TEXT_YS dlg_layout.txt_window_ys
+#define TEXT_STEP dlg_layout.txt_window_line_height
+#define DESC_COLOR1 dlg_layout.desc_color
 
 #define OPER_EQ 32
 #define OPER_BIG 35
@@ -61,7 +83,7 @@ typedef struct t_paragraph
 #define PIC_X 17
 #define PIC_Y (17+SCREEN_OFFLINE)
 
-#define DESC_COLOR1 (RGB555(28,28,21))
+#define LAYOUT_FILE "DIALOGY.LAY"
 
 #define MAX_VARIABLES 100
 static short variables[100];
@@ -74,6 +96,7 @@ static char back_pic_enable=0;
 static char showed=0;
 static char *pc;
 static char *descript=NULL;
+static size_t descript_len = 0;
 static char *string_buffer=NULL;
 static char iff;
 
@@ -89,7 +112,26 @@ static short vol_n[MAX_VOLEB];
 
 static short save_jump;
 
-static TSTR_LIST history=NULL;
+#define MAX_DIALOG_LINE 100
+#define DLG_LINE_IMAGE_SPACE 20
+
+enum LineType {
+    lt_emote,
+    lt_echo,
+    lt_choice
+};
+
+typedef struct {
+    char line[MAX_DIALOG_LINE];
+    enum LineType type;
+    uint8_t id;
+    uint8_t xofs;
+    short height;
+    void *face;
+} TDLG_TEXT_LINE;
+
+static Vector dlg_text;
+//static TSTR_LIST history=NULL;
 static int his_line=0;
 static int end_text_line=0;
 static int last_his_line=0;
@@ -117,7 +159,7 @@ static void (*old_wire_proc)(void) = NULL;
 #define CLK_DIALOG 5
 static T_CLK_MAP clk_dialog[CLK_DIALOG]=
   {
-  {0,TEXT_X,TEXT_Y,TEXT_X+TEXT_XS,TEXT_Y+TEXT_YS,case_click,3,H_MS_DEFAULT},
+  {0,0,0,0,0,case_click,3,H_MS_DEFAULT},
   {-1,30,0,85,14,konec,2,H_MS_DEFAULT},
   {-1,87,0,142,14,game_setup,2,H_MS_DEFAULT},
   {0,207,0,265,14,clk_saveload,2,H_MS_DEFAULT},
@@ -255,6 +297,37 @@ static void show_dialog_picture()
      glob_y=250;
      }
   }
+
+static void *small_xicht(int xicht_handle) {
+    const void *xicht = ablock(xicht_handle);
+    int w = PICTURE_WIDTH(xicht);
+    int h = PICTURE_HEIGHT(xicht)/4;
+    int w2 = w/3;
+    uint16_t *buf;
+    uint16_t *buf2;
+    void *p1 = picture_create(w,h,&buf);
+    memset(buf,0,w*h*2)    ;
+    put_picture_ex(0, 0, xicht, buf, w, h);    
+    void *p2 = picture_create(w/3, h/3, &buf2);
+    for (int y = 0; y < h; y+=3) {
+        for (int x = 0; x< w; x+=3) {
+            int r  = 0,g = 0, b = 0;
+            for (int y1 = 0; y1 < 3; y1++) {
+                for (int x1 = 0; x1< 3; x1++) {
+                    short px = buf[(y+y1)*w+(x+x1)];
+                    r += (px >> 10) & 0x1F;
+                    g += (px >> 5) & 0x1F;
+                    b += px & 0x1F;
+                }
+            }            
+            int xt = x/3;
+            int yt = y/3;
+            buf2[yt * w2 + xt] = RGB555(r/9,g/9,b/9);
+        }
+    }
+    free(p1);
+    return p2;
+}
 
 static T_PARAGRAPH *find_paragraph(int num)
   {
@@ -485,11 +558,12 @@ static void show_desc()
   showed=0;
   show_dialog_picture();
   if (c==NULL) return;
-  y=34;
+  y=dlg_layout.txt_desc_y;
+  char *end = descript+descript_len;
   set_font(H_FBOLD,DESC_COLOR1);
-  while (*c)
+  while (c < end)
      {
-     position(382,y);
+     position(dlg_layout.txt_desc_x,y);
      outtext(c);y+=text_height(c);
      c=strchr(c,0)+1;
      }
@@ -499,10 +573,15 @@ static void add_desc(char *c)
   {
   int xs,ys;
   if (descript!=NULL) free(descript);
-  descript=(char *)getmem(strlen(c)+2);
-  set_font(H_FBOLD,RGB555(31,31,31));
-  zalamovani(c,descript,225,&xs,&ys);
+  descript_len = strlen(c);
+  descript=(char *)getmem(descript_len+2);
+  set_font(H_FBOLD,DESC_COLOR1);
+  zalamovani(c,descript,dlg_layout.txt_desc_width,&xs,&ys);
+  for (size_t i = 0; i < descript_len; ++i) {
+    if (descript[i] == '\n') descript[i] = 0;
   }
+  descript[descript_len+1] =0;
+}
 
 static void show_emote(char *c)
   {
@@ -514,10 +593,13 @@ static void show_emote(char *c)
   zalamovani(c,a,TEXT_XS,&xs,&ys);
   while (*a)
      {
-     char z[100]="M";
-     strcat(z,a);
-     end_text_line=str_add(&history,z)+1;
-     a=strchr(a,0)+1;
+        TDLG_TEXT_LINE dlt ={0};
+        strcopy_n(dlt.line, a, sizeof(dlt.line));
+        dlt.type = lt_emote;
+        dlt.height = TEXT_STEP;
+        a=strchr(a,0)+1;
+        end_text_line = vector_size(&dlg_text);
+        vector_push_back(&dlg_text, &dlt);
      }
   }
 
@@ -532,15 +614,18 @@ static void echo(char *c)
   zalamovani(c,a,TEXT_XS,&xs,&ys);
   while (*a)
      {
-     char z[100]="E";
-     strcat(z,a);
-     end_text_line=str_add(&history,z)+1;
-     a=strchr(a,0)+1;
+        TDLG_TEXT_LINE dlt = {0};
+        strcopy_n(dlt.line, a, sizeof(dlt.line));
+        dlt.type = lt_echo;
+        dlt.height = TEXT_STEP;
+        a=strchr(a,0)+1;
+        end_text_line = vector_size(&dlg_text);
+        vector_push_back(&dlg_text, &dlt);
      }
   }
 
-#define TEXT_UNSELECT *((word *)ablock(H_DIALOG)+3+254)
-#define TEXT_SELECT *((word *)ablock(H_DIALOG)+3+255)
+#define TEXT_UNSELECT dlg_layout.choice_color
+#define TEXT_SELECT dlg_layout.sel_choice_color
 
 static void redraw_text()
   {
@@ -549,34 +634,38 @@ static void redraw_text()
   int ls_cn,i;
 
 
-  put_textured_bar(ablock(H_DIALOG),TEXT_X,TEXT_Y,TEXT_XS,TEXT_YS,TEXT_X,TEXT_Y-SCREEN_OFFLINE);
-  //create_frame(TEXT_X,TEXT_Y,TEXT_XS,TEXT_YS,1);
-  ls_cn=str_count(history);
+  ls_cn=vector_size(&dlg_text);
   if (ls_cn<=his_line) return;
 
   for (i=his_line;i<ls_cn;i++)
-     if (history[i]!=NULL)
-        {
-        char *c=&history[i][0];
-        if (*c=='E') set_font(H_FBOLD,NOSHADOW(0));
-        else if(*c=='M') set_font(H_FBOLD,NOSHADOW(0)+TEXT_UNSELECT);
-        else if(*c-48==vyb_volba) set_font(H_FBOLD,NOSHADOW(0)+TEXT_SELECT);
-        else set_font(H_FBOLD,NOSHADOW(0)+TEXT_UNSELECT);
-        c++;
-        position(TEXT_X,y);outtext(c);
-        y+=TEXT_STEP;
-        ys-=TEXT_STEP;
-        if (ys<TEXT_STEP) break;
+    {
+        const TDLG_TEXT_LINE *ln = (const TDLG_TEXT_LINE *)vector_get(&dlg_text, i);
+        int x = TEXT_X + ln->xofs;
+        if (ln->face) {
+            put_picture(TEXT_X, y, ln->face);
         }
+        switch (ln->type) {
+            default:
+            case lt_echo:set_font(H_FBOLD,dlg_layout.text_color);;break;
+            case lt_emote:set_font(H_FBOLD,TEXT_UNSELECT);break;
+            case lt_choice:
+                if (ln->id == vyb_volba) set_font(H_FBOLD,TEXT_SELECT);
+                else set_font(H_FBOLD,TEXT_UNSELECT);
+                break;        
+        }
+        
+        position(x,y);outtext(ln->line);
+        y+=ln->height;
+        ys-=ln->height;
+        if (ys<TEXT_STEP) break;
+    }
   }
 
 static int get_last_his_line()
   {
-  int i=0,cf;
+  
 
-  cf=str_count(history);
-  while(i<cf && history[i]!=NULL) i++;
-  return i;
+  return vector_size(&dlg_text);;
   }
 
 static void draw_all()
@@ -805,7 +894,7 @@ static void key_check(EVENT_MSG *msg,void **unused)
      }
      if (redraw) {
       schovej_mysku();
-      redraw_text();
+      draw_all();
       ukaz_mysku();
       showview(TEXT_X,TEXT_Y,TEXT_XS,TEXT_YS);
      }
@@ -915,72 +1004,135 @@ static void add_case(int num,char *text)
   set_font(H_FBOLD,RGB555(0,30,0));
   zalamovani(text,a,TEXT_XS,&xs,&ys);
   while (*a)
-     {
-     char z[100];
-     z[0]=pocet_voleb+48;
-     z[1]=0;
-     strcat(z,a);
-     str_add(&history,z);
+     {     
+     TDLG_TEXT_LINE ln ={};
+     ln.type = lt_choice;
+     ln.id = pocet_voleb;
+     ln.height = TEXT_STEP;
+     strcopy_n(ln.line,a,sizeof(ln.line));
+     vector_push_back(&dlg_text, &ln);
      a=strchr(a,0)+1;
      }
   pocet_voleb++;
   }
 
-static void remove_all_cases()
+static void add_case_speaker(int num,int speaker, char *text)
   {
-  int cf,i;
-  pocet_voleb=0;
-  cf=str_count(history);
-    for (i = end_text_line; i < cf; i++) {
-        if (history[i] != NULL) {
-            if (history[i][0] - 48 != vyb_volba) {
-                str_replace(&history, i, NULL);
-            } else {
-                history[i][0] = 'M';
-            }
-        } else {
-            break;
-        }
+  char *a;
+  int xs,ys;
+  if (pocet_voleb>=MAX_VOLEB) {
+      dlg_error("Too many choices. Limit is %d", MAX_VOLEB);
+      return;
+  }
+  vol_n[(uint8_t)pocet_voleb]=num;
+  a=alloca(strlen(text)+2);
+  set_font(H_FBOLD,RGB555(0,30,0));
+  THUMAN *h = speakers[speaker];
+  int xxs = TEXT_XS;
+  int xofs = 0;
+  void *xcht = 0;
+  if (h) {
+    xofs += DLG_LINE_IMAGE_SPACE;
+    xxs -= xofs;
+    xcht = small_xicht(H_XICHTY+(speakers[0] - postavy));
+  }
+  zalamovani(text,a,xxs,&xs,&ys);
+  TDLG_TEXT_LINE lines[10] = {0};
+  int lnidx = 0;
+  while (*a && lnidx < 10)
+     {
+        TDLG_TEXT_LINE *ln = &lines[lnidx];
+        lnidx++;
+        ln->type = lt_choice;
+        ln->id = pocet_voleb;
+        ln->xofs = xofs;
+        ln->height = TEXT_STEP;
+        strcopy_n(ln->line,a, sizeof(ln->line));
+        a=strchr(a,0)+1;        
+     }
+  TDLG_TEXT_LINE *tmp = NULL;
+  if (xcht) {
+    int xh = PICTURE_HEIGHT(xcht)+1;
+    if (lnidx * TEXT_STEP >= xh) {
+        lines[0].face = xcht;
+    } else {
+        tmp = &lines[lnidx];
+        tmp->type = lt_choice;
+        tmp->id = pocet_voleb;
+        tmp->height = (xh - lnidx * TEXT_STEP )/2;     
+        tmp->face = xcht;
+        tmp[1].height = xh - lnidx * TEXT_STEP - tmp->height;
+        tmp[1].id = pocet_voleb;
+        tmp[1].type = lt_choice;
+        vector_push_back(&dlg_text, tmp);
     }
-  str_delfreelines(&history);
-  vyb_volba=0;
+ }
+ for (int i = 0; i < lnidx; ++i) {
+    
+        vector_push_back(&dlg_text, &lines[i]);
+ }
+ if (tmp) {
+     vector_push_back(&dlg_text, &tmp[1]);
+ }
+    
+
+  pocet_voleb++;
   }
 
-static char case_click(int id,int xa,int ya,int xr,int yr)
+static int remove_choice_callback(const void *item, void *context) {
+    (void)context;
+    TDLG_TEXT_LINE *x = (TDLG_TEXT_LINE *)item;
+    return x->type == lt_choice && x->id != vyb_volba;
+}
+
+static void remove_all_cases()
   {
-  int cf;
+    size_t s = linear_remove_if((TDLG_TEXT_LINE *)vector_data(&dlg_text)+end_text_line,
+                    vector_size(&dlg_text) - end_text_line, dlg_text.element_size,remove_choice_callback,NULL)
+                    + end_text_line;
+    vector_resize(&dlg_text, s,NULL);   
+    for (size_t i = 0; i < s; ++i)     {
+        TDLG_TEXT_LINE *l = (TDLG_TEXT_LINE *)vector_get(&dlg_text, i);
+        l->id = -1;
+    }
+    vyb_volba=0;
+    pocet_voleb = 0;
+  }
 
-  xa,ya,xr,yr;
+  static char case_click(int id, int xa, int ya, int xr, int yr) {
+    
 
-  if (pocet_voleb>1)
-     {
-     id=yr/TEXT_STEP;
-     cf=str_count(history);
-     id+=his_line;
-     if (id>=cf) return 0;
-     if (history[id]==NULL) return 0;
-     id=history[id][0];
-     if (id=='E' || id=='M') return 0;
-     id-=48;
-  if (id!=vyb_volba)
-     {
-     vyb_volba=id;
-     schovej_mysku();
-     redraw_text();
-     ukaz_mysku();
-     showview(TEXT_X,TEXT_Y,TEXT_XS,TEXT_YS);
-     }
-  if (ms_last_event.event_type & 0x2)
-     {
-     dialog_cont();
-     }
-     }
-  else
-  if (ms_last_event.event_type & 0x2)
-     {
-     dialog_cont();
-     }
-  return 1;
+    xa, ya, xr, yr;
+
+    if (pocet_voleb > 1) {      
+      const TDLG_TEXT_LINE *list = (const TDLG_TEXT_LINE *)vector_data(&dlg_text);
+      size_t count = vector_size(&dlg_text);
+      int yp = 0;
+      size_t f = count;
+      for (size_t i = his_line; i< count; ++i) {
+        int yn = yp + list[i].height;        
+        if (yr >= yp && yr < yn) {
+            f = i;
+        }
+        yp = yn;
+      }
+      if (f >= count) return 0;
+      if (list[f].type != lt_choice) return 0;
+      id = list[f].id;
+      if (id != vyb_volba) {
+        vyb_volba = id;
+        schovej_mysku();
+        redraw_text();
+        ukaz_mysku();
+        showview(TEXT_X, TEXT_Y, TEXT_XS, TEXT_YS);
+      }
+      if (ms_last_event.event_type & 0x2) {
+        dialog_cont();
+      }
+    } else if (ms_last_event.event_type & 0x2) {
+      dialog_cont();
+    }
+    return 1;
   }
 
 void dialog_select(char halt)
@@ -1015,8 +1167,7 @@ static void exit_dialog()
   free(descript);descript=NULL;
   free(string_buffer);string_buffer=NULL;
   remove_all_cases();
-  release_list(history);
-  history=0;
+  vector_destroy(&dlg_text);
   free(back_pic); back_pic = NULL;
   undef_handle(H_DIALOG_PIC);
   if (starting_shop!=-1 && !battle)
@@ -1652,6 +1803,7 @@ void do_dialog()
             mobs[dialog_mob].dir = p2;
             refresh_mob_map();
             };break;
+     case 207:p1=Get_short();p2=Get_short();add_case_speaker(p1, p2, Get_string());break;
      case 518:set_flag(Get_short());break;
      case 519:reset_flag(Get_short());break;
      case 255:exit_dialog();return;
@@ -1688,11 +1840,27 @@ static void create_back_pic()
   ukaz_mysku();
   }
 
+void line_destructor(void *x) {
+    TDLG_TEXT_LINE *item = (TDLG_TEXT_LINE *)x;
+    free(item->face);
+}
+
+static void load_custom_layout() {
+    if (check_file_exists(LAYOUT_FILE)) {
+        int32_t sz;
+        const void *ptr = afile(LAYOUT_FILE, 0, &sz);
+        memcpy(&dlg_layout,ptr, sizeof(dlg_layout));
+        ablock_free(ptr);
+    }
+}
+
 void call_dialog(int entr,int mob)
   {
   int i;
-//  void (*old_wire_proc)()=wire_proc;
+
+
   curcolor=0;
+  load_custom_layout();
   create_back_pic();
   bar32(0,SCREEN_OFFLINE,639,SCREEN_OFFLINE+359);
   SEND_LOG("(DIALOGS) Starting dialog...");
@@ -1708,13 +1876,17 @@ void call_dialog(int entr,int mob)
   if (picked_item) held_item=*picked_item-1; else held_item=-1;
   poloz_vsechny_predmety();
   norefresh=1;
-  history=create_list(256);
+  vector_init(&dlg_text, sizeof(TDLG_TEXT_LINE), line_destructor);
   his_line=0;
   memset(speakers,0,sizeof(speakers));
   goto_paragraph(entr);
   schovej_mysku();
   alock(H_DIALOGY_DAT);
   selected_player=-1;
+  clk_dialog[0].xlu = TEXT_X;
+  clk_dialog[0].ylu = TEXT_Y;
+  clk_dialog[0].xrb = TEXT_X+TEXT_XS;
+  clk_dialog[0].yrb = TEXT_Y+TEXT_YS;
   do_dialog();
   }
 
