@@ -573,7 +573,10 @@ void do_items_specs(void)
                         break;
            case TYP_DLGPICK:
                         destroy=1;
-                        if (p->user_value>0) start_dialog(p->user_value, -1);
+                        if (p->user_value>0) {
+                            dialog_set_speaker(human_selected);
+                            start_dialog(p->user_value, -1);
+                        }
                         break;
            case TYP_SVITXT:
                         destroy=1;
@@ -2362,6 +2365,7 @@ char human_click(int id,int xa,int ya,int xr,int yr)
            case TYP_DLGUSE:if (!battle) {
                                   int dlg = pitem->user_value;
                                   destroy_picked_item();
+                                  dialog_set_speaker(human_selected);
                                   start_dialog(dlg,-1);
                                   unwire_proc();
                                   wire_proc();

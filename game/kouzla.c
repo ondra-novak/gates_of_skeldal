@@ -95,6 +95,7 @@
 #define SP_TELEPORT_SECT 27
 #define SP_OPEN_TELEPORT 28
 #define SP_RADIATION 29
+#define SP_DISPEL_MAGIC 30
 
 #define SS_invis 1
 #define SS_oko 2
@@ -111,6 +112,7 @@
 #define SPLF_TELEPORT 2
 #define SPLF_HIDDEN 4
 #define SPLF_NOANIM 8
+#define SPLF_NODISPEL 16
 
 static inline word _impl_get_word(unsigned char **c) {
     word r = (*c)[0] + 256* (*c)[1];
@@ -1358,6 +1360,18 @@ static void spell_rychlost(int num,int cil)
   if (c[VLS_POHYB]<15) zmen_vlastnost(num,cil,VLS_POHYB,15-c[VLS_POHYB]);
   }
 
+static void dispel_magic(int cil) {
+    for (int i = 0; i < MAX_SPELLS; ++i) {
+        TKOUZLO *k = spell_table[i];
+        if(k) {
+            if (k->spell_flags & SPLF_NODISPEL) continue;
+            if (k->cil == cil) {
+                spell_end(i, k->cil, k->owner);
+            }
+        }
+    }
+}
+
 void spell_special(int num,TKOUZLO *spl,int spc)
   {
   switch (spc)
@@ -1397,6 +1411,7 @@ void spell_special(int num,TKOUZLO *spl,int spc)
      case SP_TELEPORT_SECT: if (hod_na_uspech(spl->cil,spl)) spell_teleport_sector(spl->cil,spl->owner);break;
      case SP_OPEN_TELEPORT: spell_open_teleport(spl->cil,spl->owner);break;
      case SP_RADIATION: _flag_map[num]|=FLG_RADIATION; radiation_eff = 1; update_radiation(); break;
+     case SP_DISPEL_MAGIC: dispel_magic(spl->cil);break;
      }
   }
 
@@ -1723,6 +1738,25 @@ void call_spell(int i)
   while(!ext);
   p->start=c-start;
   }
+
+
+int has_spell_group(int chr, int spell_group) {
+   chr++;
+   int i;
+   for(i=0;i<MAX_SPELLS  && (spell_table[i]==NULL || abs(spell_table[i]->accnum)!=spell_group || spell_table[i]->cil!=chr);i++)  {}
+   return i<MAX_SPELLS;
+}
+
+void end_spell_group(int chr, int spell_group) {
+   chr++;
+   int i;
+   for(i=0;i<MAX_SPELLS; ++i) {
+        TKOUZLO *k = spell_table[i];
+        if (k && abs(k->accnum) == spell_group && k->cil == chr) {
+            spell_end(i, k->cil, k->owner);
+        }
+   }
+}
 
 int add_spell(int num,int cil,int owner,char noanim)
   {

@@ -257,17 +257,17 @@ static void dialog_anim(va_list args)
   free(aptr);
   }
 
-#define MAX_STACK_SIZE 512
-static short script_stack[MAX_STACK_SIZE];
+#define MAX_STACK_SIZE 256
+static int64_t script_stack[MAX_STACK_SIZE];
 static int script_stack_pos = MAX_STACK_SIZE;
 
-static void stk_push(short value) {
+static void stk_push(int64_t value) {
     if (script_stack_pos == 0) {
         display_error("script stack overflow"); exit(1);
     }
     script_stack[--script_stack_pos] = value;
 }
-static short stk_pop() {
+static int64_t stk_pop() {
     if (script_stack_pos >= MAX_STACK_SIZE) {
         display_error("script stack underflow"); exit(1);
     }
@@ -1649,11 +1649,13 @@ static void kill_current_enemy() {
     }
 }
 
+
 static void dlg_formated_print(const char *text, int args);
 
 void do_dialog()
   {
   int i,p1,p2,p3;
+  int64_t arg1, arg2;
   char *c;
 
   stk_clear();
@@ -1667,20 +1669,20 @@ void do_dialog()
      case 1: stk_push(Get_short());break;
      case 2: variables[Get_short()] = stk_pop();break;
      case 3: stk_pop();break;
-     case 4: p1 = stk_pop(); stk_push(p1); stk_push(p1); break;
-     case 5: p1 = stk_pop(); p2=stk_pop(); stk_push(p1); stk_push(p2); break;
-     case 6: p1 = stk_pop(); p2=stk_pop(); stk_push(p2+p1);break;
-     case 7: p1 = stk_pop(); p2=stk_pop(); stk_push(p2-p1);break;
-     case 8: p1 = stk_pop(); p2=stk_pop(); stk_push(p2*p1);break;
-     case 9: p1 = stk_pop(); p2=stk_pop(); stk_push(p2/p1);break;
-     case 10: p1 = stk_pop(); p2=stk_pop(); iff = (p2 &&p1);break;
-     case 11: p1 = stk_pop(); p2=stk_pop(); iff = (p2 ||p1);break;
-     case 12: p1 = stk_pop(); p2=stk_pop(); iff = (p2 == p1);break;
-     case 13: p1 = stk_pop(); p2=stk_pop(); iff = (p2 != p1);break;
-     case 14: p1 = stk_pop(); p2=stk_pop(); iff = (p2 < p1);break;
-     case 15: p1 = stk_pop(); p2=stk_pop(); iff = (p2 > p1);break;
-     case 16: p1 = stk_pop(); p2=stk_pop(); iff = (p2 <= p1);break;
-     case 17: p1 = stk_pop(); p2=stk_pop(); iff = (p2 >= p1);break;
+     case 4: arg1 = stk_pop(); stk_push(arg1); stk_push(arg1); break;
+     case 5: arg1 = stk_pop(); arg2=stk_pop(); stk_push(arg2%arg1);break;
+     case 6: arg1 = stk_pop(); arg2=stk_pop(); stk_push(arg2+arg1);break;
+     case 7: arg1 = stk_pop(); arg2=stk_pop(); stk_push(arg2-arg1);break;
+     case 8: arg1 = stk_pop(); arg2=stk_pop(); stk_push(arg2*arg1);break;
+     case 9: arg1 = stk_pop(); arg2=stk_pop(); stk_push(arg2/arg1);break;
+     case 10: arg1 = stk_pop(); arg2=stk_pop(); iff = (arg2 &&arg1);break;
+     case 11: arg1 = stk_pop(); arg2=stk_pop(); iff = (arg2 ||arg1);break;
+     case 12: arg1 = stk_pop(); arg2=stk_pop(); iff = (arg2 == arg1);break;
+     case 13: arg1 = stk_pop(); arg2=stk_pop(); iff = (arg2 != arg1);break;
+     case 14: arg1 = stk_pop(); arg2=stk_pop(); iff = (arg2 < arg1);break;
+     case 15: arg1 = stk_pop(); arg2=stk_pop(); iff = (arg2 > arg1);break;
+     case 16: arg1 = stk_pop(); arg2=stk_pop(); iff = (arg2 <= arg1);break;
+     case 17: arg1 = stk_pop(); arg2=stk_pop(); iff = (arg2 >= arg1);break;
      case 18: stk_push(-stk_pop());break;
      case 19: stk_push(!stk_pop());break;
      case 20: stk_push(iff?1:0);break;
@@ -1718,6 +1720,9 @@ void do_dialog()
      case 52: kill_current_enemy();break;
      case 53: p1 = Get_short(); p2 = Get_short(); select_speaker_by_slot(p1, p2);break;
      case 54: c = Get_string();dlg_formated_print(c, Get_short()); break;
+     case 55: iff = speakers[0]?has_spell_group(speakers[0] - postavy,Get_short()):0;break;
+     case 56: if (speakers[0]) end_spell_group(speakers[0] - postavy, Get_short());break;
+     case 57: stk_push(game_time);break;
      case 128:add_desc(Get_string());break;
      case 129:show_emote(Get_string());break;
      case 130:save_name(Get_short());break;
@@ -1727,7 +1732,6 @@ void do_dialog()
      case 134:p1=Get_short();p2=Get_short();select_speaker(VLS_SMAGIE,p1,0);break;
      case 135:p1=Get_short();p2=Get_short();select_speaker(VLS_SILA,p1,0);break;
      case 136:p1=Get_short();p2=Get_short();select_speaker(VLS_OBRAT,p1,p2);break;
-//     case 137:c=Get_string();p1=Get_short();strcopy_n(sn_nams[0],c,32);sn_rods[0]=p1;break;
      case 138:iff=Get_short();break;
      case 139:goto_paragraph(Get_short());break;
      case 140:p1=Get_short();if (iff) goto_paragraph(p1);break;
@@ -1860,6 +1864,10 @@ static void load_custom_layout() {
         memcpy(&dlg_layout,ptr, sizeof(dlg_layout));
         ablock_free(ptr);
     }
+}
+
+void dialog_set_speaker(THUMAN *h) {
+    speakers[0] = h;
 }
 
 void call_dialog(int entr,int mob)

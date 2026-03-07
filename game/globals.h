@@ -1707,6 +1707,8 @@ void test_play(int handle);
 void cast(int num,int owner,char backfire);
 void cast_spell(int num, int cil, int owner);
 int add_spell(int num,int cil,int owner,char noanim);
+int has_spell_group(int chr, int spell_group);
+void end_spell_group(int chr, int spell_group);
 void klicovani_anm(void *target,void *source,char mirror);
 //#pragma aux klicovani_anm parm [edi][esi][eax] modify [ecx edx ebx]
 int get_spell_color(THUMAN *p,int num, int actions);
@@ -1802,6 +1804,7 @@ void disable_intro(void);
 void call_dialog(int entr,int mob);
 char save_dialog_info(TMPFILE_WR *f);
 char load_dialog_info(TMPFILE_RD *f);
+void dialog_set_speaker(THUMAN *h);
 short *q_item_one(int i,int itnum); //test zda postava i ma vec itnum
 short *q_item(int itnum,int sector); //test zda-li aspon jeden na sectoru ma vec itnum
 void change_flag(int flag,char mode); //meni vlajku = 0 - reset, 1 - set, 2 - neg

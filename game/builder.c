@@ -163,7 +163,7 @@ static void draw_text_overlay() {
                 
             } else {
                 const char *c = itm->text;
-                set_font(itm->font_handle, NOSHADOW(itm->color15));
+                set_font(itm->font_handle,itm->color15);
                 int yiter = itm->y;
                 switch (itm->align_y) {
                     default:break;
