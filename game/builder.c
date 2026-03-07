@@ -1,4 +1,5 @@
 
+#include <bits/types/wint_t.h>
 #include <platform/platform.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -962,6 +963,8 @@ void create_minimap(int sector, int smer)
   }
 
 
+/*
+static void unfade_if_neede(const)
 
 
 
@@ -973,59 +976,197 @@ static const void *check_autofade(const void *image, char ceil, int dark)
     word *xy=(word *)image;
 	if (mglob.map_autofadefc==1)
 	{
-	  word *imgdata=xy+3;
-	  float br=mglob.fade_r>>3;
-	  float bg=mglob.fade_g>>3;
-	  float bb=mglob.fade_b>>3;
-	  float fmult = MIN(1.0f, mglob.fade_mult);
-	  float cmult = MAX(1.0f, mglob.fade_mult);
-	  float fend = mglob.fade_end;
-	  int y;
 
-      if (dark) br=bg=bb=0;
 
-	  for(y=0;y<xy[1];y++)
-	  {
-		float factor=(float)y/(xy[1]-1)*fend+1-fend;
-		int x;
-		if (!ceil) factor=1.0f-factor;
-		factor=(1-0-(1.0-factor*factor)*fmult);
-		for (x=0;x<xy[0];x++)
-		{
-		  float r=(*imgdata>>10)*cmult;
-		  float g=((*imgdata>>5) & 0x1F)*cmult;
-		  float b=(*imgdata & 0x1F)*cmult;
-		  int rr=(int)(r+factor*(br-r));
-		  if (rr > 0x1F) rr = 0x1F;
-		  int rg=(int)(g+factor*(bg-g));
-          if (rg > 0x1F) rg = 0x1F;
-          int rb=(int)(b+factor*(bb-b));
-          if (rb > 0x1F) rb = 0x1F;
-		  *imgdata=(rr<<10)|(rg<<5)|rb;
-		  imgdata++;
-		}
-	  }
 	}
     xy[2]=xy[2] & 0xFF;
   }
   return image;
 }
+*/
 
-#define draw_floor(s,celx,cely,dark) if (s->floor) draw_floor_ceil(celx,cely,0,check_autofade(ablock(num_ofsets[FLOOR_NUM]+fc_num(global_anim_counter,sector,1)),0,dark));
-#define draw_ceil(s,celx,cely,dark) if (s->ceil)  draw_floor_ceil(celx,cely,1,check_autofade(ablock(num_ofsets[CEIL_NUM]+fc_num(global_anim_counter,sector,0)),1,dark));
-#define GET_OBLOUK(p) ((p->oblouk & 0xf))
+static void calculate_avg_color(void *image, int line, float *r, float *g, float *b) {
+    int width = PICTURE_WIDTH(image);
+    uint16_t *data = PICTURE_DATA(image);
+    uint16_t *line_addr = line*width+data;
+
+
+    float avg_r = 0, avg_g = 0, avg_b = 0;;
+
+    for (int i = 0; i < width; ++i) {
+        uint16_t px = line_addr[i];
+        int r=RGB555_GET_R(px);
+        int g=RGB555_GET_G(px);
+        int b=RGB555_GET_B(px);
+        avg_r += r;
+        avg_g += g;
+        avg_b += b;
+    }
+    *r = avg_r / width;
+    *g = avg_g / width;
+    *b = avg_b / width;
+}
+
+static inline float pow2(float x) {
+    return x*x;
+}
+/*
+static float calculate_color_deviace(void *image, int line, float *ravg, float *gavg, float *bavg) {
+    int width = PICTURE_WIDTH(image);
+    uint16_t *data = PICTURE_DATA(image);
+    uint16_t *line_addr = line*width+data;
+
+    float dev = 0;
+
+    for (int i = 0; i < width; ++i) {
+        uint16_t px = line_addr[i];
+        int r=RGB555_GET_R(px);
+        int g=RGB555_GET_G(px);
+        int b=RGB555_GET_B(px);
+        dev += sqrt(pow2(r-*ravg)+pow2(g-*gavg)+pow2(b-*bavg));
+    }
+    return dev;
+}
+*/
+static int unfactor(float c, float avg_c, float factor) {
+    if (factor >= 1) return 0;
+    float out = (c - avg_c) / (1.0-factor) + avg_c;
+    return out < 0?0:out > 31.4?31:(int)floor(out+0.5);
+}
+
+static void calculate_unfade( void *image, char ceil) {
+    int height = PICTURE_HEIGHT(image);    
+    int width = PICTURE_WIDTH(image);  
+    word *imgdata = PICTURE_DATA(image)  ;
+    float avg_r;
+    float avg_g;
+    float avg_b;
+
+
+    calculate_avg_color(image, ceil?(height-1):0, &avg_r, &avg_g, &avg_b);
+
+    int y;
+    
+
+    for(y=0;y<height;y++)
+    {
+    float factor=(float)y/(height-1);
+    int x;
+    if (!ceil) factor=1.0f-factor;
+    factor=(1-0-(1.0-pow(factor,2)));
+    uint16_t *line = imgdata +(y*640);
+    for (x=0;x<width;x++)
+    {
+        uint16_t px= *line;
+        float r=(px>>10);
+        float g=((px>>5) & 0x1F);
+        float b=(px & 0x1F);
+        int adj_r = unfactor(r,avg_r,factor);        
+        int adj_g = unfactor(g,avg_g,factor);        
+        int adj_b = unfactor(b,avg_b,factor);        
+        *line=RGB555(adj_r,adj_g,adj_b);
+        line++;
+    }
+}
+}
+
+static void *calculate_autofade( void *image, char ceil, int dark, int32_t *sz, THANDLE_DATA *data) {
+
+    word *imgdata;
+    void *hi = picture_create(640, ceil?90:199, &imgdata);
+    put_picture_ex(0,0,image, imgdata, PICTURE_WIDTH(hi), PICTURE_HEIGHT(hi));
+
+    if (data->src_index == 0) calculate_unfade(hi, ceil);
+
+    int width = 640;
+    int height = 90;
+
+    float br=mglob.fade_r>>3;
+    float bg=mglob.fade_g>>3;
+    float bb=mglob.fade_b>>3;
+    float fmult = MIN(1.0f, mglob.fade_mult);
+    float cmult = MAX(1.0f, mglob.fade_mult);
+    float fend = mglob.fade_end;
+    int y;
+
+    if (dark) br=bg=bb=0;
+
+    for(y=0;y<height;y++)
+    {
+    float factor=(float)y/(height-1)*fend+1-fend;
+    int x;
+    if (!ceil) factor=1.0f-factor;
+    factor=(1-0-(1.0-pow(factor,1))*fmult);
+    for (x=0;x<width;x++)
+    {
+        float r=(*imgdata>>10)*cmult;
+        float g=((*imgdata>>5) & 0x1F)*cmult;
+        float b=(*imgdata & 0x1F)*cmult;
+        int rr=(int)(r+factor*(br-r));
+        if (rr > 0x1F) rr = 0x1F;
+        int rg=(int)(g+factor*(bg-g));
+        if (rg > 0x1F) rg = 0x1F;
+        int rb=(int)(b+factor*(bb-b));
+        if (rb > 0x1F) rb = 0x1F;
+        *imgdata=RGB555(rr,rg,rb);
+        imgdata++;
+    }
+    }
+    
+    *sz = (PICTURE_WIDTH(hi)*PICTURE_HEIGHT(hi)*2)+3;
+    return hi;    
+}
+
+const void *pcx_15bit_autofade(const void *p, int32_t *s, int h)
+  {
+    char *buff;
+    int r = load_pcx(p,*s,A_16BIT,&buff);
+    *s=r;
+    THANDLE_DATA *data = get_handle(h);
+    char ceil = data->user_data & 1;
+    char dark = data->user_data & 2;    
+    if (mglob.map_autofadefc) {
+        if (!dark || data->src_index != 0) {
+            void *buff2 = calculate_autofade(buff,  ceil, dark, s, data);
+            ablock_free(buff);
+            buff = buff2;
+        }
+    }
+    return buff;
+  }
+
+
+static inline void draw_floor(int sector, int celx, int cely) {
+    if (!map_sectors[sector].floor) return;
+    int h = num_ofsets[FLOOR_NUM]+fc_num(global_anim_counter, sector, 1);
+    THANDLE_DATA *hdata = get_handle(h);
+    if (hdata) {
+        hdata->user_data = (map_coord[sector].flags & MC_SHADING) ? 0x2: 0;
+        draw_floor_ceil(celx, cely, 0, ablock(h));
+    }
+}
+
+
+static inline void draw_ceil(int sector, int celx, int cely) {
+    if (!map_sectors[sector].ceil) return;
+    int h = num_ofsets[CEIL_NUM]+fc_num(global_anim_counter, sector, 0);
+    THANDLE_DATA *hdata = get_handle(h);
+    if (hdata) {
+        hdata->user_data = (map_coord[sector].flags & MC_SHADING) ? 0x3: 0x1;
+        draw_floor_ceil(celx, cely, 1, ablock(h));
+    }
+}
+
+static inline int get_oblouk(const TSTENA *p) {return (p->oblouk & 0xF);}
+
 
 static int left_shiftup,right_shiftup;
 
 int draw_basic_floor(int celx,int cely,int sector)
   {
-  TSECTOR *s;
-  int dark;
 
-  s=&map_sectors[sector];
-  dark=map_coord[sector].flags & MC_SHADING;
-  draw_floor(s,celx,cely,dark);
-  draw_ceil(s,celx,cely,dark);
+  draw_floor(sector, celx, cely);
+  draw_ceil(sector, celx, cely);
   return 0;
   }
 
@@ -1072,7 +1213,7 @@ static int draw_basic_sector(int celx, int cely, int sector) {
 
     w = &map_sides[sector * 4];
     q = &w[dirs[1]];
-    obl = GET_OBLOUK(q);
+    obl = get_oblouk(q);
     if (cely < VIEW3D_Z) {
         if (q->flags & SD_LEFT_ARC && obl)
             show_cel2(celx, cely, ablock(num_ofsets[OBL_NUM] + obl), 0, 0, 1, ghost_walls );
@@ -1245,7 +1386,7 @@ int draw_sloup_sector(int celx,int cely,int sector)
 
   w=&map_sides[sector*4];
   q=&w[dirs[1]];
-  obl=GET_OBLOUK(q);
+  obl=get_oblouk(q);
   if (q->flags & SD_LEFT_ARC && q->oblouk)
      show_cel2(celx,cely,ablock(num_ofsets[OBL_NUM]+obl),0,0,1, ghost_walls);
   if (q->flags & SD_RIGHT_ARC && q->oblouk)

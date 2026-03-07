@@ -145,4 +145,6 @@ void greyscale_rectangle(int x, int y, int xs, int ys);
 
 #define PICTURE_WIDTH(x) (*(uint16_t *)x)
 #define PICTURE_HEIGHT(x) (*((uint16_t *)x+1))
+#define PICTURE_FORMAT(x) (*((uint16_t *)x+2))
+#define PICTURE_DATA(x) (((uint16_t *)x+2))
 void  *picture_create(int width, int height, uint16_t **buffer);

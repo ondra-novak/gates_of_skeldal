@@ -516,6 +516,8 @@ THANDLE_DATA *def_handle(int handle,const char *filename,ABLOCK_DECODEPROC decom
   SEND_LOG("(REGISTER) Seekpos=%d",h->offset);
   h->flags=0;
   h->path=path;
+  h->context = NULL;
+  h->user_data = 0;
   if (h->status!=BK_DIRLIST) h->status=BK_NOT_LOADED;
   h->counter=bk_global_counter++;
   return h;
@@ -914,3 +916,16 @@ void afile_mapped_free(const void *ptr, int32_t sz) {
     if (need_to_be_free(ptr)) unmap_file(ptr, sz);
 }
 
+void set_handle_content(int handle, const void *ptr, int32_t size) {
+    if (size < 0) return;
+    if (size == 0 || ptr == NULL) {
+        kill_block(handle);
+        return;
+    }
+    THANDLE_DATA *hdata = get_handle(handle);
+    if (hdata == NULL) return;
+    ablock_free(hdata->context);
+    hdata->context = (void *)ptr;
+    hdata->size = size;
+    hdata->flags |= BK_PRESENT;
+}

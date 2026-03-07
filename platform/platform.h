@@ -56,6 +56,9 @@ uint32_t _bios_keybrd(int mode);
 #define AVG_PIXEL_MASK (0x7BDE)
 #define BLEND_PIXELS(px1, px2) ((((px1) & AVG_PIXEL_MASK) + ((px2) & AVG_PIXEL_MASK)) >> 1)
 
+#define RGB555_GET_R(x) (((x) >> 10) & 0x1F);
+#define RGB555_GET_G(x) (((x) >>  5) & 0x1F);
+#define RGB555_GET_B(x) (((x)      ) & 0x1F);
 
 
 ///build pathname from parts

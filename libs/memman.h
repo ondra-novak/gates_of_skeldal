@@ -54,6 +54,7 @@ typedef struct thandle_data
   uint32_t counter;
   uint32_t size;
   void *context;
+  uint32_t user_data;
   }THANDLE_DATA;
 
 #define BK_MAJOR_HANDLES 256 // maximalni pocet skupin rukojeti
@@ -105,6 +106,9 @@ void *afile_copy(const char *filename,int group,int32_t *blocksize); //nahraje d
 int32_t get_handle_size(int handle);
 //void get_mem_info(MEMORYSTATUS *mem);
 void ablock_free(const void *ptr);
+//replace content of handle. 
+/* useful to perform post-load conversion*/
+void set_handle_content(int handle, const void *ptr, int32_t size);
 
 #ifdef NDEBUG
 inline void CHECK_MEMORY(const void * ptr,size_t sz) {

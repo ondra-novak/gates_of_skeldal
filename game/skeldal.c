@@ -336,15 +336,6 @@ const void *pcx_15bit_decomp_transp0(const void *p, int32_t *s, int h)
   return buff;
   }
 
-const void *pcx_15bit_autofade(const void *p, int32_t *s, int h)
-  {
-  char *buff;
-  int r = load_pcx(p,*s,A_16BIT,&buff);
-  assert(r > 0);
-  *s=r;
-  buff[5]=0x80;
-  return buff;
-  }
 
 const void *pcx_15bit_backgrnd(const void *p, int32_t *s, int h)
   {
