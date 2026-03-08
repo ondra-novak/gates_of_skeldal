@@ -1,5 +1,4 @@
 
-#include <bits/types/wint_t.h>
 #include <platform/platform.h>
 #include <stdio.h>
 #include <stdlib.h>

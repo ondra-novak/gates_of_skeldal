@@ -213,7 +213,9 @@ static void get_list_callback(const UGCItem *items, unsigned int count, void *co
         vector_push_back(&st->items, &item);
     }
     if (is_steam_workshop_browser_available()) {
-        item = make_load_continue_info(NULL,NULL,NULL,"... workshop ...",1);
+        item = make_load_continue_info(NULL,NULL,NULL,"Workshop...",1);        
+        vector_push_back(&st->items, &item);
+        item = make_load_continue_info(NULL,NULL,NULL,"Editor...",2);
         vector_push_back(&st->items, &item);
     }
     st->update_lock = 0;
@@ -311,14 +313,32 @@ static void navigate_up(TLAUNCHER_STATE *st) {
     } while (items[st->selected] == NULL);
 }
 
+static void start_editor_ui(void ) {
+    start_editor();
+    curcolor=0; bar32(0,0,639,479);
+    position(0,0);
+    set_font(H_FBOLD,RGB555(31,31,31));
+    outtext("Editor is opened in Steam overlay. Use Shitf+TAB to open");
+    showview(0,0,0,0);
+    while (!did_editor_exit() && !game_display_is_quit_requested()) {
+        sleep_ms(10);
+        showview(0,0,10,10);        
+    }
+}
+
 static void activate_item(TLAUNCHER_STATE *st) {
     TLAUNCHER_ITEM *item = *(TLAUNCHER_ITEM **)vector_get(&st->items, st->selected);
-    if (item->ddl == NULL && item->adv_id == 1) {
-        open_steam_workshop();
-    } else {
-        st->selection_done = 1;
-        st->selected_anim_cntr = 1;
+    if (item->ddl == NULL) {
+        if (item->adv_id == 1) {
+            open_steam_workshop();
+            return;
+        } else if (item->adv_id == 2) {
+            start_editor_ui();
+            return;
+        }        
     }
+    st->selection_done = 1;
+    st->selected_anim_cntr = 1;    
 }
 
 static void launcher_keyboard(EVENT_MSG *msg, void **userdata) {
@@ -354,7 +374,7 @@ static void launcher_mouse(EVENT_MSG *msg, void **userdata) {
             int y = ev->y;
             y -= LAUNCHER_START - st->offset;
             int pos = (y+LAUNCHER_STEP/2) / LAUNCHER_STEP;
-            if (*(TLAUNCHER_ITEM **)vector_get(&st->items, pos) == NULL) return;
+            if (pos < 0  || pos >= vector_size(&st->items) || *(TLAUNCHER_ITEM **)vector_get(&st->items, pos) == NULL) return;
             if (pos >=0 && pos < (int)vector_size(&st->items)) {
                 if (pos == st->selected) activate_item(st);
                 else st->selected = pos;

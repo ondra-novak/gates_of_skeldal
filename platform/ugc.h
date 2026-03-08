@@ -26,6 +26,8 @@ size_t get_install_callback_counter();
 
 void open_steam_workshop();
 char is_steam_workshop_browser_available();
+void start_editor();
+char did_editor_exit();
 
 #ifdef __cplusplus 
 }

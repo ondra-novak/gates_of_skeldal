@@ -72,6 +72,7 @@ public:
 
     void activate_game_overlay_to_web_page(std::string url);
     bool is_overlay_enabled() const;
+    void hide_overlay() const;
     size_t get_install_callback_counter() ;
 
 
@@ -103,5 +104,6 @@ protected:
     std::atomic<size_t> _install_counter = {};
     UpdateInstallEvent _update_install_event;
     SubscribeChange _subscribe_change_event;
+    std::chrono::steady_clock::time_point await_overlay;
     class QUGCState;
 };

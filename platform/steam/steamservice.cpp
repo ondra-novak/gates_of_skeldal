@@ -22,7 +22,7 @@ SteamService::SteamService()
     if (_available) {
         _appid = SteamUtils()->GetAppID();
     }
-
+    await_overlay = std::chrono::steady_clock::now()+std::chrono::minutes(1);
 
 }
 
@@ -49,6 +49,13 @@ void SteamService::run_callbacks() {
         lk.lock();
     }
     _main_thread_tasks.erase(_main_thread_tasks.begin(), _main_thread_tasks.begin()+count);
+    auto now =  std::chrono::steady_clock::now();
+    if (now < await_overlay) {
+        if (SteamUtils()->IsOverlayEnabled()) {
+               ++_install_counter;
+               await_overlay = now;
+        }
+    }
 }
 
 bool SteamService::set_achievement(const char* id) {
@@ -245,7 +252,6 @@ public:
         char folder_buffer[4096];
 
 
-        _owners.resize(result->m_unNumResultsReturned);
         //process all resultrs
         for (uint32 i = 0; i < result->m_unNumResultsReturned; ++i) {
             iugc->GetQueryUGCResult(result->m_handle, i, &details);
@@ -255,60 +261,26 @@ public:
             item.id = details.m_nPublishedFileId;
 
             iugc->GetItemInstallInfo(details.m_nPublishedFileId,&size_on_disk,folder_buffer,sizeof(folder_buffer),&timestamp);
+            std::string n = SteamFriends()->GetFriendPersonaName(details.m_ulSteamIDOwner);
+            item.author = n.c_str();
+ 
             //download location
             item.download_location = folder_buffer;
-            //list of owners
-            _owners[i] = details.m_ulSteamIDOwner;
         }
 
         SteamUGC()->ReleaseQueryUGCRequest(result->m_handle);
 
-        ///request owners info
-        std::vector<uint64> ownset  = _owners;
-        std::sort(ownset.begin(), ownset.end());
-        ownset.erase(std::unique(ownset.begin(), ownset.end()), ownset.end());
-
-        for (auto &x: ownset ){
-            SteamFriends()->RequestUserInformation(x, true);
-        }
-        _timeout = std::chrono::steady_clock::now()+std::chrono::seconds(2);
-        author_resolve_cycle();
+        _cb(_result);
     }
 
-    static bool invalid_name(std::string_view n) {
-        return n.empty() || n == "[unknown]";
-    }
-
-    void author_resolve_cycle() {
-        bool done = true;
-        for (size_t i = 0; i < _result.size(); ++i) {
-            auto &r = _result[i];
-            auto &u =  _owners[i];
-            if (r.author.empty()) {
-                std::string n = SteamFriends()->GetFriendPersonaName(u);
-                if (!invalid_name(n))  {
-                    r.author = n;
-                } else {
-                    done = false;
-                }
-            }
-        }
-        if (done || std::chrono::steady_clock::now() > _timeout) {
-            _cb(_result);
-            return;
-        }
-        _svc->post([me = shared_from_this()]{me->author_resolve_cycle();});
-    }
-
+ 
 
 protected:
     QueryUGCCallback _cb;
     SteamService *_svc;
     std::vector<UGCItem> _result;
-    std::vector<uint64> _owners;
     std::vector<PublishedFileId_t> _downloaded;
-    std::chrono::steady_clock::time_point _timeout;
-
+ 
 
     GenericSteamCall< SteamUGCQueryCompleted_t,
             MemberCaller<std::shared_ptr<QUGCState>, &QUGCState::details_ready> >_details_awaiter;
@@ -348,3 +320,4 @@ void SteamService::UpdateInstallEvent::OnItemInstalled(ItemInstalled_t *) {
 void SteamService::SubscribeChange::OnUserSubscribedItemsListChanged(UserSubscribedItemsListChanged_t *) {
     ++_me->_install_counter;
 }
+

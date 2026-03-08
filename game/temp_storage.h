@@ -40,7 +40,7 @@ void temp_storage_skip(TMPFILE_RD *f, int bytes);
 
 int *temp_storage_internal_skip_ptr(TMPFILE_RD *f);
 #ifdef _MSC_VER
-int temp_storage_internal_begin_scanf(TMPFILE_RD *f, const char *format, ... )
+int temp_storage_internal_begin_scanf(TMPFILE_RD *f, const char *format, ... );
 #else
 int temp_storage_internal_begin_scanf(TMPFILE_RD *f, const char *format, ... ) __attribute__((format(scanf, 2, 3)));
 #endif

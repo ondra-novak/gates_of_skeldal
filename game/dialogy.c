@@ -129,7 +129,7 @@ enum LineType {
 typedef struct {
     char line[MAX_DIALOG_LINE];
     enum LineType type;
-    uint8_t id;
+    int8_t id;
     uint8_t xofs;
     short height;
     void *face;
