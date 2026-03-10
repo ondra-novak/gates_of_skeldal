@@ -177,7 +177,7 @@ void SteamService::ItemUpdate::get_upload_progress(UpdateProgressCallback cb) {
         uint64 processed = 0;
         uint64 total = 0;
         auto st = SteamUGC()->GetItemUpdateProgress(handle, &processed, &total);
-        callback(st == k_EItemUpdateStatusInvalid, st, processed, total);
+        callback(st != k_EItemUpdateStatusInvalid, st, processed, total);
     });
 
 }
