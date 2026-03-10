@@ -933,6 +933,9 @@ void call_macro_ex(int side, int flags, int runatside) {
                     case MA_OVRLY:
                         add_text_to_overlay(level_texts[z->overlay.text_index], &(z->overlay) );
                         break;
+                    case MA_AUTOS:
+                        autosave();
+                        break;
                         
                 }
             }

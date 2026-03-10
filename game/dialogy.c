@@ -1723,6 +1723,7 @@ void do_dialog()
      case 55: iff = speakers[0]?has_spell_group(speakers[0] - postavy,Get_short()):0;break;
      case 56: if (speakers[0]) end_spell_group(speakers[0] - postavy, Get_short());break;
      case 57: stk_push(game_time);break;
+     case 58: autosave();break;
      case 128:add_desc(Get_string());break;
      case 129:show_emote(Get_string());break;
      case 130:save_name(Get_short());break;
