@@ -257,6 +257,7 @@ static std::string read_command(FILE *f) {
     std::string ln;
     ln.resize(1024);
     char *r = fgets(ln.data(), static_cast<int>(ln.size()), f);
+    if (!r) return {};
     ln.resize(strlen(r));
     while (!ln.empty() && std::isspace(ln.back())) ln.pop_back();
     return ln;

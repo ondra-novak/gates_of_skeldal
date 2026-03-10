@@ -56,6 +56,8 @@ typedef struct launcher_state {
     size_t steam_update_counter;
     char selection_done;
     char update_lock;
+    char exit_hover;
+    char enter_hover;
 } TLAUNCHER_STATE;
 
 #define LAUNCHER_STEP 16
@@ -69,6 +71,12 @@ typedef struct launcher_state {
 #define LAUNCHER_HEIGHT 250
 #define LAUNCHER_START LAUNCHER_Y+5
 #define SECTION_OFFSET 10
+
+#define BUTTON_PANEL_X 15
+#define BUTTON_PANEL_Y 352
+#define BUTTON_PANEL_XS 309
+#define BUTTON_PANEL_YS 19
+#define BUTTON_WIDTH 40
 
 #define PREVIEW_IMAGE_X 480
 #define PREVIEW_IMAGE_Y 100
@@ -87,6 +95,37 @@ static const char *sections_names[] = {
 
 static void navigate_up(TLAUNCHER_STATE *st);
 static void navigate_down(TLAUNCHER_STATE *st);
+
+
+static uint16_t start_game_pic[] = {
+    11,11,15,
+    0x8000,0x8000,0x8000,0x7fff,0x8000,0x8000,0x8000,0x8000,0x8000,0x8000,0x8000,
+    0x8000,0x8000,0x8000,0x7fff,0x7fff,0x8000,0x8000,0x8000,0x8000,0x8000,0x8000,
+    0x8000,0x8000,0x8000,0x7fff,0x7fff,0x7fff,0x8000,0x8000,0x8000,0x8000,0x8000,
+    0x8000,0x8000,0x8000,0x7fff,0x7fff,0x7fff,0x7fff,0x8000,0x8000,0x8000,0x8000,
+    0x8000,0x8000,0x8000,0x7fff,0x7fff,0x7fff,0x7fff,0x7fff,0x8000,0x8000,0x8000,
+    0x8000,0x8000,0x8000,0x7fff,0x7fff,0x7fff,0x7fff,0x7fff,0x7fff,0x8000,0x8000,
+    0x8000,0x8000,0x8000,0x7fff,0x7fff,0x7fff,0x7fff,0x7fff,0x8000,0x8000,0x8000,
+    0x8000,0x8000,0x8000,0x7fff,0x7fff,0x7fff,0x7fff,0x8000,0x8000,0x8000,0x8000,
+    0x8000,0x8000,0x8000,0x7fff,0x7fff,0x7fff,0x8000,0x8000,0x8000,0x8000,0x8000,
+    0x8000,0x8000,0x8000,0x7fff,0x7fff,0x8000,0x8000,0x8000,0x8000,0x8000,0x8000,
+    0x8000,0x8000,0x8000,0x7fff,0x8000,0x8000,0x8000,0x8000,0x8000,0x8000,0x8000,
+};
+
+static uint16_t exit_game_pic[] = {
+    11,11,15,
+    0x8000,0x8000,0x8000,0x8000,0x8000,0x8000,0x8000,0x8000,0x8000,0x8000,0x8000,
+    0x7fff,0x7fff,0x8000,0x8000,0x8000,0x8000,0x8000,0x8000,0x7fff,0x7fff,0x8000,
+    0x8000,0x7fff,0x7fff,0x8000,0x8000,0x8000,0x8000,0x7fff,0x7fff,0x8000,0x8000,
+    0x8000,0x8000,0x7fff,0x7fff,0x8000,0x8000,0x7fff,0x7fff,0x8000,0x8000,0x8000,
+    0x8000,0x8000,0x8000,0x7fff,0x7fff,0x7fff,0x7fff,0x8000,0x8000,0x8000,0x8000,
+    0x8000,0x8000,0x8000,0x8000,0x7fff,0x7fff,0x8000,0x8000,0x8000,0x8000,0x8000,
+    0x8000,0x8000,0x8000,0x7fff,0x7fff,0x7fff,0x7fff,0x8000,0x8000,0x8000,0x8000,
+    0x8000,0x8000,0x7fff,0x7fff,0x8000,0x8000,0x7fff,0x7fff,0x8000,0x8000,0x8000,
+    0x8000,0x7fff,0x7fff,0x8000,0x8000,0x8000,0x8000,0x7fff,0x7fff,0x8000,0x8000,
+    0x7fff,0x7fff,0x8000,0x8000,0x8000,0x8000,0x8000,0x8000,0x7fff,0x7fff,0x8000,
+    0x8000,0x8000,0x8000,0x8000,0x8000,0x8000,0x8000,0x8000,0x8000,0x8000,0x8000
+};
 
 static void launcher_draw(TLAUNCHER_STATE *st) {
     int minx = LAUNCHER_X;
@@ -176,6 +215,29 @@ static void launcher_draw(TLAUNCHER_STATE *st) {
     if (st->preview_image) {
         put_picture(PREVIEW_IMAGE_X-*(word *)st->preview_image/2, PREVIEW_IMAGE_Y, st->preview_image);
     }
+
+    set_font(H_FEUROMODE, RGB(255,255,255));
+    curcolor = RGB888(64,80,120);
+    if (st->exit_hover) {
+        bar32(BUTTON_PANEL_X, BUTTON_PANEL_Y,BUTTON_PANEL_X+BUTTON_WIDTH,BUTTON_PANEL_Y+BUTTON_PANEL_YS);
+    } else {
+        trans_bar(BUTTON_PANEL_X, BUTTON_PANEL_Y,BUTTON_WIDTH,BUTTON_PANEL_YS, curcolor);
+    }
+    rectangle(BUTTON_PANEL_X, BUTTON_PANEL_Y,BUTTON_PANEL_X+BUTTON_WIDTH,BUTTON_PANEL_Y+BUTTON_PANEL_YS, curcolor);
+    put_picture(BUTTON_PANEL_X+(BUTTON_WIDTH-PICTURE_WIDTH(exit_game_pic))/2,
+                BUTTON_PANEL_Y+(BUTTON_PANEL_YS-PICTURE_HEIGHT(exit_game_pic))/2,
+                exit_game_pic);
+    if (st->enter_hover) {
+        bar32(BUTTON_PANEL_X+BUTTON_PANEL_XS-BUTTON_WIDTH, BUTTON_PANEL_Y,BUTTON_PANEL_X+BUTTON_PANEL_XS,BUTTON_PANEL_Y+BUTTON_PANEL_YS);
+    } else {
+        trans_bar(BUTTON_PANEL_X+BUTTON_PANEL_XS-BUTTON_WIDTH, BUTTON_PANEL_Y,BUTTON_WIDTH,BUTTON_PANEL_YS, curcolor);
+    }
+    rectangle(BUTTON_PANEL_X+BUTTON_PANEL_XS-BUTTON_WIDTH, BUTTON_PANEL_Y,BUTTON_PANEL_X+BUTTON_PANEL_XS,BUTTON_PANEL_Y+BUTTON_PANEL_YS, curcolor);
+    put_picture(BUTTON_PANEL_X+BUTTON_PANEL_XS-BUTTON_WIDTH+(BUTTON_WIDTH-PICTURE_WIDTH(start_game_pic))/2,
+                BUTTON_PANEL_Y+(BUTTON_PANEL_YS-PICTURE_HEIGHT(start_game_pic))/2,
+                start_game_pic);
+    
+
     showview(0,0,0,0);
 }
 
@@ -370,21 +432,33 @@ static void launcher_mouse(EVENT_MSG *msg, void **userdata) {
         TLAUNCHER_STATE *st = (TLAUNCHER_STATE *)*userdata;
         if (st->selected_anim_cntr) return;
         const MS_EVENT *ev = va_arg(msg->data, const MS_EVENT *);
-        if (ev->tl1) {
+        if (ev->tl1 && ev->event_type == MS_EVENT_MOUSE_LPRESS) {
+            if (st->exit_hover) {
+                exit_wait = 1;
+                return;
+            }
+            if (st->enter_hover) {
+                 activate_item(st);
+                 return;
+            }
             int y = ev->y;
             y -= LAUNCHER_START - st->offset;
             int pos = (y+LAUNCHER_STEP/2) / LAUNCHER_STEP;
             if (pos < 0  || pos >= vector_size(&st->items) || *(TLAUNCHER_ITEM **)vector_get(&st->items, pos) == NULL) return;
             if (pos >=0 && pos < (int)vector_size(&st->items)) {
-                if (pos == st->selected) activate_item(st);
-                else st->selected = pos;
+                if (pos == st->selected) activate_item(st); 
+                st->selected = pos;
             }
         }
+        st->enter_hover = ev->x >= BUTTON_PANEL_X+BUTTON_PANEL_XS-BUTTON_WIDTH && ev->x <= BUTTON_PANEL_X+BUTTON_PANEL_XS
+                            && ev->y >= BUTTON_PANEL_Y && ev->y <= BUTTON_PANEL_Y+BUTTON_PANEL_YS;
+        st->exit_hover = ev->x >= BUTTON_PANEL_X && ev->x <= BUTTON_PANEL_X+BUTTON_WIDTH
+                            && ev->y >= BUTTON_PANEL_Y && ev->y <= BUTTON_PANEL_Y+BUTTON_PANEL_YS;
     }
 
 
 }
-/*
+
 static void *create_background() {
     word *w = (word *)ablock(H_LOADING);
     size_t pixels = 640*480;
@@ -405,7 +479,7 @@ static void *create_background() {
     return buffer;
 
 }
-*/
+
 
 TCONTINUE_GAME_INFO *run_launcher() {
 
@@ -413,7 +487,7 @@ TCONTINUE_GAME_INFO *run_launcher() {
     TLAUNCHER_STATE state = {0};
     vector_init(&state.items, sizeof(TLAUNCHER_ITEM *), destroy_launcher_item);
     state.preview_image_index = -1;
-    state.picture = ablock(H_LOADING);
+    state.picture = create_background();
     state.steam_update_counter = get_install_callback_counter();
 
     populate_launcher_static(&state);
