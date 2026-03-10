@@ -196,7 +196,7 @@ static void animace_kouzla(MGIF_HEADER_T *_,int act,const void *data, int ssize)
      case MGIF_LZW:
      case MGIF_COPY:show_full_lfb12e(anim_render_buffer,data,paleta);break;
      case MGIF_DELTA:show_delta_lfb12e(anim_render_buffer,data,paleta);break;
-     case MGIF_PAL:memcpy(paleta,data,sizeof(paleta));paleta[0]|=BGSWITCHBIT;break;
+     case MGIF_PAL:memcpy(paleta,data,ssize);paleta[0]|=BGSWITCHBIT;break;
      }
   }
 

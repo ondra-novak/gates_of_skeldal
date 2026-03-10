@@ -1005,11 +1005,11 @@ static void calculate_avg_color(void *image, int line, float *r, float *g, float
     *g = avg_g / width;
     *b = avg_b / width;
 }
-
+/*
 static inline float pow2(float x) {
     return x*x;
 }
-/*
+
 static float calculate_color_deviace(void *image, int line, float *ravg, float *gavg, float *bavg) {
     int width = PICTURE_WIDTH(image);
     uint16_t *data = PICTURE_DATA(image);

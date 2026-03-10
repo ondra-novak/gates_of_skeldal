@@ -335,7 +335,7 @@ public:
 
     }
 
-    Process(std::filesystem::path process_path, std::initializer_list<std::u8string_view> arguments, Pipes pipes = Pipes{nullptr,nullptr, nullptr})
+    Process(std::filesystem::path process_path, std::initializer_list<std::u8string_view> arguments, Pipes pipes = Pipes{nullptr,nullptr, nullptr,false,false,false})
         :Process(std::move(process_path), std::span<const std::u8string_view>(arguments.begin(), arguments.size()),pipes) {}
 
 protected:

@@ -1131,6 +1131,7 @@ char load_saved_shops(void);
 #define MA_FAILG 40
 #define MA_ENDG2 41
 #define MA_OVRLY 42
+#define MA_SWPS2 43
 
 
 #define MAGLOB_LEAVEMAP 0 // v urcitou nastavenou hodinu a minutu dene

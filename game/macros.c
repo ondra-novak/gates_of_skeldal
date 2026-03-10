@@ -379,19 +379,53 @@ void propadnout(int sector)
   postavy_propadnout(sector);
   }
 
-static void swap_sectors(const TMA_SWAPS *sws)
+static void swap_sectors(const TMA_SWAPS *sws, int legacy)
   {
   TSECTOR *ss1=&map_sectors[sws->sector1],*ss2=&map_sectors[sws->sector2];
   TSTENA *sd1=&map_sides[sws->sector1<<2],*sd2=&map_sides[sws->sector2<<2];
+  uint8_t mode = legacy?0xFF:sws->pflags;
   char c=4;
   char st1=ss2->sector_type,st2=ss1->sector_type;
 
-  for(c=0;c<4;c++) xchg_block(sd1+c,sd2+c,sizeof(TSTENA));
-  xchg_block(ss1,ss2,sizeof(TSECTOR));
-  if (st1==S_DIRA || st1==S_VODA) propadnout(sws->sector1);
-  if (st2==S_DIRA || st2==S_VODA) propadnout(sws->sector2);
-  recheck_button(sws->sector1,0);
-  recheck_button(sws->sector2,0);
+  for(c=0;c<4;c++) {
+      if (mode & (1<<c)) {
+            xchg_block(sd1+c,sd2+c,sizeof(TSTENA));
+      }
+  } 
+
+  TSECTOR s;
+  if (mode & 0x80) {
+       xchg_block(ss1->step_next, ss2->step_next, sizeof(ss1->step_next));
+  }
+  if (mode & 0x20) {
+    s.ceil = ss1->ceil;
+    s.floor = ss1->floor;
+    s.flags = ss1->flags;
+    ss1->ceil = ss2->ceil;
+    ss1->floor = ss2->floor;
+    ss1->flags = ss2->flags;
+    ss2->ceil = s.ceil;
+    ss2->floor = s.floor;
+    ss2->flags = s.flags;
+  }
+  if (mode & 0x40) {
+       s.action = ss1->action;
+       s.sector_tag = ss1->sector_tag;
+       s.sector_type = ss1->sector_type;
+       s.side_tag = ss1->side_tag;
+       ss1->action = ss2->action;
+       ss1->sector_tag = ss2->sector_tag;
+       ss1->sector_type = ss2->sector_type;
+       ss1->side_tag = ss2->side_tag;
+       ss2->action = s.action;
+       ss2->sector_tag = s.sector_tag;
+       ss2->sector_type = s.sector_type;
+       ss2->side_tag = s.side_tag;
+      if (st1==S_DIRA || st1==S_VODA) propadnout(sws->sector1);
+      if (st2==S_DIRA || st2==S_VODA) propadnout(sws->sector2);
+      recheck_button(sws->sector1,0);
+      recheck_button(sws->sector2,0);
+      }
   }
 
 static void hit_1_player(int postava,const TMA_WOUND *w,int chaos)
@@ -804,7 +838,10 @@ void call_macro_ex(int side, int flags, int runatside) {
                                 z->lock.thieflevel, &z->lock);
                         break;
                     case MA_SWAPS:
-                        swap_sectors(&z->swaps);
+                        swap_sectors(&z->swaps,1);
+                        break;
+                    case MA_SWPS2:
+                        swap_sectors(&z->swaps,0);
                         break;
                     case MA_WOUND:
                         hit_player(&z->wound, side >> 2);

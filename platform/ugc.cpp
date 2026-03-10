@@ -299,7 +299,7 @@ void start_editor() {
         const char *binary_name = "mapedit_server.exe";
         #else
         const char *binary_name = "./mapedit_server";
-        #endif;
+        #endif
 
         try {
             Process mapedit(binary_name,{u8"-o"}, {&status,&commands, nullptr});

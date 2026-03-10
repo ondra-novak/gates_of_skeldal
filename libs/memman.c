@@ -165,6 +165,13 @@ static int test_file_exist_DOS(int group,const char *filename)
 static int compare_dir_entry(const void *a, const void *b) {
     return strncmp(((const TDIRECTORY_ENTRY *)a)->name,((const TDIRECTORY_ENTRY *)b)->name,12);
 }
+static int compare_dir_entry_2(const void *a, const void *b) {
+    int r =  strncmp(((const TDIRECTORY_ENTRY *)a)->name,((const TDIRECTORY_ENTRY *)b)->name,12);
+    if (r == 0) {
+        return ((const TDIRECTORY_ENTRY *)a)->seek-((const TDIRECTORY_ENTRY *)b)->seek;
+    }
+    return r;
+}
 
 static TDDL_DIRECTORY create_ddl_directory(const void *bmf_m, int source_id) {
     const uint32_t *src_table = (const uint32_t *)bmf_m;
@@ -187,7 +194,17 @@ static TDDL_DIRECTORY create_ddl_directory(const void *bmf_m, int source_id) {
             entry->seek = ptr[i].seek;
         }
     }
-    qsort(out.item,out.count,sizeof(TDIRECTORY_ENTRY), compare_dir_entry);
+    qsort(out.item,out.count,sizeof(TDIRECTORY_ENTRY), compare_dir_entry_2);
+    size_t j = 0;
+    for (size_t i = 1; i < out.count; ++i) {
+        const char *cur = out.item[i].name;
+        const char *prev = out.item[j].name;        
+        if (istrcmp(prev,cur)) {
+            ++j;
+            if (i != j) out.item[j] = out.item[i];
+        }
+    }
+    out.count = j+1;
     return out;
 }
 

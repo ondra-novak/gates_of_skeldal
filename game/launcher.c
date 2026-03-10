@@ -444,7 +444,7 @@ static void launcher_mouse(EVENT_MSG *msg, void **userdata) {
             int y = ev->y;
             y -= LAUNCHER_START - st->offset;
             int pos = (y+LAUNCHER_STEP/2) / LAUNCHER_STEP;
-            if (pos < 0  || pos >= vector_size(&st->items) || *(TLAUNCHER_ITEM **)vector_get(&st->items, pos) == NULL) return;
+            if (pos < 0  || pos >= (int)vector_size(&st->items) || *(TLAUNCHER_ITEM **)vector_get(&st->items, pos) == NULL) return;
             if (pos >=0 && pos < (int)vector_size(&st->items)) {
                 if (pos == st->selected) activate_item(st); 
                 st->selected = pos;
