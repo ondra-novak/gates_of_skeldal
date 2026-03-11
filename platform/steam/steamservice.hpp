@@ -6,8 +6,10 @@
 #include <functional>
 #include <mutex>
 #include <span>
+#include <sys/types.h>
 #include "generic_callback.hpp"
 #include "steam/isteamugc.h"
+#include "steam/steamtypes.h"
 
 
 class SteamService {
@@ -22,12 +24,14 @@ public:
     using CreateItemCall = GenericSteamCall<CreateItemResult_t, std::function<void(CreateItemResult_t *, bool)> >;
     using DeleteItemCall = GenericSteamCall<DeleteItemResult_t, std::function<void(DeleteItemResult_t *, bool)> >;
     using SubmitItemCall = GenericSteamCall<SubmitItemUpdateResult_t, std::function<void(SubmitItemUpdateResult_t *, bool)> >;
+    using StartTrackingCall = GenericSteamCall<StartPlaytimeTrackingResult_t, std::function<void(StartPlaytimeTrackingResult_t *, bool)> >;
 
     struct UGCItem {
         std::string title;
         std::string author;
         std::string download_location;     
         uint64_t id;   
+        bool downloading;
     };
 
     using QueryUGCCallback = std::function<void(std::span<const UGCItem> list)>;
@@ -75,6 +79,8 @@ public:
     void hide_overlay() const;
     size_t get_install_callback_counter() ;
 
+    void ugc_start_play(uint64 id);
+
 
     class UpdateInstallEvent {
     public:
@@ -101,6 +107,7 @@ protected:
     QuerySubscribedCall _query_subscribed_call;
     CreateItemCall _create_item_call;
     DeleteItemCall _delete_item_call;    
+    StartTrackingCall _start_tracking_call;
     std::atomic<size_t> _install_counter = {};
     UpdateInstallEvent _update_install_event;
     SubscribeChange _subscribe_change_event;

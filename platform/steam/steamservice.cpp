@@ -1,5 +1,6 @@
 
 #include "steam/isteamfriends.h"
+#include "steam/isteamremotestorage.h"
 #include "steam/isteamugc.h"
 #include "steam/steam_api.h"
 #include "steam/steam_api_common.h"
@@ -8,6 +9,7 @@
 #include <algorithm>
 #include <chrono>
 #include <cstdint>
+#include <filesystem>
 #include <memory>
 #include <mutex>
 #include <type_traits>
@@ -219,13 +221,7 @@ public:
         }
         subscribed.resize(ugc_count);
         //create list of downloaded items
-        _downloaded.reserve(ugc_count);
-        for (const auto &x: subscribed) {
-            auto st = iugc->GetItemState(x);
-            if ((st & k_EItemStateInstalled) && !(st & k_EItemStateDisabledLocally)) {
-                _downloaded.push_back(x);
-            }
-        }        
+        _downloaded = std::move(subscribed);
         //create query - ask for all downloaded items
         auto h = iugc->CreateQueryUGCDetailsRequest(_downloaded.data(),_downloaded.size());
         //submit query
@@ -259,6 +255,16 @@ public:
             //title
             item.title = details.m_rgchTitle;
             item.id = details.m_nPublishedFileId;
+            item.downloading = false;
+
+            auto state = iugc->GetItemState(item.id);
+            if (state == 0 || ((state & (k_EItemStateNeedsUpdate)) || !(state & k_EItemStateInstalled))) {
+                iugc->DownloadItem(item.id,true);
+                state |= k_EItemStateDownloadPending;
+            }
+            if (state & (k_EItemStateDownloadPending | k_EItemStateDownloading)) {
+                item.downloading = true;
+            }
 
             iugc->GetItemInstallInfo(details.m_nPublishedFileId,&size_on_disk,folder_buffer,sizeof(folder_buffer),&timestamp);
             std::string n = SteamFriends()->GetFriendPersonaName(details.m_ulSteamIDOwner);
@@ -266,6 +272,10 @@ public:
  
             //download location
             item.download_location = folder_buffer;
+            if (!item.downloading && !std::filesystem::is_directory(item.download_location)) {
+                iugc->DownloadItem(item.id, true);
+                item.downloading = true;
+            }
         }
 
         SteamUGC()->ReleaseQueryUGCRequest(result->m_handle);
@@ -321,3 +331,12 @@ void SteamService::SubscribeChange::OnUserSubscribedItemsListChanged(UserSubscri
     ++_me->_install_counter;
 }
 
+void SteamService::ugc_start_play(uint64 id) {
+    post([=,this]{
+        if (SteamUGC()->GetItemState(id) & k_EItemStateInstalled) {
+            PublishedFileId_t f = id;
+            _start_tracking_call.await([](StartPlaytimeTrackingResult_t *, bool){},
+             SteamUGC()->StartPlaytimeTracking(&f,1));
+        }
+    });
+}

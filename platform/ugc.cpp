@@ -121,11 +121,6 @@ std::string toKEYBCS2(const char *text) {
 }
 
 
-struct UGCItemEx : UGCItem {
-    std::unique_ptr<char[]> text_data;
-    std::filesystem::path _stamp_file;
-};
-
 
 static std::filesystem::path ugc_local_path;
 
@@ -172,6 +167,7 @@ std::optional<UGCItem> parse_ugc(const std::filesystem::path &entry, std::unorde
         item->lang = addstr(ini_data->lang);
         item->name = addstr(ini_data->name);
         item->id = hasher(entry.filename().string());
+        item->downloading = 0;
     }
     return item;
      
@@ -184,8 +180,31 @@ struct UGCGetContext {
     void *context;
 };
 
+static std::optional<UGCItem> get_ugc_from_ddl_path(const UGCItemLastSave *lastSave, std::unordered_set<std::string> &strings) {
+    std::filesystem::path p(lastSave->ddl);
+    auto parent = p.parent_path();
+    auto ugc = parse_ugc(parent, strings);
+    if (!ugc) return ugc;
+    ugc->id = lastSave->id;
+    return ugc;
+}
+
+static void handle_last_save(const UGCItemLastSave *last_save, UGCGetContext *st) {
+    if (last_save) {
+        auto iter = std::find_if(st->items.begin(), st->items.end(), [&](const UGCItem &itm) {
+            return strcmp(itm.ddl_path, last_save->ddl) == 0;
+        });
+        if (iter == st->items.end()) {
+            auto ugc = get_ugc_from_ddl_path(last_save, st->strings);
+            if (ugc) st->items.push_back(std::move(*ugc));
+        }
+    }
+
+}
+
 void UGC_GetList(const char *ugc_user_path, 
                  const char *ugc_dlc_path,
+                 const UGCItemLastSave *last_save,
                  void (*callback)(const UGCItem *items, unsigned int count, void *context), void *context) {
     
     std::array<std::filesystem::path, 2> paths = {ugc_user_path, ugc_dlc_path};
@@ -209,10 +228,10 @@ void UGC_GetList(const char *ugc_user_path,
     }
 
 #ifdef STEAM_ENABLED
-    if (steam_service) {
+    if (steam_service) {        
         UGCGetContext *st = new UGCGetContext(std::move(ctx));
         
-        steam_service->query_ugc([st](std::span<const SteamService::UGCItem> list){
+        steam_service->query_ugc([st,last_save](std::span<const SteamService::UGCItem> list){
             for (const auto &x: list) {
                 auto item = parse_ugc(x.download_location, st->strings);
                 if (item) {
@@ -223,9 +242,20 @@ void UGC_GetList(const char *ugc_user_path,
                         item->name = st->strings.insert(toKEYBCS2(x.title.c_str())).first->c_str();                        
                     }
                     item->id = x.id;
+                    item->downloading = x.downloading;
                     st->items.push_back(*item);
+                } else if (x.downloading) {
+                    UGCItem z;
+                    z.downloading = 1;
+                    z.author = st->strings.insert(toKEYBCS2(x.author.c_str())).first->c_str();                        
+                    z.name = st->strings.insert(toKEYBCS2(x.title.c_str())).first->c_str();                        
+                    z.id = x.id;
+                    z.ddl_path = "";
+                    z.lang="";
+                    st->items.push_back(z);                
                 }
             }
+            handle_last_save(last_save, st);
             post_to_event_thread([](void *ctx){
                 UGCGetContext *st = (UGCGetContext *)ctx;
                 st->callback(st->items.data(), static_cast<unsigned int>(st->items.size()), st->context);
@@ -235,6 +265,7 @@ void UGC_GetList(const char *ugc_user_path,
         return;
     }
 #endif
+    handle_last_save(last_save, &ctx);
     ctx.callback(ctx.items.data(), static_cast<unsigned int>(ctx.items.size()), ctx.context);
 }
 
@@ -327,4 +358,12 @@ void start_editor() {
 
 char did_editor_exit() {
     return editor_exited.load()?1:0;
+}
+
+void ugc_start_play(const char *, uint64_t id) {
+    #ifdef STEAM_ENABLED
+    if (steam_service) {
+        steam_service->ugc_start_play(id);
+    }
+    #endif
 }

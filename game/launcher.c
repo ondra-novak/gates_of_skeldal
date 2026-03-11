@@ -5,6 +5,7 @@
 #include "libs/mouse.h"
 #include "globals.h"
 #include "libs/vector.h"
+#include "platform/timer.h"
 #include "platform/ugc.h"
 
 
@@ -37,15 +38,22 @@ static char check_valid_item(TLAUNCHER_ITEM *itm){
 }
 
 
+typedef struct {
+    TLAUNCHER_ITEM *item;
+    char downloading;
+} TLAUNCHER_ITEM_DWN;
+
 
 static void destroy_launcher_item(void *item) {
-    TLAUNCHER_ITEM *litm = *(TLAUNCHER_ITEM **)item;
-    free(litm);
+    TLAUNCHER_ITEM_DWN *litm = (TLAUNCHER_ITEM_DWN *)item;
+    free(litm->item);
 }
+
 
 typedef struct launcher_state {
 
     Vector items;
+    Vector download_flag;
     int selected;
     int top_line;
     float offset;
@@ -58,6 +66,8 @@ typedef struct launcher_state {
     char update_lock;
     char exit_hover;
     char enter_hover;
+    TCONTINUE_GAME_INFO *last_save;
+    UGCItemLastSave ugc_last_save_tmp;
 } TLAUNCHER_STATE;
 
 #define LAUNCHER_STEP 16
@@ -85,6 +95,7 @@ typedef struct launcher_state {
 #define TEXT_COLOR RGB555(25,25,20)
 #define SELECTED_COLOR RGB555(31,31,31)
 #define SECTION_RECT_COLOR RGB555(10,10,10)
+#define TEXT_DISABLED_COLOR RGB555(18,18,18)
 
 
 static const char *sections_names[] = {
@@ -112,6 +123,7 @@ static uint16_t start_game_pic[] = {
     0x8000,0x8000,0x8000,0x7fff,0x8000,0x8000,0x8000,0x8000,0x8000,0x8000,0x8000,
 };
 
+
 static uint16_t exit_game_pic[] = {
     11,11,15,
     0x8000,0x8000,0x8000,0x8000,0x8000,0x8000,0x8000,0x8000,0x8000,0x8000,0x8000,
@@ -126,6 +138,19 @@ static uint16_t exit_game_pic[] = {
     0x7fff,0x7fff,0x8000,0x8000,0x8000,0x8000,0x8000,0x8000,0x7fff,0x7fff,0x8000,
     0x8000,0x8000,0x8000,0x8000,0x8000,0x8000,0x8000,0x8000,0x8000,0x8000,0x8000
 };
+
+static uint16_t download_icon[] = {
+        7,8,15,
+ 0x8000, 0x8000, 0x8000, 0x01E0, 0x8000 ,0x8000 ,0x8000,
+0x8000,0x8000,0x8000,0x01E0,0x8000,0x8000,0x8000,
+0x8000,0x8000,0x8000,0x01E0,0x8000,0x8000,0x8000,
+0x8000,0x01E0,0x01E0,0x01E0,0x01E0,0x01E0,0x8000,
+0x8000,0x8000,0x01E0,0x01E0,0x01E0,0x8000,0x8000,
+0x8000,0x8000,0x8000,0x01E0,0x8000,0x8000,0x8000,
+0x7FFF,0x8000,0x8000,0x8000,0x8000,0x8000,0x7FFF,
+0x7FFF,0x7FFF,0x7FFF,0x7FFF,0x7FFF,0x7FFF,0x7FFF
+};
+    
 
 static void launcher_draw(TLAUNCHER_STATE *st) {
     int minx = LAUNCHER_X;
@@ -157,15 +182,17 @@ static void launcher_draw(TLAUNCHER_STATE *st) {
                 y += st->selected_anim_cntr;
             }
         }
-        TLAUNCHER_ITEM *item = *(TLAUNCHER_ITEM **)vector_get(&st->items, i);
+        TLAUNCHER_ITEM_DWN *z = (TLAUNCHER_ITEM_DWN *)vector_get(&st->items, i);
         char *txt;
-        if (item) txt = (char *)item->label ;
+        if (z->item) txt = (char *)z->item->label ;
         else txt = (char *)sections_names[sect_idx++];
         int x;
 
-        if (item) {
+        if (z->item) {
             x = LAUNCHER_X;
-            set_font(H_FONT6, i== st->selected?NOSHADOW(SELECTED_COLOR):NOSHADOW(TEXT_COLOR));
+            set_font(H_FONT6, z->downloading?
+                (NOSHADOW(TEXT_DISABLED_COLOR))
+                :(i== st->selected?NOSHADOW(SELECTED_COLOR):NOSHADOW(TEXT_COLOR)));
         } else {
             x = LAUNCHER_X+SECTION_OFFSET;
             set_font(H_FLITT5, NOSHADOW(SECTION_COLOR));
@@ -175,7 +202,7 @@ static void launcher_draw(TLAUNCHER_STATE *st) {
 
         int xs = text_width(txt);
         int ys = text_height(txt);
-        if (!item) {
+        if (!z->item) {
             int textb = LAUNCHER_X+SECTION_OFFSET;
             int texte = LAUNCHER_X+SECTION_OFFSET+xs;
             int right = LAUNCHER_X+LAUNCHER_WIDTH;
@@ -203,6 +230,9 @@ static void launcher_draw(TLAUNCHER_STATE *st) {
             }
             position(x,y-ys/2);
             outtext(txt);
+            if (z->downloading && (get_timer_value() &0x8)) {
+                put_picture(x+xs+3, y-PICTURE_HEIGHT(download_icon)/2, download_icon);  
+            } 
         }
         if (i == st->selected) {
             if (y < miny && st->top_line>0) {
@@ -268,17 +298,31 @@ static void *attempt_load_preview(const char *ddl) {
 
 static void get_list_callback(const UGCItem *items, unsigned int count, void *context) {
     TLAUNCHER_STATE *st = (TLAUNCHER_STATE *)context;
-    TLAUNCHER_ITEM *item = NULL;
+    TLAUNCHER_ITEM_DWN item;
+    item.downloading = 0;
+    item.item = 0;
     vector_push_back(&st->items, &item);
     for (unsigned int i = 0; i < count; ++i) {
-        item = create_launcher_item_from_ugc(&items[i]);
+        item.item = create_launcher_item_from_ugc(&items[i]);
+        item.downloading = items[i].downloading;
         vector_push_back(&st->items, &item);
     }
+    item.downloading = 0;
     if (is_steam_workshop_browser_available()) {
-        item = make_load_continue_info(NULL,NULL,NULL,"Workshop...",1);        
+        item.item = make_load_continue_info(NULL,NULL,NULL,"Workshop...",1);        
         vector_push_back(&st->items, &item);
-        item = make_load_continue_info(NULL,NULL,NULL,"Editor...",2);
+        item.item = make_load_continue_info(NULL,NULL,NULL,"Editor...",2);
         vector_push_back(&st->items, &item);
+    }
+    TLAUNCHER_ITEM_DWN *fst = (TLAUNCHER_ITEM_DWN *)vector_get(&st->items,0);
+    if (fst->item && fst->item->ddl) {
+        for (size_t i = 1; i < vector_size(&st->items);++i) {
+            TLAUNCHER_ITEM_DWN *x = (TLAUNCHER_ITEM_DWN *)vector_get(&st->items, i);
+            if (x->item && x->item->ddl && strcmp(x->item->ddl, fst->item->ddl)==0) {
+                fst->downloading = x->downloading;
+                break;
+            }
+        }
     }
     st->update_lock = 0;
 }
@@ -287,24 +331,27 @@ static void adjust_selected_position(TLAUNCHER_STATE *st) {
     if ((size_t)st->selected >= vector_size(&st->items)) {
         st->selected = 0;
     }
-    if (*(TLAUNCHER_ITEM **)vector_get(&st->items,st->selected) == NULL) {
+    if (((TLAUNCHER_ITEM_DWN *)vector_get(&st->items,st->selected))->item == NULL) {
         navigate_up(st);
     }
 
 }
 
 static void populate_launcher_static(TLAUNCHER_STATE *st) {
-    TLAUNCHER_ITEM *item;
-    item = get_load_continue_info();
-    if (item && check_valid_item(item)) {
-        vector_push_back(&st->items, &item);
+    TLAUNCHER_ITEM_DWN x;    
+    x.downloading = 0;
+    if (st->last_save && check_valid_item(st->last_save)) {
+        x.item = make_load_continue_info(st->last_save->ddl, 
+            st->last_save->lang, st->last_save->save, 
+            st->last_save->label, st->last_save->adv_id);
+        vector_push_back(&st->items, &x);
     }
-    item = NULL;
-    vector_push_back(&st->items, &item);
-    item = make_load_continue_info(NULL, "CS", NULL, "\x80""esky",0);
-    vector_push_back(&st->items, &item);
-    item = make_load_continue_info(NULL, "EN", NULL, "English",0);
-    vector_push_back(&st->items, &item);
+    x.item = NULL;
+    vector_push_back(&st->items, &x);
+    x.item = make_load_continue_info(NULL, "CS", NULL, "\x80""esky",0);
+    vector_push_back(&st->items, &x);
+    x.item = make_load_continue_info(NULL, "EN", NULL, "English",0);
+    vector_push_back(&st->items, &x);
 
 }
 
@@ -324,7 +371,13 @@ static void  request_for_ugc(void (*callback)(const UGCItem *items, unsigned int
     const char *dlc_path = "./DLC";
 
     st->update_lock =1;
-    UGC_GetList(user_ugc, dlc_path, callback, st);
+    UGCItemLastSave *last = NULL;
+    if (st->last_save ) {
+        st->ugc_last_save_tmp.ddl =st->last_save->ddl;
+        st->ugc_last_save_tmp.id = st->last_save->adv_id;
+        last = &st->ugc_last_save_tmp;
+    }
+    UGC_GetList(user_ugc,dlc_path,last, callback, st);
 }
 
 
@@ -336,12 +389,14 @@ static void redraw_launcher(EVENT_MSG *msg, void **userdata) {
         float diff = st->top_line * LAUNCHER_STEP - st->offset;
         st->offset += diff/8.0f;
         launcher_draw(st);
-        if (st->preview_image_index != st->selected) {
-            free(st->preview_image);
-            TLAUNCHER_ITEM *itm = *(TLAUNCHER_ITEM **)vector_get(&st->items, st->selected);
-            st->preview_image = attempt_load_preview(itm->ddl);
-            st->preview_image_index = st->selected;
-            showview(0,0,0,0);
+        if (st->preview_image_index != st->selected) {            
+            TLAUNCHER_ITEM_DWN *itm = (TLAUNCHER_ITEM_DWN *)vector_get(&st->items, st->selected);
+            if (!itm->downloading) {
+                free(st->preview_image);
+                st->preview_image = attempt_load_preview(itm->item->ddl);
+                st->preview_image_index = st->selected;
+                showview(0,0,0,0);
+            }
         }
         size_t cnt = get_install_callback_counter();
         if (cnt != st->steam_update_counter && !st->selection_done && !st->update_lock) {
@@ -353,26 +408,26 @@ static void redraw_launcher(EVENT_MSG *msg, void **userdata) {
 
 
 static void navigate_down(TLAUNCHER_STATE *st) {
-    const TLAUNCHER_ITEM **items = (const TLAUNCHER_ITEM **)vector_data(&st->items);
+    const TLAUNCHER_ITEM_DWN *items = (const TLAUNCHER_ITEM_DWN *)vector_data(&st->items);
     do {
         if (st->selected == (int)vector_size(&st->items)-1) {
-            if (items[st->selected] == NULL) navigate_up(st);
+            if (items[st->selected].item == NULL) navigate_up(st);
             return;
         }
         ++st->selected;
-    } while (items[st->selected] == NULL);
+    } while (items[st->selected].item == NULL);
 }
 
 
 static void navigate_up(TLAUNCHER_STATE *st) {
-    const TLAUNCHER_ITEM **items = (const TLAUNCHER_ITEM **)vector_data(&st->items);
+    const TLAUNCHER_ITEM_DWN *items = (const TLAUNCHER_ITEM_DWN *)vector_data(&st->items);
     do {
         if (!st->selected) {
-            if (items[st->selected] == NULL) navigate_down(st);
+            if (items[st->selected].item == NULL) navigate_down(st);
             return;
         }
         --st->selected;
-    } while (items[st->selected] == NULL);
+    } while (items[st->selected].item == NULL);
 }
 
 static void start_editor_ui(void ) {
@@ -389,16 +444,17 @@ static void start_editor_ui(void ) {
 }
 
 static void activate_item(TLAUNCHER_STATE *st) {
-    TLAUNCHER_ITEM *item = *(TLAUNCHER_ITEM **)vector_get(&st->items, st->selected);
-    if (item->ddl == NULL) {
-        if (item->adv_id == 1) {
+    TLAUNCHER_ITEM_DWN *item = (TLAUNCHER_ITEM_DWN *)vector_get(&st->items, st->selected);
+    if (item->item->ddl == NULL) {
+        if (item->item->adv_id == 1) {
             open_steam_workshop();
             return;
-        } else if (item->adv_id == 2) {
+        } else if (item->item->adv_id == 2) {
             start_editor_ui();
             return;
         }        
     }
+    if (item->downloading) return;
     st->selection_done = 1;
     st->selected_anim_cntr = 1;    
 }
@@ -444,7 +500,7 @@ static void launcher_mouse(EVENT_MSG *msg, void **userdata) {
             int y = ev->y;
             y -= LAUNCHER_START - st->offset;
             int pos = (y+LAUNCHER_STEP/2) / LAUNCHER_STEP;
-            if (pos < 0  || pos >= (int)vector_size(&st->items) || *(TLAUNCHER_ITEM **)vector_get(&st->items, pos) == NULL) return;
+            if (pos < 0  || pos >= (int)vector_size(&st->items) || ((TLAUNCHER_ITEM_DWN *)vector_get(&st->items, pos))->item == NULL) return;
             if (pos >=0 && pos < (int)vector_size(&st->items)) {
                 if (pos == st->selected) activate_item(st); 
                 st->selected = pos;
@@ -485,10 +541,11 @@ TCONTINUE_GAME_INFO *run_launcher() {
 
 
     TLAUNCHER_STATE state = {0};
-    vector_init(&state.items, sizeof(TLAUNCHER_ITEM *), destroy_launcher_item);
+    vector_init(&state.items, sizeof(TLAUNCHER_ITEM_DWN), destroy_launcher_item);
     state.preview_image_index = -1;
     state.picture = create_background();
     state.steam_update_counter = get_install_callback_counter();
+    state.last_save = get_load_continue_info();
 
     populate_launcher_static(&state);
     adjust_selected_position(&state);
@@ -510,7 +567,7 @@ TCONTINUE_GAME_INFO *run_launcher() {
     send_message(E_DONE, E_KEYBOARD, launcher_keyboard);
     send_message(E_DONE, E_MOUSE, launcher_mouse);
 
-    TLAUNCHER_ITEM *retval = NULL;
+    TLAUNCHER_ITEM_DWN retval = {NULL,0};
 
     if (state.selection_done) {
         vector_exchange(&state.items, state.selected, &retval);
@@ -519,9 +576,14 @@ TCONTINUE_GAME_INFO *run_launcher() {
 
     ablock_free(state.picture);
     free(state.preview_image);
+    free(state.last_save);
     vector_destroy(&state.items);
 
-    return retval;
+    if (retval.item && retval.item->adv_id && retval.item->ddl) {
+        ugc_start_play(retval.item->ddl, retval.item->adv_id);
+    }
+
+    return retval.item;
 }
 
 
