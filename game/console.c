@@ -657,19 +657,19 @@ static int process_with_params(const char *cmd, const char *args) {
         throw_exception(args);
         return 1;
     }
-    if (istrcmp(cmd, "light") == 0) {
+    if (istrcmp(cmd, "backdrop") == 0) {
         int r =0, g = 0, b = 0;
         sscanf(args, "%d %d %d", &r, &g, &b);
         change_fade_color(r,g,b);
         return 1;
     }
-    if (istrcmp(cmd, "bright") == 0) {
+    if (istrcmp(cmd, "light") == 0) {
         float f;
         sscanf(args, "%f", &f);
         change_fade_brightness(f);
         return 1;
     }
-    if (istrcmp(cmd, "fade-end") == 0) {
+    if (istrcmp(cmd, "fog-dens") == 0) {
         float f;
         sscanf(args, "%f", &f);
         change_fade_end(f);

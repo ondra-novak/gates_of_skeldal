@@ -698,14 +698,14 @@ void SDLContext::event_loop(std::stop_token stp) {
 
     SDL_Event e;
     do {
-        if (_steam_callback) {
+        if (_burst_mode) {
+             update_screen(false);
+             if (_steam_callback) _steam_callback();
+             if (!SDL_PollEvent(&e)) continue;
+        } else if (_steam_callback) {
             do {
                 _steam_callback();
-                if (_burst_mode) update_screen(false);
-            } while (SDL_WaitEventTimeout(&e,20) == 0);
-        } else if (_burst_mode) {//if screen is too slow, there is no point to receive events, directly render
-             update_screen(false);
-             if (!SDL_PollEvent(&e)) continue;
+            } while (SDL_WaitEventTimeout(&e,20) == 0);        
         } else {
             SDL_WaitEvent(&e);
         }
@@ -917,139 +917,136 @@ void SDLContext::refresh_screen() {
 
 void SDLContext::update_screen(bool force_refresh) {
     std::unique_lock lk(_mx);
-    if (_display_update_queue.empty()) {
-        if (force_refresh) {
-            lk.unlock();
-            refresh_screen();
-        }
-        return;
-    }
-    QueueIter iter = _display_update_queue.data();
-    QueueIter end = iter + _display_update_queue.size();
-    while (iter != end) {
-        DisplayRequest req;
-        pop_item(iter, req);
-        switch (req) {
-            case DisplayRequest::update: {
-                SDL_Rect r;
-                pop_item(iter, r);
-                std::string_view data = pop_data(iter, r.w*r.h*2);
-                update_texture_with_conversion(_texture.get(), &r, data.data(), r.w*2);
-            }
-            break;
-            case DisplayRequest::show_mouse_cursor: {
-                SDL_Rect r;
-                pop_item(iter, r);
-                std::string_view data = pop_data(iter, r.w*r.h*2);
-                _mouse.reset(SDL_CreateTexture(_renderer.get(), _texture_render_format,SDL_TEXTUREACCESS_STATIC, r.w, r.h));
-                if (!_mouse) handle_sdl_error("Failed to create surface for mouse cursor");
-                SDL_SetTextureBlendMode(_mouse.get(), SDL_BLENDMODE_BLEND);
-                _mouse_rect.w = r.w;
-                _mouse_rect.h = r.h;
-                update_texture_with_conversion(_mouse.get(), NULL, data.data(), r.w*2);
-            }
-            break;
-            case DisplayRequest::hide_mouse_cursor: {
-                _mouse.reset();
-            }
-            break;
-            case DisplayRequest::swap_render_buffers: {
-                std::swap(_texture,_texture2);
-            }
-            break;
-            case DisplayRequest::swap_visible_buffers: {
-                std::swap(_visible_texture,_hidden_texture);
-                blend_transition.reset();
-                slide_transition.reset();
-            }
-            break;
-            case DisplayRequest::blend_transition:
-                blend_transition.emplace();
-                 pop_item(iter, *blend_transition);
-            break;
-            case DisplayRequest::slide_transition:
-                slide_transition.emplace();
-                 pop_item(iter, *slide_transition);
-            break;
-            case DisplayRequest::sprite_load: {
-                int id;
-                SDL_Rect r;
-                pop_item(iter, id);
-                pop_item(iter, r);
-                std::string_view data = pop_data(iter, r.w*r.h*2);
-                auto iter = std::find_if(_sprites.begin(), _sprites.end(),[&](const Sprite &x){
-                    return x.id == id;
-                });
-                if (iter == _sprites.end()) {
-                    iter = _sprites.insert(iter,{id});
+    if (!force_refresh && _display_update_queue.empty()) return;
+    if (!_display_update_queue.empty()) {
+        QueueIter iter = _display_update_queue.data();
+        QueueIter end = iter + _display_update_queue.size();
+        while (iter != end) {
+            DisplayRequest req;
+            pop_item(iter, req);
+            switch (req) {
+                case DisplayRequest::update: {
+                    SDL_Rect r;
+                    pop_item(iter, r);
+                    std::string_view data = pop_data(iter, r.w*r.h*2);
+                    update_texture_with_conversion(_texture.get(), &r, data.data(), r.w*2);
                 }
-                iter->_txtr.reset(SDL_CreateTexture(_renderer.get(), _texture_render_format, SDL_TEXTUREACCESS_STATIC,r.w, r.h));
-                if (!iter->_txtr) handle_sdl_error("Failed to create compositor sprite");
-                SDL_SetTextureBlendMode(iter->_txtr.get(), SDL_BLENDMODE_BLEND);
-                update_texture_with_conversion(iter->_txtr.get(), NULL, data.data(), r.w*2);
-                iter->_rect = r;
-                update_zindex();
-            } break;
-            case DisplayRequest::sprite_unload: {
-                int id;
-                pop_item(iter, id);
-                auto iter = std::remove_if(_sprites.begin(), _sprites.end(),[&](const Sprite &x){
-                    return x.id == id;
-                });
-                _sprites.erase(iter,_sprites.end());
-            } break;
-            case DisplayRequest::sprite_hide: {
-                int id;
-                pop_item(iter, id);
-                auto iter = std::find_if(_sprites.begin(), _sprites.end(),[&](const Sprite &x){
-                    return x.id == id;
-                });
-                if (iter != _sprites.end()) iter->shown = false;
-            } break;
-            case DisplayRequest::sprite_place: {
-                int id;
-                SDL_Point pt;
-                pop_item(iter, id);
-                pop_item(iter, pt);
-                auto iter = std::find_if(_sprites.begin(), _sprites.end(),[&](const Sprite &x){
-                    return x.id == id;
-                });
-                if (iter != _sprites.end()) {
-                    iter->shown = true;
-                    iter->_rect.x = pt.x;
-                    iter->_rect.y = pt.y;
+                break;
+                case DisplayRequest::show_mouse_cursor: {
+                    SDL_Rect r;
+                    pop_item(iter, r);
+                    std::string_view data = pop_data(iter, r.w*r.h*2);
+                    _mouse.reset(SDL_CreateTexture(_renderer.get(), _texture_render_format,SDL_TEXTUREACCESS_STATIC, r.w, r.h));
+                    if (!_mouse) handle_sdl_error("Failed to create surface for mouse cursor");
+                    SDL_SetTextureBlendMode(_mouse.get(), SDL_BLENDMODE_BLEND);
+                    _mouse_rect.w = r.w;
+                    _mouse_rect.h = r.h;
+                    update_texture_with_conversion(_mouse.get(), NULL, data.data(), r.w*2);
                 }
-            } break;
-            case DisplayRequest::sprite_scale: {
-                int id;
-                SDL_Rect rc;
-                pop_item(iter, id);
-                pop_item(iter, rc);
-                auto iter = std::find_if(_sprites.begin(), _sprites.end(),[&](const Sprite &x){
-                    return x.id == id;
-                });
-                if (iter != _sprites.end()) {
-                    iter->shown = true;
-                    iter->_rect = rc;
+                break;
+                case DisplayRequest::hide_mouse_cursor: {
+                    _mouse.reset();
                 }
-            } break;
-            case DisplayRequest::sprite_zindex: {
-                int id;
-                int zindex;
-                pop_item(iter, id);
-                pop_item(iter, zindex);
-                auto iter = std::find_if(_sprites.begin(), _sprites.end(),[&](const Sprite &x){
-                    return x.id == id;
-                });
-                if (iter != _sprites.end()) {
-                    iter->zindex = zindex;
+                break;
+                case DisplayRequest::swap_render_buffers: {
+                    std::swap(_texture,_texture2);
+                }
+                break;
+                case DisplayRequest::swap_visible_buffers: {
+                    std::swap(_visible_texture,_hidden_texture);
+                    blend_transition.reset();
+                    slide_transition.reset();
+                }
+                break;
+                case DisplayRequest::blend_transition:
+                    blend_transition.emplace();
+                    pop_item(iter, *blend_transition);
+                break;
+                case DisplayRequest::slide_transition:
+                    slide_transition.emplace();
+                    pop_item(iter, *slide_transition);
+                break;
+                case DisplayRequest::sprite_load: {
+                    int id;
+                    SDL_Rect r;
+                    pop_item(iter, id);
+                    pop_item(iter, r);
+                    std::string_view data = pop_data(iter, r.w*r.h*2);
+                    auto iter = std::find_if(_sprites.begin(), _sprites.end(),[&](const Sprite &x){
+                        return x.id == id;
+                    });
+                    if (iter == _sprites.end()) {
+                        iter = _sprites.insert(iter,{id});
+                    }
+                    iter->_txtr.reset(SDL_CreateTexture(_renderer.get(), _texture_render_format, SDL_TEXTUREACCESS_STATIC,r.w, r.h));
+                    if (!iter->_txtr) handle_sdl_error("Failed to create compositor sprite");
+                    SDL_SetTextureBlendMode(iter->_txtr.get(), SDL_BLENDMODE_BLEND);
+                    update_texture_with_conversion(iter->_txtr.get(), NULL, data.data(), r.w*2);
+                    iter->_rect = r;
                     update_zindex();
-                }
-            } break;
+                } break;
+                case DisplayRequest::sprite_unload: {
+                    int id;
+                    pop_item(iter, id);
+                    auto iter = std::remove_if(_sprites.begin(), _sprites.end(),[&](const Sprite &x){
+                        return x.id == id;
+                    });
+                    _sprites.erase(iter,_sprites.end());
+                } break;
+                case DisplayRequest::sprite_hide: {
+                    int id;
+                    pop_item(iter, id);
+                    auto iter = std::find_if(_sprites.begin(), _sprites.end(),[&](const Sprite &x){
+                        return x.id == id;
+                    });
+                    if (iter != _sprites.end()) iter->shown = false;
+                } break;
+                case DisplayRequest::sprite_place: {
+                    int id;
+                    SDL_Point pt;
+                    pop_item(iter, id);
+                    pop_item(iter, pt);
+                    auto iter = std::find_if(_sprites.begin(), _sprites.end(),[&](const Sprite &x){
+                        return x.id == id;
+                    });
+                    if (iter != _sprites.end()) {
+                        iter->shown = true;
+                        iter->_rect.x = pt.x;
+                        iter->_rect.y = pt.y;
+                    }
+                } break;
+                case DisplayRequest::sprite_scale: {
+                    int id;
+                    SDL_Rect rc;
+                    pop_item(iter, id);
+                    pop_item(iter, rc);
+                    auto iter = std::find_if(_sprites.begin(), _sprites.end(),[&](const Sprite &x){
+                        return x.id == id;
+                    });
+                    if (iter != _sprites.end()) {
+                        iter->shown = true;
+                        iter->_rect = rc;
+                    }
+                } break;
+                case DisplayRequest::sprite_zindex: {
+                    int id;
+                    int zindex;
+                    pop_item(iter, id);
+                    pop_item(iter, zindex);
+                    auto iter = std::find_if(_sprites.begin(), _sprites.end(),[&](const Sprite &x){
+                        return x.id == id;
+                    });
+                    if (iter != _sprites.end()) {
+                        iter->zindex = zindex;
+                        update_zindex();
+                    }
+                } break;
 
+            }
         }
+        _display_update_queue.clear();
     }
-    _display_update_queue.clear();
+    _burst_mode = true;
     lk.unlock();
     refresh_screen();
     lk.lock();

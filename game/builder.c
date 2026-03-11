@@ -1033,6 +1033,12 @@ static int unfactor(float c, float avg_c, float factor) {
     return out < 0?0:out > 31.4?31:(int)floor(out+0.5);
 }
 
+static int apply_factor(float c, float avg_c, float factor, float cmult) {    
+    float adj_c = c*cmult;
+    float out = adj_c + (avg_c - adj_c)*factor;
+    return out < 0?0:out > 31.4?31:(int)floor(out+0.5);
+}
+
 static void calculate_unfade( void *image, char ceil) {
     int height = PICTURE_HEIGHT(image);    
     int width = PICTURE_WIDTH(image);  
@@ -1069,6 +1075,8 @@ static void calculate_unfade( void *image, char ceil) {
 }
 }
 
+float exponent = 0.5;
+
 static void *calculate_autofade( void *image, char ceil, int dark, int32_t *sz, THANDLE_DATA *data) {
 
     word *imgdata;
@@ -1077,8 +1085,8 @@ static void *calculate_autofade( void *image, char ceil, int dark, int32_t *sz, 
 
     if (data->src_index == 0) calculate_unfade(hi, ceil);
 
-    int width = 640;
-    int height = 90;
+    int width = PICTURE_WIDTH(hi);
+    int height = PICTURE_HEIGHT(hi);
 
     float br=mglob.fade_r>>3;
     float bg=mglob.fade_g>>3;
@@ -1087,29 +1095,27 @@ static void *calculate_autofade( void *image, char ceil, int dark, int32_t *sz, 
     float cmult = MAX(1.0f, mglob.fade_mult);
     float fend = mglob.fade_end;
     int y;
+    //float dv = sqrtf(1+eye_height*eye_height)-eye_height;
 
     if (dark) br=bg=bb=0;
 
     for(y=0;y<height;y++)
     {
-    float factor=(float)y/(height-1)*fend+1-fend;
-    int x;
-    if (!ceil) factor=1.0f-factor;
-    factor=(1-0-(1.0-pow(factor,1))*fmult);
-    for (x=0;x<width;x++)
-    {
-        float r=(*imgdata>>10)*cmult;
-        float g=((*imgdata>>5) & 0x1F)*cmult;
-        float b=(*imgdata & 0x1F)*cmult;
-        int rr=(int)(r+factor*(br-r));
-        if (rr > 0x1F) rr = 0x1F;
-        int rg=(int)(g+factor*(bg-g));
-        if (rg > 0x1F) rg = 0x1F;
-        int rb=(int)(b+factor*(bb-b));
-        if (rb > 0x1F) rb = 0x1F;
-        *imgdata=RGB555(rr,rg,rb);
-        imgdata++;
-    }
+      float init_f = (float)y/(height-1);      
+      if (!ceil) init_f=1.0f-init_f;
+      int x;
+      float factor=(1-0-pow(1.0-init_f,exponent)*fmult)*fend;
+      for (x=0;x<width;x++)
+      {
+          float r=(*imgdata>>10);
+          float g=((*imgdata>>5) & 0x1F);
+          float b=(*imgdata & 0x1F);
+          int rr=apply_factor(r, br, factor, cmult);
+          int rg=apply_factor(g, bg, factor, cmult);
+          int rb=apply_factor(b, bb, factor, cmult);
+          *imgdata=RGB555(rr,rg,rb);
+          imgdata++;
+      }
     }
     
     *sz = (PICTURE_WIDTH(hi)*PICTURE_HEIGHT(hi)*2)+3;
