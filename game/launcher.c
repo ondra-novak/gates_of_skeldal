@@ -8,6 +8,8 @@
 #include "platform/timer.h"
 #include "platform/ugc.h"
 
+#include <version.h>
+
 
 #include <stdio.h>
 
@@ -48,6 +50,7 @@ static void destroy_launcher_item(void *item) {
     TLAUNCHER_ITEM_DWN *litm = (TLAUNCHER_ITEM_DWN *)item;
     free(litm->item);
 }
+
 
 
 typedef struct launcher_state {
@@ -150,7 +153,14 @@ static uint16_t download_icon[] = {
 0x7FFF,0x8000,0x8000,0x8000,0x8000,0x8000,0x7FFF,
 0x7FFF,0x7FFF,0x7FFF,0x7FFF,0x7FFF,0x7FFF,0x7FFF
 };
-    
+
+static void show_version() {
+    const char *verstr = "Version: " SKELDAL_VERSION;
+    set_font(H_FLITT5, RGB888(255,255,255));
+    set_aligned_position(639, 479, 2, 2, verstr);
+    outtext(verstr);
+}
+
 
 static void launcher_draw(TLAUNCHER_STATE *st) {
     int minx = LAUNCHER_X;
@@ -268,6 +278,8 @@ static void launcher_draw(TLAUNCHER_STATE *st) {
                 start_game_pic);
     
 
+     show_version();
+  
     showview(0,0,0,0);
 }
 
@@ -442,6 +454,8 @@ static void start_editor_ui(void ) {
         showview(0,0,10,10);        
     }
 }
+
+
 
 static void activate_item(TLAUNCHER_STATE *st) {
     TLAUNCHER_ITEM_DWN *item = (TLAUNCHER_ITEM_DWN *)vector_get(&st->items, st->selected);

@@ -190,7 +190,7 @@ static std::optional<UGCItem> get_ugc_from_ddl_path(const UGCItemLastSave *lastS
 }
 
 static void handle_last_save(const UGCItemLastSave *last_save, UGCGetContext *st) {
-    if (last_save) {
+    if (last_save && last_save->ddl) {
         auto iter = std::find_if(st->items.begin(), st->items.end(), [&](const UGCItem &itm) {
             return strcmp(itm.ddl_path, last_save->ddl) == 0;
         });
