@@ -62,6 +62,9 @@ typedef struct {
     int32_t icon_padding;
     int32_t icon_height;
 
+    int32_t desc_font;
+    int32_t text_font;
+
 } TDIALOGY_LAYOUT;
 
 static TDIALOGY_LAYOUT dlg_layout = {
@@ -69,7 +72,7 @@ static TDIALOGY_LAYOUT dlg_layout = {
     94,11, 
     225, 382, 34,
     RGB555(28,28,21),NOSHADOW(0),42115,
-    49252,17,17,25, 25};
+    49252,17,17,25, 25, H_FBOLD, H_FBOLD };
 
 #define TEXT_X dlg_layout.txt_window_x
 #define TEXT_Y dlg_layout.txt_window_y
@@ -565,11 +568,11 @@ static void show_desc()
   if (c==NULL) return;
   y=dlg_layout.txt_desc_y;
   char *end = descript+descript_len;
-  set_font(H_FBOLD,DESC_COLOR1);
+  set_font(dlg_layout.desc_font,DESC_COLOR1);
   while (c < end)
      {
      position(dlg_layout.txt_desc_x,y);
-     outtext(c);y+=text_height(c);
+     outtext(c);y+=text_height(*c?c:" ");
      c=strchr(c,0)+1;
      }
   }
@@ -580,11 +583,8 @@ static void add_desc(char *c)
   if (descript!=NULL) free(descript);
   descript_len = strlen(c);
   descript=(char *)getmem(descript_len+2);
-  set_font(H_FBOLD,DESC_COLOR1);
+  set_font(dlg_layout.text_font,DESC_COLOR1);
   zalamovani(c,descript,dlg_layout.txt_desc_width,&xs,&ys);
-  for (size_t i = 0; i < descript_len; ++i) {
-    if (descript[i] == '\n') descript[i] = 0;
-  }
   descript[descript_len+1] =0;
 }
 
@@ -594,7 +594,7 @@ static void show_emote(char *c)
   char *a;
 
   a=alloca(strlen(c)+2);
-  set_font(H_FBOLD,RGB555(31,31,31));
+  set_font(dlg_layout.text_font,RGB555(31,31,31));
   zalamovani(c,a,TEXT_XS,&xs,&ys);
   while (*a)
      {
@@ -615,7 +615,7 @@ static void echo(char *c)
   char *a;
 
   a=alloca(strlen(c)+2);
-  set_font(H_FBOLD,RGB555(0,30,0));
+  set_font(dlg_layout.text_font,RGB555(0,30,0));
   zalamovani(c,a,TEXT_XS,&xs,&ys);
   while (*a)
      {
@@ -651,11 +651,11 @@ static void redraw_text()
         }
         switch (ln->type) {
             default:
-            case lt_echo:set_font(H_FBOLD,dlg_layout.text_color);;break;
-            case lt_emote:set_font(H_FBOLD,TEXT_UNSELECT);break;
+            case lt_echo:set_font(dlg_layout.text_font,dlg_layout.text_color);;break;
+            case lt_emote:set_font(dlg_layout.text_font,TEXT_UNSELECT);break;
             case lt_choice:
-                if (ln->id == vyb_volba) set_font(H_FBOLD,TEXT_SELECT);
-                else set_font(H_FBOLD,TEXT_UNSELECT);
+                if (ln->id == vyb_volba) set_font(dlg_layout.text_font,TEXT_SELECT);
+                else set_font(dlg_layout.text_font,TEXT_UNSELECT);
                 break;        
         }
         
@@ -1006,7 +1006,7 @@ static void add_case(int num,char *text)
   }
   vol_n[(uint8_t)pocet_voleb]=num;
   a=alloca(strlen(text)+2);
-  set_font(H_FBOLD,RGB555(0,30,0));
+  set_font(dlg_layout.text_font,RGB555(0,30,0));
   zalamovani(text,a,TEXT_XS,&xs,&ys);
   while (*a)
      {     
@@ -1031,7 +1031,7 @@ static void add_case_speaker(int num,int speaker, char *text)
   }
   vol_n[(uint8_t)pocet_voleb]=num;
   a=alloca(strlen(text)+2);
-  set_font(H_FBOLD,RGB555(0,30,0));
+  set_font(dlg_layout.text_font,RGB555(0,30,0));
   THUMAN *h = speaker?speakers[speaker]:NULL;;
   int xxs = TEXT_XS;
   int xofs = 0;
@@ -1609,7 +1609,7 @@ static void replace_monsters_r(short m, short n, short s, short r) {
 static char get_lever(unsigned short sector, unsigned short dir) {
     if (sector >= mapsize) return 0;
     if (dir >= 4) return 0;
-    const TSECTOR *sect = &map_sectors[sector*4+dir];
+    const TSTENA *sect = &map_sides[sector*4+dir];
     if ((sect->flags & SD_SEC_ANIM) == 0 && (sect->flags & SD_SEC_VIS) != 0) {
         return (sect->flags & SD_SEC_FORV) != 0;
     }
@@ -1862,7 +1862,7 @@ static void load_custom_layout() {
     if (test_file_exist(0,LAYOUT_FILE)) {
         int32_t sz;
         const void *ptr = afile(LAYOUT_FILE, 0, &sz);
-        memcpy(&dlg_layout,ptr, sizeof(dlg_layout));
+        memcpy(&dlg_layout,ptr, MIN(sizeof(dlg_layout),(size_t)sz));
         ablock_free(ptr);
     }
 }
@@ -1877,6 +1877,8 @@ void call_dialog(int entr,int mob)
 
 
   curcolor=0;
+  end_text_line = 0;
+  bott_draw(1);
   load_custom_layout();
   create_back_pic();
   bar32(0,SCREEN_OFFLINE,639,SCREEN_OFFLINE+359);

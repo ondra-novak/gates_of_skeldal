@@ -134,6 +134,7 @@ void zalamovani(const char *source,char *target,int maxxs,int *xs,int *ys)
   {
   strcpy(target,source);
   char *x = target;
+  char *end = x+strlen(x);
   while (*x) {
       if (*x == '\n') *x = 0;
       ++x;
@@ -143,7 +144,7 @@ void zalamovani(const char *source,char *target,int maxxs,int *xs,int *ys)
   xs[0]=0;
   ys[0]=0;
   x = target;
-  while (*x) {
+  while (x<end) {
       char *nextx = x + strlen(x)+1;
       if ((xs[0]=text_width(x))>maxxs)
          {
@@ -177,7 +178,11 @@ void zalamovani(const char *source,char *target,int maxxs,int *xs,int *ys)
          }
       else
          {
-         ys[0]+=text_height(x);
+            if (*x)  {
+                ys[0]+=text_height(x);
+            } else {
+                ys[0]+=text_height(" ");
+            }
          }
       x = nextx;
   }

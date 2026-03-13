@@ -288,7 +288,7 @@ static const void *mp3_load(const void *p, int32_t *s, int h) {
             ++ofs;
         } else {
             ofs += frame.frame_bytes;
-            count_samples += samples/frame.channels;
+            count_samples += samples;
         }
     }
     if (count_samples == 0) return err_sound_load(p, s, h);
@@ -302,7 +302,7 @@ static const void *mp3_load(const void *p, int32_t *s, int h) {
     hdr->wav_mode = 1;
     uint32_t *len = (uint32_t *)(hdr+1);
     *len = count_samples * 2;
-    uint16_t *data = (uint16_t *)(len+1);
+    int16_t *data = (int16_t *)(len+1);
     mp3dec_init(&decoder);
     ofs = 0;
     int wrofs = 0;
@@ -312,15 +312,17 @@ static const void *mp3_load(const void *p, int32_t *s, int h) {
            ++ofs;
         } else {
             ofs += frame.frame_bytes;
-            for (int i = 0; i < samples; i+=frame.channels) {
-                if (frame.channels == 1) {
+            if (frame.channels == 1) {
+                for (int i = 0; i < samples; i++) {
                     data[wrofs] = pcm[i];
-                } else if (frame.channels> 1) { //only mono are supported, downgrade
-                    data[wrofs] = (pcm[i] + pcm[i+1]) / 2;
+                    wrofs++;
                 }
-                ++wrofs;
+            } else {
+                for (int i = 0; i < samples; i++) {
+                    data[wrofs] = (pcm[i*2] + pcm[i*2+1]) / 2;
+                    wrofs++;
+                }
             }
-
         }
     }
     return trg;
@@ -369,16 +371,21 @@ void play_effekt(int x,int y,int xd,int yd,int sector,int side,const TMA_SOUND *
           return;
   }
 
-    blockid = find_handle(p->filename, wav_load);
+    blockid = find_handle(p->filename, soundfx_load);
     if (blockid == -1) {
-        def_handle(end_ptr, p->filename, wav_load, SR_ZVUKY);
+        def_handle(end_ptr, p->filename, soundfx_load, SR_ZVUKY);
         blockid = end_ptr++;
     }
 
       alock(blockid);
       s=ablock(blockid);
-      s+=p->offset+sizeof(struct t_wave)+4;
-      play_sample(chan,s,p->end_loop-p->offset,p->start_loop-p->offset,p->freq,1+(p->bit16 & 1));
+      struct t_wave *hdr = (struct t_wave *)s;
+      int32_t pcmsz = *(int32_t *)(hdr+1);
+      const void *data = (char *)(hdr+1)+4+p->offset;
+      int32_t freq = p->freq?p->freq:hdr->freq;
+      int32_t wsize = p->end_loop?p->end_loop - p->offset:pcmsz;
+      int32_t lstart = p->end_loop?p->start_loop - p->offset:pcmsz;
+      play_sample(chan,data,wsize,lstart,freq,hdr->bps/hdr->freq);
       playings[chan].data=p;
       playings[chan].xpos=xd;
       playings[chan].ypos=yd;
