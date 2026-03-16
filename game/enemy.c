@@ -97,7 +97,7 @@ static TMOBSAVEDATA **mobsavedata=0;
 struct tmobanimseqitem {
     int16_t file;
     int16_t offsetx;
-    int16_t unused;
+    int16_t offsety;
 };
 
 typedef struct tmobanimseq {
@@ -198,7 +198,7 @@ static const void *load_SEQ_file(const void *src, int *sc, int handle) {
                  allnames_iter+=strlen(fulname)+1;
                  seq_iter->file = findex;
                  seq_iter->offsetx = mob->_deprecated_adjusting[l * 16 + j];
-                 seq_iter->unused = 0;
+                 seq_iter->offsety = 0;
                  ++seq_iter;
                  ++findex;
               }
@@ -1301,6 +1301,7 @@ void draw_mob_call(int num,int curdir,int celx,int cely,char shiftup)
   drw1.cely=cely;
   drw1.mirror=view.mirror;
   drw1.adjust=view.face.offsetx;
+  drw1.ground=view.face.offsety;
   drw1.shiftup=shiftup;
   drw1.num=p->lives;
   drw1.palette=mob_select_palette(p);
@@ -1325,6 +1326,7 @@ void draw_mob_call(int num,int curdir,int celx,int cely,char shiftup)
         }
      drw2.mirror=view2.mirror;
      drw2.adjust=view2.face.offsetx;
+     drw1.ground=view2.face.offsety;
      drw2.num=q->lives;
      drw2.palette=mob_select_palette(q);
      drw2.stoned=(q->vlastnosti[VLS_KOUZLA] & SPL_STONED)!=0;

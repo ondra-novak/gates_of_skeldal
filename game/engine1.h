@@ -123,7 +123,7 @@ typedef short palette_t[256];
 typedef struct drw_enemy_struct
   {
   const void *txtr;
-  int celx,cely,posx,posy,adjust,shiftup,num;
+  int celx,cely,posx,posy,adjust,shiftup,ground,num;
   char mirror;
   char stoned;
   const palette_t *palette;

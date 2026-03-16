@@ -1267,6 +1267,7 @@ void draw_enemy(DRW_ENEMY *drw)
   if (drw->shiftup & 0x1) posy+=128;
   if (posy<0 || posy>127) return;
   map_pos(drw->celx,drw->cely,posx,posy,0,&x,&y);
+  y-=drw->ground;
   xs=(short *)drw->txtr;
   xss=*xs*last_scale/320;
   if (xss>640) return;
