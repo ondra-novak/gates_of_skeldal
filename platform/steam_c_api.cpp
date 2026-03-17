@@ -267,13 +267,16 @@ size_t get_install_callback_counter() {
 }
 
 #else
+#include "steam_c_api.h"
+
 void initialize_steam_client() {}
-int8_t set_achievement(auto id) {return -1;}
-int8_t clear_achievement(auto id) {return -1;}
+int8_t set_achievement(const char * id) {return -1;}
+int8_t clear_achievement(const char * id) {return -1;}
 char is_steam_available() {return 0;}
 void steam_upload_to_workshop(const char *file, workshop_update_cb callback, void *context) {
     callback(-1,"ERROR: Steam is not compiled", 0,0,context);;                    
 }
 size_t get_install_callback_counter() {return 0;}
+void shutdown_steam_client() {}
 #endif
 

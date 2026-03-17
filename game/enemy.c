@@ -1326,7 +1326,7 @@ void draw_mob_call(int num,int curdir,int celx,int cely,char shiftup)
         }
      drw2.mirror=view2.mirror;
      drw2.adjust=view2.face.offsetx;
-     drw1.ground=view2.face.offsety;
+     drw2.ground=view2.face.offsety;
      drw2.num=q->lives;
      drw2.palette=mob_select_palette(q);
      drw2.stoned=(q->vlastnosti[VLS_KOUZLA] & SPL_STONED)!=0;

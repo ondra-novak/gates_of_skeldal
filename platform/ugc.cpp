@@ -284,6 +284,7 @@ char is_steam_workshop_browser_available() {
 }
 
 
+#ifdef STEAM_ENABLED
 static std::string read_command(FILE *f) {
     std::string ln;
     ln.resize(1024);
@@ -293,6 +294,7 @@ static std::string read_command(FILE *f) {
     while (!ln.empty() && std::isspace(ln.back())) ln.pop_back();
     return ln;
 }
+#endif 
 
 void open_steam_workshop() {
 #ifdef STEAM_ENABLED
@@ -300,6 +302,7 @@ void open_steam_workshop() {
 #endif
 }
 
+#ifdef STEAM_ENABLED
 static std::thread editor_thread;
 static std::atomic<bool> editor_exited = false;
 
@@ -314,7 +317,7 @@ static void upload_callback(int result, const char *message, uint64_t upload_byt
     );
     fflush(out);
 }
-
+#endif
 
 void start_editor() {
 #ifdef STEAM_ENABLED
@@ -357,7 +360,11 @@ void start_editor() {
 }
 
 char did_editor_exit() {
+#ifdef STEAM_ENABLED
     return editor_exited.load()?1:0;
+#else
+    return 1;
+#endif
 }
 
 void ugc_start_play(const char *, uint64_t id) {
