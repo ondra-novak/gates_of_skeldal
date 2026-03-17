@@ -66,7 +66,7 @@ int item_in_cursor=0;
 
 void (*inv_redraw)();
 
-TSHOP *cur_shop;
+TSHOP *cur_shop = NULL;
 TSHOP **shop_list=NULL;
 int max_shops=0; //shop_list=prima spojeni s obchody
 void *shop_hacek=NULL; //hacek za ktery visi cely shop strom (free(shop_hacek) - odalokuje shopy)
@@ -3263,7 +3263,6 @@ void unwire_shop(void)
       ablock_free(shop_keeper_picture);
       shop_keeper_picture = NULL;
     }
-  cur_shop = NULL;
   }
 
 
@@ -3423,6 +3422,7 @@ void reroll_all_shops()
   {
   int i;
   for(i=0;i<max_shops;i++) reroll_shop(shop_list[i]);
+  cur_shop = NULL;
   }
 
 char save_shops()
