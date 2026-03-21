@@ -523,6 +523,8 @@ typedef struct tvyklenek
 typedef TSTENA TSIDEDEF[][4];
 typedef TSECTOR TSECTORDEF[];
 
+#define GET_SIDE_ID(sector, side) ((sector)*4+(side))
+
 typedef struct tmap_edit_info
   {
   short x,y,layer,flags;
@@ -1392,6 +1394,9 @@ extern int macro_block_size;       //velikost bloku;
 
 void load_macros(int size,const void *data);
 void call_macro(int side,int flags);
+//when item or weapon hit wall - side and it of item
+void wall_attack_event(int side, int item_id);
+char macros_has_on_wall_attack_event(int side);
 void call_macro_ex(int side,int flags, int runatsect);
 char get_player_triggered(int p);  //zjistuje zda hrac s cislem p byl makrem zasazen;
 char save_load_trigger(short load); //uklada/obnovuje trigger vlajky. -1 uklada, jinak hodnota ulozeneho triggeru

@@ -522,6 +522,14 @@ static char monster_in_room(int sector)
   return monster_test;
   }
 
+static char picked_item_has_element_damage(int element) {
+    if (!picked_item) return 0;
+    short itm = *picked_item;
+    if (itm == 0) return 0;
+    short itmref = abs(itm-1);
+    return glob_items[itmref].zmeny[VLS_MGZIVEL] == element && glob_items[itmref].zmeny[VLS_MGSIL_L]>0;
+}
+
 static int if_jump(const TMA_TWOP *i,int side,int abs_pos)
   {
   TSTENA *sd=map_sides+side;
@@ -537,6 +545,12 @@ static int if_jump(const TMA_TWOP *i,int side,int abs_pos)
      {
      case 32:ok=monster_in_game();break;
      case 33:ok=monster_in_room(side>>2);break;
+     case 34:ok=picked_item_has_element_damage(0);break;
+     case 35:ok=picked_item_has_element_damage(1);break;
+     case 36:ok=picked_item_has_element_damage(2);break;
+     case 37:ok=picked_item_has_element_damage(3);break;
+     case 38:ok=picked_item_has_element_damage(4);break;
+     case 39:ok=picked_item_has_element_damage(5);break;     
      }
   if (i->parm1<0) ok=!ok;
   if (ok) return go+abs_pos;else return -1;
@@ -746,6 +760,24 @@ void call_macro(int side,int flags)
   call_macro_ex(side,flags,side);
 }
 
+
+char macros_has_on_wall_attack_event(int side) {
+    TMULTI_ACTION_RECORD mrec = macros[side];
+    for (size_t i = 0; i < mrec.count; ++i) {
+        if (mrec.action_list[i].general.flags & MC_WALLATTACK) return 1;
+    }
+    return 0;
+}
+
+void wall_attack_event(int side, int item_id) {
+    short *psave = picked_item;
+    picked_item = (short *)getmem(sizeof(short)*2);
+    picked_item[0] = item_id+1;
+    picked_item[1] = 0;
+    call_macro(side, MC_WALLATTACK);
+    free(picked_item);
+    picked_item = psave;
+}
 
 
 

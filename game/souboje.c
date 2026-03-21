@@ -1144,9 +1144,8 @@ void pouzij_zbran(THUMAN *p,int ruka)
      {
      TMOB *m;int mm,chaos;
      mm=vyber_potvoru(p->sektor,p->direction,&chaos);
-     if (mm>=0)
-        {
-        TITEM *it=itm?glob_items+itm-1:NULL;
+     TITEM *it=itm?glob_items+itm-1:NULL;
+     if (mm>=0) {
         m=mobs+mm;
         bott_draw(1);
         anim_mirror=ruka==0;
@@ -1159,9 +1158,13 @@ void pouzij_zbran(THUMAN *p,int ruka)
             if (log_combat) wzprintf(" Weapon cast: %s - %d (roll) > %d (probability)\n",it->jmeno, roll, it->magie);
             thing_cast(it->spell,p-postavy,p->sektor,m,1);
           }
-        }
-
-
+        } 
+        }else {
+            int sd = GET_SIDE_ID(p->sektor, p->direction);
+            if (map_sides[sd].flags & SD_PLAY_IMPS) {
+                if (itm) play_weapon_anim(it->weapon_attack,it->hitpos);
+                wall_attack_event(sd, itm-1);
+            }
         }
      }
   else
@@ -2363,8 +2366,13 @@ char zasah_veci(int sector,TFLY *fl)
   if (fl->items==NULL && fl->item==0) return 0;
   if (fl->items==NULL) it=glob_items+fl->item-1;else it=&glob_items[*(fl->items)-1];
   if (fl->flags & FLY_DESTROY_SEQ || !fl->speed) return 0;
-  if (fl->flags & FLY_DESTROY)
-  {
+  if (fl->flags & FLY_DESTROY) {
+    if (it) {
+        int side = GET_SIDE_ID(fl->sector, 0);
+        for (int i = 0; i < 4; ++i) {
+            wall_attack_event(side+i, it - glob_items);
+        }
+    }
   if (mob_map[sector] && fl->owner>=0)
      {
             if (fl->owner >= 0)
@@ -2379,7 +2387,7 @@ char zasah_veci(int sector,TFLY *fl)
             if (mob2 >= 0) {
                 m2 = &mobs[mob2];
                 if (m2->vlajky & MOB_PASSABLE) {
-                    m2 = NULL; //pruchozi nestvury nemaji affekt na hozenou vec
+                    m2 = NULL; //pruchozi nestvury nemaji effekt na hozenou vec
                 }
             } else {
                 m2 = NULL;
@@ -2716,7 +2724,7 @@ char player_hit(THUMAN *p,int zraneni,char manashield)
 
 void enforce_start_battle()
   {
-  if (!battle && see_monster)
+  if (!battle && (see_monster || macros_has_on_wall_attack_event(GET_SIDE_ID(viewsector, viewdir))))
      {
      int i;THUMAN *h;
      stop_all_mobs();battle=1;

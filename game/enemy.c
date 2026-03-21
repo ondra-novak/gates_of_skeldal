@@ -2361,7 +2361,6 @@ int vyber_potvoru(int sect,int dir,int *z)
 
   if (map_sides[ww=((sect<<2)+dir)].flags & SD_PLAY_IMPS)
      {
-     call_macro(ww,MC_WALLATTACK);
      return -1;
      }
   sect=map_sectors[sect].step_next[dir];
