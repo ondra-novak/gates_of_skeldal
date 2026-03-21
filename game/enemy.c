@@ -568,14 +568,9 @@ void load_enemies(const short *data,int size,int *grptr,const TMOB *template,int
         mobs[i].home_pos=data[0];
         mobs[i].vlajky|=MOB_LIVE;
         mobs[i].id = (uint8_t)j;
-        if (mobs[i].speed<1)
-          {
-  	      char buff[256];
-
-          sprintf(buff,"Nestvura cislo #%d (%s) je spatne definovana (rychlost)",i,mobs[i].name);
-		  display_error(buff);
-          exit(1);
-          }
+        if (mobs[i].speed<1) {          
+            mobs[i].speed = 1;
+        }
         cisla[i]=mobs[i].cislo_vzoru;
         for(j=0;j<i;j++) if (cisla[j]==cisla[i]) break;
         if (j!=i) mobs[i].cislo_vzoru=mobs[j].cislo_vzoru;
@@ -809,6 +804,11 @@ void stop_mob(TMOB *p)
   int num1;
   TMOB *q;
 
+  if (!(p->stay_strategy & MOB_WALK)) {
+    p->headx = p->locx;
+    p->heady = p->locy;
+    return;
+  }
   p->mode=MBA_NONE;
   num1=mob_map[p->sector];
   if (num1) q=&mobs[num1-MOB_START];else q=p;
@@ -1889,7 +1889,7 @@ void mobs_live(int num)
         rozhodni_o_smeru(p);
         }
      else
-        if (mob_map[p->sector]==num+MOB_START && (!p->next) )
+        if (mob_map[p->sector]==num+MOB_START && (!p->next) && (p->stay_strategy & MOB_WALK) )
         {
         p->headx=128;p->heady=128;
         }

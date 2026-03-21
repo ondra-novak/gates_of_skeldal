@@ -400,10 +400,6 @@ static void load_mob_state(TMPFILE_RD *fsta) {
                 m->stay_strategy = st->stay_strategy;
                 m->user_data = st->user_data;
                 m->vlajky = st->vlajky;
-                m->headx = 128;
-                m->heady = 128;
-                m->locx = 128;
-                m->locy = 128;
                 memcpy(m->vlastnosti, st->vlastnosti, sizeof(m->vlastnosti));
                 break;
             }
