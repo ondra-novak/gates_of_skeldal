@@ -61,6 +61,7 @@ typedef struct {
     int32_t pic_y;
     int32_t icon_padding;
     int32_t icon_height;
+    int32_t icon_size; //shrink factor
 
     int32_t desc_font;
     int32_t text_font;
@@ -72,7 +73,7 @@ static TDIALOGY_LAYOUT dlg_layout = {
     94,11, 
     225, 382, 34,
     RGB555(28,28,21),NOSHADOW(0),42115,
-    49252,17,17,25, 25, H_FBOLD, H_FBOLD };
+    49252,17,17,25, 25,3, H_FBOLD, H_FBOLD };
 
 #define TEXT_X dlg_layout.txt_window_x
 #define TEXT_Y dlg_layout.txt_window_y
@@ -120,7 +121,7 @@ static short vol_n[MAX_VOLEB];
 
 static short save_jump;
 
-#define MAX_DIALOG_LINE 100
+#define MAX_DIALOG_LINE 200
 #define DLG_LINE_IMAGE_SPACE 20
 
 enum LineType {
@@ -310,27 +311,28 @@ static void *small_xicht(int xicht_handle) {
     const void *xicht = ablock(xicht_handle);
     int w = PICTURE_WIDTH(xicht);
     int h = PICTURE_HEIGHT(xicht)/4;
-    int w2 = w/3;
+    int w2 = w/dlg_layout.icon_size;
     uint16_t *buf;
     uint16_t *buf2;
     void *p1 = picture_create(w,h,&buf);
     memset(buf,0,w*h*2)    ;
     put_picture_ex(0, 0, xicht, buf, w, h);    
-    void *p2 = picture_create(w/3, h/3, &buf2);
-    for (int y = 0; y < h; y+=3) {
-        for (int x = 0; x< w; x+=3) {
+    void *p2 = picture_create(w/dlg_layout.icon_size, h/dlg_layout.icon_size, &buf2);
+    for (int y = 0; y < h; y+=dlg_layout.icon_size) {
+        for (int x = 0; x< w; x+=dlg_layout.icon_size) {
             int r  = 0,g = 0, b = 0;
-            for (int y1 = 0; y1 < 3; y1++) {
-                for (int x1 = 0; x1< 3; x1++) {
+            for (int y1 = 0; y1 < dlg_layout.icon_size; y1++) {
+                for (int x1 = 0; x1< dlg_layout.icon_size; x1++) {
                     short px = buf[(y+y1)*w+(x+x1)];
                     r += (px >> 10) & 0x1F;
                     g += (px >> 5) & 0x1F;
                     b += px & 0x1F;
                 }
             }            
-            int xt = x/3;
-            int yt = y/3;
-            buf2[yt * w2 + xt] = RGB555(r/9,g/9,b/9);
+            int xt = x/dlg_layout.icon_size;
+            int yt = y/dlg_layout.icon_size;
+            int f = dlg_layout.icon_size*dlg_layout.icon_size;
+            buf2[yt * w2 + xt] = RGB555(r/f,g/f,b/f);
         }
     }
     free(p1);
@@ -564,7 +566,6 @@ static void show_desc()
   int y;
 
   showed=0;
-  show_dialog_picture();
   if (c==NULL) return;
   y=dlg_layout.txt_desc_y;
   char *end = descript+descript_len;
@@ -577,6 +578,8 @@ static void show_desc()
      }
   }
 
+static void echo(char *c);
+
 static void add_desc(char *c)
   {
   int xs,ys;
@@ -586,6 +589,9 @@ static void add_desc(char *c)
   set_font(dlg_layout.text_font,DESC_COLOR1);
   zalamovani(c,descript,dlg_layout.txt_desc_width,&xs,&ys);
   descript[descript_len+1] =0;
+  echo(c);
+  echo("");
+  last_his_line = his_line = vector_size(&dlg_text);
 }
 
 static void show_emote(char *c)
@@ -617,7 +623,8 @@ static void echo(char *c)
   a=alloca(strlen(c)+2);
   set_font(dlg_layout.text_font,RGB555(0,30,0));
   zalamovani(c,a,TEXT_XS,&xs,&ys);
-  while (*a)
+  char *end = a + strlen(c)+1;
+  while (a < end)
      {
         TDLG_TEXT_LINE dlt = {0};
         strcopy_n(dlt.line, a, sizeof(dlt.line));
@@ -676,10 +683,11 @@ static int get_last_his_line()
 static void draw_all()
   {
   const void *c;
-  show_desc();
   if (back_pic_enable) c=back_pic;else c=ablock(H_DIALOG_PIC);
   other_draw();
   if (c!=NULL) put_picture(PIC_X,PIC_Y,c);
+  show_dialog_picture();
+  show_desc();
   redraw_text();
   }
 
@@ -1878,6 +1886,9 @@ void call_dialog(int entr,int mob)
 
   curcolor=0;
   end_text_line = 0;
+  vyb_volba=0;
+  pocet_voleb = 0;
+
   bott_draw(1);
   load_custom_layout();
   create_back_pic();

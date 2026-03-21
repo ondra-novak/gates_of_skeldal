@@ -238,6 +238,7 @@ TDREGISTERS registred[]=
     {H_GLOBMAP,"globmap.dat",load_text_decomp, SR_MAP},
     {H_FEUROMODE,"euromode.fon",NULL,SR_FONT},
     {H_FBROOKLIN,"brooklin.fon",NULL,SR_FONT},
+    {H_FBOLDCZ,"boldcz.fon",NULL,SR_FONT},
     {H_FARIAL,"big.fon",NULL,SR_FONT},
 
 	};

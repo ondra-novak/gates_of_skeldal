@@ -271,7 +271,8 @@ static __inline int rangrnd(int a, int b) {return rnd(b-a+1)+a;}
 #define H_GLOBMAP 200
 #define H_FEUROMODE 201
 #define H_FBROOKLIN 202
-#define H_FARIAL 203
+#define H_FBOLDCZ 203
+#define H_FARIAL 204
 #define H_FIRST_FREE 225
 #define H_MENUS_FREE 32768
 
