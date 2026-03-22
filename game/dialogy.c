@@ -22,6 +22,7 @@
 #include <string.h>
 #include "ach_events.h"
 #include "libs/vector.h"
+#include "platform/timer.h"
 
 typedef struct t_paragraph
   {
@@ -65,15 +66,20 @@ typedef struct {
 
     int32_t desc_font;
     int32_t text_font;
+    int32_t draw_order;
 
 } TDIALOGY_LAYOUT;
+
+#define DRAW_ORDER_UI_FIRST 0
+#define DRAW_ORDER_PIC_FIRST 1
 
 static TDIALOGY_LAYOUT dlg_layout = {
     17,270,606,
     94,11, 
     225, 382, 34,
     RGB555(28,28,21),NOSHADOW(0),42115,
-    49252,17,17,25, 25,3, H_FBOLD, H_FBOLD };
+    49252,17,17,25, 25,3, H_FBOLD, H_FBOLD,
+    DRAW_ORDER_UI_FIRST };
 
 #define TEXT_X dlg_layout.txt_window_x
 #define TEXT_Y dlg_layout.txt_window_y
@@ -578,9 +584,10 @@ static void show_desc()
      }
   }
 
-static void echo(char *c);
+static void echo(const char *c);
+static void draw_all();
 
-static void add_desc(char *c)
+static void set_desc(const char *c)
   {
   int xs,ys;
   if (descript!=NULL) free(descript);
@@ -589,9 +596,80 @@ static void add_desc(char *c)
   set_font(dlg_layout.text_font,DESC_COLOR1);
   zalamovani(c,descript,dlg_layout.txt_desc_width,&xs,&ys);
   descript[descript_len+1] =0;
-  echo(c);
-  echo("");
-  last_his_line = his_line = vector_size(&dlg_text);
+  }
+
+static void add_desc(const char *c)
+  {
+    set_desc(c);
+    echo(c);
+    echo("");
+    last_his_line = his_line = vector_size(&dlg_text);
+  }
+
+struct SlowDrawState {
+    int start;
+    int f;
+    const char *text;
+    
+};
+
+
+static void slow_desc_draw(EVENT_MSG *msg, void **user_data) {
+        switch (msg->msg) {
+            case E_INIT: {
+                const char *text = va_arg(msg->data, const char *);
+                char *textcpy;
+                struct SlowDrawState *st = (struct SlowDrawState *)make_string_array(sizeof(struct SlowDrawState), &text,1,&textcpy);
+                st->text = textcpy;
+                st->start = get_timer_value();;
+                st->f = 1;
+                *user_data = st;                            
+            }break;
+            case E_TIMER: {
+                struct SlowDrawState *st = (struct SlowDrawState *)*user_data;
+                int len = (get_timer_value() - st->start);
+                int maxlen = strlen(st->text);
+                if (len > maxlen) {
+                    exit_wait = 1;
+                } else if (len > 0) {
+                    set_desc(st->text);
+                    descript[len] = 0;
+                    descript_len = len;
+                    draw_all();
+                    if (st->f) {
+                        showview(0,0,0,0);
+                        st->f = 0;
+                    } else {
+                        showview(dlg_layout.txt_desc_x, dlg_layout.txt_desc_y, dlg_layout.txt_desc_width, 360-dlg_layout.txt_desc_y);
+                    }
+                }
+            }
+
+        }
+}
+
+static void slow_desc_draw_interrupt_kbd(EVENT_MSG *msg) {
+    if (msg->msg == E_KEYBOARD) exit_wait=1;
+}
+static void slow_desc_draw_interrupt_ms(EVENT_MSG *msg) {
+    if (msg->msg == E_MOUSE) {
+        const MS_EVENT *ev = va_arg(msg->data, const MS_EVENT *);
+        if (ev->event_type & MS_EVENT_MOUSE_LPRESS) exit_wait=1;
+    }
+}
+
+static void add_desc_slow(const char *c) {
+    unwire_proc();
+    send_message(E_ADD,E_TIMER, slow_desc_draw, c);
+    send_message(E_ADD,E_KEYBOARD,slow_desc_draw_interrupt_kbd);
+    send_message(E_ADD,E_MOUSE,slow_desc_draw_interrupt_ms);
+    escape();
+    send_message(E_DONE,E_TIMER, slow_desc_draw, c);
+    send_message(E_DONE,E_KEYBOARD,slow_desc_draw_interrupt_kbd);
+    send_message(E_DONE,E_MOUSE,slow_desc_draw_interrupt_ms);
+    add_desc(c);
+    wire_proc();
+
 }
 
 static void show_emote(char *c)
@@ -615,7 +693,7 @@ static void show_emote(char *c)
   }
 
 
-static void echo(char *c)
+static void echo(const char *c)
   {
   int xs,ys;
   char *a;
@@ -677,7 +755,7 @@ static int get_last_his_line()
   {
   
 
-  return vector_size(&dlg_text);;
+  return vector_size(&dlg_text);
   }
 
 static void draw_all()
@@ -685,8 +763,9 @@ static void draw_all()
   const void *c;
   if (back_pic_enable) c=back_pic;else c=ablock(H_DIALOG_PIC);
   other_draw();
-  if (c!=NULL) put_picture(PIC_X,PIC_Y,c);
+  if (c!=NULL && dlg_layout.draw_order == DRAW_ORDER_PIC_FIRST) put_picture(PIC_X,PIC_Y,c);
   show_dialog_picture();
+  if (c!=NULL && dlg_layout.draw_order == DRAW_ORDER_UI_FIRST) put_picture(PIC_X,PIC_Y,c);
   show_desc();
   redraw_text();
   }
@@ -1825,6 +1904,8 @@ void do_dialog()
             refresh_mob_map();
             };break;
      case 207:p1=Get_short();p2=Get_short();add_case_speaker(p1, p2, Get_string());break;
+     case 208:bott_disp_text(Get_string());break;
+     case 209:add_desc_slow(Get_string());break;
      case 518:set_flag(Get_short());break;
      case 519:reset_flag(Get_short());break;
      case 255:exit_dialog();return;

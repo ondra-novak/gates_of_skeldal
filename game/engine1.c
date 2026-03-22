@@ -40,7 +40,7 @@ static short zooming_points[ZOOM_PHASES][4]
 static int zooming_step=1;
 static int rot_phases=1;
 //int yreq;
-int last_scale;
+
 char secnd_shade=1;
 
 void sikma_zleva_norm(void);
@@ -588,6 +588,8 @@ void show_cel(int celx,int cely,const void *stena,int xofs,int yofs,char rev, in
   const char *p;
   int plac;
 
+  if (stena == NULL) return ;
+
   int32_t scr_linelen2 = GetScreenPitch();
 
   plac=rev>>5;
@@ -965,7 +967,7 @@ void general_engine_init()
   clear_screen(GetBuffer2nd(),0);
 }
 
-void map_pos(int celx,int cely,int posx,int posy,int posz,int *x,int *y)
+static void map_pos(int celx,int cely,int posx,int posy,int posz,int *x,int *y, int *scale)
   {
   char negate2=0;
   int xl,xr;
@@ -978,7 +980,7 @@ void map_pos(int celx,int cely,int posx,int posy,int posz,int *x,int *y)
      }
   p1=(viewport_geometry[0][0][cely].y-viewport_geometry[0][1][cely].y);
   p2=(viewport_geometry[0][0][cely+1].y-viewport_geometry[0][1][cely+1].y);
-  last_scale=p=posy*(p2-p1)/CTVR+p1;
+  *scale=p=posy*(p2-p1)/CTVR+p1;
   *y=viewport_geometry[0][0][cely].y-(posy*(viewport_geometry[0][0][cely].y-viewport_geometry[0][0][cely+1].y)/CTVR)-p*posz/CTVR;
   xr=viewport_geometry[celx][0][cely].x-(posy*(viewport_geometry[celx][0][cely].x-viewport_geometry[celx][0][cely+1].x)/CTVR);
   if (celx) xl=viewport_geometry[celx-1][0][cely].x-(posy*(viewport_geometry[celx-1][0][cely].x-viewport_geometry[celx-1][0][cely+1].x)/CTVR);
@@ -1069,7 +1071,7 @@ void map_pos(int celx,int cely,int posx,int posy,int posz,int *x,int *y)
 static int items_indextab[][2]={{0,0},{-1,3},{1,7},{-1,7},{1,10},{-1,10},{0,10},{-2,15}};
 void draw_item(int celx,int cely,int posx,int posy,const short *txtr,int index)
   {
-  int x,y;
+  int x,y,scale;
   int clipl,clipr;
   int randx,randy;
   int32_t scr_linelen2 = GetScreenPitch();
@@ -1078,8 +1080,8 @@ void draw_item(int celx,int cely,int posx,int posy,const short *txtr,int index)
   if (txtr==NULL) return;
   randx=items_indextab[7-(index & 0x7)][0];
   randy=items_indextab[7-(index & 0x7)][1];
-  map_pos(celx,cely,42*posx+42+randx,72*posy+randy,0,&x,&y);
-  x-=(txtr[0]/2*last_scale)/320;
+  map_pos(celx,cely,42*posx+42+randx,72*posy+randy,0,&x,&y,&scale);
+  x-=(txtr[0]/2*scale)/320;
   if (x<0)
      {
      clipl=-x;
@@ -1088,7 +1090,7 @@ void draw_item(int celx,int cely,int posx,int posy,const short *txtr,int index)
   else clipl=0;
   clipr=640-x;
   if (clipr>0)
-  enemy_draw(txtr,GetBuffer2nd()+x+(y+SCREEN_OFFLINE)*scr_linelen2,6+512*cely+(secnd_shade?SHADE_STEPS*512:0),last_scale,y,(clipr<<16)+clipl);
+  enemy_draw(txtr,GetBuffer2nd()+x+(y+SCREEN_OFFLINE)*scr_linelen2,6+512*cely+(secnd_shade?SHADE_STEPS*512:0),scale,y,(clipr<<16)+clipl);
   }
 
 
@@ -1110,14 +1112,14 @@ void put_textured_bar(const void *src,int x,int y,int xs,int ys,int xofs,int yof
 
 void draw_placed_texture(const short *txtr,int celx,int cely,int posx,int posy,int posz,char turn)
   {
-  int x,y;
+  int x,y,scale;
   int clipl,clipr;
   int32_t scr_linelen2 = GetScreenPitch();
 
   if (txtr==NULL) return;
-  map_pos(celx,cely,posx,posy,posz,&x,&y);
-  x-=(txtr[0]/2*last_scale)/320;
-  y+=(txtr[1]/2*last_scale)/320;
+  map_pos(celx,cely,posx,posy,posz,&x,&y,&scale);
+  x-=(txtr[0]/2*scale)/320;
+  y+=(txtr[1]/2*scale)/320;
   if (y>400) y=400;
   if (x<0)
      {
@@ -1131,12 +1133,12 @@ void draw_placed_texture(const short *txtr,int celx,int cely,int posx,int posy,i
             enemy_draw_mirror(txtr,
                     GetBuffer2nd() + x + (y + SCREEN_OFFLINE) * scr_linelen2,
                     6 + 512 * cely + (secnd_shade ? SHADE_STEPS * 512 : 0),
-                    last_scale, y, (clipr << 16) + clipl);
+                    scale, y, (clipr << 16) + clipl);
         }else {
             enemy_draw(txtr,
                     GetBuffer2nd() + x + (y + SCREEN_OFFLINE) * scr_linelen2,
                     6 + 512 * cely + (secnd_shade ? SHADE_STEPS * 512 : 0),
-                    last_scale, y, (clipr << 16) + clipl);
+                    scale, y, (clipr << 16) + clipl);
         }
     }
 
@@ -1236,7 +1238,7 @@ void set_lclip_rclip(int celx,int cely,int lc,int rc)
 
 void draw_enemy(DRW_ENEMY *drw)
   {
-  int x,y,lx,sd;
+  int x,y,lx,sd,scale;
   int clipl,clipr;
   int posx,posy,cely;
   short *xs,xss;
@@ -1266,17 +1268,17 @@ void draw_enemy(DRW_ENEMY *drw)
   if (!(drw->shiftup & 0x8)) posy+=32;
   if (drw->shiftup & 0x1) posy+=128;
   if (posy<0 || posy>127) return;
-  map_pos(drw->celx,drw->cely,posx,posy,0,&x,&y);
+  map_pos(drw->celx,drw->cely,posx,posy,0,&x,&y,&scale);
   y-=drw->ground;
   xs=(short *)drw->txtr;
-  xss=*xs*last_scale/320;
+  xss=*xs*scale/320;
   if (xss>640) return;
   lx=x;
   grcel=cely;
   if (posy>64) grcel++;
   if (grcel) grcel--;
   if (cely) cely-=1;
-  x-=(drw->adjust*last_scale)/320;
+  x-=(drw->adjust*scale)/320;
   if (x<lclip)
      {
      clipl=lclip-x;
@@ -1289,18 +1291,18 @@ void draw_enemy(DRW_ENEMY *drw)
             enemy_draw_mirror_transp(drw->txtr,
                     GetBuffer2nd() + x + (y + SCREEN_OFFLINE) * scr_linelen2,
                     drw->palette + grcel + (secnd_shade ? SHADE_STEPS : 0),
-                    last_scale, y + 1, (clipr << 16) + clipl);
+                    scale, y + 1, (clipr << 16) + clipl);
         } else {
             enemy_draw_transp(drw->txtr,
                     GetBuffer2nd() + x + (y + SCREEN_OFFLINE) * scr_linelen2,
                     drw->palette + grcel + (secnd_shade ? SHADE_STEPS : 0),
-                    last_scale, y + 1, (clipr << 16) + clipl);
+                    scale, y + 1, (clipr << 16) + clipl);
         }
     }
     if (show_lives) {
         char s[25];
 
-        int ly = y + SCREEN_OFFLINE - last_scale * 5 / 6;
+        int ly = y + SCREEN_OFFLINE - scale * 5 / 6;
         RedirectScreenBufferSecond();
         sprintf(s, "%d", drw->num);
         sd = text_width(s) / 2;
@@ -1312,7 +1314,7 @@ void draw_enemy(DRW_ENEMY *drw)
         RestoreScreen();
     }
     if (drw->more_info && x > 0 && lx < 639) {
-        int ly = y + SCREEN_OFFLINE - last_scale * 9 / 12;
+        int ly = y + SCREEN_OFFLINE - scale * 9 / 12;
         RedirectScreenBufferSecond();
         position(x, ly);
         outtext_w_nl(drw->more_info);
@@ -1323,16 +1325,16 @@ void draw_enemy(DRW_ENEMY *drw)
 
 void draw_player(  const short *txtr,int celx,int cely,int posx,int posy,int adjust,  const char *name)
   {
-  int x,y,yc,lx,sd;
+  int x,y,yc,lx,sd,scale;
   int clipl,clipr;
   int32_t scr_linelen2 = GetScreenPitch();
 
 
   RedirectScreenBufferSecond();
-  map_pos(celx,cely,posx+64,posy+64,0,&x,&y);
+  map_pos(celx,cely,posx+64,posy+64,0,&x,&y,&scale);
   lx=x;
-  x-=(adjust*last_scale)/320;
-  yc=(20*last_scale)/320+y;
+  x-=(adjust*scale)/320;
+  yc=(20*scale)/320+y;
   if (x<0)
      {
      clipl=-x;
@@ -1341,13 +1343,13 @@ void draw_player(  const short *txtr,int celx,int cely,int posx,int posy,int adj
   else clipl=0;
   clipr=640-x;
   if (clipr>0)
-  enemy_draw(txtr,GetBuffer2nd()+x+(yc+SCREEN_OFFLINE)*scr_linelen2,6+512*cely+(secnd_shade?SHADE_STEPS*512:0),last_scale,y,(clipr<<16)+clipl);
+  enemy_draw(txtr,GetBuffer2nd()+x+(yc+SCREEN_OFFLINE)*scr_linelen2,6+512*cely+(secnd_shade?SHADE_STEPS*512:0),scale,y,(clipr<<16)+clipl);
   if (show_names && name!=NULL)
      {
      sd=text_width(name)/2;
      if (lx-sd>0 && lx+sd<639)
         {
-        int ly=y+SCREEN_OFFLINE-last_scale*5/6;
+        int ly=y+SCREEN_OFFLINE-scale*5/6;
         trans_bar(lx-sd-5,ly-10,sd*2+10,10,0);
         set_aligned_position(lx,ly,1,2,name);outtext(name);
         }
@@ -1358,11 +1360,11 @@ void draw_player(  const short *txtr,int celx,int cely,int posx,int posy,int adj
 
 void draw_spectxtr(const short *txtr,int celx,int cely,int xpos)
   {
-  int x,y,clipl,clipr;
+  int x,y,clipl,clipr,scale;
   int32_t scr_linelen2 = GetScreenPitch();
 
-  map_pos(celx,cely,64,64,0,&x,&y);
-  x-=(((*txtr>>1)+xpos)*last_scale*2)/320;
+  map_pos(celx,cely,64,64,0,&x,&y,&scale);
+  x-=(((*txtr>>1)+xpos)*scale*2)/320;
   if (x<0)
      {
      clipl=-x;
@@ -1371,7 +1373,7 @@ void draw_spectxtr(const short *txtr,int celx,int cely,int xpos)
   else clipl=0;
   clipr=640-x;
   if (clipr>0)
-  enemy_draw_transp(txtr,GetBuffer2nd()+x+(y+SCREEN_OFFLINE)*scr_linelen2,(char *)txtr+6+512*cely+(secnd_shade?SHADE_STEPS*512:0),last_scale*2,y,(clipr<<16)+clipl);
+  enemy_draw_transp(txtr,GetBuffer2nd()+x+(y+SCREEN_OFFLINE)*scr_linelen2,(char *)txtr+6+512*cely+(secnd_shade?SHADE_STEPS*512:0),scale*2,y,(clipr<<16)+clipl);
   }
 
 
@@ -1464,12 +1466,12 @@ void set_backgrnd_mode(int mode)
 
 int get_item_top(int celx,int cely,int posx,int posy,const word *txtr,int index)
   {
-  int x,y;
+  int x,y,scale;
   int randx,randy;
 
   randx=items_indextab[7-(index & 0x7)][0];
   randy=items_indextab[7-(index & 0x7)][1];
-  map_pos(celx,cely,42*posx+42+randx,72*posy+randy,0,&x,&y);
-  if (txtr!=NULL) return y-(txtr[1]*last_scale)/320+SCREEN_OFFLINE;
+  map_pos(celx,cely,42*posx+42+randx,72*posy+randy,0,&x,&y,&scale);
+  if (txtr!=NULL) return y-(txtr[1]*scale)/320+SCREEN_OFFLINE;
   else return y+SCREEN_OFFLINE;
   }

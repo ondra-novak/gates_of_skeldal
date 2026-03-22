@@ -400,6 +400,7 @@ SR_COUNT} SKELDAL_FOLDERS_TAG;
 #define TM_DELAIER 15
 #define TM_VZPLANUTI 16
 #define TM_CORRUPTED_SAVE 17
+#define TM_SLOW_DESC 18
 
 //umisteni predmetu
 

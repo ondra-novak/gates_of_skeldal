@@ -142,7 +142,7 @@ int prepare_graphics(int *ofs,const char *names,int32_t size,ABLOCK_DECODEPROC  
   p=names;
   while (p<end)
      {
-     def_handle(*ofs,p,decomp,cls);
+     def_handle(*ofs,p,*p?decomp:NULL,cls);
      p=strchr(p,'\0');
      p++;
      (*ofs)++;
