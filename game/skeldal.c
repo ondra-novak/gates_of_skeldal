@@ -1811,10 +1811,6 @@ int skeldal_entry_point_thread(va_list args) {
     if (start_cfg->patch_file == NULL && start_cfg->adventure_path == NULL) {
         launchinfo = run_launcher();
         if (launchinfo==NULL) return 0;
-        if (launchinfo->lang) {
-            char *name = concat2(launchinfo->lang,".DDL");
-            add_patch_file(name);
-        }
     } else {
         const char *lang = start_cfg->langddl?start_cfg->langddl:"CS";
         if (start_cfg->patch_file) {
@@ -1825,11 +1821,15 @@ int skeldal_entry_point_thread(va_list args) {
             }
             load_map_is_dlc();
         }
-        lang = concat2(lang,".DDL");
-        add_patch_file(lang);
     }
-    if (launchinfo && launchinfo->ddl) {
-        add_patch_file(launchinfo->ddl);
+    if (launchinfo) {
+        if (launchinfo->lang) {
+            char *name = concat2(launchinfo->lang,".DDL");
+            add_patch_file(name);
+        }
+        if (launchinfo->ddl) {
+            add_patch_file(launchinfo->ddl);
+        }
     }
 
     initialize_from_adv_ini();
@@ -1870,11 +1870,11 @@ int skeldal_entry_point(const SKELDAL_CONFIG *start_cfg)
       start_cfg->show_error(concat2("Can't change directory to: ", groot));
       return 1;
   }
-
+/*
   if (start_cfg->patch_file) {
       patch_files[1] = start_cfg->patch_file;
   }
-
+*/
   if (start_cfg->adventure_path) {
       TSTR_LIST adv_config=read_config(start_cfg->adventure_path);
       if (!adv_config) {

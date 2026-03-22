@@ -366,6 +366,8 @@ static void add_patch(const void *bmf, size_t sz, const char *filename) {
             ddlmap[i].size = sz;
             ddlmap[i].path = strdup(filename);
             return;
+        } else if (istrcmp(ddlmap[i].path, filename) == 0) {
+            return ;
         }
     }
     display_error("memman: Too many patches");

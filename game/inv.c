@@ -109,6 +109,15 @@ unsigned short butt_plus[7]={0x0,(RGB555(25,23,16)),(RGB555(18,17,14)),(RGB555(1
 TITEM *glob_items=NULL;
 char inv_view_mode=0;
 
+
+
+typedef struct {    
+    int16_t item1;
+    int16_t item2;
+    int16_t out_item1;
+    int16_t out_item2;  //-1 no item out
+} TCOMBINE_ITEMS;
+
 void redraw_inventory();
 void zkontroluj_postavu();
 
@@ -1951,7 +1960,7 @@ void unwire_inv_mode(void)
   build_all_players();
   }
 
-char vejdou_se(int pocet)
+char nevejdou_se(int pocet)
   {
   int i=human_selected->inv_size-1;
 
@@ -2093,6 +2102,24 @@ char bag_click(int id,int xa,int ya,int xr,int yr)
 
 }
 
+static char make_item_combinations(short item1, short item2, short *out_item1, short *out_item2) {
+    if (test_file_exist(0, "ITEMCOMB.DAT")) {
+        int32_t sz;
+        const TCOMBINE_ITEMS *comb = (const TCOMBINE_ITEMS *)afile("ITEMCOMB.DAT",0,&sz);
+        size_t count = sz/sizeof(TCOMBINE_ITEMS);
+        for (size_t i = 0; i<count;++i ) {
+            if (comb[i].item1 == item1 && comb[i].item2 == item2) {
+                *out_item1 = comb[i].out_item1;
+                *out_item2 = comb[i].out_item2;
+                ablock_free(comb);
+                return 1;
+            }
+        }
+        ablock_free(comb);
+    }
+    return 0;
+}
+
 static char bag_action(int xr, int yr) {
   int id=(xr/INV_XS)+6*(yr/INV_YS);
   short p,*pk;
@@ -2100,21 +2127,26 @@ static char bag_action(int xr, int yr) {
     pk=picked_item;
    if (pk!=NULL)
      {
-     if (picked_item[1]!=0 && vejdou_se(count_items_total(picked_item))) return 0;
-     if (picked_item[1]!=0 || human_selected->inv[id]==0 /* || !MakeItemCombinations(picked_item,human_selected->inv+id)*/)
-      while (*pk)
-        {
-        p=human_selected->inv[id];
-        int itm = abs(*pk);
-        human_selected->inv[id]=itm;
-        ach_event_inv_add(itm-1);
-        *pk=p;pk++;
-        if (*pk) {
-            while (human_selected->inv[id]) {
-                if ((++id)>=human_selected->inv_size) id=0;
-            }
-        }
-        }
+        char multi = picked_item[1] != 0;
+        short out1, out2;
+        if (multi && nevejdou_se(count_items_total(picked_item))) return 0;     
+        if (!multi && human_selected->inv[id] != 0 && make_item_combinations(*picked_item-1, human_selected->inv[id]-1, &out1, &out2)) {
+            human_selected->inv[id] = out2+1;            
+            *picked_item = out1+1;
+        } else {            
+            while (*pk)
+                {
+                p=human_selected->inv[id];
+                int itm = abs(*pk);
+                human_selected->inv[id]=itm;
+                ach_event_inv_add(itm-1);
+                *pk=p;pk++;
+                if (*pk) {
+                    while (human_selected->inv[id]) {
+                        if ((++id)>=human_selected->inv_size) id=0;
+                    }
+                }
+        }}
      }
   else
      {
