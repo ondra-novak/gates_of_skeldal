@@ -161,7 +161,7 @@ static int cti_retezec(int znaku,char *text,char mezera,char upcase)
         }
      c=temp_storage_getc(glbm);
      }
-  if (c!=32 && c!=9) temp_storage_ungetc(glbm);
+  if (c!=32 && c!=9 && c != EOF) temp_storage_ungetc(glbm);
   *text=0;
   return 0;
   }
