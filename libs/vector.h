@@ -76,6 +76,9 @@ void *vector_pop_back(Vector *v);
 
 ///returns a pointer to the element at the specified index, or NULL if the index is out of bounds
 void *vector_get(Vector *v, size_t index);
+
+#define vector_fetch(type, vector, index) (*(const type *)vector_get((vector), (index)))
+
 ///replaces the element at the specified index with a new value, returns 1 on success, 0 on failure (e.g. index out of bounds)
 /**
     * @param v pointer to the vector

@@ -607,13 +607,16 @@ static void add_desc(const char *c)
   }
 
 struct SlowDrawState {
-    int start;
+    int next;
     int f;
+    int pos;
     const char *text;
     
 };
 
 
+static void unwire_slow_desc();
+static void unwire_slow_desc_force();
 static void slow_desc_draw(EVENT_MSG *msg, void **user_data) {
         switch (msg->msg) {
             case E_INIT: {
@@ -621,18 +624,30 @@ static void slow_desc_draw(EVENT_MSG *msg, void **user_data) {
                 char *textcpy;
                 struct SlowDrawState *st = (struct SlowDrawState *)make_string_array(sizeof(struct SlowDrawState), &text,1,&textcpy);
                 st->text = textcpy;
-                st->start = get_timer_value();;
+                st->next = get_timer_value();
+                st->pos = 0;
                 st->f = 1;
                 *user_data = st;                            
             }break;
             case E_TIMER: {
                 struct SlowDrawState *st = (struct SlowDrawState *)*user_data;
-                int len = (get_timer_value() - st->start);
+                int t = get_timer_value();
+                if (t < st->next) return;
+                int len = st->pos++;                
                 int maxlen = strlen(st->text);
                 if (len > maxlen) {
-                    exit_wait = 1;
+                    unwire_slow_desc();
                 } else if (len > 0) {
                     set_desc(st->text);
+                    char c = descript[len-1];
+                    char cc = len > 1?descript[len-2]:' ';
+                    if (c == '"') c = cc;
+                    if (descript[len] == '"') c = ' ';
+                    if (c == '.' || c == '?' || c == '!' ) {
+                        st->next += 20;  
+                    } else {
+                        st->next += 2;
+                    }
                     descript[len] = 0;
                     descript_len = len;
                     draw_all();
@@ -649,24 +664,34 @@ static void slow_desc_draw(EVENT_MSG *msg, void **user_data) {
 }
 
 static void slow_desc_draw_interrupt_kbd(EVENT_MSG *msg) {
-    if (msg->msg == E_KEYBOARD) exit_wait=1;
+    if (msg->msg == E_KEYBOARD) unwire_slow_desc();
 }
 static void slow_desc_draw_interrupt_ms(EVENT_MSG *msg) {
     if (msg->msg == E_MOUSE) {
         const MS_EVENT *ev = va_arg(msg->data, const MS_EVENT *);
-        if (ev->event_type & MS_EVENT_MOUSE_LPRESS) exit_wait=1;
+        if (ev->event_type & MS_EVENT_MOUSE_LPRESS) unwire_slow_desc();
     }
+}
+
+static void unwire_slow_desc() {
+    send_message(E_DONE,E_TIMER, slow_desc_draw);
+    send_message(E_DONE,E_KEYBOARD,slow_desc_draw_interrupt_kbd);
+    send_message(E_DONE,E_MOUSE,slow_desc_draw_interrupt_ms);
+    exit_wait = 1;
+}
+static void unwire_slow_desc_force() {
+    unwire_slow_desc();
+    static char exit_code[] = {P_SHORT, 255, 0};
+    pc = exit_code;
 }
 
 static void add_desc_slow(const char *c) {
     unwire_proc();
+    unwire_proc = unwire_slow_desc_force;
     send_message(E_ADD,E_TIMER, slow_desc_draw, c);
     send_message(E_ADD,E_KEYBOARD,slow_desc_draw_interrupt_kbd);
     send_message(E_ADD,E_MOUSE,slow_desc_draw_interrupt_ms);
     escape();
-    send_message(E_DONE,E_TIMER, slow_desc_draw, c);
-    send_message(E_DONE,E_KEYBOARD,slow_desc_draw_interrupt_kbd);
-    send_message(E_DONE,E_MOUSE,slow_desc_draw_interrupt_ms);
     add_desc(c);
     wire_proc();
 
@@ -1836,7 +1861,6 @@ void do_dialog()
               cur_page++;
               add_to_book(Get_short());
               play_fx_at(FX_BOOK);
-			  if (game_extras & EX_AUTOOPENBOOK) autoopenaction=1;
               break;
      case 150:set_nvisited(Get_short());break;
      case 151:iff=rnd(100)<=(unsigned int)Get_short();break;
@@ -1906,6 +1930,10 @@ void do_dialog()
      case 207:p1=Get_short();p2=Get_short();add_case_speaker(p1, p2, Get_string());break;
      case 208:bott_disp_text(Get_string());break;
      case 209:add_desc_slow(Get_string());break;
+     case 210:autoopenaction=1;break;
+     case 211:add_text_to_book_direct(Get_string());
+              play_fx_at(FX_BOOK);
+              break;             
      case 518:set_flag(Get_short());break;
      case 519:reset_flag(Get_short());break;
      case 255:exit_dialog();return;
@@ -2060,10 +2088,9 @@ char load_dialog_info(TMPFILE_RD *f)
   if (pgf_pocet!=*p)
      {
      SEND_LOG("(ERROR) Dialogs has different sizes %d!=%d (can be skipped)",pgf_pocet,*p);
-     temp_storage_skip(f,siz+sizeof(_flag_map));
-     return 0;
+     temp_storage_skip(f,siz);     
      }
-  if (siz)
+  else if (siz)
      {
      c=getmem(siz);
      res|=(temp_storage_read(c,1*siz,f)!=siz);

@@ -1829,6 +1829,7 @@ char enter_generator(void);
 //kniha
 void add_to_book(int odst);
 void add_text_to_book(const char *filename,int group, int odst);
+void add_text_to_book_direct(const char *text);
 void write_book(int page);
 int count_pages(void);
 void save_book(void);

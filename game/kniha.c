@@ -162,7 +162,7 @@ static void next_line(int step)
 static int insert_end_line_and_save(int p,int ys)
   {
   int size;
-  while (read_buff[buff_pos]==' ' && buff_pos<buff_end) buff_pos++;
+  while (buff_pos<buff_end && read_buff[buff_pos]==' ' ) buff_pos++;
   size=buff_end-buff_pos;
   if (size)memcpy(read_buff,read_buff+buff_pos,size);
   write_buff[p++]=27;
@@ -275,7 +275,7 @@ static void save_line_left()
 
 static void save_buffer()
   {
-  while (buff_end>buff_pos && isspace(read_buff[buff_end])) buff_end--;
+  while (buff_end>buff_pos && isspace(read_buff[buff_end-1])) buff_end--;
   if (center) save_line_center();
      else if (buff_pos==buff_end || !distend) save_line_left(); else save_line_oboustrane();
   }
@@ -586,6 +586,7 @@ static void read_text(TMPFILE_RD *txt)
         }
      }
   while (1);
+  buff_pos = buff_end;
   save_buffer();
   if (ref) {
       cur_reference = NULL;
@@ -657,6 +658,14 @@ void add_text_to_book(const char *filename,int group, int odst)
   next_line(-1);
   temp_storage_close_rd(fl);
   }
+
+void add_text_to_book_direct(const char *text) {
+    winconv = 0;
+    TMPFILE_RD *fl = temp_storage_from_string(text);
+    read_text(fl);
+    next_line(-1);
+    temp_storage_close_rd(fl);
+}
 
 static char *displ_picture(char *c)
   {
