@@ -1649,6 +1649,18 @@ static char test_can_walk(int grp)
   return 1;
   }
 
+static int find_optimal_stairs_exit(int sector, int dir) {
+    int out = (dir + 2);
+    int nx = map_sectors[sector].step_next[out];
+    if (nx && map_sectors[nx].sector_type == S_SCHODY) return dir;
+
+    for (int i = 0; i < 4;++i) {
+        int nx = map_sectors[sector].step_next[i];
+        if (nx && map_sectors[nx].sector_type == S_SCHODY) return (i+2) & 3;
+    }
+    return dir;
+}
+
 void step_zoom(char smer)
   {
   char nopass;
@@ -1681,11 +1693,13 @@ void step_zoom(char smer)
   if (cancel_pass) return;
   if (!GlobEvent(MAGLOB_ONSTEP,viewsector,viewdir)) return;
   if (viewsector!=sect) nsect=viewsector,viewsector=sect;else nsect=map_sectors[viewsector].step_next[drs];
+  int newviewdir = viewdir;
   if (map_sectors[nsect].sector_type==S_SCHODY)
      {
      int i;
-     viewdir=(viewdir+map_sectors[nsect].side_tag) & 3;
+     newviewdir=(map_sectors[nsect].side_tag+smer) & 3;
      nsect=map_sectors[nsect].sector_tag;
+     newviewdir = find_optimal_stairs_exit(nsect,newviewdir);
      i=mob_map[nsect];
      while (i!=0)
         {
@@ -1741,6 +1755,7 @@ void step_zoom(char smer)
      OutBuffer2nd();
      showview(0,SCREEN_OFFLINE,640,360);
      viewsector=nsect;
+     viewdir=newviewdir;
      move_lodka(sect,nsect);
      chod_s_postavama(1);
      send_message(E_KROK);
