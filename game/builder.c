@@ -1462,7 +1462,7 @@ void back_clear(int celx,int color)
   {
   int x1,y1,x2,y2,xc;
   y1=viewport_geometry[0][0][VIEW3D_Z].y+MIDDLE_Y+SCREEN_OFFLINE;
-  y2=viewport_geometry[0][1][VIEW3D_Z].y+MIDDLE_Y+SCREEN_OFFLINE;
+  y2=SCREEN_OFFLINE;
   x2=viewport_geometry[0][1][VIEW3D_Z].x+MIDDLE_X;
   x1=-viewport_geometry[0][1][VIEW3D_Z].x+MIDDLE_X;
   xc=(x2-x1+2)*celx;
