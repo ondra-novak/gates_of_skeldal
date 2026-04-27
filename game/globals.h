@@ -1508,7 +1508,7 @@ void recalc_volumes(int sector,int side);
 void play_effekt(int x,int y,int xd,int yd,int sector, int side,const TMA_SOUND *p);
 void change_music(const char *name);
 char resolve_music_source(const char *name, TMUSIC_SOURCE *new_source, TMUSIC_SOURCE_TYPE *new_type);
-void create_playlist(char *playlist);
+void create_playlist(const char *playlist);
 const char *get_next_music_from_playlist(void);
 void purge_playlist(void);
 void play_sample_at_sector(int sample,int listener,int source,int track, char loop);

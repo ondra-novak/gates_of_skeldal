@@ -661,11 +661,9 @@ static void slow_desc_draw(EVENT_MSG *msg, void **user_data) {
         }
 }
 
-static void slow_desc_draw_interrupt_kbd(EVENT_MSG *msg) {
+static void slow_desc_draw_interrupt(EVENT_MSG *msg) {
     if (msg->msg == E_KEYBOARD) unwire_slow_desc();
-}
-static void slow_desc_draw_interrupt_ms(EVENT_MSG *msg) {
-    if (msg->msg == E_MOUSE) {
+    else if (msg->msg == E_MOUSE) {
         const MS_EVENT *ev = va_arg(msg->data, const MS_EVENT *);
         if (ev->event_type & MS_EVENT_MOUSE_LPRESS) unwire_slow_desc();
     }
@@ -673,8 +671,8 @@ static void slow_desc_draw_interrupt_ms(EVENT_MSG *msg) {
 
 static void unwire_slow_desc() {
     send_message(E_DONE,E_TIMER, slow_desc_draw);
-    send_message(E_DONE,E_KEYBOARD,slow_desc_draw_interrupt_kbd);
-    send_message(E_DONE,E_MOUSE,slow_desc_draw_interrupt_ms);
+    send_message(E_DONE,E_KEYBOARD,slow_desc_draw_interrupt);
+    send_message(E_DONE,E_MOUSE,slow_desc_draw_interrupt);
     exit_wait = 1;
 }
 static void unwire_slow_desc_force() {
@@ -687,10 +685,52 @@ static void add_desc_slow(const char *c) {
     unwire_proc();
     unwire_proc = unwire_slow_desc_force;
     send_message(E_ADD,E_TIMER, slow_desc_draw, c);
-    send_message(E_ADD,E_KEYBOARD,slow_desc_draw_interrupt_kbd);
-    send_message(E_ADD,E_MOUSE,slow_desc_draw_interrupt_ms);
+    send_message(E_ADD,E_KEYBOARD,slow_desc_draw_interrupt);
+    send_message(E_ADD,E_MOUSE,slow_desc_draw_interrupt);
     escape();
     add_desc(c);
+    wire_proc();
+}
+
+
+static void unwire_delay_proc();
+static void dlg_delay_proc(EVENT_MSG *msg, void **userptr) {
+    if (msg->msg == E_INIT) {
+        unsigned int till = va_arg(msg->data, unsigned int);
+        uint32_t *end = New(uint32_t);
+        *end = get_timer_value() + till;
+        *userptr = end;
+    } else if (msg->msg == E_TIMER) {
+        uint32_t cur = get_timer_value();
+        uint32_t *end = (uint32_t *)(*userptr);
+        if (cur >= *end)  {
+            unwire_delay_proc();
+        }
+    }
+}
+static void dlg_delay_interrupt(EVENT_MSG *msg) {
+    if (msg->msg == E_KEYBOARD) unwire_delay_proc();
+    else if (msg->msg == E_MOUSE) {
+        const MS_EVENT *ev = va_arg(msg->data, const MS_EVENT *);
+        if (ev->event_type & MS_EVENT_MOUSE_LPRESS) unwire_delay_proc();
+    }
+}
+
+static void unwire_delay_proc() {
+    send_message(E_DONE,E_TIMER, dlg_delay_proc);
+    send_message(E_DONE,E_KEYBOARD,dlg_delay_interrupt);
+    send_message(E_DONE,E_MOUSE,dlg_delay_interrupt);
+    exit_wait = 1;
+}
+
+
+static void dlg_delay(unsigned int delay) {
+    unwire_proc();
+    unwire_proc = unwire_delay_proc;
+    send_message(E_ADD,E_TIMER, dlg_delay_proc, delay);
+    send_message(E_ADD,E_KEYBOARD,dlg_delay_interrupt);
+    send_message(E_ADD,E_MOUSE,dlg_delay_interrupt);
+    escape();
     wire_proc();
 
 }
@@ -1762,6 +1802,11 @@ static void kill_current_enemy() {
 
 static void dlg_formated_print(const char *text, int args);
 
+static void play_music_playlist(const char *playlist) {
+    create_playlist(playlist);
+    change_music(get_next_music_from_playlist());
+}
+
 void do_dialog()
   {
   int i,p1,p2,p3;
@@ -1834,6 +1879,8 @@ void do_dialog()
      case 56: if (speakers[0]) end_spell_group(speakers[0] - postavy, Get_short());break;
      case 57: stk_push(game_time);break;
      case 58: autosave();break;
+     case 59: play_music_playlist(Get_string());break;
+     case 60: dlg_delay(Get_short());break;
      case 128:add_desc(Get_string());break;
      case 129:show_emote(Get_string());break;
      case 130:save_name(Get_short());break;

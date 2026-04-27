@@ -509,16 +509,16 @@ void recalc_volumes(int sector,int side)
   mute_task=-1;
   }
 
-void create_playlist(char *playlist)
+void create_playlist(const char *playlist)
   {
-  char *c;
+  const char *c;
   char mode[20];
   char shift;
   int i=1,j;
   if (cur_playlist!=NULL) release_list(cur_playlist);
   cur_playlist=NULL;
   if (playlist==NULL) return;
-  if (!playlist[0]) return;
+  if (!playlist[0]) {stop_play_music();}
   c=playlist;
   while (*c && *c==32) c++;
   sscanf(c,"%s",mode);

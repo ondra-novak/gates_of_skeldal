@@ -1227,6 +1227,7 @@ static void reload_restart_map() {
     zneplatnit_block(H_ENEMY_H);
     zneplatnit_block(H_SHOP_PIC);
     zneplatnit_block(H_DIALOGY_DAT);
+    stop_play_music();
     clean_enemies();
     load_enemy_templates();
     load_shops();
