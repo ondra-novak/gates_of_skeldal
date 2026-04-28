@@ -714,7 +714,7 @@ void write_book(int page)
   position(relpos,YLEFT+y);
   do
      {
-     if (i>zz) break;
+     if (i>=zz) break;
      c=all_text[i];
      if (c==NULL) break;
      if (c[0]==27 && c[1]==END_PAGE) break;

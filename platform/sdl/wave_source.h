@@ -196,8 +196,8 @@ protected:
     }
     constexpr StereoFloat interpolate(const StereoInt16 &s1, const StereoInt16 &s2, float frac) {
         return {
-            interpolate(s1.left, s1.left, frac),
-            interpolate(s2.right, s2.right, frac)
+            interpolate(s1.left, s2.left, frac),
+            interpolate(s1.right, s2.right, frac)
         };
     }
     constexpr float interpolate(int8_t s1, int8_t s2, float frac) {
