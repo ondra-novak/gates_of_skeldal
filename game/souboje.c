@@ -107,6 +107,7 @@ char runes_mask(int id,int xa,int ya,int xr,int yr);
 char cancel_runes(int id,int xa,int ya,int xr,int yr);
 char power(int id,int xa,int ya,int xr,int yr);
 char power_info(int id,int xa,int ya,int xr,int yr);
+static char battle_spell_casting(int id,int xa,int ya,int xr,int yr);
 char cancel_power(int id,int xa,int ya,int xr,int yr);
 static char ask_who_proc(int id,int xa,int ya,int xr,int yr);
 void wire_programming();
@@ -133,7 +134,7 @@ HUM_ACTION *magic_data;
 
 static int minwait=0,maxwait=-1;
 
-#define CLK_SOUBOJE 16
+#define CLK_SOUBOJE 17
 T_CLK_MAP clk_souboje[]=
   {
   {-1,337,0,357,14,go_map,2,H_MS_DEFAULT},
@@ -152,6 +153,7 @@ T_CLK_MAP clk_souboje[]=
   {MS_GAME_WIN,0,17,639,377,souboje_clk_throw,2,-1},
   {MS_GAME_WIN,0,17,639,377,clk_fly_cursor,8,-1},
   {-1,54,378,497,479,start_invetory,2+8,-1},
+  {-1,315,0,335,14,battle_spell_casting,2,-1},
   };
 
 
@@ -172,6 +174,7 @@ char clk_battle_touch(int id,int xa,int ya,int xr,int yr)
   if (side_touched) clk_enter(id,xa,ya,xr,yr);
   return i;
   }
+
 
 #define CLK_PRESUN 12
 T_CLK_MAP clk_presun[]=
@@ -2768,3 +2771,9 @@ void correct_level()
       for (j=0;;j++) if (h->exp>level_map[j]) h->level=j+2;else break;
       }
   }
+
+
+static char battle_spell_casting(int id,int xa,int ya,int xr,int yr) {
+    add_pc_action(AC_MAGIC);
+    return 1;
+}
