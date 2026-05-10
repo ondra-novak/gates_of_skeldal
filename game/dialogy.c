@@ -613,8 +613,8 @@ struct SlowDrawState {
 };
 
 
-static void unwire_slow_desc();
-static void unwire_slow_desc_force();
+static void unwire_slow_desc(void);
+static void unwire_slow_desc_force(void);
 static void slow_desc_draw(EVENT_MSG *msg, void **user_data) {
         switch (msg->msg) {
             case E_INIT: {
@@ -669,13 +669,13 @@ static void slow_desc_draw_interrupt(EVENT_MSG *msg) {
     }
 }
 
-static void unwire_slow_desc() {
+static void unwire_slow_desc(void) {
     send_message(E_DONE,E_TIMER, slow_desc_draw);
     send_message(E_DONE,E_KEYBOARD,slow_desc_draw_interrupt);
     send_message(E_DONE,E_MOUSE,slow_desc_draw_interrupt);
     exit_wait = 1;
 }
-static void unwire_slow_desc_force() {
+static void unwire_slow_desc_force(void) {
     unwire_slow_desc();
     static char exit_code[] = {P_SHORT, 255, 0};
     pc = exit_code;
@@ -716,7 +716,7 @@ static void dlg_delay_interrupt(EVENT_MSG *msg) {
     }
 }
 
-static void unwire_delay_proc() {
+static void unwire_delay_proc(void) {
     send_message(E_DONE,E_TIMER, dlg_delay_proc);
     send_message(E_DONE,E_KEYBOARD,dlg_delay_interrupt);
     send_message(E_DONE,E_MOUSE,dlg_delay_interrupt);
