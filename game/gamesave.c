@@ -399,7 +399,11 @@ static void load_mob_state(TMPFILE_RD *fsta) {
                 m->sector = st->sector;
                 m->stay_strategy = st->stay_strategy;
                 m->user_data = st->user_data;
-                m->vlajky = st->vlajky;
+                m->vlajky = st->vlajky;                
+                if ((m->stay_strategy & MOB_WALK) == 0) {
+                    m->headx = m->locx;
+                    m->heady = m->locy;
+                }
                 memcpy(m->vlastnosti, st->vlastnosti, sizeof(m->vlastnosti));
                 break;
             }

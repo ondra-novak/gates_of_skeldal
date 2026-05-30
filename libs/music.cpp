@@ -116,7 +116,7 @@ protected:
              c = (c + 1) % chans;
              outbuff.push_back(val);
         }
-        unprocessed_buffer = {reinterpret_cast<const char *>(outbuff.data()), outbuff.size()*2};
+        unprocessed_buffer = {reinterpret_cast<const char  *>(outbuff.data()), outbuff.size()*2};
         return true;
     }
 
