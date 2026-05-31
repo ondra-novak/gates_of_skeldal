@@ -1716,6 +1716,7 @@ static void teleport_char(const char *level, int sector, int dir) {
     p->direction = dir;
     bott_draw(0);
     build_player_map();
+    auto_group();
 }
 
 static void do_replace_monster(size_t monster_index, size_t monster_id) {
