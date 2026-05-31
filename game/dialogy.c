@@ -317,28 +317,34 @@ static void *small_xicht(int xicht_handle) {
     const void *xicht = ablock(xicht_handle);
     int w = PICTURE_WIDTH(xicht);
     int h = PICTURE_HEIGHT(xicht)/4;
-    int w2 = w/dlg_layout.icon_size;
+    int isz = dlg_layout.icon_size;
+    int w2 = w/isz;
+    int h2 = h/isz;
     uint16_t *buf;
     uint16_t *buf2;
     void *p1 = picture_create(w,h,&buf);
     memset(buf,0,w*h*2)    ;
     put_picture_ex(0, 0, xicht, buf, w, h);    
-    void *p2 = picture_create(w/dlg_layout.icon_size, h/dlg_layout.icon_size, &buf2);
-    for (int y = 0; y < h; y+=dlg_layout.icon_size) {
-        for (int x = 0; x< w; x+=dlg_layout.icon_size) {
+
+    void *p2 = picture_create(w2, h2, &buf2);
+    for (int y = 0; y < h2; ++y) {
+        int yp = y * isz;
+        int ym = MIN(yp+isz, h);
+        for (int x = 0; x< w2; ++x) {
+            int xp = x * isz;
+            int xm = MIN(xp+isz, w);
+            int cnt = 0;
             int r  = 0,g = 0, b = 0;
-            for (int y1 = 0; y1 < dlg_layout.icon_size; y1++) {
-                for (int x1 = 0; x1< dlg_layout.icon_size; x1++) {
-                    short px = buf[(y+y1)*w+(x+x1)];
+            for (int y1 = yp; y1 < ym; ++y1)  {
+                for (int x1 = xp; x1 < xm; ++x1) {
+                    short px = buf[y1 * w + x1];
                     r += (px >> 10) & 0x1F;
                     g += (px >> 5) & 0x1F;
                     b += px & 0x1F;
+                    ++cnt;
                 }
-            }            
-            int xt = x/dlg_layout.icon_size;
-            int yt = y/dlg_layout.icon_size;
-            int f = dlg_layout.icon_size*dlg_layout.icon_size;
-            buf2[yt * w2 + xt] = RGB555(r/f,g/f,b/f);
+            }
+            buf2[y * w2 + x] = RGB555(r/cnt, g/cnt, b/cnt);
         }
     }
     free(p1);

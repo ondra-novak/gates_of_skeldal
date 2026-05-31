@@ -183,8 +183,9 @@ static TDDL_DIRECTORY create_ddl_directory(const void *bmf_m, int source_id) {
     out.item = NewArr(TDIRECTORY_ENTRY, count);
     out.count = 0;
     for (size_t i = 0; i < count; ++i) {
-        TDIRECTORY_ENTRY *entry = &out.item[out.count++];
         if (ptr[i].name[0]) {
+            TDIRECTORY_ENTRY *entry = &out.item[out.count];
+            ++out.count;
             for (int j = 0; j < 12; ++j) {
                 char c= ptr[i].name[j];
                 if (c >= 'a' && c <='z') c = c + 'A' - 'a';
