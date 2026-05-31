@@ -1887,6 +1887,7 @@ void do_dialog()
      case 58: autosave();break;
      case 59: play_music_playlist(Get_string());break;
      case 60: dlg_delay(Get_short());break;
+     case 61: iff = getSafeSpeaker(0)->lives > 0;break;
      case 128:add_desc(Get_string());break;
      case 129:show_emote(Get_string());break;
      case 130:save_name(Get_short());break;
