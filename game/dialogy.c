@@ -874,7 +874,9 @@ static void select_speaker(int vls,int omz, int slot) {
           }
       }
       int m = SAVE_SPKRS;
-      for (int i = 0; i < POCET_POSTAV; ++i) m = MIN(stats[i], m);
+      for (int i = 0; i < POCET_POSTAV; ++i) {
+        if (postavy[i].used && postavy[i].lives) m = MIN(stats[i], m);
+      }
       THUMAN *candidates[POCET_POSTAV];
       int ccount = 0;
       for (int i = 0; i < POCET_POSTAV; ++i) {
