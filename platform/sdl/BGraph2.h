@@ -33,6 +33,8 @@ void game_display_show_mouse(const unsigned short *mouse_image, int finger_x, in
 void game_display_hide_mouse();
 ///Load sprite HI format, sprite_id can be any integer value- if sprite exists it is replaced
 void game_display_load_sprite(int sprite_id, const unsigned short *hi_image);
+void game_display_load_sprite_ex(int sprite_id, unsigned int width, unsigned int height, unsigned int pitch, const unsigned short *data_rgb1555);
+void game_display_set_sprite_alpha(int sprite_id, int alpha);
 ///show and place sprite at given coordinates
 void game_display_place_sprite(int sprite_id, int x, int y);
 ///show and place (and scale) sprite at given coordinates

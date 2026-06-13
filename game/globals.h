@@ -457,6 +457,16 @@ SR_COUNT} SKELDAL_FOLDERS_TAG;
 #define VLS_DAMAGE  22
 #define VLS_KOUZLA  23
 
+//mask magic damage type
+#define VLS_MGZIVEL_MASK 0xFF
+//attacker has this flag - it must success attack roll to apply magic damage
+#define VLS_MGZIVEL_FLG_ATTACKER_MAGIC_NEED_ROLL 0x100
+//defender has this flag - enforces attack roll for attacker for magic attack
+#define VLS_MGZIVEL_FLG_DEFENDER_MAGIC_FORCE_ROLL 0x200
+//defender has this flag - only magic damage applied
+#define VLS_MGZIVEL_FLG_DEFENSE_ONLY_MAGIC 0x400
+
+
 
 //rezimy interakce
 
@@ -639,6 +649,7 @@ extern char enable_glmap; //povoluje globalni mapu;
 extern int charmin;
 extern int charmax;
 extern uint32_t current_map_hash;
+extern char show_minimap;
 
 extern int autoopenaction;
 extern int autoopendata;
@@ -776,6 +787,7 @@ TMPFILE_RD *open_ddl_file(const char *name, int group);
 int prepare_graphics(int *ofs,const char *names,int32_t size,ABLOCK_DECODEPROC decomp,int cls);
 void show_automap(char full);
 void draw_medium_map(void);
+void draw_medium_map_overlay(int sprite_bgr, int sprite_frg) ;
 void anim_sipky(int h,int mode);
 void redraw_scene(void);
 void calc_game(void);
@@ -857,7 +869,7 @@ void draw_placed_items_normal(int celx,int cely,int sect,int side);
 #define SPL_TVAR 0x4            //hrac ma kouzlo nastav tvar
 #define SPL_DRAIN 0x8           //hrac kazdym utokem drainuje nepritele
 #define SPL_MANASHIELD 0x10     //hrac je chranen stitem z many
-#define SPL_SANC 0x20           //resistance to fyzical attack
+#define SPL_SANC 0x20           //resistance no physical attack
 #define SPL_HSANC 0x40          //resistance to all attack
 #define SPL_BLIND 0x80          //hrac je slepy
 #define SPL_REGEN 0x100         //hrac ma regeneraci pri boji

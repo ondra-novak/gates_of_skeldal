@@ -921,9 +921,9 @@ void cti_texty(void)
      //patch stringtable
      if (!texty[98]) str_replace(&texty,98,"Ulo\x91it hru jako");
      if (!texty[99]) str_replace(&texty,99,"CRT Filter (>720p)");
-     str_replace(&texty, 144, "Zrychlit souboje");
+/*     str_replace(&texty, 144, "Zrychlit souboje");
      str_replace(&texty, 51, "Celkov\x88 Hudba Efekty  V\x98\xA8ky  Basy Rychlost");
-     str_replace(&texty,0,"Byl nalezen p\xA9ipojen\x98 ovlada\x87\nPro aktivaci ovlada\x87""e stiskn\x88te kter\x82koliv tla\x87\xA1tko na ovlada\x87i");
+     str_replace(&texty,0,"Byl nalezen p\xA9ipojen\x98 ovlada\x87\nPro aktivaci ovlada\x87""e stiskn\x88te kter\x82koliv tla\x87\xA1tko na ovlada\x87i");*/
   }
 
 

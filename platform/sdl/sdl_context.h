@@ -9,6 +9,7 @@
 #include <vector>
 #include <libs/mouse.h>
 #include <functional>
+#include "SDL_rect.h"
 #include "unique_value.h"
 
 #include <queue>
@@ -28,12 +29,19 @@ public:
 
     };
 
+    enum class ScaleQuality {
+        autoselect,
+        nearest,
+        bilinear,
+        hybrid
+    };
+
     struct VideoConfig {
         int window_width;
         int window_height;
         CrtFilterType  crt_filter;
         int composer;
-        const char *scale_quality;
+        ScaleQuality scale_quality;
         bool fullscreen;
         int aspect_x;
         int aspect_y;
@@ -152,7 +160,9 @@ public:
     void hide_mouse_cursor();
 
     void load_sprite(int sprite_id, const unsigned short *hi_image);
+    void load_sprite(int sprite_id, unsigned int width, unsigned int height, unsigned int pitch,  const unsigned short *data);
     void place_sprite(int sprite_id, int x, int y);
+    void set_sprite_alpha(int sprite_id, int alpha);
     void scale_sprite(int sprite_id, int x, int y, int w, int h);
     void hide_sprite(int sprite_id);
     void sprite_set_zindex(int sprite_id, int zindex);
@@ -202,6 +212,7 @@ protected:
 
         sprite_load,
         sprite_unload,
+        sprite_alpha,
         sprite_place,
         sprite_scale,
         sprite_zindex,
@@ -217,6 +228,7 @@ protected:
         int zindex = {};
         std::unique_ptr<SDL_Texture, SDL_Deleter> _txtr = {};
         SDL_Rect _rect = {};
+        int alpha = 255;
         bool shown = false;
     };
 
@@ -241,6 +253,7 @@ protected:
     std::unique_ptr<SDL_Texture, SDL_Deleter> _texture2;
     std::unique_ptr<SDL_Texture, SDL_Deleter> _crt_effect;
     std::unique_ptr<SDL_Texture, SDL_Deleter> _mouse;
+    std::unique_ptr<SDL_Texture, SDL_Deleter> _hybrid_rescale_txt;
     std::unique_ptr<SDL_PixelFormat, SDL_Deleter> _main_pixel_format;
     unique_value<SDL_AudioDeviceID, SDL_Audio_Deleter> _audio;
     SDL_Texture *_visible_texture = nullptr;
@@ -252,6 +265,8 @@ protected:
     bool _present = false;
     bool _convert_format = false;
     bool _burst_mode = false;
+    bool _hybrid_rescale = false;
+    bool _hybrid_rescale_active = false;
     std::atomic<bool> _key_control = false;
     std::atomic<bool> _key_shift = false;
     std::atomic<bool> _key_capslock = false;
@@ -297,6 +312,7 @@ protected:
 
     SDL_Rect get_window_aspect_rect() const;
     static SDL_Rect to_window_rect(const SDL_Rect &winrc, const SDL_Rect &source_rect) ;
+    static SDL_Rect to_source_rect(const SDL_Rect &winrc, const SDL_Rect &window_rect) ;
     static SDL_Point to_window_point(const SDL_Rect &win_rec, const SDL_Point &pt) ;
     static SDL_Point to_source_point(const SDL_Rect &win_rec, const SDL_Point &win_pt) ;
     static SDL_Rect transition_rect(const SDL_Rect &beg, const SDL_Rect &end, float phase);
@@ -306,6 +322,7 @@ protected:
 
 
     void refresh_screen();
+    void refresh_screen_to_rc(SDL_Rect winrc);
     std::optional<BlendTransitionReq> blend_transition;
     std::optional<SlideTransitionReq> slide_transition;
 
@@ -317,10 +334,12 @@ protected:
     static int adjust_deadzone(int v, short deadzone);
 
     void update_texture_with_conversion(SDL_Texture * texture,
-        const SDL_Rect * rect,
-        const void *pixels, int pitch);
+        SDL_Rect rect,
+        const void *pixels, int pitch
+    );
 
     template<Uint32 pixel_format>
     void convert_bitmap(const void *pixels, SDL_Rect r, int pitch);
+
 
 };

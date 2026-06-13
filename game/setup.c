@@ -54,7 +54,7 @@ static void do_setup_change(void)
   switch (o_aktual->id)
      {
      case 10:set_snd_effect(SND_SWAP,c & 1);break;
-     case 20:set_snd_effect(SND_OUTFILTER,c & 1);break;
+     case 20:show_minimap = c & 1;break;
      case 250:timerspeed_val = TIMERSPEED- c;break;
      default:set_snd_effect(effects[o_aktual->id/10-20],c);break;
      }
@@ -153,7 +153,7 @@ void new_setup()
   int i;
   static int textxp[]={ 75, 75,435,435,434,535,535,535,434,434,434,434,434, 35,410,510};
   static int textyp[]={275,305, 65, 95,125, 65, 95,125,185,215,245,275,305,235, 40, 40};
-  static int  textc[]={ 53, 99, 56, 57, 58, 56, 57, 58,140,141,142,143,144 ,51, 55, 59};
+  static int  textc[]={ 53, 54, 56, 57, 58, 56, 57, 58,140,141,142,143,144 ,51, 55, 59};
 
   mix_back_sound(256000-16384);
   memset(&ctl,0,sizeof(ctl));
@@ -167,7 +167,7 @@ void new_setup()
   define(10,50,270,190,20,0,skeldal_checkbox);  c_default(get_snd_effect(SND_SWAP));   on_control_change(do_setup_change);
   if (check_snd_effect(SND_OUTFILTER))
      {
-     define(20,50,300,190,20,0,skeldal_checkbox);c_default(get_snd_effect(SND_OUTFILTER));
+     define(20,50,300,190,20,0,skeldal_checkbox);c_default(show_minimap);
         on_control_change(do_setup_change);
      }
 

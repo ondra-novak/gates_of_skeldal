@@ -29,6 +29,7 @@ void show_help_short() {
 }
 
 
+
 int main(int argc, char **argv) {
 
     SKELDAL_CONFIG cfg = {SKELDALINI,NULL,NULL,NULL,NULL,NULL,NULL,NULL};

@@ -281,19 +281,22 @@ static const void *pcx_15bit_decomp_z(const void *p, int32_t *s, int h) {
 
 
 
-static void showCorruptedErrorDelayed(THE_TIMER *t) {
-    (void)t;
-    if (unwire_proc == unwire_main_functs && !norefresh) {
-        t->calls = 1;
-        unwire_proc();
-        message(1,0,0,"","ERROR: Corrupted state, the game state can be inconsistent",texty[80]);
-        wire_proc();
-    }
 
-}
 
 void showCorruptedError(void) {
-    add_to_timer(TM_CORRUPTED_SAVE, 1,-1,showCorruptedErrorDelayed);
+    TMA_TEXT_OVERLAY ovr;    
+    ovr.x = 0;
+    ovr.y = 358;
+    ovr.align_x = 0;
+    ovr.align_y = 2;
+    ovr.color15 = RGB888(255,255,0);
+    ovr.face = 5;
+    ovr.max_width = 600;
+    ovr.picture = 0;
+    ovr.display_time = 500;
+    ovr.blocking = 0;
+
+    add_text_to_overlay("ERROR: Corrupted state, the game state can be inconsistent",&ovr);
 }
 
 
@@ -1768,7 +1771,7 @@ void step_zoom(char smer)
      bott_draw(0);
      other_draw();
     if (!nopass) shift_zoom(smer);
-    if (battle || (game_extras & EX_ALWAYS_MINIMAP)) draw_medium_map();
+    //if (battle || (game_extras & EX_ALWAYS_MINIMAP)) draw_medium_map();
     sort_groups();
     bott_draw(0);
     other_draw();
@@ -2169,6 +2172,8 @@ void show_death_screen(const char *txt) {
     GlobEvent(MAGLOB_ONDEADALL,viewsector,viewdir);
     GlobEventList[MAGLOB_ONDEADALL].sector=0;
     GlobEventList[MAGLOB_ONDEADALL].side=0;
+    hide_overlays();
+    show_minimap = 0;
 
 }
 

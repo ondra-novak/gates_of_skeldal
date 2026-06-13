@@ -22,6 +22,7 @@
 #include "version.h"
 
 #include <string.h>
+#include <time.h>
 #define ZIVOTY_S 60
 #define ZIVOTY_E 62
 #define KONDIC_S 64
@@ -42,6 +43,8 @@
 #define ZASAHT_Y 38
 
 #define TEXT_OVERLAY_SPRITE 2
+#define MINIMAP_SPRITE_BGR 3
+#define MINIMAP_SPRITE 4
 
 #define SHOW {swap_buffs();showview(0,0,0,0);swap_buffs();getche();`}
 
@@ -63,6 +66,7 @@ int viewsector=1,viewdir=1;
 char norefresh=0,map_state=0;
 int cur_sector; //sektor aktualni pozice
 char global_anim_counter=0;
+char show_minimap = 0;
 char one_buffer=0;
 char set_halucination=0;
 int hal_sector;
@@ -172,7 +176,7 @@ static void draw_text_overlay() {
                 while (*c) {                
                     set_aligned_position(itm->x, yiter, itm->align_x, 0, c);
                     int h  = text_height(c);
-                    if (yiter > 0 && yiter < 359-h) {
+                    if (yiter >= 0 && yiter < 359-h) {
                         outtext(c);
                         yiter+=h;
                     }
@@ -222,6 +226,7 @@ void add_text_to_overlay(const char *text,const TMA_TEXT_OVERLAY *ovrdef) {
     item->blocking = ovrdef->blocking;
     item->show_time_point = disp_time;
     item->hide_time_point = hide_time;    
+    item->pic = 0;
 
     if (ovrdef->picture) {
         strcpy(item->text, text);
@@ -1761,13 +1766,14 @@ void redraw_scene()
   {
   if (norefresh) return;
   if (one_buffer) RedirectScreenBufferSecond();
+  if (battle || show_minimap) draw_medium_map_overlay(MINIMAP_SPRITE_BGR, MINIMAP_SPRITE);  
   render_scene(viewsector,viewdir,0);
   if (running_anm) klicovani_anm(GetBuffer2nd()+SCREEN_OFFSET,anim_render_buffer,anim_mirror);
   update_mysky();
   schovej_mysku();
   if (one_buffer) RestoreScreen();
-  OutBuffer2nd();
-  if (battle || (game_extras & EX_ALWAYS_MINIMAP)) draw_medium_map();
+  OutBuffer2nd();  
+//  if (battle || (game_extras & EX_ALWAYS_MINIMAP)) draw_medium_map();
   other_draw();
   if (cur_mode == MD_END_GAME) {
       death_screen();
@@ -1851,6 +1857,9 @@ void display_ver(int x,int y,int ax,int ay)
 void hide_overlays() {
     game_display_hide_sprite(H_LODKA);
     game_display_hide_sprite(TEXT_OVERLAY_SPRITE);
+    game_display_hide_sprite(MINIMAP_SPRITE);
+    game_display_hide_sprite(MINIMAP_SPRITE_BGR);
+
 }
 
 

@@ -77,7 +77,7 @@ typedef struct s_save
   char treble;
   char stereing;
   char swapchans;
-  char out_filter;
+  char minimap;
   int32_t glob_flags;
   int32_t game_time;
   char runes[5];
@@ -717,7 +717,7 @@ int save_basic_info()
   s.treble=MIN(get_snd_effect(SND_TREBL),255);
   s.stereing=MIN(get_snd_effect(SND_LSWAP),255);
   s.swapchans=MIN(get_snd_effect(SND_SWAP),255);
-  s.out_filter=MIN(get_snd_effect(SND_OUTFILTER),255);
+  s.minimap=show_minimap;
   s.autosave=autosave_enabled;
   s.game_flags=enable_glmap!=0?GM_MAPENABLE:0;
 
@@ -892,7 +892,7 @@ int load_basic_info()
   set_snd_effect(SND_TREBL,s.treble);
   set_snd_effect(SND_LSWAP,s.stereing);
   set_snd_effect(SND_SWAP,s.swapchans);
-  set_snd_effect(SND_OUTFILTER,s.out_filter);
+  show_minimap = s.minimap;
   if (level_fname==NULL || strcmp(s.level_name,level_fname))
      {
      strcopy_n(loadlevel.name,s.level_name,sizeof(loadlevel.name));

@@ -378,6 +378,10 @@ int vypocet_zasahu(const short *utocnik,const short *obrance, int chaos,int  zbr
   int disadv = 0;
   int obrbonus = obrance[VLS_OBRAT]/5;
   int magbonus = utocnik[VLS_SMAGIE]/5;
+  int zivel = utocnik[VLS_MGZIVEL] & VLS_MGZIVEL_MASK;
+  int magic_need_roll = (utocnik[VLS_MGZIVEL] & VLS_MGZIVEL_FLG_ATTACKER_MAGIC_NEED_ROLL) 
+                        || (obrance[VLS_MGZIVEL] & VLS_MGZIVEL_FLG_DEFENDER_MAGIC_FORCE_ROLL);
+  int only_magic = (obrance[VLS_MGZIVEL] & VLS_MGZIVEL_FLG_DEFENSE_ONLY_MAGIC);
   /*
   if (game_extras & EX_ALTERNATEFIGHT)
   	{
@@ -396,10 +400,10 @@ int vypocet_zasahu(const short *utocnik,const short *obrance, int chaos,int  zbr
 	  dhit=utok;
 	  ddef=obrana;
 	  }
-	zv=obrance[VLS_OHEN+utocnik[VLS_MGZIVEL]];
+	zv=obrance[VLS_OHEN+zivel];
 	zv=mgochrana(zv);
 	mutok=zv*mutok/100;
-	if ((int)rnd(obrance[VLS_OHEN+utocnik[VLS_MGZIVEL]]/2)>mutok) mutok=0;
+	if ((int)rnd(obrance[VLS_OHEN+zivel]/2)>mutok) mutok=0;
   	dmzhit=mutok;
 	zasah=utok-obrana;
 	}
@@ -421,7 +425,7 @@ int vypocet_zasahu(const short *utocnik,const short *obrance, int chaos,int  zbr
 	//mg_attack = magic_roll
 	mutok=mag_att_roll+(mag_att_roll?magbonus:0);
 	//mg_deffense (100-x)
-	mg_def=obrance[VLS_OHEN+utocnik[VLS_MGZIVEL]];
+	mg_def=obrance[VLS_OHEN+zivel];
 	//adjust magic attack
 	dmzhit=mgochrana(mg_def)*mutok/100;
 	zasah=utok-obrana;
@@ -429,11 +433,14 @@ int vypocet_zasahu(const short *utocnik,const short *obrance, int chaos,int  zbr
   if (zasah<0) zasah=0;
   int damage = utocnik[VLS_DAMAGE]+zbran;
   if (zasah<=0 || damage<=0) damage = 0;
-//  ddostal=zasah;
   zasah+=damage;
+  //if magic need roll and no psychical damage, reset magic damage
+  if (magic_need_roll && zasah <= 0) dmzhit = 0;
+  //if only magic active, reset damage : dmzhit will be applied only
+  if (only_magic) zasah = 0;
   if (log_combat) {
       wzprintf(">");
-      if (utocnik[VLS_UTOK_H]) {
+      if (attack_roll) {
         wzprintf("Attack (physical): %d (roll %d-%d) + %d (%s/5) + %d (ext.force) = %d\n",
                   attack_roll, (int)utocnik[VLS_UTOK_L],(int)utocnik[VLS_UTOK_H],
                   attbonus, finesse?texty[13]:texty[10],
@@ -441,7 +448,7 @@ int vypocet_zasahu(const short *utocnik,const short *obrance, int chaos,int  zbr
         } else if (external_force) {
             wzprintf("Attack (physical):  %d (ext.force)\n", external_force);
         }
-      if (obrance[VLS_OBRAN_H] && utok > 0) {
+      if (defense_roll) {
            char chaos[50];
            if (disadv > 1) snprintf(chaos, 50, ", disadvantage %d", disadv);
            else strcpy(chaos,"");
@@ -457,6 +464,9 @@ int vypocet_zasahu(const short *utocnik,const short *obrance, int chaos,int  zbr
               utok, obrana, zasah);
           }
       }
+      if (only_magic) {
+            wzprintf("Psychical hit: 0 (can't be damaged by psychical damage\n)");
+      }
   }
   if (flg & SPL_SANC) {
       int tmp = zasah;
@@ -466,14 +476,14 @@ int vypocet_zasahu(const short *utocnik,const short *obrance, int chaos,int  zbr
   }
   int total_hit = zasah+dmzhit;
   if (log_combat) {
-    if ((int)utocnik[VLS_MGSIL_H]) {
+    if (dmzhit>0) {
       wzprintf(" Attack (magical): %d (roll %d-%d) + %d (%s/5) = %d\n",
           mag_att_roll,(int)utocnik[VLS_MGSIL_L],(int)utocnik[VLS_MGSIL_H], magbonus, texty[11], mutok);
       wzprintf(" Magical hit: %d - %d (resistance %s: %d%%) = %d\n",
-          mutok, mutok - dmzhit, texty[22+utocnik[VLS_MGZIVEL]], mg_def, dmzhit);
+          mutok, mutok - dmzhit, texty[22+zivel], mg_def, dmzhit);
       wzprintf(" Total hit: %d (physical) + %d (magical) = %d\n",
           zasah, dmzhit, total_hit);
-    }
+    }    
   }
   if ((flg & SPL_HSANC) && dmzhit) {
       int tmp = dmzhit/2;
@@ -2175,7 +2185,7 @@ static void souboje_turn(int smer)
   bott_draw(0);
   other_draw();
   program_draw();
-  draw_medium_map();
+  //draw_medium_map();
   ukaz_mysku();
   showview(0,0,0,0);
   schovej_mysku();
@@ -2252,6 +2262,7 @@ void unwire_programming(void)
   send_message(E_DONE,E_KEYBOARD,programming_keyboard);
   delete_from_timer(TM_SCENE);
   wire_proc=wire_programming;
+  hide_overlays();
   }
 
 

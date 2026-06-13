@@ -1,3 +1,4 @@
+
 #include <platform/platform.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -769,6 +770,78 @@ static char mob_not_invis(int sector)
      }
   return 1;
   }
+
+void draw_medium_map_overlay(int sprite_bgr, int sprite_frg) {
+  int xr, yr;
+  int xp, yp;
+  int xc=0,yc=0,x=0,y=0;
+  int j,i,k,layer;
+
+  const int tx = 0;
+  const int ty = 0;
+  const int tw = MEDIUM_MAP * 8+10;
+  const int th = MEDIUM_MAP * 8+10;
+  const int sx = tw;
+
+  xp=MEDIUM_MMAP*8+5;
+  yp=MEDIUM_MMAP*8+5;
+  layer=map_coord[viewsector].layer;
+  xr=map_coord[viewsector].x;
+  yr=map_coord[viewsector].y;
+  curcolor=0x8000;
+  bar32(sx,0,sx+tw, th);
+  curcolor = 0;
+  bar32(tx,ty,tw,th);
+  for(j=0;j<2;j++, xp+=tw)
+     for(i=1;i<mapsize;i++)
+        if (map_coord[i].flags & 1 && map_coord[i].layer==layer)
+           {
+           switch (viewdir & 3)
+              {
+              case 0:xc=map_coord[i].x-xr;yc=map_coord[i].y-yr;break;
+              case 1:yc=-map_coord[i].x+xr;xc=map_coord[i].y-yr;break;
+              case 2:xc=-map_coord[i].x+xr;yc=-map_coord[i].y+yr;break;
+              case 3:yc=map_coord[i].x-xr;xc=-map_coord[i].y+yr;break;
+              }
+           if (xc>=-MEDIUM_MMAP && yc>=-MEDIUM_MMAP && yc<=MEDIUM_MMAP && xc<=MEDIUM_MMAP)
+              {
+              draw_amap_sector(x=xc*8+xp,y=yc*8+yp,i,j,viewdir &3,MEDIUM_MAP_LINE1,MEDIUM_MAP_LINE2);
+              if (j)
+              if (mob_map[i] && mob_not_invis(i) && battle)
+                 {
+                 position(x+1,y+1);set_font(H_FSYMB,AUTOMAP_MOB);
+                 outtext("N");
+                 }
+              if (map_coord[i].flags & MC_PLAYER)
+                 {
+                 int u=-1,z=-1;
+                 for(k=0;k<POCET_POSTAV;k++)
+                    if (postavy[k].sektor==i) {
+                       if (postavy[k].groupnum==cur_group) z=k;else u=k;
+                    }
+                 if (z!=-1) u=z;
+                 if (u!=-1)
+                    {
+                    set_font(H_FSYMB,postavy[u].groupnum==cur_group && !battle?RGB888(255,255,255):barvy_skupin[postavy[u].groupnum]);
+                    position(x+1,y+1);
+                    outtext("M");
+                    }
+
+                 }
+              }
+           }
+
+
+    game_display_load_sprite_ex(sprite_bgr, tw, th, GetScreenPitch(), GetScreenAdr());
+    game_display_load_sprite_ex(sprite_frg, tw, th, GetScreenPitch(), GetScreenAdr()+sx);
+    game_display_set_sprite_alpha(sprite_bgr, 128);
+    game_display_sprite_set_zindex(sprite_bgr, 30);
+    game_display_set_sprite_alpha(sprite_frg, 255);
+    game_display_sprite_set_zindex(sprite_frg, 31);
+    game_display_place_sprite(sprite_bgr, 0, SCREEN_OFFLINE);
+    game_display_place_sprite(sprite_frg, 0, SCREEN_OFFLINE);
+}
+
 
 void draw_medium_map(void)
   {

@@ -335,7 +335,7 @@ MAP_PROC(map_identify)
         }
   if (it->zmeny[VLS_MGSIL_H])
      {
-     sprintf(s,texty[233],texty[22+it->zmeny[VLS_MGZIVEL]]);str_add(&ls,s);
+     sprintf(s,texty[233],texty[22+(it->zmeny[VLS_MGZIVEL] & VLS_MGZIVEL_MASK)]);str_add(&ls,s);
      }
   for(i=0;i<16;i++)
      if (it->zmeny[VLS_KOUZLA] & (1<<i) && texty[i+240]!=NULL) str_add(&ls,texty[i+240]);

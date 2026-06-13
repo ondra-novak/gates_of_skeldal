@@ -1,7 +1,11 @@
 #include "sdl_context.h"
 #include "SDL_events.h"
+#include "SDL_hints.h"
+#include "SDL_rect.h"
+#include "SDL_render.h"
 #include "keyboard_map.h"
 #include "format_mapping.h"
+#include <cstddef>
 #include <iostream>
 
 #include <atomic>
@@ -348,14 +352,26 @@ int SDLContext::init_window(const VideoConfig &config, const char *title, std::f
             handle_sdl_error("Failed to create texture format");
         }
 
-        if (istrcmp(config.scale_quality, "auto") == 0) {
-            if (rinfo.flags & SDL_RENDERER_ACCELERATED) {
-                SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, "best");
-            }
-        } else {
-            SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, config.scale_quality);
+        bool linear_quality = false;
+        switch (config.scale_quality) {
+            case ScaleQuality::autoselect:
+                linear_quality = _hybrid_rescale = !!(rinfo.flags & SDL_RENDERER_ACCELERATED);
+                break;
+            case ScaleQuality::bilinear:
+                linear_quality = true;
+                _hybrid_rescale = false;
+                break;
+            case ScaleQuality::hybrid:
+                linear_quality = true;
+                _hybrid_rescale = true;
+                break;
+            default:
+                linear_quality = false;
+                _hybrid_rescale = false;
+                break;
         }
 
+        SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, linear_quality?"1":"0");
 
 
         stage = "main render target";
@@ -472,6 +488,7 @@ void SDLContext::convert_bitmap(const void *pixels, SDL_Rect rect, int pitch) {
     constexpr auto BBits = FormatMapping<pixel_format>::BBits;
     constexpr auto ABits = FormatMapping<pixel_format>::ABits;
 
+    
     const Uint16 *src = static_cast<const Uint16*>(pixels);
     auto trg = converted_pixels.data();
     for (int y = 0; y < rect.h; ++y) {
@@ -494,17 +511,8 @@ void SDLContext::convert_bitmap(const void *pixels, SDL_Rect rect, int pitch) {
     }
 }
 
-void SDLContext::update_texture_with_conversion(SDL_Texture *texture, const SDL_Rect *rect, const void *pixels, int pitch)
+void SDLContext::update_texture_with_conversion(SDL_Texture *texture, SDL_Rect r, const void *pixels, int pitch)
 {
-    SDL_Rect r;
-    if (rect) {
-        r = *rect;
-    } else {
-        SDL_QueryTexture(texture, nullptr, nullptr, &r.w, &r.h);
-        r.x = 0;
-        r.y = 0;
-    }
-
     converted_pixels.clear();
     converted_pixels.resize(r.w * r.h);
 
@@ -838,12 +846,12 @@ void SDLContext::signal_push() {
 
 
 
-void SDLContext::refresh_screen() {
+void SDLContext::refresh_screen_to_rc(SDL_Rect winrc) {
 
-    SDL_Rect winrc = get_window_aspect_rect();
     auto draw_bgr_sprites = [&]{
         for (const auto &sprite: _sprites) if (sprite.shown && sprite.zindex < 0) {
             SDL_Rect rc = to_window_rect(winrc,sprite._rect);
+            SDL_SetTextureAlphaMod(sprite._txtr.get(), sprite.alpha);
             SDL_RenderCopy(_renderer.get(), sprite._txtr.get(), NULL, &rc);
         }
     };
@@ -892,7 +900,46 @@ void SDLContext::refresh_screen() {
     }
     for (const auto &sprite: _sprites) if (sprite.shown && sprite.zindex >= 0) {
         SDL_Rect rc = to_window_rect(winrc,sprite._rect);
+        SDL_SetTextureAlphaMod(sprite._txtr.get(), sprite.alpha);
         SDL_RenderCopy(_renderer.get(), sprite._txtr.get(), NULL, &rc);
+    }
+}
+
+void SDLContext::refresh_screen() {
+    auto winrc = get_window_aspect_rect();
+    if (_hybrid_rescale && winrc.h > 720) {
+
+        if (!_hybrid_rescale_active) {
+            SDL_SetTextureScaleMode(_hidden_texture, SDL_ScaleModeNearest);
+            SDL_SetTextureScaleMode(_visible_texture, SDL_ScaleModeNearest);
+            for (auto &x: _sprites) SDL_SetTextureScaleMode(x._txtr.get(), SDL_ScaleModeNearest);
+            SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, "0");
+            _hybrid_rescale_active = true;
+         }
+        
+        if (!_hybrid_rescale_txt) {
+            _hybrid_rescale_txt = std::unique_ptr<SDL_Texture, SDL_Deleter>(SDL_CreateTexture(_renderer.get(), _texture_render_format, SDL_TEXTUREACCESS_TARGET , 640, 960));
+            if (!_hybrid_rescale_txt) {
+                _hybrid_rescale = false;
+                refresh_screen();
+                return;
+            }
+            SDL_SetTextureScaleMode(_hybrid_rescale_txt.get(), SDL_ScaleModeLinear);
+        }
+        SDL_SetRenderTarget(_renderer.get(), _hybrid_rescale_txt.get());
+        refresh_screen_to_rc({0,0,640,960});
+        SDL_SetRenderTarget(_renderer.get(),NULL);        
+        SDL_RenderClear(_renderer.get());
+        SDL_RenderCopy(_renderer.get(), _hybrid_rescale_txt.get(), NULL, &winrc);
+    } else {
+        refresh_screen_to_rc(winrc);
+        if (_hybrid_rescale_active) {
+            SDL_SetTextureScaleMode(_hidden_texture, SDL_ScaleModeLinear);
+            SDL_SetTextureScaleMode(_visible_texture, SDL_ScaleModeLinear);
+            for (auto &x: _sprites) SDL_SetTextureScaleMode(x._txtr.get(), SDL_ScaleModeLinear);
+            _hybrid_rescale_active = false;
+            SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, "1");
+         }
     }
     if (_mouse) {
         SDL_Rect recalc_rect = to_window_rect(winrc, _mouse_rect);
@@ -912,7 +959,7 @@ void SDLContext::refresh_screen() {
         SDL_RenderCopy(_renderer.get(), _crt_effect.get(), NULL, &winrc);
     }
     SDL_RenderPresent(_renderer.get());
-
+    
 }
 
 void SDLContext::update_screen(bool force_refresh) {
@@ -929,19 +976,19 @@ void SDLContext::update_screen(bool force_refresh) {
                     SDL_Rect r;
                     pop_item(iter, r);
                     std::string_view data = pop_data(iter, r.w*r.h*2);
-                    update_texture_with_conversion(_texture.get(), &r, data.data(), r.w*2);
+                    update_texture_with_conversion(_texture.get(), r, data.data(), r.w*2);
                 }
                 break;
                 case DisplayRequest::show_mouse_cursor: {
-                    SDL_Rect r;
+                    SDL_Point r;
                     pop_item(iter, r);
-                    std::string_view data = pop_data(iter, r.w*r.h*2);
-                    _mouse.reset(SDL_CreateTexture(_renderer.get(), _texture_render_format,SDL_TEXTUREACCESS_STATIC, r.w, r.h));
+                    std::string_view data = pop_data(iter, r.x*r.y*2);
+                    _mouse.reset(SDL_CreateTexture(_renderer.get(), _texture_render_format,SDL_TEXTUREACCESS_STATIC, r.x, r.y));
                     if (!_mouse) handle_sdl_error("Failed to create surface for mouse cursor");
                     SDL_SetTextureBlendMode(_mouse.get(), SDL_BLENDMODE_BLEND);
-                    _mouse_rect.w = r.w;
-                    _mouse_rect.h = r.h;
-                    update_texture_with_conversion(_mouse.get(), NULL, data.data(), r.w*2);
+                    _mouse_rect.w = r.x;
+                    _mouse_rect.h = r.y;
+                    update_texture_with_conversion(_mouse.get(), {0,0,r.x,r.y}, data.data(), r.x*2);
                 }
                 break;
                 case DisplayRequest::hide_mouse_cursor: {
@@ -968,21 +1015,22 @@ void SDLContext::update_screen(bool force_refresh) {
                 break;
                 case DisplayRequest::sprite_load: {
                     int id;
-                    SDL_Rect r;
+                    SDL_Point r;
                     pop_item(iter, id);
                     pop_item(iter, r);
-                    std::string_view data = pop_data(iter, r.w*r.h*2);
+                    std::string_view data = pop_data(iter, r.x*r.y*2);
                     auto iter = std::find_if(_sprites.begin(), _sprites.end(),[&](const Sprite &x){
                         return x.id == id;
                     });
                     if (iter == _sprites.end()) {
                         iter = _sprites.insert(iter,{id});
                     }
-                    iter->_txtr.reset(SDL_CreateTexture(_renderer.get(), _texture_render_format, SDL_TEXTUREACCESS_STATIC,r.w, r.h));
+                    iter->_txtr.reset(SDL_CreateTexture(_renderer.get(), _texture_render_format, SDL_TEXTUREACCESS_STATIC,r.x, r.y));
                     if (!iter->_txtr) handle_sdl_error("Failed to create compositor sprite");
                     SDL_SetTextureBlendMode(iter->_txtr.get(), SDL_BLENDMODE_BLEND);
-                    update_texture_with_conversion(iter->_txtr.get(), NULL, data.data(), r.w*2);
-                    iter->_rect = r;
+                    update_texture_with_conversion(iter->_txtr.get(), {0,0, r.x, r.y}, data.data(), r.x*2);
+                    iter->_rect.w = r.x;
+                    iter->_rect.h = r.y;
                     update_zindex();
                 } break;
                 case DisplayRequest::sprite_unload: {
@@ -1001,6 +1049,17 @@ void SDLContext::update_screen(bool force_refresh) {
                     });
                     if (iter != _sprites.end()) iter->shown = false;
                 } break;
+                case DisplayRequest::sprite_alpha: {
+                    int id;
+                    int alpha;
+                    pop_item(iter, id);
+                    pop_item(iter, alpha);
+                    auto iter = std::find_if(_sprites.begin(), _sprites.end(),[&](const Sprite &x){
+                        return x.id == id;
+                    });
+                    if (iter != _sprites.end()) iter->alpha = alpha;
+                }
+                break;
                 case DisplayRequest::sprite_place: {
                     int id;
                     SDL_Point pt;
@@ -1186,6 +1245,13 @@ SDL_Rect SDLContext::to_window_rect(const SDL_Rect &winrc, const SDL_Rect &sourc
     SDL_Point wpt2(to_window_point(winrc, pt2));
     return {wpt1.x, wpt1.y, wpt2.x - wpt1.x, wpt2.y - wpt1.y};
 }
+SDL_Rect SDLContext::to_source_rect(const SDL_Rect &winrc, const SDL_Rect &window_rect) {
+    SDL_Point pt1(window_rect.x, window_rect.y);
+    SDL_Point pt2(window_rect.x+window_rect.w, window_rect.y+window_rect.h);
+    SDL_Point wpt1(to_source_point(winrc, pt1));
+    SDL_Point wpt2(to_source_point(winrc, pt2));
+    return {wpt1.x, wpt1.y, wpt2.x - wpt1.x, wpt2.y - wpt1.y};
+}
 void SDLContext::set_quit_callback(std::function<void()> fn) {
     _quit_callback = std::move(fn);
 }
@@ -1242,16 +1308,16 @@ void put_picture_ex(unsigned short x,unsigned short y,const void *p, unsigned sh
 }
 
 void  SDLContext::push_hi_image(const unsigned short *image) {
-    SDL_Rect rc = {};
-    rc.w= image[0];
-    rc.h =image[1];
+    SDL_Point rc = {};
+    rc.x= image[0];
+    rc.y =image[1];
     push_item(rc);
     auto sz = _display_update_queue.size();
-    auto imgsz = rc.w*rc.h;
+    auto imgsz = rc.x*rc.y;
     _display_update_queue.resize(sz+imgsz*2);
     unsigned short *trg = reinterpret_cast<unsigned short *>(_display_update_queue.data()+sz);
     std::fill(trg, trg+imgsz, 0x8000);
-    put_picture_ex(0, 0, image, trg, rc.w, rc.h);
+    put_picture_ex(0, 0, image, trg, rc.x, rc.y);
 }
 
 void SDLContext::show_mouse_cursor(const unsigned short *ms_hi_format, SDL_Point finger) {
@@ -1272,7 +1338,29 @@ void SDLContext::load_sprite(int sprite_id, const unsigned short *hi_image) {
     push_item(DisplayRequest::sprite_load);
     push_item(sprite_id);
     push_hi_image(hi_image);
+}
+void SDLContext::load_sprite(int sprite_id, unsigned int width, unsigned int height, unsigned int pitch,  const unsigned short *data) {
+    std::lock_guard _(_mx);
+    push_item(DisplayRequest::sprite_load);
+    push_item(sprite_id);
+    SDL_Point rc = {static_cast<int>(width), static_cast<int>(height)};
+    push_item(rc);
+    auto sz = _display_update_queue.size();
+    auto imgsz = width *height;
+    _display_update_queue.resize(sz+imgsz*2);
+    unsigned short *trg = reinterpret_cast<unsigned short *>(_display_update_queue.data()+sz);
+    for (unsigned int y = 0; y < height; ++y) {
+        std::copy_n(data, width, trg);
+        data+=pitch;
+        trg+=width;
+    }
+}
 
+void SDLContext::set_sprite_alpha(int sprite_id, int alpha) {
+    std::lock_guard _(_mx);
+    push_item(DisplayRequest::sprite_alpha);
+    push_item(sprite_id);
+    push_item(alpha);
 }
 
 void SDLContext::place_sprite(int sprite_id, int x, int y) {
@@ -1379,3 +1467,4 @@ void SDLContext::raise_window() const
 void SDLContext::set_steam_callback(void (*cb)()) {
     _steam_callback = cb;
 }
+

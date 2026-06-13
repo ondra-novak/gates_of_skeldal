@@ -33,7 +33,11 @@ int game_display_init(const INI_CONFIG_SECTION *display_section,
     } else {
         cfg.composer = 0;
     }
-    cfg.scale_quality = ini_get_string(display_section, "scale_quality", "auto");
+    const char *quality = ini_get_string(display_section, "scale_quality", "auto");
+    if (istrcmp(quality,"linear") == 0) cfg.scale_quality = SDLContext::ScaleQuality::bilinear;
+    else if (istrcmp(quality,"nearest") == 0) cfg.scale_quality = SDLContext::ScaleQuality::nearest;
+    else if (istrcmp(quality,"hybrid") == 0) cfg.scale_quality = SDLContext::ScaleQuality::hybrid;
+    else  cfg.scale_quality = SDLContext::ScaleQuality::autoselect;
     cfg.window_height = ini_get_int(display_section, "window_height", 480);
     cfg.window_width = ini_get_int(display_section, "window_width", 640);
 
@@ -257,10 +261,18 @@ void game_display_load_sprite(int sprite_id, const unsigned short *hi_image) {
     auto &sdl = get_sdl_global_context();
     return sdl.load_sprite(sprite_id, hi_image);
 }
+void game_display_load_sprite_ex(int sprite_id, unsigned int width, unsigned int height, unsigned int pitch, const unsigned short *data_rgb1555) {
+    auto &sdl = get_sdl_global_context();
+    return sdl.load_sprite(sprite_id,width,height,pitch, data_rgb1555);
+}
 ///show and place sprite at given coordinates
 void game_display_place_sprite(int sprite_id, int x, int y) {
     auto &sdl = get_sdl_global_context();
     sdl.place_sprite(sprite_id,x, y);
+}
+void game_display_set_sprite_alpha(int sprite_id, int alpha) {
+    auto &sdl = get_sdl_global_context();
+    sdl.set_sprite_alpha(sprite_id,alpha);
 }
 ///show and place (and scale) sprite at given coordinates
 void game_display_scale_sprite(int sprite_id, int x, int y, int w, int h) {
