@@ -1463,11 +1463,11 @@ void draw_sector(int celx,int cely,int s)
 //  if (true_seeing) swap_truesee(ss);
   }
 
-void back_clear(int celx,int color)
+void back_clear(int celx,int color, char has_ceil)
   {
   int x1,y1,x2,y2,xc;
   y1=viewport_geometry[0][0][VIEW3D_Z].y+MIDDLE_Y+SCREEN_OFFLINE;
-  y2=SCREEN_OFFLINE;
+  y2=has_ceil?viewport_geometry[0][1][VIEW3D_Z].y+MIDDLE_Y+SCREEN_OFFLINE:SCREEN_OFFLINE;
   x2=viewport_geometry[0][1][VIEW3D_Z].x+MIDDLE_X;
   x1=-viewport_geometry[0][1][VIEW3D_Z].x+MIDDLE_X;
   xc=(x2-x1+2)*celx;
@@ -1647,7 +1647,7 @@ void render_scene(int sector, int smer, char nobackdrop)
   if (nobackdrop && bs) clear_scene_color(0x8000); else clear_scene(smer);
   for(i=-VIEW3D_X+1;i<VIEW3D_X;i++)
      if ((s=minimap[VIEW3D_Z-1][VIEW3D_X+i])!=0)
-        if (map_coord[s].flags & MC_SHADING) back_clear(i,0);
+        if (map_coord[s].flags & MC_SHADING) back_clear(i,0, map_sectors[s].ceil > 0);
 /*  if (reverse_draw)
   for(i=0;i<VIEW3D_Z;i++)
      for(j=0;j<VIEW3D_X;j++)
