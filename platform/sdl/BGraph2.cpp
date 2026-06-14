@@ -34,9 +34,9 @@ int game_display_init(const INI_CONFIG_SECTION *display_section,
         cfg.composer = 0;
     }
     const char *quality = ini_get_string(display_section, "scale_quality", "auto");
-    if (istrcmp(quality,"linear") == 0) cfg.scale_quality = SDLContext::ScaleQuality::bilinear;
+    if (istrcmp(quality,"linear") == 0) cfg.scale_quality = SDLContext::ScaleQuality::linear;
     else if (istrcmp(quality,"nearest") == 0) cfg.scale_quality = SDLContext::ScaleQuality::nearest;
-    else if (istrcmp(quality,"hybrid") == 0) cfg.scale_quality = SDLContext::ScaleQuality::hybrid;
+    else if (istrcmp(quality,"sharp") == 0) cfg.scale_quality = SDLContext::ScaleQuality::sharp;
     else  cfg.scale_quality = SDLContext::ScaleQuality::autoselect;
     cfg.window_height = ini_get_int(display_section, "window_height", 480);
     cfg.window_width = ini_get_int(display_section, "window_width", 640);

@@ -32,8 +32,8 @@ public:
     enum class ScaleQuality {
         autoselect,
         nearest,
-        bilinear,
-        hybrid
+        linear,
+        sharp
     };
 
     struct VideoConfig {
@@ -253,7 +253,7 @@ protected:
     std::unique_ptr<SDL_Texture, SDL_Deleter> _texture2;
     std::unique_ptr<SDL_Texture, SDL_Deleter> _crt_effect;
     std::unique_ptr<SDL_Texture, SDL_Deleter> _mouse;
-    std::unique_ptr<SDL_Texture, SDL_Deleter> _hybrid_rescale_txt;
+    std::unique_ptr<SDL_Texture, SDL_Deleter> _sharp_rescale_txt;
     std::unique_ptr<SDL_PixelFormat, SDL_Deleter> _main_pixel_format;
     unique_value<SDL_AudioDeviceID, SDL_Audio_Deleter> _audio;
     SDL_Texture *_visible_texture = nullptr;
@@ -265,8 +265,8 @@ protected:
     bool _present = false;
     bool _convert_format = false;
     bool _burst_mode = false;
-    bool _hybrid_rescale = false;
-    bool _hybrid_rescale_active = false;
+    bool _sharp_rescale = false;
+    bool _sharp_rescale_active = false;
     std::atomic<bool> _key_control = false;
     std::atomic<bool> _key_shift = false;
     std::atomic<bool> _key_capslock = false;

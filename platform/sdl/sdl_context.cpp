@@ -355,19 +355,19 @@ int SDLContext::init_window(const VideoConfig &config, const char *title, std::f
         bool linear_quality = false;
         switch (config.scale_quality) {
             case ScaleQuality::autoselect:
-                linear_quality = _hybrid_rescale = !!(rinfo.flags & SDL_RENDERER_ACCELERATED);
+                linear_quality = _sharp_rescale = !!(rinfo.flags & SDL_RENDERER_ACCELERATED);
                 break;
-            case ScaleQuality::bilinear:
+            case ScaleQuality::linear:
                 linear_quality = true;
-                _hybrid_rescale = false;
+                _sharp_rescale = false;
                 break;
-            case ScaleQuality::hybrid:
+            case ScaleQuality::sharp:
                 linear_quality = true;
-                _hybrid_rescale = true;
+                _sharp_rescale = true;
                 break;
             default:
                 linear_quality = false;
-                _hybrid_rescale = false;
+                _sharp_rescale = false;
                 break;
         }
 
@@ -907,37 +907,37 @@ void SDLContext::refresh_screen_to_rc(SDL_Rect winrc) {
 
 void SDLContext::refresh_screen() {
     auto winrc = get_window_aspect_rect();
-    if (_hybrid_rescale && winrc.h > 720) {
+    if (_sharp_rescale) {
 
-        if (!_hybrid_rescale_active) {
+        if (!_sharp_rescale_active) {
             SDL_SetTextureScaleMode(_hidden_texture, SDL_ScaleModeNearest);
             SDL_SetTextureScaleMode(_visible_texture, SDL_ScaleModeNearest);
             for (auto &x: _sprites) SDL_SetTextureScaleMode(x._txtr.get(), SDL_ScaleModeNearest);
             SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, "0");
-            _hybrid_rescale_active = true;
+            _sharp_rescale_active = true;
          }
         
-        if (!_hybrid_rescale_txt) {
-            _hybrid_rescale_txt = std::unique_ptr<SDL_Texture, SDL_Deleter>(SDL_CreateTexture(_renderer.get(), _texture_render_format, SDL_TEXTUREACCESS_TARGET , 640, 960));
-            if (!_hybrid_rescale_txt) {
-                _hybrid_rescale = false;
+        if (!_sharp_rescale_txt) {
+            _sharp_rescale_txt = std::unique_ptr<SDL_Texture, SDL_Deleter>(SDL_CreateTexture(_renderer.get(), _texture_render_format, SDL_TEXTUREACCESS_TARGET , 640, 960));
+            if (!_sharp_rescale_txt) {
+                _sharp_rescale = false;
                 refresh_screen();
                 return;
             }
-            SDL_SetTextureScaleMode(_hybrid_rescale_txt.get(), SDL_ScaleModeLinear);
+            SDL_SetTextureScaleMode(_sharp_rescale_txt.get(), SDL_ScaleModeLinear);
         }
-        SDL_SetRenderTarget(_renderer.get(), _hybrid_rescale_txt.get());
+        SDL_SetRenderTarget(_renderer.get(), _sharp_rescale_txt.get());
         refresh_screen_to_rc({0,0,640,960});
         SDL_SetRenderTarget(_renderer.get(),NULL);        
         SDL_RenderClear(_renderer.get());
-        SDL_RenderCopy(_renderer.get(), _hybrid_rescale_txt.get(), NULL, &winrc);
+        SDL_RenderCopy(_renderer.get(), _sharp_rescale_txt.get(), NULL, &winrc);
     } else {
         refresh_screen_to_rc(winrc);
-        if (_hybrid_rescale_active) {
+        if (_sharp_rescale_active) {
             SDL_SetTextureScaleMode(_hidden_texture, SDL_ScaleModeLinear);
             SDL_SetTextureScaleMode(_visible_texture, SDL_ScaleModeLinear);
             for (auto &x: _sprites) SDL_SetTextureScaleMode(x._txtr.get(), SDL_ScaleModeLinear);
-            _hybrid_rescale_active = false;
+            _sharp_rescale_active = false;
             SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, "1");
          }
     }
@@ -985,6 +985,7 @@ void SDLContext::update_screen(bool force_refresh) {
                     std::string_view data = pop_data(iter, r.x*r.y*2);
                     _mouse.reset(SDL_CreateTexture(_renderer.get(), _texture_render_format,SDL_TEXTUREACCESS_STATIC, r.x, r.y));
                     if (!_mouse) handle_sdl_error("Failed to create surface for mouse cursor");
+                    if (_sharp_rescale) SDL_SetTextureScaleMode(_mouse.get(), SDL_ScaleModeLinear);
                     SDL_SetTextureBlendMode(_mouse.get(), SDL_BLENDMODE_BLEND);
                     _mouse_rect.w = r.x;
                     _mouse_rect.h = r.y;
