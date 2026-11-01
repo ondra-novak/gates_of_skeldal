@@ -1,26 +1,29 @@
 #include <string.h>
+#include <stdlib.h>
 #include <sstream>
 #include "achievements.h"
 #include "error.h"
 #include "platform.h"
-#ifdef STEAM_ENABLED
 #include <steam/steam_api.h>
 
 extern "C" {
     #include <libs/event.h>
 }
 
+/* Steamworks backend (ACHIEVEMENTS_BACKEND=steam). Achievements only; no DRM,
+ * no ownership check - a failed SteamAPI_Init() just disables achievements. */
+
 static char steam_available = 0;
 static char steam_initialized = 0;
 
 
-void run_steam_callbacks(const EVENT_MSG *msg,void **)  {
+static void run_steam_callbacks(const EVENT_MSG *msg,void **)  {
     if (msg->msg == E_IDLE) {
         SteamAPI_RunCallbacks();
     }
 }
 
-void steam_init()
+void achievements_init(void)
 {
     if (!steam_initialized) {
         steam_initialized = 1;
@@ -34,7 +37,7 @@ void steam_init()
     }
 }
 
-void steam_shutdown()
+void achievements_shutdown(void)
 {
     if (steam_available) {
         send_message(E_DONE, E_IDLE, &run_steam_callbacks);
@@ -46,7 +49,7 @@ void steam_shutdown()
 
 int8_t set_achievement(const char *id)
 {
-    steam_init();
+    achievements_init();
 
     if (!steam_available) {
         return -1;
@@ -63,7 +66,7 @@ int8_t set_achievement(const char *id)
 
 int8_t clear_achievement(const char *id)
 {
-    steam_init();
+    achievements_init();
 
     if (!steam_available) {
         return -1;
@@ -86,30 +89,29 @@ int8_t clear_achievement(const char *id)
     }
 }
 
-char is_steam_available()
+char achievements_available(void)
 {
     return steam_available;
 }
 
-char *get_steam_status()
+const char *achievements_backend_name(void)
+{
+    return "steam";
+}
+
+char *achievements_status(void)
 {
     std::ostringstream oss;
-    int num_achievements = SteamUserStats()->GetNumAchievements();
-    oss << "SteamAPI_Init: " << ( SteamAPI_Init() ? "success" : "failure") << "\n";
-    oss << "UserStats pointer: " <<  SteamUserStats() << "\n";
-    oss << "Is Steam overlay enabled:" << (SteamUtils()->IsOverlayEnabled() ? "yes" : "no") <<  "\n";
-    oss << "AppID: "<< SteamUtils()->GetAppID() << "\n";
-    oss << "Num Achievements: " << num_achievements << "\n";
+    oss << "Backend: steam\n";
+    oss << "SteamAPI_Init: " << (steam_available ? "success" : "failure") << "\n";
+    if (steam_available) {
+        oss << "UserStats pointer: " <<  SteamUserStats() << "\n";
+        oss << "Is Steam overlay enabled:" << (SteamUtils()->IsOverlayEnabled() ? "yes" : "no") <<  "\n";
+        oss << "AppID: "<< SteamUtils()->GetAppID() << "\n";
+        oss << "Num Achievements: " << SteamUserStats()->GetNumAchievements() << "\n";
+    }
 
     std::string str = oss.str();
     char *out  = strdup(str.c_str());
     return out;
 }
-#else
-void steam_init() {}
-void steam_shutdown() {}
-int8_t set_achievement(const char *id) {return -1;}
-int8_t clear_achievement(const char *id) {return -1;}
-char is_steam_available() {return 0;}
-char *get_steam_status() {return NULL;}
-#endif

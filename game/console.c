@@ -452,9 +452,10 @@ static int process_actions(const char *command) {
         load_map(lname);
         return 1;
     }
-    if (istrcmp(command, "steam") == 0) {
-        if (is_steam_available()) {
-            char *c = get_steam_status();;
+    if (istrcmp(command, "services") == 0 || istrcmp(command, "steam") == 0 || istrcmp(command, "gog") == 0) {
+        wzprintf("Achievements backend: %s\n", achievements_backend_name());
+        char *c = achievements_status();
+        if (c) {
             wzputs(c);
             free(c);
         } else {

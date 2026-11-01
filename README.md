@@ -25,6 +25,22 @@ make all
 
 
 
+## Achievements backend (Steam / GOG Galaxy)
+
+Achievements are provided through one of three interchangeable backends, selected at configure time:
+
+```
+cmake -DACHIEVEMENTS_BACKEND=steam  ..   # Steamworks  - SDK in external/steamworks (see external/steamworks/get_sdk.md)
+cmake -DACHIEVEMENTS_BACKEND=galaxy ..   # GOG Galaxy  - SDK in external/galaxy     (see external/galaxy/get_sdk.md)
+cmake -DACHIEVEMENTS_BACKEND=none   ..   # no achievements
+```
+
+The default (`auto`) picks `steam` if the Steamworks SDK is present, otherwise `galaxy` if the Galaxy SDK is present, otherwise `none`.
+The Galaxy backend additionally needs `-DGOG_CREDENTIALS_FILE=<path>` pointing to a CMake file with `GOG_CLIENT_ID` and `GOG_CLIENT_SECRET`
+(default lookup: `gog_credentials.cmake` in the source directory or its parent). The Galaxy backend is Windows only.
+
+Neither backend contains DRM: if the Steam or Galaxy client is not running the game starts normally and achievements are simply disabled.
+
 ## RUN
 
 You need original DOS version files (distrubuted on CD) or Windows port files.
@@ -167,7 +183,7 @@ unachieve all
 ```
 flute
 status
-steam
+services   (aliases: steam, gog)
 ls
 cat <file>
 hex <file>

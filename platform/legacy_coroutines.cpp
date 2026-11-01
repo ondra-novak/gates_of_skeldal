@@ -2,6 +2,7 @@
 #include "error.h"
 
 #include <thread>
+#include <chrono>
 #include <atomic>
 #include <memory>
 #include <queue>

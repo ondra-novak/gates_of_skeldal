@@ -11,3 +11,6 @@ _UpgradeReport_Files
 /.settings
 /.vscode
 /skeldal.local.ini
+/gog_credentials.cmake
+/external/galaxy/*
+!/external/galaxy/get_sdk.md
