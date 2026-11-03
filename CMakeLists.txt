@@ -4,6 +4,18 @@ project(skeldal)
 # Najít SDL2 knihovnu
 find_package(SDL2 REQUIRED)
 
+# -DSKELDAL_SDL2_STATIC=ON : link SDL2 statically (portable Linux build, see
+# platform/linux/portable/). Requires an SDL2 installation that provides
+# the SDL2::SDL2-static target (SDL built with -DSDL_STATIC=ON).
+option(SKELDAL_SDL2_STATIC "Link SDL2 statically" OFF)
+if(SKELDAL_SDL2_STATIC)
+    if(NOT TARGET SDL2::SDL2-static)
+        message(FATAL_ERROR "SKELDAL_SDL2_STATIC=ON but SDL2::SDL2-static target was not found")
+    endif()
+    set(SDL2_LIBRARIES SDL2::SDL2-static)
+    message(STATUS "SDL2: static linking")
+endif()
+
 # ---------------------------------------------------------------------------
 # Achievements backend
 #

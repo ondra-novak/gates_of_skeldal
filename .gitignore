@@ -6,6 +6,7 @@ _UpgradeReport_Files
 /Bin
 /Debug
 /build
+/build-portable
 /.cproject
 /.project
 /.settings

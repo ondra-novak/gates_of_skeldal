@@ -2,6 +2,7 @@
 #include "../getopt.h"
 #include "../platform.h"
 #include "../error.h"
+#include <SDL_messagebox.h>
 #include <iostream>
 #include <string>
 
@@ -22,6 +23,15 @@ void show_help(const char *arg0) {
            "-s <directory>  generate string-tables (for localization) and exit\n"
            "-h              this help\n");
     exit(1);
+}
+
+// Error is always printed to stderr. A GUI dialog is shown too, because the
+// game is usually started from a launcher/desktop where stderr is not visible.
+// SDL message box works on X11 and Wayland without external tools and does
+// not need SDL_Init; when no display is available it just fails silently.
+static void show_error(const char *txt) {
+    std::cerr << "ERROR: " << txt << std::endl;
+    SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR, "Gates of Skeldal - ERROR", txt, NULL);
 }
 
 void show_help_short() {
@@ -48,9 +58,7 @@ int main(int argc, char **argv) {
 
     SKELDAL_CONFIG cfg;
     cfg.short_help = show_help_short;
-    cfg.show_error = [](const char *txt) {
-        std::cerr << "ERROR: " << txt << std::endl;
-    };
+    cfg.show_error = show_error;
     cfg.adventure_path = adv_config_file.empty()?NULL:adv_config_file.c_str();
     cfg.config_path = config_name.c_str();
     cfg.lang_path = lang.empty()?NULL:lang.c_str();
@@ -64,7 +72,10 @@ int main(int argc, char **argv) {
         }
 
     } catch (const std::exception &e) {
-        std::cerr << "ERROR: " << exception_to_string(e) << std::endl;
+        show_error(exception_to_string(e).c_str());
+        return 1;
+    } catch (...) {
+        show_error("Unknown error or crash");
         return 1;
     }
 
