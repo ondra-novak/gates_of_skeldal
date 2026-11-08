@@ -288,7 +288,6 @@ int SDLContext::init_window(const VideoConfig &config, const char *title, std::f
     _fullscreen_mode = config.fullscreen;
     _mouse_size = config.cursor_size;
 
-    std::atomic<bool> done = false;
     std::exception_ptr e;
     std::string_view stage;
     std::string rname;

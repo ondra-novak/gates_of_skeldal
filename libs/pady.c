@@ -30,7 +30,7 @@ Uz nemluvim o jmenach cizich.
 #include <stdio.h>
 #include <string.h>
 #include <ctype.h>
-#include <malloc.h>
+#include <stdlib.h>
 
 typedef char TPAD[8];
 //typ TPAD predstavuje koncovku pro jeden pad

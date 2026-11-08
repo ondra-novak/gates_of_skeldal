@@ -1,7 +1,6 @@
 #include <platform/platform.h>
 #include "types.h"
 #include <stdio.h>
-#include <malloc.h>
 #include <stdlib.h>
 #include "memman.h"
 #include <time.h>

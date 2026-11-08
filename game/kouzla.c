@@ -2,7 +2,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <libs/bgraph.h>
-#include <malloc.h>
 #include <libs/memman.h>
 
 #include <libs/mgifmem.h>

@@ -2,7 +2,7 @@
 
 #include <stdio.h>
 #include <conio.h>
-#include <malloc.h>
+#include <stdlib.h>
 #include "doserr.h"
 
 void *err_stack;

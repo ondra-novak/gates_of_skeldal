@@ -7,7 +7,6 @@
 #include <libs/bgraph.h>
 #include <libs/bmouse.h>
 
-#include <malloc.h>
 #include <libs/memman.h>
 #include <math.h>
 #include "globals.h"

@@ -4,7 +4,7 @@
 #include "types.h"
 #include "event.h"
 #include "devices.h"
-#include <malloc.h>
+#include <stdlib.h>
 #include <time.h>
 #include "memman.h"
 #include <setjmp.h>

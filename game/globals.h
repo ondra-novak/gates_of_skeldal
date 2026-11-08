@@ -6,7 +6,6 @@
 #include <string.h>
 #include <stdint.h>
 #include <stdlib.h>
-#include <malloc.h>
 #include <libs/memman.h>
 
 #define POCET_POSTAV 6

@@ -4,7 +4,6 @@
 #include <ctype.h>
 #include <string.h>
 #include <stdio.h>
-#include <malloc.h>
 
 #include <libs/types.h>
 #include <libs/bgraph.h>

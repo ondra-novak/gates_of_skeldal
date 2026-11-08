@@ -2,7 +2,7 @@
 #include <vesa.h>
 #include <dpmi.h>
 #include <stdio.h>
-#include <malloc.h>
+#include <stdlib.h>
 #include "bgraph.h"
 #include <i86.h>
 

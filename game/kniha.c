@@ -42,7 +42,6 @@
 */
 #include <stdio.h>
 #include <stdlib.h>
-#include <malloc.h>
 #include <string.h>
 #include <libs/strlite.h>
 #include <libs/bgraph.h>

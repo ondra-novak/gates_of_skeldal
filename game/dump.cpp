@@ -49,7 +49,7 @@ void save_dump(const uint16_t *screen_addr,
         dump_counter = findMaxDumpNumber(".");
         SEND_LOG("(DUMP) Dump counter sets to %d", dump_counter);
     }
-    sprintf(c, "dump%04d.bmp", ++dump_counter);
+    snprintf(c, sizeof(c), "dump%04d.bmp", ++dump_counter);
     SEND_LOG("(DUMP) Saving screen shot named '%s'", c);
     f = fopen_icase(c, "wb");
     fputc('B', f);

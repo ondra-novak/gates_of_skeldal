@@ -3,7 +3,6 @@
 #include <stdlib.h>
 #include <string.h>
 #include <stdio.h>
-#include <malloc.h>
 
 #include <libs/pcx.h>
 #include <libs/types.h>
