@@ -1370,7 +1370,7 @@ void redraw_scene()
   schovej_mysku();
   if (one_buffer) RestoreScreen();
   OutBuffer2nd();
-  if (battle || (game_extras & EX_ALWAYS_MINIMAP)) draw_medium_map();
+  if (battle || minimap_enabled || (game_extras & EX_ALWAYS_MINIMAP)) draw_medium_map();
   other_draw();
   if (cur_mode == MD_END_GAME) {
       death_screen();

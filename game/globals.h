@@ -620,6 +620,7 @@ extern char lodka_battle_draw;  //jedncka pokud se zobrazuje programovani (pro l
 extern char anim_mirror;     //je li 1 pak animace kouzel a zbrani jsou zrcadlove otocene
 extern char insleep;         //je li 1 pak bezi sleep
 extern char pass_zavora;     //je-li 1 pak bezi passing (hraci zrovna jdou)
+extern char minimap_enabled; //povoluje zobrazeni minimapy podle konfigurace
 extern short moving_player;   //cislo presouvaneho hrace
 extern int bgr_distance; //vzdalenost pozadi od pohledu
 extern int bgr_handle;  //cislo handle k obrazku pozadi;
